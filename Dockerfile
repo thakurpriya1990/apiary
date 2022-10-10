@@ -27,6 +27,7 @@ COPY cron /etc/cron.d/container
 COPY startup.sh /
 COPY reporting_database_rebuild.sh /
 COPY open_reporting_db /
+COPY open_reporting_db_readonly /
 COPY nginx-default.conf /etc/nginx/sites-enabled/default
 RUN service rsyslog start
 RUN chmod 0644 /etc/cron.d/container
@@ -35,6 +36,7 @@ RUN service cron start
 RUN touch /var/log/cron.log
 RUN service cron start
 RUN chmod 755 /open_reporting_db
+RUN chmod 755 /open_reporting_db_readonly
 RUN chmod 755 /reporting_database_rebuild.sh
 RUN chmod 755 /startup.sh
 EXPOSE 80
