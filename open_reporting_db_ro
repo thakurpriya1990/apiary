@@ -1,1 +1,2 @@
+#!/bin/bash
 psql "host=$TEMPORARY_LEDGER_HOST port=5432 dbname=$TEMPORARY_LEDGER_DATABASE user=$RO_USER password=$RO_PASSWORD sslmode=require"
