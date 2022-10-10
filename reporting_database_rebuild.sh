@@ -29,7 +29,7 @@ echo "Importing Disturbance Core prod into reporting database";
 PGSSLMODE=require PGPASSWORD="$TEMPORARY_LEDGER_PASSWORD"  pg_restore  --host=$TEMPORARY_LEDGER_HOST --dbname=$TEMPORARY_LEDGER_DATABASE --username=$TEMPORARY_LEDGER_USERNAME /dbdumps/disturbance_core_prod.sql
 
 # GRANT SELECT to parkstay_ro account
-for I in $(psql "host=$TEMPORARY_LEDGER_HOST port=5432 dbname=$TEMPORARY_LEDGER_DATABASE user=$TEMPORARY_LEDGER_USERNAME password=$TEMPORARY_LEDGER_PASSWORD sslmode=require" -c "SELECT tablename FROM pg_tables where tablename not like 'pg\_%' and tablename not like 'sql\_%';" -t);
+for I in $(psql "host=$TEMPORARY_LEDGER_HOST port=5432 dbname=$TEMPORARY_LEDGER_DATABASE user=$TEMPORARY_LEDGER_USERNAME password=$TEMPORARY_LEDGER_PASSWORD sslmode=require" -c "SELECT tablename FROM pg_tables where tablename not like 'pg\_%' and tablename not like 'sql\_%' and tablename not like 'spatial\_%';" -t);
   do
   echo "GRANT SELECT ON $I TO das_ro;";
   psql "host=$TEMPORARY_LEDGER_HOST port=5432 dbname=$TEMPORARY_LEDGER_DATABASE user=$TEMPORARY_LEDGER_USERNAME password=$TEMPORARY_LEDGER_PASSWORD sslmode=require" -c "GRANT SELECT ON $I TO das_ro; " -t
