@@ -35,5 +35,8 @@ for I in $(psql "host=$TEMPORARY_LEDGER_HOST port=5432 dbname=$TEMPORARY_LEDGER_
   psql "host=$TEMPORARY_LEDGER_HOST port=5432 dbname=$TEMPORARY_LEDGER_DATABASE user=$TEMPORARY_LEDGER_USERNAME password=$TEMPORARY_LEDGER_PASSWORD sslmode=require" -c "GRANT SELECT ON $I TO das_ro; " -t
 done
 
+# Monitor Timestamp
+psql "host=$TEMPORARY_LEDGER_HOST port=5432 dbname=$TEMPORARY_LEDGER_DATABASE user=$TEMPORARY_LEDGER_USERNAME password=$TEMPORARY_LEDGER_PASSWORD sslmode=require" -c "CREATE TABLE report_tables_monitor (id, timestamp) AS SELECT 1, CURRENT_TIMESTAMP;" 
+
 rm /dbdumps/ledger_core_prod.sql
 rm /dbdumps/disturbance_core_prod.sql

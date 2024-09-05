@@ -1,6 +1,6 @@
 # Prepare the base environment.
-FROM ubuntu:20.04 as builder_base_container
-MAINTAINER asi@dbca.wa.gov.au
+FROM ubuntu:24.04 AS builder_base_container
+LABEL org.opencontainers.image.authors="asi@dbca.wa.gov.au"
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Australia/Perth
 ENV PRODUCTION_EMAIL=True
@@ -13,7 +13,7 @@ RUN apt-get install --no-install-recommends -y libpq-dev patch
 RUN apt-get install --no-install-recommends -y postgresql-client mtr htop vim ssh 
 RUN ln -s /usr/bin/python3 /usr/bin/python 
 #RUN ln -s /usr/bin/pip3 /usr/bin/pip
-RUN pip install --upgrade pip
+#RUN pip install --upgrade pip
 # Install Python libs from requirements.txt.
 
 WORKDIR /app
@@ -29,7 +29,7 @@ COPY reporting_database_rebuild.sh /
 COPY open_reporting_db /
 COPY open_reporting_db_readonly /
 COPY nginx-default.conf /etc/nginx/sites-enabled/default
-RUN service rsyslog start
+#RUN service rsyslog start
 RUN chmod 0644 /etc/cron.d/container
 RUN crontab /etc/cron.d/container
 RUN service cron start
