@@ -51,6 +51,7 @@ class Command(BaseCommand):
         SpatialQueryMetrics.objects.all().delete()
         DASMapLayer.objects.all().delete()
         CddpQuestionGroup.objects.all().delete()
+        GlobalSettings.objects.all().delete()
 
         ### Load data to destination DB
         ```
@@ -192,15 +193,38 @@ class Command(BaseCommand):
                 ProposalTypeSection.objects.all().delete()
                 SpatialQueryQuestion.objects.all().delete()
                 MasterlistQuestion.objects.all().delete()
+                SpatialQueryLayer.objects.all().delete()
                 SpatialQueryQuestion.objects.all().delete()
                 SpatialQueryMetrics.objects.all().delete()
                 DASMapLayer.objects.all().delete()
                 CddpQuestionGroup.objects.all().delete()
+                GlobalSettings.objects.all().delete()
             '''
             from itertools import chain
-            from disturbance.components.proposals.models import ProposalType, ProposalTypeSection, QuestionOption, SectionQuestion, MasterlistQuestion, SpatialQueryQuestion, DASMapLayer, CddpQuestionGroup
+            from disturbance.components.proposals.models import ProposalType, ProposalTypeSection, QuestionOption, SectionQuestion, MasterlistQuestion, SpatialQueryQuestion, DASMapLayer, CddpQuestionGroup, SpatialQueryLayer
+            from disturbance.components.main.models import GlobalSettings
 
-            pk_proposal_type = 16
+            # 26 is the current pk of proposal_type on das_test for Disturbance. 
+#            pk_proposal_type = 26
+
+            # disturbance.proposaltype", "pk": 18, - new version to create on PROD (current_pk + 1)
+            # replace_by 17, (curent_pk on PROD)
+            # version 13 (current_version + 1)
+            # :%s/proposal_type": 26/proposal_type": 18/g
+
+            # 27 is the current pk of proposal_type on das_test for Ecological Thinning. 
+            pk_proposal_type = 27
+
+            # from das-test --> ./manage_ds.py adhos_dumpdata > shared/pt_v27_ET_15Oct2024.json
+            #
+            # disturbance.proposaltype", "pk": 19, - new version to create on PROD (current_pk + 1)
+            # replace_by null, (curent_pk on PROD)
+            # version 1 (current_version + 1)
+            # :%s/proposal_type": 27/proposal_type": 19/g
+            #
+            # from das-uat --> ./manage_ds.py loaddata shared/pt_v27_ET_15Oct2024.json
+
+
             #version_proposal_type = 11
             qs1 = ProposalType.objects.filter(pk=pk_proposal_type)
             qs2 = SectionQuestion.objects.filter(section__proposal_type__pk=pk_proposal_type)
@@ -210,10 +234,12 @@ class Command(BaseCommand):
               
             qs6 = CddpQuestionGroup.objects.filter()
             qs7 = DASMapLayer.objects.exclude(layer_url__icontains='kmi.dbca.wa.gov.au')
-            qs8 = SpatialQueryQuestion.objects.filter()
+            qs8 = SpatialQueryLayer.objects.filter()
+            qs9 = SpatialQueryQuestion.objects.filter()
+            qs10 = GlobalSettings.objects.filter()
 
             #yield from chain(qs1)
-            yield from chain(qs1, qs2, qs3, qs4, qs5, qs6, qs7, qs8)
+            yield from chain(qs1, qs2, qs3, qs4, qs5, qs6, qs7, qs8, qs9, qs10)
 
 #        def get_objects(count_only=False):
 #            """

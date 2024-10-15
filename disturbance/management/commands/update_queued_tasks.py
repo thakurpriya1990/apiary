@@ -16,11 +16,11 @@ class Command(BaseCommand):
 
         task_ids = []
         errors = []
-        earliest_date = (datetime.now() - timedelta(days=settings.MAX_QUEUE_TIME)).replace(tzinfo=timezone.utc)
+        earliest_date = (datetime.now() - timedelta(hours=settings.MAX_QUEUE_TIME)).replace(tzinfo=timezone.utc)
         logger.info('Running command {}'.format(__name__))
 
         try:
-            # delete all tasks created earlier than 'earliest date'
+            # update all QUEUED tasks created earlier than 'earliest date'
             old_tasks_qs = TaskMonitor.objects.filter(status=TaskMonitor.STATUS_CREATED, created__lte=earliest_date)
             task_ids = list(old_tasks_qs.values_list('task_id', flat=True))
             old_tasks_qs.update(status=TaskMonitor.STATUS_MAX_QUEUE_TIME)

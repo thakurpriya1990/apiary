@@ -160,7 +160,7 @@ class Command(BaseCommand):
                             logger.info(msg)
 
                         elif sqs_task['status'] != TaskMonitor.STATUS_CREATED:
-                            # this task on SQS may have status ERROR/FAILED - update local TaskMonitor with the same
+                            # Catch-all for other updated status's - this task on SQS may have status ERROR/FAILED - update local TaskMonitor with the same
                             task.status = sqs_task['status']
                             task.save()
                             send_proposal_prefill_error_email_notification(task.proposal, user, task_id)
