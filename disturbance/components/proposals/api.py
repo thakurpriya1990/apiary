@@ -18,6 +18,7 @@ from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from ledger.accounts.models import EmailUser
 from datetime import datetime
 from reversion.models import Version
+from rest_framework.exceptions import NotFound
 
 from django.http import HttpResponse, JsonResponse #, Http404
 from disturbance.components.approvals.email import (
@@ -586,10 +587,22 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
                 return True
         return False
 
+    # @detail_route(methods=['GET',])
+    # @basic_exception_handler
+    # def relevant_applicant_name(self, request, *args, **kwargs):
+    #     apiary_site = self.get_object()
+    #     relevant_applicant = apiary_site.get_relevant_applicant_name()
+    #     return Response({'relevant_applicant': relevant_applicant})
+
     @detail_route(methods=['GET',])
     @basic_exception_handler
-    def relevant_applicant_name(self, request, *args, **kwargs):
-        apiary_site = self.get_object()
+    def relevant_applicant_name(self, request, pk=None):
+        try:
+            apiary_site = ApiarySite.objects.get(pk=pk)
+            logger.info('apiary_site: [{}]'.format(apiary_site))
+        except ApiarySite.DoesNotExist:
+            raise NotFound(detail="No ApiarySite matches the given query.", code=404)
+
         relevant_applicant = apiary_site.get_relevant_applicant_name()
         return Response({'relevant_applicant': relevant_applicant})
 
@@ -608,8 +621,14 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         
     @detail_route(methods=['POST',])
     @basic_exception_handler
-    def contact_licence_holder(self, request, *args, **kwargs):
-        apiary_site = self.get_object()
+    def contact_licence_holder(self, request, pk=None):
+        # apiary_site = self.get_object()
+        try:
+            apiary_site = ApiarySite.objects.get(pk=pk)
+            logger.info('Contacting licence holder for apiary site:[{}] for the user: [{}]...'.format(apiary_site, request.user))
+        except ApiarySite.DoesNotExist:
+            raise NotFound(detail="No ApiarySite matches the given query.", code=404)
+
         comments = request.data.get('comments', '')
         sender = request.user
         email_data = send_contact_licence_holder_email(apiary_site.latest_approval_link, comments, sender)

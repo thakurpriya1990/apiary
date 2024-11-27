@@ -93,7 +93,8 @@ TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance', 'templates'))
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance','components','organisations', 'templates'))
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance','components','emails', 'templates'))
 TEMPLATES[0]['OPTIONS']['context_processors'].append('disturbance.context_processors.apiary_url')
-del BOOTSTRAP3['css_url']
+if 'css_url' in BOOTSTRAP3:
+    del BOOTSTRAP3['css_url']
 #BOOTSTRAP3 = {
 #    'jquery_url': '//static.dpaw.wa.gov.au/static/libs/jquery/2.2.1/jquery.min.js',
 #    'base_url': '//static.dpaw.wa.gov.au/static/libs/twitter-bootstrap/3.3.6/',
@@ -204,18 +205,35 @@ HTTP_HOST_FOR_TEST = 'localhost:8071'
 
 # Additional logging for commercialoperator
 LOGGING['loggers']['disturbance'] = {
-            'handlers': ['file'],
-            'level': 'INFO'
+            'handlers': ['file', 'console',],
+            'level': 'DEBUG',
+            'propagate': False,
         }
+# Add a formatter
+LOGGING['formatters']['verbose2'] = {
+    "format": "%(levelname)s %(asctime)s %(name)s [Line:%(lineno)s][%(funcName)s] %(message)s"
+}
 
 # Add a handler
 LOGGING['handlers']['file_apiary'] = {
     'level': 'INFO',
     'class': 'logging.handlers.RotatingFileHandler',
     'filename': os.path.join(BASE_DIR, 'logs', 'apiary.log'),
+    'formatter': 'verbose2',
+    'maxBytes': 5242880
+}
+
+# Add a handler
+LOGGING['handlers']['request_stats'] = {
+    'level': 'INFO',
+    'class': 'logging.handlers.RotatingFileHandler',
+    'filename': os.path.join(BASE_DIR, 'logs', 'requests.log'),
     'formatter': 'verbose',
     'maxBytes': 5242880
 }
+# Add a handler
+LOGGING['handlers']['console']['formatter'] = 'verbose2'
+
 # define logger
 LOGGING['loggers']['apiary'] = {
     'handlers': ['file_apiary'],
