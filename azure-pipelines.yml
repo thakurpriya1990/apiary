@@ -3,7 +3,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
 trigger:
-- master
+- das_apiary_d849b8a
 
 
 resources:
@@ -12,7 +12,7 @@ resources:
 variables:
   tag: '$(Build.BuildId)'
   tagDate: $[ format('{0:yyyy}.{0:MM}.{0:dd}.{0:HH}.{0:mm}{0:ss}', pipeline.startTime) ]
-  isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+  isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/das_apiary_d849b8a')]
   
 stages:
 - stage: Build
