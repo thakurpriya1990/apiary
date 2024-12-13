@@ -551,28 +551,41 @@ class OnSiteInformationViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         with transaction.atomic():
             instance = self.get_object()
+            logger.info('Updating OnSiteInformation: [{}]'.format(instance))
+
             request_data = self._construct_data(request)
 
             serializer = OnSiteInformationSerializer(instance, data=request_data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
+            logger.info('OnSiteInformation updated: [{}]'.format(serializer.data))
 
-            sender = request.user
+        sender = request.user
+        try:
             email_data = send_on_site_notification_email(request_data, sender, update=True)
-            return Response(serializer.data)
+        except Exception as e:
+            logger.error('Failed to send an email: {}'.format(e))
+
+        return Response(serializer.data)
 
     @basic_exception_handler
     def create(self, request, *args, **kwargs):
         with transaction.atomic():
+            logger.info('Creating a new OnSiteInformation...')
             request_data = self._construct_data(request)
 
             serializer = OnSiteInformationSerializer(data=request_data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
+            logger.info('OnSiteInformation created: [{}]'.format(serializer.data))
 
-            sender = request.user
+        sender = request.user
+        try:
             email_data = send_on_site_notification_email(request_data, sender)
-            return Response(serializer.data)
+        except Exception as e:
+            logger.error('Failed to send an email: {}'.format(e))
+
+        return Response(serializer.data)
 
 
 class ApiarySiteViewSet(viewsets.ModelViewSet):
