@@ -7,7 +7,7 @@ The Disturbance Approval System (DAS) is used for by external approved organisat
 
 # Requirements
 
-- Python (2.7.x)
+- Python (3.7.x)
 - PostgreSQL (>=9.3)
 
 Python library requirements should be installed using `pip`:

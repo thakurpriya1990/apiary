@@ -745,7 +745,7 @@ def send_proposal_prefill_error_email_notification(proposal, user, task_id):
     context = {
         'proposal': proposal,
         'task_id': task_id,
-        'greeting': 'Assessor',
+        #'greeting': 'Assessor',
         'url': url,
     }
 

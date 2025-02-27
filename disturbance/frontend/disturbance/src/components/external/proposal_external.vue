@@ -895,6 +895,21 @@ export default {
             }
             vm.highlight_deficient_fields(deficient_fields);
         },
+        checkMapFiles:function(){
+            let vm=this;
+            let blank_fields = []
+            if(vm.proposal.application_type == 'Disturbance'){
+                if(vm.proposal && vm.$refs.mapSection.$refs.map_doc.documents.length == 0 || vm.proposal.shapefile_json==null || vm.proposal.prefill_requested == false){
+                    blank_fields.push(' You must upload and validate the shapefile. Please Prefill the Proposal after validating the shapefile.');
+                }
+             }
+            if(blank_fields.length==0){
+                return true;
+            }
+            else {
+                return blank_fields;
+            }
+        },
 
         submit: function(){
 
@@ -906,7 +921,31 @@ export default {
             let formData = new FormData(vm.form);
             // Add apiary_sites data if needed
             formData = this.attach_apiary_sites_data(formData)
+            
+            //Check for missing map documents
+            let missing_files = vm.checkMapFiles();
+            if(missing_files!=true){
+              swal({
+                title: "Please fix following errors before submitting",
+                text: missing_files,
+                type:'error'
+              })
+            //vm.paySubmitting=false;
+            return false;
+            }
 
+            //Check for missing data in Required fields on the form
+            var num_missing_fields = vm.validate()
+            if (num_missing_fields > 0) {
+                vm.highlight_missing_fields()
+                var top = ($('#error').offset() || { "top": NaN }).top;
+                $('html, body').animate({
+                    scrollTop: top
+                }, 1);
+                return false;
+            }
+
+            //Check for missing data in Region, District, Category/Management Area
             let missing_data = vm.can_submit();
             if(missing_data!=true){
               swal({
@@ -916,16 +955,6 @@ export default {
               })
             //vm.paySubmitting=false;
             return false;
-            }
-
-            var num_missing_fields = vm.validate()
-            if (num_missing_fields > 0) {
-                vm.highlight_missing_fields()
-                var top = ($('#error').offset() || { "top": NaN }).top;
-                $('html, body').animate({
-                    scrollTop: top
-                }, 1);
-                return false;
             }
 
             // remove the confirm prompt when navigating away from window (on button 'Submit' click)

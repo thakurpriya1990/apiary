@@ -617,6 +617,7 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
                     start_time = time.time()
 
                     proposal = instance
+                    proposal.prefill_requested=True
                     # current_ts = request.data.get('current_ts') # format required '%Y-%m-%dT%H:%M:%S'
                     if proposal.prefill_timestamp:
                         current_ts= proposal.prefill_timestamp.strftime('%Y-%m-%dT%H:%M:%S')

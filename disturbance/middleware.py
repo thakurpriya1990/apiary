@@ -5,6 +5,7 @@ from django.utils.http import urlquote_plus
 
 import re
 import datetime
+import logging
 
 from django.http import HttpResponseRedirect
 from django.utils import timezone
@@ -13,6 +14,9 @@ from django.conf import settings
 from disturbance.components.das_payments.models import ApplicationFee
 from reversion.middleware  import RevisionMiddleware
 from reversion.views import _request_creates_revision
+
+
+logger = logging.getLogger(__name__)
 
 
 CHECKOUT_PATH = re.compile('^/ledger/checkout/checkout')
@@ -97,6 +101,9 @@ class DomainDetectMiddleware(object):
         settings.BASE_EMAIL_HTML = 'disturbance/emails/base_email.html'
 
         http_host = request.META.get('HTTP_HOST', None)
+
+        logger.debug(f'http_host: {http_host}')
+        
         if http_host and http_host in settings.APIARY_URL:
             settings.DOMAIN_DETECTED = 'apiary'
             settings.SYSTEM_NAME = settings.APIARY_SYSTEM_NAME

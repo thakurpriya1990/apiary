@@ -18,6 +18,7 @@
                 </div>
                 <div class="noPrint">  
                      <File 
+                        ref="map_doc"
                         :name="map_doc_name" 
                         label="Upload Shapefile" :id="map_doc_id"  
                         :isRepeatable="true" 
@@ -41,6 +42,9 @@
                             </li>
                             <li>
                                 Valid shapefile must include 4 files, in .dbf .prj .shp and .shx format.
+                            </li>
+                            <li>
+                                You must validate the shapefile and prefill the proposal before proceeding.
                             </li>
                             <li>
                                 Further information <a :href="shapefile_info_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a>
@@ -261,17 +265,24 @@
                 vm.showError=false;
                 vm.errorString='';
                 var inputOptions = {};
-
+                var html_text='<p>Are you sure you want to prefill this Proposal?</p>'
                 if(vm.proposal.data && vm.proposal.data.length > 0) {
+                    // inputOptions = {
+                    //     'clear_sqs': 'Clear only Spatial data from the Proposal',
+                    //     'clear_all': 'Clear all Proposal data',
+                    // }
                     inputOptions = {
-                        'clear_sqs': 'Clear only Spatial data from the Proposal',
-                        'clear_all': 'Clear all Proposal data',
+                        'clear_sqs': 'Refresh/ Renew GIS data only',
+                        'clear_all': 'Clear ALL information from the Proposal',
                     }
+                    html_text ='<p>Are you sure you want to prefill this Proposal?<br>Select the Applicable:</p>'
                 }
                 
+
                 await swal({
                     title: "Prefill Proposal",
-                    html: '<p>Are you sure you want to prefill this Proposal?<br>Select the Applicable:</p>',
+                    //html: '<p>Are you sure you want to prefill this Proposal?<br>Select the Applicable:</p>',
+                    html: html_text,
                     type: "warning",
                     showCancelButton: true,
                     confirmButtonText: 'Prefill Proposal',

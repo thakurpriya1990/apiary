@@ -63,6 +63,7 @@ def create_data_from_form(schema, post_data, file_data, post_data_index=None,spe
     assessor_data_list = []
     comment_data_list = {}
     add_info_applicant_list={}
+    refresh_timestamp_list={}
     special_fields_search = SpecialFieldsSearch(special_fields)
     add_info_applicant_search=AddInfoApplicantDataSearch()
     refresh_timestamp_search= RefreshTimestampSearch()

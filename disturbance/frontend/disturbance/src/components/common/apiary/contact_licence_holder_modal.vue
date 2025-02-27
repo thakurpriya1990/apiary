@@ -37,7 +37,6 @@
         },
         watch:{
             okButtonDisabled: function(){
-                console.log('parent okButtonDisabled: ' + this.okButtonDisabled)
                 this.$refs.contact_modal.okButtonDisabled = this.okButtonDisabled
             }
         },

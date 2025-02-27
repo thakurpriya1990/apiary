@@ -1,10 +1,15 @@
 from confy import env
 from django.conf import settings
 from ledger.payments.helpers import is_payment_admin
-from disturbance.settings import KMI_SERVER_URL, SQS_APIURL
+from disturbance.settings import KMI_SERVER_URL
+import logging
 
+
+logger = logging.getLogger(__name__)
 
 def apiary_url(request):
+    logger.debug(f'DOMAIN_DETECTED: {settings.DOMAIN_DETECTED}')
+
     if settings.DOMAIN_DETECTED == 'apiary':
         PUBLIC_URL = 'https://apiary.dbca.wa.gov.au/'
         displayed_system_name = settings.APIARY_SYSTEM_NAME
@@ -30,7 +35,7 @@ def apiary_url(request):
         'is_payment_admin': is_payment_officer,
         'build_tag': settings.BUILD_TAG,
         'KMI_SERVER_URL': KMI_SERVER_URL,
-        'SQS_APIURL': SQS_APIURL,
+        'SQS_APIURL': settings.SQS_APIURL,
         'SHOW_DAS_MAP': settings.SHOW_DAS_MAP,
         'MAX_LAYERS_PER_SQQ': settings.MAX_LAYERS_PER_SQQ,
     }

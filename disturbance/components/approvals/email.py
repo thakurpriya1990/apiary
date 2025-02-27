@@ -190,14 +190,14 @@ def send_on_site_notification_email(request_data, sender, update=False):
             except:
                 #logger.error('Error sending onsite-notification email - District not found: {rd}')
                 #raise Exception(f'District not found: {rd}')
-                logger.warn('Warning sending onsite-notification email - District not found: {rd} - sending notification Apiary Admin Group')
+                logger.warning('Warning sending onsite-notification email - District not found: {rd} - sending notification Apiary Admin Group')
         
         try:
             recipients = ApiaryReferralGroup.objects.get(district=district).members_email
         except:
             #logger.error('Error sending onsite-notification email - Cannot find Apiary Referral Group for District {district.name}')
             #raise Exception(f'Cannot find Apiary Referral Group for District {district.name}')
-            logger.warn('Warning sending onsite-notification email - Cannot find Apiary Referral Group for District {rd}. Sending notification to {settings.APIARY_SUPPORT_EMAIL}')
+            logger.warning('Warning sending onsite-notification email - Cannot find Apiary Referral Group for District {rd}. Sending notification to {settings.APIARY_SUPPORT_EMAIL}')
             recipients = [settings.APIARY_SUPPORT_EMAIL]
 
         return recipients
@@ -246,7 +246,9 @@ def send_on_site_notification_email(request_data, sender, update=False):
 
     # sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     #sender = settings.DEFAULT_FROM_EMAIL
-    cc = [approval.relevant_applicant.email] if hasattr(approval.relevant_applicant, 'email') and approval.relevant_applicant.email is not None else []
+    cc = [approval.relevant_applicant.email] if hasattr(approval.relevant_applicant, 'email') else []
+    cc = list(filter(None, cc))  # Remove None from the list
+
     msg = email.send(get_recipients(), cc=cc, context=context)
     
     _log_approval_email(msg, approval, sender=sender)
@@ -557,7 +559,7 @@ def _log_approval_email(email_message, approval, sender=None):
         fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
         # the to email is normally a list
         if isinstance(email_message.to, list):
-            to = ','.join(email_message.to)
+            to = ','.join(list(filter(None, email_message.to)))
         else:
             to = smart_text(email_message.to)
         # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
@@ -566,7 +568,7 @@ def _log_approval_email(email_message, approval, sender=None):
             all_ccs += list(email_message.cc)
         if email_message.bcc:
             all_ccs += list(email_message.bcc)
-        all_ccs = ','.join(all_ccs)
+        all_ccs = ','.join(list(filter(None, all_ccs)))
 
     else:
         text = smart_text(email_message)
@@ -604,7 +606,7 @@ def _log_org_email(email_message, organisation, customer ,sender=None):
         fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
         # the to email is normally a list
         if isinstance(email_message.to, list):
-            to = ','.join(email_message.to)
+            to = ','.join(list(filter(None, email_message.to)))
         else:
             to = smart_text(email_message.to)
         # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
@@ -613,7 +615,7 @@ def _log_org_email(email_message, organisation, customer ,sender=None):
             all_ccs += list(email_message.cc)
         if email_message.bcc:
             all_ccs += list(email_message.bcc)
-        all_ccs = ','.join(all_ccs)
+        all_ccs = ','.join(list(filter(None, all_ccs)))
 
     else:
         text = smart_text(email_message)

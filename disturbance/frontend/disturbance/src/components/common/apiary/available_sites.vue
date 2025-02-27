@@ -1199,7 +1199,6 @@
                         let available = feature.get('available')
                         if (available){
                             let display_text = 'Contact licence holder'
-                            //let ret = '<a data-contact-licence-holder="' + feature.id_ + '" :onclick="this.contactLicenceHolder(' + feature.id_ + ')">' + display_text + '</a>';
                             let ret = '<a data-contact-licence-holder="' + feature.id_ + '">' + display_text + '</a>';
                             action_list.push(ret);
                         }
@@ -1270,7 +1269,7 @@
                     this.content_element.innerHTML = content;
                     this.overlay.setPosition(coord);
 
-                    this.$http.get('/api/apiary_site/' + feature.id_ + '/relevant_applicant_name').then(
+                    this.$http.get('/api/apiary_site/' + feature.id_ + '/relevant_applicant_name/').then(
                         res => {
                             let applicant_name = res.body.relevant_applicant
                             $('#' + unique_id).text(applicant_name)
@@ -1655,7 +1654,7 @@
     }
     .filter_search_wrapper {
         position: relative;
-        z-index: 1100;
+        z-index: 1030;
     }
     /*
     .table_apiary_site {
