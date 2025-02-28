@@ -26,12 +26,14 @@ DATABASE_URL=postgis://das_dev:<passwd>@172.17.0.1:25432/das_seg_dev
 
 ```
 
+# Update pip version to 24.0
+
 # Run migrations
 ```
-./manage_ds.py migrate disturbance 0018
-./manage_ds.py migrate disturbance 0019 --fake
-./manage_ds.py migrate disturbance 0020
+./manage_ds.py migrate disturbance
 ```
 
 # Delete the Apiary Proposal Types
 deleted the Apiary proposal type in Admin (via Django Admin) - those with blank application_name (and v1)
+
+
