@@ -472,11 +472,12 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         try:
-            application_type = self.get_object().application_type.name
-            if application_type in (ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE):
-                return ProposalApiaryTypeSerializer
-            else:
-                return ProposalSerializer
+            # application_type = self.get_object().application_type.name
+            # if application_type in (ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE):
+            #     return ProposalApiaryTypeSerializer
+            # else:
+            #     return ProposalSerializer
+            return ProposalSerializer
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
