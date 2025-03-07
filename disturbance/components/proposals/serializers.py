@@ -687,7 +687,7 @@ class ProposalRequirementSerializer(serializers.ModelSerializer):
                 'is_deleted',
                 'copied_from', 
                 #'apiary_approval', 
-                'sitetransfer_approval', 
+                # 'sitetransfer_approval', 
                 'require_due_date', 
                 'copied_for_renewal',
                 'apiary_renewal',
