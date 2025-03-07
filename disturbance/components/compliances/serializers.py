@@ -25,6 +25,7 @@ class ComplianceSerializer(serializers.ModelSerializer):
     allowed_assessors = EmailUserSerializer(many=True)
     #assigned_to = serializers.CharField(source='assigned_to.get_full_name')
     assigned_to = serializers.SerializerMethodField(read_only=True)
+    assigned_to_id = serializers.SerializerMethodField(read_only=True)
     requirement = serializers.CharField(source='requirement.requirement', required=False, allow_null=True)
     approval_lodgement_number = serializers.SerializerMethodField()
     proposal_lodgement_number = serializers.SerializerMethodField()
@@ -44,6 +45,7 @@ class ComplianceSerializer(serializers.ModelSerializer):
             'text',
             'holder',
             'assigned_to',
+            'assigned_to_id',
             'approval',
             'documents',
             'requirement',
@@ -71,6 +73,11 @@ class ComplianceSerializer(serializers.ModelSerializer):
     def get_assigned_to(self,obj):
         if obj.assigned_to:
             return obj.assigned_to.get_full_name()
+        return None
+    
+    def get_assigned_to_id(self,obj):
+        if obj.assigned_to:
+            return obj.assigned_to.id
         return None
 
     def get_submitter(self,obj):
