@@ -231,6 +231,7 @@ export default {
             proposal_regions: [],
             proposal_districts: [],
             proposal_submitters: [],
+            proposal_applicants:[],
             proposal_status: [],
             is_local: helpers.is_local(),
             select2Applied: false,
