@@ -7,7 +7,7 @@ from django.contrib.gis.db.models import MultiPolygonField
 from django.db import models
 from django.dispatch import receiver
 from django.db.models.signals import pre_delete
-from django.utils.encoding import python_2_unicode_compatible
+# from django.utils.encoding import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
 from ledger.accounts.models import EmailUser, Document, RevisionedMixin
 from django.contrib.postgres.fields.jsonb import JSONField
@@ -74,7 +74,6 @@ class DASMapLayer(models.Model):
         super(DASMapLayer, self).save(*args, **kwargs)
 
 
-@python_2_unicode_compatible
 class Region(models.Model):
     name = models.CharField(max_length=200, unique=True)
     forest_region = models.BooleanField(default=False)
@@ -92,7 +91,6 @@ class ArchivedDistrictManager(models.Manager):
         #return super().get_queryset().all()
         return super().get_queryset().exclude(archive_date__lte=date.today())
 
-@python_2_unicode_compatible
 class District(models.Model):
     region = models.ForeignKey(Region, related_name='districts')
     name = models.CharField(max_length=200, unique=True)
@@ -109,7 +107,6 @@ class District(models.Model):
         return self.name
 
 
-@python_2_unicode_compatible
 class ApplicationType(models.Model):
     DISTURBANCE = 'Disturbance'
     DISTURBANCE_UAT = 'Disturbance Training'
@@ -151,7 +148,6 @@ class ApplicationType(models.Model):
         return self.name
 
 
-@python_2_unicode_compatible
 class ActivityMatrix(models.Model):
     # name = models.CharField(verbose_name='Activity matrix name', max_length=24, choices=application_type_choicelist(), default='Disturbance')
     name = models.CharField(verbose_name='Activity matrix name', max_length=24,
@@ -181,7 +177,6 @@ class ActivityMatrix(models.Model):
         return False
 
 
-@python_2_unicode_compatible
 class Tenure(models.Model):
     name = models.CharField(max_length=255, unique=True)
     order = models.PositiveSmallIntegerField(default=0)
@@ -195,7 +190,6 @@ class Tenure(models.Model):
         return '{}: {}'.format(self.name, self.application_type)
 
 
-@python_2_unicode_compatible
 class UserAction(models.Model):
     who = models.ForeignKey(EmailUser, null=False, blank=False)
     when = models.DateTimeField(null=False, blank=False, auto_now_add=True)
@@ -243,7 +237,6 @@ class CommunicationsLogEntry(models.Model):
         app_label = 'disturbance'
 
 
-@python_2_unicode_compatible
 class Document(models.Model):
     name = models.CharField(max_length=255, blank=True,
                             verbose_name='name', help_text='')
@@ -268,7 +261,6 @@ class Document(models.Model):
         return self.name or self.filename
 
 
-@python_2_unicode_compatible
 class SystemMaintenance(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -293,7 +285,6 @@ class SystemMaintenance(models.Model):
 
 from ckeditor.fields import RichTextField
 
-@python_2_unicode_compatible
 class GlobalSettings(models.Model):
     KEY_ASSESSMENT_REMINDER_DAYS = 'assessment_reminder_days'
     DAS_SHAREPOINT_PAGE = 'das_sharepoint_page'
