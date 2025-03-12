@@ -12,7 +12,7 @@ import os
 
 from dateutil.relativedelta import relativedelta
 from django.contrib.gis.db.models.fields import PointField, MultiPolygonField, GeometryField, GeometryCollectionField
-from django.contrib.gis.db.models.manager import GeoManager
+# from django.contrib.gis.db.models.manager import GeoManager
 from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
 from django.contrib.gis.measure import Distance
 from django.contrib.postgres.fields import ArrayField
@@ -21,7 +21,7 @@ from django.contrib.gis.db import models as gis_models
 from django.db.models import Q, Max, F
 from django.dispatch import receiver
 from django.db.models.signals import pre_delete, post_save
-from django.utils.encoding import python_2_unicode_compatible
+# from django.utils.encoding import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields.jsonb import JSONField
 from django.utils import timezone
@@ -2533,7 +2533,7 @@ class ProposalDeclinedDetails(models.Model):
     class Meta:
         app_label = 'disturbance'
 
-@python_2_unicode_compatible
+
 #class ProposalStandardRequirement(models.Model):
 class ProposalStandardRequirement(RevisionedMixin):
     SYSTEM_CHOICES = (
@@ -3156,7 +3156,6 @@ class ExportDocument(models.Model):
 # --------------------------------------------------------------------------------------
 # Generate JSON schema models start
 # --------------------------------------------------------------------------------------
-@python_2_unicode_compatible
 class QuestionOption(models.Model):
     label = models.CharField(max_length=1024, unique=True)
     value = models.CharField(max_length=1024)
@@ -3169,7 +3168,6 @@ class QuestionOption(models.Model):
         return self.label 
 
 from ckeditor.fields import RichTextField
-@python_2_unicode_compatible
 class MasterlistQuestion(models.Model):
     ANSWER_TYPE_CHECKBOX = 'checkbox'
     ANSWER_TYPE_RADIO = 'radiobuttons'
@@ -3424,7 +3422,6 @@ class MasterlistQuestion(models.Model):
             self.property_cache['expanders'] = data
 
 
-@python_2_unicode_compatible
 class ProposalTypeSection(models.Model):
     section_name = models.CharField(max_length=100)
     section_label = models.CharField(max_length=100)
@@ -3460,7 +3457,6 @@ def limit_sectionquestion_choices_sql():
     except:
         return {}
 
-@python_2_unicode_compatible
 class SectionQuestion(models.Model):
     TAG_CHOICES=(('isCopiedToPermit', 'isCopiedToPermit'),
                  ('isRequired', 'isRequired'),
