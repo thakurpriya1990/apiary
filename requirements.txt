@@ -27,8 +27,10 @@ django-dynamic-fixture==1.9.1
 openpyxl==3.0.9
 datapackage==0.8.1
 py4j==0.10.2.1
-djangorestframework==3.5.2
-djangorestframework-gis==0.11
+# djangorestframework==3.5.2
+djangorestframework==3.13.0
+# djangorestframework-gis==0.11
+djangorestframework-gis==1.0
 djangorestframework-csv==2.0.0
 pycountry==17.1.8
 six==1.10.0

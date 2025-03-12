@@ -37,7 +37,7 @@ class MapLayer(models.Model):
 
 
 class MapColumn(models.Model):
-    map_layer = models.ForeignKey(MapLayer, null=True, blank=True, related_name='columns')
+    map_layer = models.ForeignKey(MapLayer, null=True, blank=True, related_name='columns', on_delete=models.SET_NULL)
     name = models.CharField(max_length=100, blank=True, null=True)
     option_for_internal = models.BooleanField(default=True)
     option_for_external = models.BooleanField(default=True)
@@ -92,7 +92,7 @@ class ArchivedDistrictManager(models.Manager):
         return super().get_queryset().exclude(archive_date__lte=date.today())
 
 class District(models.Model):
-    region = models.ForeignKey(Region, related_name='districts')
+    region = models.ForeignKey(Region, related_name='districts', on_delete=models.CASCADE)
     name = models.CharField(max_length=200, unique=True)
     code = models.CharField(max_length=3)
     archive_date = models.DateField(null=True, blank=True)
@@ -180,7 +180,7 @@ class ActivityMatrix(models.Model):
 class Tenure(models.Model):
     name = models.CharField(max_length=255, unique=True)
     order = models.PositiveSmallIntegerField(default=0)
-    application_type = models.ForeignKey(ApplicationType, related_name='tenure_app_types')
+    application_type = models.ForeignKey(ApplicationType, related_name='tenure_app_types', on_delete=models.CASCADE)
 
     class Meta:
         ordering = ['order', 'name']
@@ -191,7 +191,7 @@ class Tenure(models.Model):
 
 
 class UserAction(models.Model):
-    who = models.ForeignKey(EmailUser, null=False, blank=False)
+    who = models.ForeignKey(EmailUser, null=False, blank=False, on_delete=models.CASCADE)
     when = models.DateTimeField(null=False, blank=False, auto_now_add=True)
     what = models.TextField(blank=False)
 
@@ -228,8 +228,8 @@ class CommunicationsLogEntry(models.Model):
     subject = models.CharField(max_length=200, blank=True, verbose_name="Subject / Description")
     text = models.TextField(blank=True)
 
-    customer = models.ForeignKey(EmailUser, null=True, related_name='+')
-    staff = models.ForeignKey(EmailUser, null=True, related_name='+')
+    customer = models.ForeignKey(EmailUser, null=True, related_name='+', on_delete=models.CASCADE)
+    staff = models.ForeignKey(EmailUser, null=True, related_name='+', on_delete=models.CASCADE)
 
     created = models.DateTimeField(auto_now_add=True, null=False, blank=False)
 
@@ -346,7 +346,7 @@ class TemporaryDocumentCollection(models.Model):
 class TemporaryDocument(Document):
     temp_document_collection = models.ForeignKey(
         TemporaryDocumentCollection,
-        related_name='documents')
+        related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(max_length=255)
 
     # input_name = models.CharField(max_length=255, null=True, blank=True)
@@ -407,9 +407,9 @@ class TaskMonitor(models.Model):
     task_id = models.PositiveIntegerField()
     status  = models.CharField('Task Status', choices=STATUS_CHOICES, default=STATUS_CREATED, max_length=32)
     retries = models.PositiveSmallIntegerField(default=0)
-    proposal = models.ForeignKey('Proposal')
+    proposal = models.ForeignKey('Proposal', on_delete=models.CASCADE)
     info = models.TextField(blank=True, null=True)
-    requester = models.ForeignKey(EmailUser, blank=False, null=False, related_name='+')
+    requester = models.ForeignKey(EmailUser, blank=False, null=False, related_name='+', on_delete=models.CASCADE)
     created = models.DateTimeField(default=timezone.now, editable=False)
     request_type = models.CharField(max_length=40, choices=RequestTypeEnum.REQUEST_TYPE_CHOICES)
     
