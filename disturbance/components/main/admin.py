@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.forms import ModelForm
 from django.conf.urls import url
 from django.utils.html import format_html
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from disturbance.components.main.models import MapLayer, MapColumn, DASMapLayer, TaskMonitor
 from disturbance.settings import KMI_SERVER_URL

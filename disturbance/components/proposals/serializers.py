@@ -37,7 +37,7 @@ from disturbance.components.proposals.serializers_base import BaseProposalSerial
     ProposalDeclinedDetailsSerializer, EmailUserSerializer, EmailSerializer
 from drf_writable_nested import UniqueFieldsMixin , WritableNestedModelSerializer
 from datetime import datetime
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 
 logger = logging.getLogger(__name__)
