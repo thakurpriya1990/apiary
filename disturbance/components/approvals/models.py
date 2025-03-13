@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields.jsonb import JSONField
 from django.utils import timezone
 from django.contrib.gis.db.models.fields import PointField
-from django.contrib.gis.db.models.manager import GeoManager
+# from django.contrib.gis.db.models.manager import GeoManager
 from ledger.accounts.models import EmailUser, RevisionedMixin
 from disturbance.components.approvals.pdf import create_approval_document
 from disturbance.components.organisations.models import Organisation
@@ -44,7 +44,7 @@ def update_approval_comms_log_filename(instance, filename):
 
 
 class ApprovalDocument(Document):
-    approval = models.ForeignKey('Approval',related_name='documents')
+    approval = models.ForeignKey('Approval',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_approval_doc_filename, storage=private_storage)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
 
@@ -58,7 +58,7 @@ class ApprovalDocument(Document):
 
 
 class RenewalDocument(Document):
-    approval = models.ForeignKey('Approval',related_name='renewal_documents')
+    approval = models.ForeignKey('Approval',related_name='renewal_documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_approval_doc_filename, storage=private_storage)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
 
@@ -87,12 +87,12 @@ class Approval(RevisionedMixin):
     lodgement_number = models.CharField(max_length=9, blank=True, default='')
     status = models.CharField(max_length=40, choices=STATUS_CHOICES,
                                        default=STATUS_CHOICES[0][0])
-    licence_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='licence_document')
-    cover_letter_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='cover_letter_document')
-    replaced_by = models.ForeignKey('self', blank=True, null=True)
+    licence_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='licence_document', on_delete=models.SET_NULL)
+    cover_letter_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='cover_letter_document', on_delete=models.SET_NULL)
+    replaced_by = models.ForeignKey('self', blank=True, null=True, on_delete=models.SET_NULL)
     #current_proposal = models.ForeignKey(Proposal,related_name = '+')
-    current_proposal = models.ForeignKey(Proposal,related_name='approvals')
-    renewal_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='renewal_document')
+    current_proposal = models.ForeignKey(Proposal,related_name='approvals', on_delete=models.CASCADE)
+    renewal_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='renewal_document', on_delete=models.SET_NULL)
     renewal_sent = models.BooleanField(default=False)
     issue_date = models.DateTimeField()
     original_issue_date = models.DateField(auto_now_add=True)
@@ -473,7 +473,7 @@ class PreviewTempApproval(Approval):
         #unique_together= ('lodgement_number', 'issue_date')
 
 class ApprovalLogEntry(CommunicationsLogEntry):
-    approval = models.ForeignKey(Approval, related_name='comms_logs')
+    approval = models.ForeignKey(Approval, related_name='comms_logs', on_delete=models.CASCADE)
 
     class Meta:
         app_label = 'disturbance'
@@ -485,7 +485,7 @@ class ApprovalLogEntry(CommunicationsLogEntry):
         super(ApprovalLogEntry, self).save(**kwargs)
 
 class ApprovalLogDocument(Document):
-    log_entry = models.ForeignKey('ApprovalLogEntry',related_name='documents', null=True,)
+    log_entry = models.ForeignKey('ApprovalLogEntry',related_name='documents', null=True, on_delete=models.SET_NULL)
     #approval = models.ForeignKey(Approval, related_name='comms_logs1')
     _file = models.FileField(upload_to=update_approval_comms_log_filename, null=True, storage=private_storage)
     #_file = models.FileField(upload_to=update_approval_doc_filename)
@@ -519,7 +519,7 @@ class ApprovalUserAction(UserAction):
             what=str(action)
         )
 
-    approval= models.ForeignKey(Approval, related_name='action_logs')
+    approval= models.ForeignKey(Approval, related_name='action_logs', on_delete=models.CASCADE)
 
 
 @receiver(pre_delete, sender=Approval)
