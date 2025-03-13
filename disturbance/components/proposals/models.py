@@ -131,13 +131,13 @@ class ProposalType(models.Model):
 
 
 class TaggedProposalAssessorGroupRegions(TaggedItemBase):
-    content_object = models.ForeignKey("ProposalAssessorGroup")
+    content_object = models.ForeignKey("ProposalAssessorGroup", on_delete=models.CASCADE)
 
     class Meta:
         app_label = 'disturbance'
 
 class TaggedProposalAssessorGroupActivities(TaggedItemBase):
-    content_object = models.ForeignKey("ProposalAssessorGroup")
+    content_object = models.ForeignKey("ProposalAssessorGroup", on_delete=models.CASCADE)
 
     class Meta:
         app_label = 'disturbance'
@@ -148,7 +148,7 @@ class ProposalAssessorGroup(models.Model):
     #regions = TaggableManager(verbose_name="Regions",help_text="A comma-separated list of regions.",through=TaggedProposalAssessorGroupRegions,related_name = "+",blank=True)
     #activities = TaggableManager(verbose_name="Activities",help_text="A comma-separated list of activities.",through=TaggedProposalAssessorGroupActivities,related_name = "+",blank=True)
     members = models.ManyToManyField(EmailUser)
-    region = models.ForeignKey(Region, null=True, blank=True)
+    region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.SET_NULL)
     default = models.BooleanField(default=False)
 
     class Meta:
@@ -188,13 +188,13 @@ class ProposalAssessorGroup(models.Model):
         return [i.email for i in self.members.all()]
 
 class TaggedProposalApproverGroupRegions(TaggedItemBase):
-    content_object = models.ForeignKey("ProposalApproverGroup")
+    content_object = models.ForeignKey("ProposalApproverGroup", on_delete=models.CASCADE)
 
     class Meta:
         app_label = 'disturbance'
 
 class TaggedProposalApproverGroupActivities(TaggedItemBase):
-    content_object = models.ForeignKey("ProposalApproverGroup")
+    content_object = models.ForeignKey("ProposalApproverGroup", on_delete=models.CASCADE)
 
     class Meta:
         app_label = 'disturbance'
@@ -205,7 +205,7 @@ class ProposalApproverGroup(models.Model):
     #regions = TaggableManager(verbose_name="Regions",help_text="A comma-separated list of regions.",through=TaggedProposalApproverGroupRegions,related_name = "+",blank=True)
     #activities = TaggableManager(verbose_name="Activities",help_text="A comma-separated list of activities.",through=TaggedProposalApproverGroupActivities,related_name = "+",blank=True)
     members = models.ManyToManyField(EmailUser)
-    region = models.ForeignKey(Region, null=True, blank=True)
+    region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.SET_NULL)
     default = models.BooleanField(default=False)
 
     class Meta:
@@ -301,7 +301,7 @@ class DefaultDocument(Document):
         logger.info('Cannot delete existing document object after Application has been submitted (including document submitted before Application pushback to status Draft): {}'.format(self.name))
 
 class ProposalMapDocument(Document):
-    proposal = models.ForeignKey('Proposal',related_name='map_documents')
+    proposal = models.ForeignKey('Proposal',related_name='map_documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_proposal_map_doc_filename, max_length=500, storage=private_storage)
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
@@ -317,7 +317,7 @@ class ProposalMapDocument(Document):
         app_label = 'disturbance'
 
 class ProposalDocument(Document):
-    proposal = models.ForeignKey('Proposal',related_name='documents')
+    proposal = models.ForeignKey('Proposal',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_proposal_doc_filename, max_length=500, storage=private_storage)
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
@@ -444,14 +444,14 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
     customer_status = models.CharField('Customer Status', max_length=40, choices=CUSTOMER_STATUS_CHOICES,
                                        default=CUSTOMER_STATUS_CHOICES[1][0])
-    applicant = models.ForeignKey(Organisation, blank=True, null=True, related_name='proposals')
+    applicant = models.ForeignKey(Organisation, blank=True, null=True, related_name='proposals', on_delete=models.SET_NULL)
 
     lodgement_number = models.CharField(max_length=9, blank=True, default='')
     lodgement_sequence = models.IntegerField(blank=True, default=0)
     #lodgement_date = models.DateField(blank=True, null=True)
     lodgement_date = models.DateTimeField(blank=True, null=True)
-    proxy_applicant = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_proxy')
-    submitter = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_proposals')
+    proxy_applicant = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_proxy', on_delete=models.SET_NULL)
+    submitter = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_proposals', on_delete=models.SET_NULL)
 
     assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_proposals_assigned', on_delete=models.SET_NULL)
     assigned_approver = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_proposals_approvals', on_delete=models.SET_NULL)
@@ -467,7 +467,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     review_status = models.CharField('Review Status', max_length=30, choices=REVIEW_STATUS_CHOICES,
                                      default=REVIEW_STATUS_CHOICES[0][0])
 
-    approval = models.ForeignKey('disturbance.Approval',null=True,blank=True)
+    approval = models.ForeignKey('disturbance.Approval',null=True,blank=True, on_delete=models.SET_NULL)
 
     previous_application = models.ForeignKey('self', on_delete=models.CASCADE , blank=True, null=True)
     #self_clone = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, related_name='proposal_current_state')
@@ -478,12 +478,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     #region = models.CharField(max_length=255,null=True,blank=True)
     tenure = models.CharField(max_length=255,null=True,blank=True)
     #activity = models.ForeignKey(Activity, null=True, blank=True)
-    region = models.ForeignKey(Region, null=True, blank=True)
-    district = models.ForeignKey(District, null=True, blank=True)
+    region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.SET_NULL)
+    district = models.ForeignKey(District, null=True, blank=True, on_delete=models.SET_NULL)
     #tenure = models.ForeignKey(Tenure, null=True, blank=True)
-    application_type = models.ForeignKey(ApplicationType)
+    application_type = models.ForeignKey(ApplicationType, on_delete=models.CASCADE)
     approval_level = models.CharField('Activity matrix approval level', max_length=255,null=True,blank=True)
-    approval_level_document = models.ForeignKey(ProposalDocument, blank=True, null=True, related_name='approval_level_document')
+    approval_level_document = models.ForeignKey(ProposalDocument, blank=True, null=True, related_name='approval_level_document', on_delete=models.SET_NULL)
     approval_level_comment = models.TextField(blank=True)
     approval_comment = models.TextField(blank=True)
     assessment_reminder_sent = models.BooleanField(default=False)
@@ -2378,14 +2378,14 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
 
 class ProposalLogDocument(Document):
-    log_entry = models.ForeignKey('ProposalLogEntry',related_name='documents')
+    log_entry = models.ForeignKey('ProposalLogEntry',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_proposal_comms_log_filename, storage=private_storage)
 
     class Meta:
         app_label = 'disturbance'
 
 class ProposalLogEntry(CommunicationsLogEntry):
-    proposal = models.ForeignKey(Proposal, related_name='comms_logs')
+    proposal = models.ForeignKey(Proposal, related_name='comms_logs', on_delete=models.CASCADE)
 
     class Meta:
         app_label = 'disturbance'
@@ -2397,7 +2397,7 @@ class ProposalLogEntry(CommunicationsLogEntry):
         super(ProposalLogEntry, self).save(**kwargs)
 
 class AmendmentRequestDocument(Document):
-    amendment_request = models.ForeignKey('AmendmentRequest',related_name='amendment_request_documents')
+    amendment_request = models.ForeignKey('AmendmentRequest',related_name='amendment_request_documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_amendment_request_doc_filename, max_length=500, storage=private_storage)
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
@@ -2408,10 +2408,10 @@ class AmendmentRequestDocument(Document):
             return super(AmendmentRequestDocument, self).delete()
 
 class ProposalRequest(models.Model):
-    proposal = models.ForeignKey(Proposal)
+    proposal = models.ForeignKey(Proposal, on_delete=models.CASCADE)
     subject = models.CharField(max_length=200, blank=True)
     text = models.TextField(blank=True)
-    officer = models.ForeignKey(EmailUser, null=True)
+    officer = models.ForeignKey(EmailUser, null=True, on_delete=models.SET_NULL)
 
     class Meta:
         app_label = 'disturbance'
@@ -2458,7 +2458,7 @@ class AmendmentRequest(ProposalRequest):
 
     status = models.CharField('Status', max_length=30, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
     #reason = models.CharField('Reason', max_length=30, choices=REASON_CHOICES, default=REASON_CHOICES[0][0])
-    reason = models.ForeignKey(AmendmentReason, blank=True, null=True)
+    reason = models.ForeignKey(AmendmentReason, blank=True, null=True, on_delete=models.SET_NULL)
     #reason = models.ForeignKey(AmendmentReason)
 
     class Meta:
@@ -2514,7 +2514,7 @@ class AmendmentRequest(ProposalRequest):
 class Assessment(ProposalRequest):
     STATUS_CHOICES = (('awaiting_assessment', 'Awaiting Assessment'), ('assessed', 'Assessed'),
                       ('assessment_expired', 'Assessment Period Expired'))
-    assigned_assessor = models.ForeignKey(EmailUser, blank=True, null=True)
+    assigned_assessor = models.ForeignKey(EmailUser, blank=True, null=True, on_delete=models.SET_NULL)
     status = models.CharField('Status', max_length=20, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
     date_last_reminded = models.DateField(null=True, blank=True)
     #requirements = models.ManyToManyField('Requirement', through='AssessmentRequirement')
@@ -2525,8 +2525,8 @@ class Assessment(ProposalRequest):
         app_label = 'disturbance'
 
 class ProposalDeclinedDetails(models.Model):
-    proposal = models.OneToOneField(Proposal)
-    officer = models.ForeignKey(EmailUser, null=False)
+    proposal = models.OneToOneField(Proposal, on_delete=models.CASCADE)
+    officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
     reason = models.TextField(blank=True)
     cc_email = models.TextField(null=True)
 
@@ -2554,10 +2554,10 @@ class ProposalStandardRequirement(RevisionedMixin):
 class ProposalRequirement(OrderedModel):
     #from disturbance.components.approvals.models import Approval
     RECURRENCE_PATTERNS = [(1, 'Weekly'), (2, 'Monthly'), (3, 'Yearly')]
-    standard_requirement = models.ForeignKey(ProposalStandardRequirement,null=True,blank=True)
+    standard_requirement = models.ForeignKey(ProposalStandardRequirement,null=True,blank=True, on_delete=models.SET_NULL)
     free_requirement = models.TextField(null=True,blank=True)
     standard = models.BooleanField(default=True)
-    proposal = models.ForeignKey(Proposal,related_name='requirements')
+    proposal = models.ForeignKey(Proposal,related_name='requirements', on_delete=models.CASCADE)
     due_date = models.DateField(null=True,blank=True)
     recurrence = models.BooleanField(default=False)
     recurrence_pattern = models.SmallIntegerField(choices=RECURRENCE_PATTERNS,default=1)
@@ -2654,7 +2654,7 @@ class ProposalUserAction(UserAction):
             what=str(action)
         )
 
-    proposal = models.ForeignKey(Proposal, related_name='action_logs')
+    proposal = models.ForeignKey(Proposal, related_name='action_logs', on_delete=models.CASCADE)
 
 
 
@@ -2669,9 +2669,9 @@ class Referral(models.Model):
                                  ('completed', 'Completed'),
                                  )
     lodged_on = models.DateTimeField(auto_now_add=True)
-    proposal = models.ForeignKey(Proposal,related_name='referrals')
-    sent_by = models.ForeignKey(EmailUser,related_name='disturbance_assessor_referrals')
-    referral = models.ForeignKey(EmailUser,null=True,blank=True,related_name='disturbance_referalls')
+    proposal = models.ForeignKey(Proposal,related_name='referrals', on_delete=models.CASCADE)
+    sent_by = models.ForeignKey(EmailUser,related_name='disturbance_assessor_referrals', on_delete=models.CASCADE)
+    referral = models.ForeignKey(EmailUser,null=True,blank=True,related_name='disturbance_referalls', on_delete=models.SET_NULL)
     linked = models.BooleanField(default=False)
     sent_from = models.SmallIntegerField(choices=SENT_CHOICES,default=SENT_CHOICES[0][0])
     processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
@@ -3113,7 +3113,7 @@ class HelpPage(models.Model):
         (HELP_TEXT_INTERNAL, 'Internal'),
     )
 
-    application_type = models.ForeignKey(ApplicationType)
+    application_type = models.ForeignKey(ApplicationType, on_delete=models.CASCADE)
     content = RichTextField()
     description = models.CharField(max_length=256, blank=True, null=True)
     help_type = models.SmallIntegerField('Help Type', choices=HELP_TYPE_CHOICES, default=HELP_TEXT_EXTERNAL)
@@ -3135,9 +3135,9 @@ class OldFileExportManager(models.Manager):
 
 class ExportDocument(models.Model):
     _file = models.FileField(upload_to=export_file_path, max_length=255, storage=private_storage)
-    requester = models.ForeignKey(EmailUser, related_name='+')
+    requester = models.ForeignKey(EmailUser, related_name='+', on_delete=models.CASCADE)
     created = models.DateTimeField(default=timezone.now, editable=False)
-    proposal = models.ForeignKey('Proposal', blank=True, null=True)
+    proposal = models.ForeignKey('Proposal', blank=True, null=True, on_delete=models.SET_NULL)
   
     objects = models.Manager()
     old_files = OldFileExportManager()
