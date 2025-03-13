@@ -18,7 +18,7 @@ from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 from rest_framework import viewsets, serializers, status, views
-from rest_framework.decorators import detail_route, list_route, renderer_classes
+from rest_framework.decorators import action, renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from ledger.accounts.models import EmailUser
@@ -148,7 +148,7 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     @api_exception_handler
     def layers_used(self, request, *args, **kwargs):
         if not is_internal(self.request):
@@ -184,7 +184,7 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
         return response
 
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     @api_exception_handler
     def __layers_used(self, request, *args, **kwargs):
         if not is_internal(self.request):
@@ -292,7 +292,7 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
 #
 #        return Response(resp.json())
 
-    @detail_route(methods=['POST',])
+    @action(methods=['POST',], detail=True)
     @api_exception_handler
     def sqs_data_single(self, request, *args, **kwargs):
         '''
@@ -465,7 +465,7 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
 #                status=status.HTTP_400_BAD_REQUEST
 #            )
 
-    @detail_route(methods=['POST',])
+    @action(methods=['POST',], detail=True)
     @api_exception_handler
     def refresh(self, request, *args, **kwargs):
         
@@ -593,7 +593,7 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
         return Response(resp_data, status=resp.status_code)
 
 
-    @detail_route(methods=['post'])
+    @action(methods=['post'], detail=True)
     @renderer_classes((JSONRenderer,))
     def prefill_proposal(self, request, *args, **kwargs):
         try:
@@ -820,7 +820,7 @@ class SpatialQueryQuestionPaginatedViewSet(viewsets.ModelViewSet):
         # user = self.request.user
         return SpatialQueryQuestion.objects.all()
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     def spatial_query_question_datatable_list(self, request, *args, **kwargs):
         """ http://localhost:8003/api/spatial_query_paginated/spatial_query_question_datatable_list/?format=datatables&draw=1&length=10 """
         self.serializer_class = DTSpatialQueryQuestionSerializer
@@ -860,7 +860,7 @@ class SpatialQueryQuestionPaginatedViewSet(viewsets.ModelViewSet):
 
         return response
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     def spatial_query_layer_datatable_list(self, request, *args, **kwargs):
         """ http://localhost:8003/api/spatial_query_paginated/spatial_query_layer_datatable_list/?format=datatables&draw=1&length=10&sqq_id=225 """
 
@@ -925,7 +925,7 @@ class SpatialQueryMetricsPaginatedViewSet(viewsets.ModelViewSet):
         # user = self.request.user
         return SpatialQueryMetrics.objects.all()
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     def spatial_query_metrics_datatable_list(self, request, *args, **kwargs):
         """ http://localhost:8003/api/spatial_query_metrics_paginated/spatial_query_metrics_datatable_list/?format=datatables&draw=1&length=10 """
         self.serializer_class = DTSpatialQueryMetricsSerializer
@@ -943,7 +943,7 @@ class SpatialQueryMetricsPaginatedViewSet(viewsets.ModelViewSet):
         response = self.paginator.get_paginated_response(data)
         return response
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     def spatial_query_metrics_details_datatable_list(self, request, *args, **kwargs):
         """ http://localhost:8003/api/spatial_query_metrics_paginated/spatial_query_metrics_datatable_list/?format=datatables&draw=1&length=10 """
         self.serializer_class = DTSpatialQueryMetricsDetailsSerializer
@@ -977,7 +977,7 @@ class SpatialQueryMetricsDetailsPaginatedViewSet(viewsets.ModelViewSet):
         # user = self.request.user
         return SpatialQueryMetrics.objects.all()
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     def spatial_query_metrics_datatable_list(self, request, *args, **kwargs):
         """ http://localhost:8003/api/spatial_query_metrics_paginated/spatial_query_metrics_datatable_list/?format=datatables&draw=1&length=10 """
         self.serializer_class = DTSpatialQueryMetricsDetailsSerializer
@@ -1030,7 +1030,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
 #
 #        return Response(question_group_list)
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     @api_exception_handler
     def get_sqs_layers(self, request, *args, **kwargs):
         '''
@@ -1069,7 +1069,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
 
         return Response(data)
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     def get_spatialquery_selects(self, request, *args, **kwargs):
         '''
         INTERNAL DAS API CALLS
@@ -1153,7 +1153,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
             logger.error(str(e))
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(methods=['GET',], detail=True)
     @api_exception_handler
     def check_cddp_question(self, request, *args, **kwargs):
         '''
@@ -1187,7 +1187,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
 
-    @detail_route(methods=['GET',])
+    @action(methods=['GET',], detail=True)
     @api_exception_handler
     def check_sqs_layer(self, request, *args, **kwargs):
         '''
@@ -1226,7 +1226,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
 
         return Response(data)
 
-    @detail_route(methods=['GET',])
+    @action(methods=['GET',], detail=True)
     @api_exception_handler
     def get_sqs_attrs(self, request, *args, **kwargs):
         '''
@@ -1283,7 +1283,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
 
         return Response(data)
 
-    @detail_route(methods=['GET',])
+    @action(methods=['GET',], detail=True)
     @api_exception_handler
     def get_sqs_layer_geojson(self, request, *args, **kwargs):
         '''
@@ -1323,7 +1323,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
 
         return Response(data)
 
-    @detail_route(methods=['POST',])
+    @action(methods=['POST',], detail=True)
     @api_exception_handler
     def create_or_update_sqs_layer(self, request, *args, **kwargs):
         '''
@@ -1435,7 +1435,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
 #        #plt.show()
 #        #return Response(polygon_geojson)
 
-    @detail_route(methods=['DELETE', ])
+    @action(methods=['DELETE', ], detail=True)
     def delete_spatialquery(self, request, *args, **kwargs):
         '''
         Delete spatialquery record.
@@ -1488,7 +1488,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    @detail_route(methods=['POST', ])
+    @action(methods=['POST', ], detail=True)
     def save_spatialquery(self, request, *args, **kwargs):
         '''
         Save spatialquery record.
@@ -1627,7 +1627,7 @@ class SpatialQueryLayerViewSet(viewsets.ModelViewSet):
     queryset = SpatialQueryLayer.objects.all()
     serializer_class = SpatialQueryLayerSerializer
 
-    @detail_route(methods=['DELETE', ])
+    @action(methods=['DELETE', ], detail=True)
     def delete_spatialquerylayer(self, request, *args, **kwargs):
         '''
         Delete spatialquerylayer record.
@@ -1705,7 +1705,7 @@ class SpatialQueryLayerViewSet(viewsets.ModelViewSet):
 
         #return Response(serializer.data)
 
-    @detail_route(methods=['POST', ])
+    @action(methods=['POST', ], detail=True)
     def save_spatialquerylayer(self, request, *args, **kwargs):
         '''
         Save spatialquery record.
