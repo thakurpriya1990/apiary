@@ -5,7 +5,7 @@ from datetime import datetime
 
 from django.core.mail import EmailMultiAlternatives, EmailMessage
 from django.utils.encoding import smart_text
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.conf import settings
 
 from disturbance.components.emails.emails import TemplateEmailBase

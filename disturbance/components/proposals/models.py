@@ -66,7 +66,7 @@ import copy
 import subprocess
 from multiselectfield import MultiSelectField
 from smart_selects.db_fields import ChainedForeignKey, ChainedManyToManyField, GroupedForeignKey
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 
 from disturbance.settings import SITE_STATUS_DRAFT, SITE_STATUS_PENDING, SITE_STATUS_APPROVED, SITE_STATUS_DENIED, \
