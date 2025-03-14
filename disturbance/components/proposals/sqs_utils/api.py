@@ -184,36 +184,36 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
         return response
 
 
-    @action(methods=['GET', ], detail=False)
-    @api_exception_handler
-    def __layers_used(self, request, *args, **kwargs):
-        if not is_internal(self.request):
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+    # @action(methods=['GET', ], detail=False)
+    # @api_exception_handler
+    # def __layers_used(self, request, *args, **kwargs):
+    #     if not is_internal(self.request):
+    #         return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        response = cache.get(f'layers_used')
+    #     response = cache.get(f'layers_used')
 
-        if response:
-            logger.info('Export Layers Used: Retrieved from cache.')
-        else:
-            rows = []
-            rows.append(('Proposal Number', 'Proposal Submitter', 'Proposal Section', 'Layer Name', 'Layer Version', 'Layer Modified Date', 'SQS Timestamp'))
-            p_ids = Proposal.objects.filter(layer_data__isnull=False).values_list('id', flat=True)
-            for p_id in p_ids:
-                proposal = Proposal.objects.get(id=p_id)
-                for data in proposal.layer_data:
-                    rows.append((proposal.lodgement_number, proposal.submitter, data['name'], data['layer_name'], data['layer_version'], data['layer_modified_date'], data['sqs_timestamp']))
+    #     if response:
+    #         logger.info('Export Layers Used: Retrieved from cache.')
+    #     else:
+    #         rows = []
+    #         rows.append(('Proposal Number', 'Proposal Submitter', 'Proposal Section', 'Layer Name', 'Layer Version', 'Layer Modified Date', 'SQS Timestamp'))
+    #         p_ids = Proposal.objects.filter(layer_data__isnull=False).values_list('id', flat=True)
+    #         for p_id in p_ids:
+    #             proposal = Proposal.objects.get(id=p_id)
+    #             for data in proposal.layer_data:
+    #                 rows.append((proposal.lodgement_number, proposal.submitter, data['name'], data['layer_name'], data['layer_version'], data['layer_modified_date'], data['sqs_timestamp']))
 
-            filename = f'layers_used_{datetime.now().strftime("%Y%m%dT%H%M")}.csv'
-            response = HttpResponse(content_type='text/csv')
-            response['Content-Disposition'] = f'attachment; filename={filename}'
-            response['filename'] = filename 
-            writer = csv.writer(response)
-            for row in rows:
-                writer.writerow(row)
+    #         filename = f'layers_used_{datetime.now().strftime("%Y%m%dT%H%M")}.csv'
+    #         response = HttpResponse(content_type='text/csv')
+    #         response['Content-Disposition'] = f'attachment; filename={filename}'
+    #         response['filename'] = filename 
+    #         writer = csv.writer(response)
+    #         for row in rows:
+    #             writer.writerow(row)
 
-            cache.set(f'layers_used', response, settings.LAYERS_USED_CACHE_TIMEOUT)
+    #         cache.set(f'layers_used', response, settings.LAYERS_USED_CACHE_TIMEOUT)
 
-        return response
+    #     return response
 
 #    @detail_route(methods=['POST',])
 #    @api_exception_handler
