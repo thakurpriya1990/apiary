@@ -23,7 +23,7 @@ from django.dispatch import receiver
 from django.db.models.signals import pre_delete, post_save
 # from django.utils.encoding import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
-from django.contrib.postgres.fields.jsonb import JSONField
+from django.db.models import JSONField
 from django.utils import timezone
 from django.core.paginator import Paginator
 
@@ -3215,7 +3215,7 @@ class MasterlistQuestion(models.Model):
     help_text_assessor_url=models.BooleanField(default=False)
     help_text=RichTextField(null=True, blank=True)
     help_text_assessor=RichTextField(null=True, blank=True)
-    property_cache = JSONField(null=True, blank=True, default={})
+    property_cache = JSONField(null=True, blank=True, default=dict)
 
     class Meta:
         app_label = 'disturbance'
@@ -3508,7 +3508,7 @@ class SectionQuestion(models.Model):
     # )
     tag= MultiSelectField(choices=TAG_CHOICES, max_length=400,max_choices=10, null=True, blank=True)
     order = models.PositiveIntegerField(default=1)
-    property_cache = JSONField(null=True, blank=True, default={})
+    property_cache = JSONField(null=True, blank=True, default=dict)
 
 
 
@@ -3745,7 +3745,7 @@ class SpatialQueryMetrics(models.Model):
     request_type = models.CharField(max_length=40, choices=RequestTypeEnum.REQUEST_TYPE_CHOICES)
     sqs_response = JSONField('Response from SQS', default=[{}])
     time_taken = models.DecimalField('Total time for request/response', max_digits=9, decimal_places=3)
-    response_cached = models.NullBooleanField()
+    response_cached = models.BooleanField(null=True)
 
     #when = models.DateTimeField(auto_now_add=True, null=False, blank=False)
 
