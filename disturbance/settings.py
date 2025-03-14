@@ -116,12 +116,11 @@ USE_DJANGO_JQUERY= True
 #CRISPY_TEMPLATE_PACK = 'uni_form'
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-MIDDLEWARE_CLASSES += [
+MIDDLEWARE += [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     # 'corsheaders.middleware.CorsMiddleware',
 ]
 # CORS_ORIGIN_ALLOW_ALL = True
-
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance', 'templates'))
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance','components','organisations', 'templates'))
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance','components','emails', 'templates'))
