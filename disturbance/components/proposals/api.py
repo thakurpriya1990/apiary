@@ -411,30 +411,6 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
         return response
     
 
-class ProposalSqsViewSet(viewsets.ModelViewSet):
-    queryset = Proposal.objects.none()
-    serializer_class = ProposalSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-
-        if is_internal(self.request):
-            return Proposal.objects.filter(
-                Q(region__isnull=False) |
-                Q(application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE])
-            )
-        elif is_customer(self.request):
-            user_orgs = [org.id for org in user.disturbance_organisations.all()]
-            queryset = Proposal.objects.filter(region__isnull=False).filter(
-                Q(applicant_id__in=user_orgs) |
-                Q(submitter=user)
-            ).exclude(processing_status='')
-            return queryset
-
-        logger.warn("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
-        return Proposal.objects.none()
-
-
 class ProposalViewSet(viewsets.ModelViewSet):
     queryset = Proposal.objects.none()
     serializer_class = ProposalSerializer
