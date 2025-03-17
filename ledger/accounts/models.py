@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 # import os
 # import zlib
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
-from django.contrib.postgres.fields import JSONField
+from django.db.models import JSONField
 #from django.db.models import JSONField
 from django.db import models, transaction
 # from django.utils.encoding import python_2_unicode_compatible

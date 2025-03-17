@@ -3698,6 +3698,9 @@ class SpatialQueryLayer(RevisionedMixin):
         (INT, 'Integer'),
         (FLOAT, 'Float'),
     )
+
+    def get_default_items():
+        return [{}]
                          
     layer = models.ForeignKey(DASMapLayer, related_name='layers', on_delete=models.CASCADE) #, blank=True, null=True)
     expiry = models.DateField('Expiry Date', blank=True, null=True)
@@ -3715,8 +3718,8 @@ class SpatialQueryLayer(RevisionedMixin):
     #no_polygons_assessor = models.IntegerField('No. of polygons to process (Assessor)', default=-1, blank=True)
     assessor_info = models.TextField(blank=True, null=True)
 
-    proponent_items = JSONField('Proponent response set', default=[{}])
-    assessor_items = JSONField('Assessor response set', default=[{}])
+    proponent_items = JSONField('Proponent response set', default=get_default_items)
+    assessor_items = JSONField('Assessor response set', default=get_default_items)
 
     #regions = models.CharField('Regions', max_length=40, choices=REGION_CHOICES, default=REGION_CHOICES[0][0], blank=True)
 
@@ -3738,12 +3741,15 @@ class SpatialQueryLayer(RevisionedMixin):
 
 
 class SpatialQueryMetrics(models.Model):
+    
+    def get_default_items():
+        return [{}]
                          
     proposal = models.ForeignKey(Proposal, related_name='metrics', on_delete=models.CASCADE )
     when = models.DateTimeField()
     system = models.CharField('Application System Name', max_length=64)
     request_type = models.CharField(max_length=40, choices=RequestTypeEnum.REQUEST_TYPE_CHOICES)
-    sqs_response = JSONField('Response from SQS', default=[{}])
+    sqs_response = JSONField('Response from SQS', default=get_default_items)
     time_taken = models.DecimalField('Total time for request/response', max_digits=9, decimal_places=3)
     response_cached = models.BooleanField(null=True)
 
