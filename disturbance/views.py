@@ -92,7 +92,7 @@ class DisturbanceRoutingView(TemplateView):
     template_name = 'disturbance/index.html'
 
     def get(self, *args, **kwargs):
-        if self.request.user.is_authenticated():
+        if self.request.user.is_authenticated:
             if is_internal(self.request):
                 return redirect('internal')
             return redirect('external')
@@ -111,7 +111,7 @@ class InternalProposalView(DetailView):
     template_name = 'disturbance/dash/index.html'
 
     def get(self, *args, **kwargs):
-        if self.request.user.is_authenticated():
+        if self.request.user.is_authenticated:
             if is_internal(self.request):
                 #return redirect('internal-proposal-detail')
                 return super(InternalProposalView, self).get(*args, **kwargs)
@@ -155,7 +155,7 @@ class HelpView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(HelpView, self).get_context_data(**kwargs)
 
-        if self.request.user.is_authenticated():
+        if self.request.user.is_authenticated:
             application_type = kwargs.get('application_type', None) 
             if kwargs.get('help_type', None)=='assessor':
                 if is_internal(self.request):
@@ -264,7 +264,7 @@ def validate_invoice_details(request):
 @csrf_exempt
 def kbProxyViewOrig(request, path):
     from requests.auth import HTTPBasicAuth
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         # user=settings.KB_USER
         # password=settings.KB_PASSWORD
         user=settings.KMI_USER
@@ -277,7 +277,7 @@ def kbProxyViewOrig(request, path):
 @csrf_exempt
 def kmiProxyOrigView(request, path):
     from requests.auth import HTTPBasicAuth
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         user=settings.KMI_USER
         password=settings.KMI_PASSWORD
         remoteurl=settings.KMI_API_SERVER_URL + path
@@ -288,7 +288,7 @@ def kmiProxyOrigView(request, path):
 def kmiProxyView(request, path):
     
     from requests.auth import HTTPBasicAuth
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         user=settings.KMI_USER
         password=settings.KMI_PASSWORD
 
@@ -328,7 +328,7 @@ def kmiProxyView(request, path):
 def kbProxyView(request, path):
     extra_requests_args={}
     from requests.auth import HTTPBasicAuth
-    if request.user.is_authenticated(): 
+    if request.user.is_authenticated:
         user=settings.KMI_USER
         password=settings.KB_PASSWORD
         CACHE_EXPIRY=300
@@ -362,7 +362,7 @@ def kbProxyView(request, path):
 def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     
     from requests.auth import HTTPBasicAuth
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         proxy_cache= None
         proxy_response = None
         proxy_response_content = None

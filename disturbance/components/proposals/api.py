@@ -1678,7 +1678,7 @@ class ReferralViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated() and is_internal(self.request):
+        if user.is_authenticated and is_internal(self.request):
             #queryset =  Referral.objects.filter(referral=user)
             queryset =  Referral.objects.all()
             return queryset
@@ -1939,7 +1939,7 @@ class ProposalStandardRequirementViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return ProposalStandardRequirement.objects.all()
         return ProposalStandardRequirement.objects.none()
 
@@ -2179,7 +2179,7 @@ class SchemaMasterlistPaginatedViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return MasterlistQuestion.objects.all()
         return MasterlistQuestion.objects.none()
 
@@ -2205,7 +2205,7 @@ class SchemaMasterlistViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return MasterlistQuestion.objects.all()
         return MasterlistQuestion.objects.none()
 
@@ -2449,7 +2449,7 @@ class SchemaQuestionPaginatedViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return SectionQuestion.objects.all()
         return SectionQuestion.objects.none()
 
@@ -2476,7 +2476,7 @@ class SchemaQuestionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return SectionQuestion.objects.all()
         return SectionQuestion.objects.none()
 
@@ -2817,7 +2817,7 @@ class SchemaProposalTypePaginatedViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return ProposalTypeSection.objects.all()
         return ProposalTypeSection.objects.none()
 
@@ -2844,7 +2844,7 @@ class SchemaProposalTypeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return ProposalTypeSection.objects.all()
         return ProposalTypeSection.objects.none()
 
