@@ -516,10 +516,11 @@ def send_approver_decline_email_notification(reason, request, proposal):
         _log_org_email(msg, proposal.applicant, proposal.submitter, sender=sender)
 
 def send_approver_approve_email_notification(request, proposal):
-    if proposal.apiary_group_application_type:
-        email = ApiaryApproverApproveSendNotificationEmail()
-    else:
-        email = ApproverApproveSendNotificationEmail()
+    # if proposal.apiary_group_application_type:
+    #     email = ApiaryApproverApproveSendNotificationEmail()
+    # else:
+    #     email = ApproverApproveSendNotificationEmail()
+    email = ApproverApproveSendNotificationEmail()
     url = request.build_absolute_uri(reverse('internal-proposal-detail',kwargs={'proposal_pk': proposal.id}))
     assessor_name=proposal.assigned_officer.get_full_name() if proposal.assigned_officer else ''
     context = {

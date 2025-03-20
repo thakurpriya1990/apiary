@@ -1231,13 +1231,15 @@ class ProposalViewSet(viewsets.ModelViewSet):
     def proposed_approval(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            if instance.application_type.name == ApplicationType.SITE_TRANSFER:
-                #serializer = ProposedApprovalSiteTransferSerializer(data=request.data)
-                serializer = ProposedApprovalSerializer(data=request.data)
-                serializer.is_valid(raise_exception=True)
-            else:
-                serializer = ProposedApprovalSerializer(data=request.data)
-                serializer.is_valid(raise_exception=True)
+            # if instance.application_type.name == ApplicationType.SITE_TRANSFER:
+            #     #serializer = ProposedApprovalSiteTransferSerializer(data=request.data)
+            #     serializer = ProposedApprovalSerializer(data=request.data)
+            #     serializer.is_valid(raise_exception=True)
+            # else:
+            #     serializer = ProposedApprovalSerializer(data=request.data)
+            #     serializer.is_valid(raise_exception=True)
+            serializer = ProposedApprovalSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
             instance.proposed_approval(request,serializer.validated_data)
             #serializer = InternalProposalSerializer(instance,context={'request':request})
             serializer_class = self.internal_serializer_class()
