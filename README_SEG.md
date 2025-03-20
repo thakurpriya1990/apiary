@@ -2,10 +2,10 @@
 ### EXCLUDE Reversion and add schema only for reversion
 NOTE: normally for PROD you would not exclude the reversion tables as in the command below. But for DEV work, these can be excluded to speed up DB backup and restore.
 ```
-pg_dump -U ledger_prod -W --exclude-table='django_cron*' --exclude-table='reversion_revision' --exclude-table='reversion_version' -t 'disturbance_*' -t 'accounts_*' -t 'address_*' -t 'analytics_*' -t 'auth_*' -t 'django_*' -Fc ledger_prod -h <db_hostname> -p 5432 > das_seg_tables_26Feb2025.sql
+pg_dump -U ledger_prod -W --exclude-table='django_cron*' --exclude-table='reversion_revision' --exclude-table='reversion_version' -t 'disturbance_*' -t 'accounts_*' -t 'address_*' -t 'analytics_*' -t 'auth_*' -t 'django_*' -t 'taggit_*' -Fc ledger_prod -h <db_hostname> -p 5432 > /dbdumps/dumps/das_seg_tables_18March2025.sql
 
 ### Append empty reversion tables
-pg_dump -U ledger_prod -W --schema-only -t reversion_revision -t reversion_version ledger_prod -h <db_hostname> -p 5432 >> das_seg_tables_26Feb2025.sql
+pg_dump -U ledger_prod -W --schema-only -t reversion_revision -t reversion_version ledger_prod -h <db_hostname> -p 5432 >> /dbdumps/dumps/das_seg_tables_26Feb2025.sql
 ```
 # TO RESTORE to DB  das_seg_dev_orig
 ```

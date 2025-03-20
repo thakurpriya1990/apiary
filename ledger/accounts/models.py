@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 # import os
-# import zlib
+import zlib
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.db.models import JSONField
 #from django.db.models import JSONField
@@ -197,7 +197,7 @@ class BaseAddress(models.Model):
         #for f in fields:
         #    print unicode(f).encode('utf-8').decode('unicode-escape').strip()
         #fields = [str(f).strip() for f in fields if f]
-        fields = [unicode_compatible(f).encode('utf-8').decode('unicode-escape').strip() for f in fields if f]
+        fields = [str(f).encode('utf-8').decode('unicode-escape').strip() for f in fields if f]
         
         return fields
 
