@@ -180,7 +180,7 @@ class ActivityMatrix(models.Model):
 class Tenure(models.Model):
     name = models.CharField(max_length=255, unique=True)
     order = models.PositiveSmallIntegerField(default=0)
-    application_type = models.ForeignKey(ApplicationType, related_name='tenure_app_types', on_delete=models.CASCADE)
+    application_type = models.ForeignKey(ApplicationType, related_name='tenure_app_types', null=True, on_delete=models.SET_NULL)
 
     class Meta:
         ordering = ['order', 'name']
@@ -228,8 +228,8 @@ class CommunicationsLogEntry(models.Model):
     subject = models.CharField(max_length=200, blank=True, verbose_name="Subject / Description")
     text = models.TextField(blank=True)
 
-    customer = models.ForeignKey(EmailUser, null=True, related_name='+', on_delete=models.CASCADE)
-    staff = models.ForeignKey(EmailUser, null=True, related_name='+', on_delete=models.CASCADE)
+    customer = models.ForeignKey(EmailUser, null=True, related_name='+', on_delete=models.SET_NULL)
+    staff = models.ForeignKey(EmailUser, null=True, related_name='+', on_delete=models.SET_NULL)
 
     created = models.DateTimeField(auto_now_add=True, null=False, blank=False)
 
@@ -409,7 +409,7 @@ class TaskMonitor(models.Model):
     retries = models.PositiveSmallIntegerField(default=0)
     proposal = models.ForeignKey('Proposal', on_delete=models.CASCADE)
     info = models.TextField(blank=True, null=True)
-    requester = models.ForeignKey(EmailUser, blank=False, null=False, related_name='+', on_delete=models.CASCADE)
+    requester = models.ForeignKey(EmailUser, blank=False, null=False, related_name='+', on_delete=models.PROTECT)
     created = models.DateTimeField(default=timezone.now, editable=False)
     request_type = models.CharField(max_length=40, choices=RequestTypeEnum.REQUEST_TYPE_CHOICES)
     

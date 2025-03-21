@@ -33,7 +33,7 @@ from django.core.files.storage import FileSystemStorage
 private_storage = FileSystemStorage(location="private-media/", base_url='/private-media/')
 
 class Organisation(models.Model):
-    organisation = models.ForeignKey(ledger_organisation, on_delete=models.CASCADE)
+    organisation = models.ForeignKey(ledger_organisation, on_delete=models.DO_NOTHING)
     # TODO: business logic related to delegate changes.
     delegates = models.ManyToManyField(EmailUser, blank=True, through='UserDelegation', related_name='disturbance_organisations')
     #pin_one = models.CharField(max_length=50,blank=True)
@@ -528,7 +528,7 @@ class OrganisationContact(models.Model):
 
 class OrganisationContactDeclinedDetails(models.Model):
     request = models.ForeignKey(OrganisationContact, on_delete=models.CASCADE)
-    officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
+    officer = models.ForeignKey(EmailUser, null=False, on_delete=models.DO_NOTHING)
     # reason = models.TextField(blank=True)
 
     class Meta:
@@ -537,7 +537,7 @@ class OrganisationContactDeclinedDetails(models.Model):
 
 class UserDelegation(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    user = models.ForeignKey(EmailUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(EmailUser, on_delete=models.PROTECT)
 
     class Meta:
         unique_together = (('organisation','user'),)
@@ -619,8 +619,8 @@ class OrganisationRequest(models.Model):
     )
     name = models.CharField(max_length=128, unique=True)
     abn = models.CharField(max_length=50, null=True, blank=True, verbose_name='ABN')
-    requester = models.ForeignKey(EmailUser, on_delete=models.CASCADE)
-    assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='org_request_assignee', on_delete=models.CASCADE)
+    requester = models.ForeignKey(EmailUser, on_delete=models.PROTECT)
+    assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='org_request_assignee', on_delete=models.SET_NULL)
     identification = models.FileField(upload_to='organisation/requests/%Y/%m/%d', null=True, blank=True, storage=private_storage)
     status = models.CharField(max_length=100,choices=STATUS_CHOICES, default="with_assessor")
     lodgement_date = models.DateTimeField(auto_now_add=True)
@@ -720,7 +720,7 @@ class OrganisationRequest(models.Model):
 
 
 class OrganisationAccessGroup(models.Model):
-    site = models.OneToOneField(Site, default='1', on_delete=models.CASCADE) 
+    site = models.OneToOneField(Site, default='1', on_delete=models.CASCADE)
     members = models.ManyToManyField(EmailUser)
 
     def __str__(self):
@@ -767,7 +767,7 @@ class OrganisationRequestUserAction(UserAction):
 
 class OrganisationRequestDeclinedDetails(models.Model):
     request = models.ForeignKey(OrganisationRequest, on_delete=models.CASCADE)
-    officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
+    officer = models.ForeignKey(EmailUser, null=False, on_delete=models.DO_NOTHING)
     reason = models.TextField(blank=True)
 
     class Meta:
