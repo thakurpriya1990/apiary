@@ -118,6 +118,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 MIDDLEWARE += [
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'disturbance.middleware.DomainDetectMiddleware',
     # 'corsheaders.middleware.CorsMiddleware',
 ]
 # CORS_ORIGIN_ALLOW_ALL = True
