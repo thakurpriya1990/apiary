@@ -78,7 +78,6 @@ drf-writable-nested==0.7.0
 click-plugins==1.1.1
 cligj==0.7.2
 fiona==1.8.21
-geopandas==0.10.2
 munch==2.5.0
 #numpy==1.21.5
 # numpy==1.18.5
@@ -89,7 +88,8 @@ pandas==2.2.0
 pyproj==3.3.0
 python-dateutil==2.8.2
 shapely==1.8.0
-geopandas==0.10.2
+# geopandas==0.10.2
+geopandas==0.12.0
 rtree==0.9.7
 
 git+https://github.com/dbca-wa/appmonitor_client.git#egg=appmonitor_client
