@@ -387,10 +387,11 @@ def send_apiary_referral_complete_email_notification(referral,request, completed
         _log_user_email(email_message=msg, emailuser=referral.proposal.submitter, customer=None, sender=sender)
 
 def send_amendment_email_notification(amendment_request, request, proposal):
-    if proposal.apiary_group_application_type:
-        email = ApiaryAmendmentRequestSendNotificationEmail()
-    else:
-        email = AmendmentRequestSendNotificationEmail()
+    # if proposal.apiary_group_application_type:
+    #     email = ApiaryAmendmentRequestSendNotificationEmail()
+    # else:
+    #     email = AmendmentRequestSendNotificationEmail()
+    email = AmendmentRequestSendNotificationEmail()
     #reason = amendment_request.get_reason_display()
     reason = amendment_request.reason.reason
     url = request.build_absolute_uri(reverse('external-proposal-detail',kwargs={'proposal_pk': proposal.id}))
@@ -429,10 +430,11 @@ def send_amendment_email_notification(amendment_request, request, proposal):
         _log_org_email(msg, proposal.applicant, proposal.submitter, sender=sender)
 
 def send_submit_email_notification(request, proposal):
-    if proposal.apiary_group_application_type:
-        email = ApiarySubmitSendNotificationEmail()
-    else:
-        email = SubmitSendNotificationEmail()
+    # if proposal.apiary_group_application_type:
+    #     email = ApiarySubmitSendNotificationEmail()
+    # else:
+    #     email = SubmitSendNotificationEmail()
+    email = SubmitSendNotificationEmail()
     url = request.build_absolute_uri(reverse('internal-proposal-detail',kwargs={'proposal_pk': proposal.id}))
     if "-internal" not in url:
         # add it. This email is for internal staff (assessors)
@@ -456,10 +458,11 @@ def send_submit_email_notification(request, proposal):
     return msg
 
 def send_external_submit_email_notification(request, proposal):
-    if proposal.apiary_group_application_type:
-        email = ApiaryExternalSubmitSendNotificationEmail()
-    else:
-        email = ExternalSubmitSendNotificationEmail()
+    # if proposal.apiary_group_application_type:
+    #     email = ApiaryExternalSubmitSendNotificationEmail()
+    # else:
+    #     email = ExternalSubmitSendNotificationEmail()
+    email = ExternalSubmitSendNotificationEmail()
     url = request.build_absolute_uri(reverse('external-proposal-detail',kwargs={'proposal_pk': proposal.id}))
 
     if "-internal" in url:
@@ -491,10 +494,11 @@ def send_external_submit_email_notification(request, proposal):
 
 #send email when Proposal is 'proposed to decline' by assessor.
 def send_approver_decline_email_notification(reason, request, proposal):
-    if proposal.apiary_group_application_type:
-        email = ApiaryApproverDeclineSendNotificationEmail()
-    else:
-        email = ApproverDeclineSendNotificationEmail()
+    # if proposal.apiary_group_application_type:
+    #     email = ApiaryApproverDeclineSendNotificationEmail()
+    # else:
+    #     email = ApproverDeclineSendNotificationEmail()
+    email = ApproverDeclineSendNotificationEmail()
     url = request.build_absolute_uri(reverse('internal-proposal-detail',kwargs={'proposal_pk': proposal.id}))
     assessor_name=proposal.assigned_officer.get_full_name() if proposal.assigned_officer else ''
     context = {
@@ -545,10 +549,11 @@ def send_approver_approve_email_notification(request, proposal):
 
 
 def send_proposal_decline_email_notification(proposal,request,proposal_decline):
-    if proposal.apiary_group_application_type:
-        email = ApiaryProposalDeclineSendNotificationEmail()
-    else:
-        email = ProposalDeclineSendNotificationEmail()
+    # if proposal.apiary_group_application_type:
+    #     email = ApiaryProposalDeclineSendNotificationEmail()
+    # else:
+    #     email = ProposalDeclineSendNotificationEmail()
+    email = ProposalDeclineSendNotificationEmail()
     reason=proposal_decline.reason
     context = {
         'proposal': proposal,
@@ -573,10 +578,11 @@ def send_proposal_decline_email_notification(proposal,request,proposal_decline):
 
 
 def send_proposal_approver_sendback_email_notification(request, proposal):
-    if proposal.apiary_group_application_type:
-        email = ApiaryApproverSendBackNotificationEmail()
-    else:
-        email = ApproverSendBackNotificationEmail()
+    # if proposal.apiary_group_application_type:
+    #     email = ApiaryApproverSendBackNotificationEmail()
+    # else:
+    #     email = ApproverSendBackNotificationEmail()
+    email = ApproverSendBackNotificationEmail()
     url = request.build_absolute_uri(reverse('internal-proposal-detail',kwargs={'proposal_pk': proposal.id}))
     approver_name=proposal.assigned_approver.get_full_name() if proposal.assigned_approver else ''
     context = {
@@ -600,10 +606,11 @@ def send_proposal_approver_sendback_email_notification(request, proposal):
 
 
 def send_proposal_approval_email_notification(proposal,request):
-    if proposal.apiary_group_application_type:
-        email = ApiaryProposalApprovalSendNotificationEmail()
-    else:
-        email = ProposalApprovalSendNotificationEmail()
+    # if proposal.apiary_group_application_type:
+    #     email = ApiaryProposalApprovalSendNotificationEmail()
+    # else:
+    #     email = ProposalApprovalSendNotificationEmail()
+    email = ProposalApprovalSendNotificationEmail()
     if proposal.approval.reissued:
         email.subject= 'Your Approval has been reissued.'
 
@@ -670,10 +677,11 @@ def send_site_transfer_approval_email_notification(proposal, request, approval):
         _log_org_email(msg, proposal.applicant, proposal.submitter, sender=sender)
 
 def send_assessment_reminder_email_notification(proposal):
-    if proposal.apiary_group_application_type:
-        email = ApiaryAssessmentReminderSendNotificationEmail()
-    else:
-        email = AssessmentReminderSendNotificationEmail()
+    # if proposal.apiary_group_application_type:
+    #     email = ApiaryAssessmentReminderSendNotificationEmail()
+    # else:
+    #     email = AssessmentReminderSendNotificationEmail()
+    email = AssessmentReminderSendNotificationEmail()
     #url = request.build_absolute_uri(reverse('internal-proposal-detail',kwargs={'proposal_pk': proposal.id}))
     url=settings.SITE_URL if settings.SITE_URL else ''
     url+=reverse('internal-proposal-detail',kwargs={'proposal_pk': proposal.id})

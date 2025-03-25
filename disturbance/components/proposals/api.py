@@ -1040,11 +1040,13 @@ class ProposalViewSet(viewsets.ModelViewSet):
     def submit(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            if instance.apiary_group_application_type:
-                save_proponent_data(instance, request, self)
-            else:
-                instance.submit(request, self)
-                instance.tenure = search_tenure(instance)
+            # if instance.apiary_group_application_type:
+            #     save_proponent_data(instance, request, self)
+            # else:
+            #     instance.submit(request, self)
+            #     instance.tenure = search_tenure(instance)
+            instance.submit(request, self)
+            instance.tenure = search_tenure(instance)
 
             instance.save()
             serializer = self.get_serializer(instance)
@@ -1064,10 +1066,11 @@ class ProposalViewSet(viewsets.ModelViewSet):
     def validate_map_files(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            if instance.apiary_group_application_type:
-                pass
-            else:
-                instance.validate_map_files(request)
+            # if instance.apiary_group_application_type:
+            #     pass
+            # else:
+            #     instance.validate_map_files(request)
+            instance.validate_map_files(request)
             instance.save()
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
@@ -1200,11 +1203,12 @@ class ProposalViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance = instance.renew_approval(request)
-            if instance.apiary_group_application_type:
-                serializer_class = self.internal_serializer_class()
-                serializer = serializer_class(instance,context={'request':request})
-            else:
-                serializer = SaveProposalSerializer(instance,context={'request':request})
+            # if instance.apiary_group_application_type:
+            #     serializer_class = self.internal_serializer_class()
+            #     serializer = serializer_class(instance,context={'request':request})
+            # else:
+            #     serializer = SaveProposalSerializer(instance,context={'request':request})
+            serializer = SaveProposalSerializer(instance,context={'request':request})
             return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
@@ -1530,92 +1534,92 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
                 # TODO any APIARY specific settings go here - eg renewal, amendment
 
-                if proposal_obj.apiary_group_application_type:
-                    proposal_obj.activity = proposal_obj.application_type.name
-                    proposal_obj.save()
-                details_data = {
-                    'proposal_id': proposal_obj.id
-                }
-                if application_type.name == ApplicationType.APIARY:
-                    serializer = SaveProposalApiarySerializer(data=details_data)
-                    serializer.is_valid(raise_exception=True)
-                    proposal_apiary = serializer.save()
-                    for question in ApiaryChecklistQuestion.objects.filter(
-                            checklist_type='apiary',
-                            checklist_role='applicant'
-                            ):
-                        new_answer = ApiaryChecklistAnswer.objects.create(proposal = proposal_apiary,
-                                                                                   question = question)
-                    # Find relevant approval
-                    approval = proposal_apiary.retrieve_approval
-                    if approval:
-                        # Copy requirements from approval.current_proposal
-                        #req = approval.current_proposal.apiary_requirements(approval).exclude(is_deleted=True)
-                        req = approval.proposalrequirement_set.exclude(is_deleted=True)
-                        from copy import deepcopy
-                        if req:
-                            for r in req:
-                                old_r = deepcopy(r)
-                                r.proposal = proposal_apiary.proposal
-                                r.apiary_approval = None
-                                r.copied_from=old_r
-                                r.id = None
-                                r.save()
-                        # Set previous_application to maintain proposal history
-                        proposal_apiary.proposal.previous_application = approval.current_proposal
-                        proposal_apiary.proposal.save()
-                        #proposal_apiary.proposal.proposal_type = 'amendment'
-                        #proposal_apiary.proposal.save()
+                # if proposal_obj.apiary_group_application_type:
+                #     proposal_obj.activity = proposal_obj.application_type.name
+                #     proposal_obj.save()
+                # details_data = {
+                #     'proposal_id': proposal_obj.id
+                # }
+                # if application_type.name == ApplicationType.APIARY:
+                #     serializer = SaveProposalApiarySerializer(data=details_data)
+                #     serializer.is_valid(raise_exception=True)
+                #     proposal_apiary = serializer.save()
+                #     for question in ApiaryChecklistQuestion.objects.filter(
+                #             checklist_type='apiary',
+                #             checklist_role='applicant'
+                #             ):
+                #         new_answer = ApiaryChecklistAnswer.objects.create(proposal = proposal_apiary,
+                #                                                                    question = question)
+                #     # Find relevant approval
+                #     approval = proposal_apiary.retrieve_approval
+                #     if approval:
+                #         # Copy requirements from approval.current_proposal
+                #         #req = approval.current_proposal.apiary_requirements(approval).exclude(is_deleted=True)
+                #         req = approval.proposalrequirement_set.exclude(is_deleted=True)
+                #         from copy import deepcopy
+                #         if req:
+                #             for r in req:
+                #                 old_r = deepcopy(r)
+                #                 r.proposal = proposal_apiary.proposal
+                #                 r.apiary_approval = None
+                #                 r.copied_from=old_r
+                #                 r.id = None
+                #                 r.save()
+                #         # Set previous_application to maintain proposal history
+                #         proposal_apiary.proposal.previous_application = approval.current_proposal
+                #         proposal_apiary.proposal.save()
+                #         #proposal_apiary.proposal.proposal_type = 'amendment'
+                #         #proposal_apiary.proposal.save()
 
-                elif application_type.name == ApplicationType.SITE_TRANSFER:
-                    approval_id = request.data.get('originating_approval_id')
-                    approval = Approval.objects.get(id=approval_id)
-                    details_data['originating_approval_id'] = approval_id
-                    serializer = CreateProposalApiarySiteTransferSerializer(data=details_data)
-                    serializer.is_valid(raise_exception=True)
-                    proposal_apiary = serializer.save()
-                    # Set proposal applicant
-                    if approval.applicant:
-                        proposal_obj.applicant = approval.applicant
-                    else:
-                        proposal_obj.proxy_applicant = approval.proxy_applicant
-                    proposal_obj.save()
-                    # Set up checklist questions
-                    for question in ApiaryChecklistQuestion.objects.filter(
-                            checklist_type='site_transfer',
-                            checklist_role='applicant'
-                            ):
-                        new_answer = ApiaryChecklistAnswer.objects.create(proposal=proposal_apiary, question=question)
-                    # Save approval apiary sites to site transfer proposal
-                    # for apiary_site in approval.apiary_sites.all():
-                    for relation in approval.get_relations():
-                        SiteTransferApiarySite.objects.create(proposal_apiary=proposal_apiary, apiary_site_on_approval=relation)
+                # elif application_type.name == ApplicationType.SITE_TRANSFER:
+                #     approval_id = request.data.get('originating_approval_id')
+                #     approval = Approval.objects.get(id=approval_id)
+                #     details_data['originating_approval_id'] = approval_id
+                #     serializer = CreateProposalApiarySiteTransferSerializer(data=details_data)
+                #     serializer.is_valid(raise_exception=True)
+                #     proposal_apiary = serializer.save()
+                #     # Set proposal applicant
+                #     if approval.applicant:
+                #         proposal_obj.applicant = approval.applicant
+                #     else:
+                #         proposal_obj.proxy_applicant = approval.proxy_applicant
+                #     proposal_obj.save()
+                #     # Set up checklist questions
+                #     for question in ApiaryChecklistQuestion.objects.filter(
+                #             checklist_type='site_transfer',
+                #             checklist_role='applicant'
+                #             ):
+                #         new_answer = ApiaryChecklistAnswer.objects.create(proposal=proposal_apiary, question=question)
+                #     # Save approval apiary sites to site transfer proposal
+                #     # for apiary_site in approval.apiary_sites.all():
+                #     for relation in approval.get_relations():
+                #         SiteTransferApiarySite.objects.create(proposal_apiary=proposal_apiary, apiary_site_on_approval=relation)
 
-                elif application_type.name == ApplicationType.TEMPORARY_USE:
-                    approval_id = request.data.get('approval_id')
-                    approval = Approval.objects.get(id=approval_id)
+                # elif application_type.name == ApplicationType.TEMPORARY_USE:
+                #     approval_id = request.data.get('approval_id')
+                #     approval = Approval.objects.get(id=approval_id)
 
-                    details_data['loaning_approval_id'] = approval_id
-                    serializer = ProposalApiaryTemporaryUseSerializer(data=details_data)
-                    serializer.is_valid(raise_exception=True)
-                    new_temp_use = serializer.save()
+                #     details_data['loaning_approval_id'] = approval_id
+                #     serializer = ProposalApiaryTemporaryUseSerializer(data=details_data)
+                #     serializer.is_valid(raise_exception=True)
+                #     new_temp_use = serializer.save()
 
-                    # Save TemporaryUseApiarySite
-                    for relation in approval.get_relations():
-                        data_to_save = {
-                            'proposal_apiary_temporary_use_id': new_temp_use.id,
-                            'apiary_site_on_approval_id': relation.id,
-                        }
-                        serializer = TemporaryUseApiarySiteSerializer(data=data_to_save)
-                        serializer.is_valid(raise_exception=True)
-                        serializer.save()
+                #     # Save TemporaryUseApiarySite
+                #     for relation in approval.get_relations():
+                #         data_to_save = {
+                #             'proposal_apiary_temporary_use_id': new_temp_use.id,
+                #             'apiary_site_on_approval_id': relation.id,
+                #         }
+                #         serializer = TemporaryUseApiarySiteSerializer(data=data_to_save)
+                #         serializer.is_valid(raise_exception=True)
+                #         serializer.save()
 
-                #elif application_type.name == ApplicationType.SITE_TRANSFER:
-                #    serializer = ProposalApiarySiteTransferSerializer(data=details_data)
-                #    serializer.is_valid(raise_exception=True)
-                #    serializer.save()
-                else:
-                    pass
+                # #elif application_type.name == ApplicationType.SITE_TRANSFER:
+                # #    serializer = ProposalApiarySiteTransferSerializer(data=details_data)
+                # #    serializer.is_valid(raise_exception=True)
+                # #    serializer.save()
+                # else:
+                #     pass
 
                 serializer = SaveProposalSerializer(proposal_obj)
                 return Response(serializer.data)

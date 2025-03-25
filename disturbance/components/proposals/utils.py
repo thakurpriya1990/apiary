@@ -593,15 +593,16 @@ class RefreshTimestampSearch(object):
 # -------------------------------------------------------------------------------------------------------------
 
 def save_proponent_data(instance, request, viewset):
-    if instance.application_type.name == 'Site Transfer':
-    #if instance.application_type.name == ApplicationType.SITE_TRANSFER:
-        save_proponent_data_apiary_site_transfer(instance, request, viewset)
-        instance.log_user_action(ProposalUserAction.APIARY_ACTION_SAVE_APPLICATION.format(instance.lodgement_number), request)
-    elif instance.apiary_group_application_type:
-        save_proponent_data_apiary(instance, request, viewset)
-        instance.log_user_action(ProposalUserAction.APIARY_ACTION_SAVE_APPLICATION.format(instance.lodgement_number), request)
-    else:
-        save_proponent_data_disturbance(instance,request,viewset)
+    # if instance.application_type.name == 'Site Transfer':
+    # #if instance.application_type.name == ApplicationType.SITE_TRANSFER:
+    #     save_proponent_data_apiary_site_transfer(instance, request, viewset)
+    #     instance.log_user_action(ProposalUserAction.APIARY_ACTION_SAVE_APPLICATION.format(instance.lodgement_number), request)
+    # elif instance.apiary_group_application_type:
+    #     save_proponent_data_apiary(instance, request, viewset)
+    #     instance.log_user_action(ProposalUserAction.APIARY_ACTION_SAVE_APPLICATION.format(instance.lodgement_number), request)
+    # else:
+    #     save_proponent_data_disturbance(instance,request,viewset)
+    save_proponent_data_disturbance(instance,request,viewset)
 
 def save_proponent_data_apiary_site_transfer(proposal_obj, request, viewset):
     with transaction.atomic():
