@@ -2526,7 +2526,7 @@ class Assessment(ProposalRequest):
 
 class ProposalDeclinedDetails(models.Model):
     proposal = models.OneToOneField(Proposal, on_delete=models.CASCADE)
-    officer = models.ForeignKey(EmailUser, null=False, on_delete=models.PROTECT)
+    officer = models.ForeignKey(EmailUser, null=False, on_delete=models.DO_NOTHING)
     reason = models.TextField(blank=True)
     cc_email = models.TextField(null=True)
 
@@ -2670,7 +2670,7 @@ class Referral(models.Model):
                                  )
     lodged_on = models.DateTimeField(auto_now_add=True)
     proposal = models.ForeignKey(Proposal,related_name='referrals', on_delete=models.CASCADE)
-    sent_by = models.ForeignKey(EmailUser,related_name='disturbance_assessor_referrals', on_delete=models.PROTECT)
+    sent_by = models.ForeignKey(EmailUser,related_name='disturbance_assessor_referrals', on_delete=models.DO_NOTHING)
     referral = models.ForeignKey(EmailUser,null=True,blank=True,related_name='disturbance_referalls', on_delete=models.SET_NULL)
     linked = models.BooleanField(default=False)
     sent_from = models.SmallIntegerField(choices=SENT_CHOICES,default=SENT_CHOICES[0][0])
@@ -3135,7 +3135,7 @@ class OldFileExportManager(models.Manager):
 
 class ExportDocument(models.Model):
     _file = models.FileField(upload_to=export_file_path, max_length=255, storage=private_storage)
-    requester = models.ForeignKey(EmailUser, related_name='+', on_delete=models.PROTECT)
+    requester = models.ForeignKey(EmailUser, related_name='+', on_delete=models.SET_NULL, null=True)
     created = models.DateTimeField(default=timezone.now, editable=False)
     proposal = models.ForeignKey('Proposal', blank=True, null=True, on_delete=models.SET_NULL)
   

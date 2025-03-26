@@ -59,7 +59,7 @@ class Compliance(RevisionedMixin):
 
     lodgement_number = models.CharField(max_length=9, blank=True, default='')
     proposal = models.ForeignKey('disturbance.Proposal',related_name='compliances', blank=True, null=True, on_delete=models.CASCADE)
-    approval = models.ForeignKey('disturbance.Approval',related_name='compliances', on_delete=models.PROTECT)
+    approval = models.ForeignKey('disturbance.Approval',related_name='compliances', on_delete=models.SET_NULL, null=True)
     due_date = models.DateField()
     text = models.TextField(blank=True)
     processing_status = models.CharField(choices=PROCESSING_STATUS_CHOICES,max_length=20)

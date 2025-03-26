@@ -409,7 +409,7 @@ class TaskMonitor(models.Model):
     retries = models.PositiveSmallIntegerField(default=0)
     proposal = models.ForeignKey('Proposal', on_delete=models.CASCADE)
     info = models.TextField(blank=True, null=True)
-    requester = models.ForeignKey(EmailUser, blank=False, null=False, related_name='+', on_delete=models.PROTECT)
+    requester = models.ForeignKey(EmailUser, blank=False, null=False, related_name='+', on_delete=models.DO_NOTHING)
     created = models.DateTimeField(default=timezone.now, editable=False)
     request_type = models.CharField(max_length=40, choices=RequestTypeEnum.REQUEST_TYPE_CHOICES)
     
