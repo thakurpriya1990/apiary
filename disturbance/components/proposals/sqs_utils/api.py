@@ -116,10 +116,11 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         try:
             application_type = self.get_object().application_type.name
-            if application_type in (ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE):
-                return ProposalApiaryTypeSerializer
-            else:
-                return ProposalSerializer
+            # if application_type in (ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE):
+            #     return ProposalApiaryTypeSerializer
+            # else:
+            #     return ProposalSerializer
+            return ProposalSerializer
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -132,12 +133,13 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
     def internal_serializer_class(self):
         try:
             #application_type = Proposal.objects.get(id=self.kwargs.get('pk')).application_type.name
-            application_type = self.get_object().application_type.name
-            if application_type in (ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE):
-                return ApiaryInternalProposalSerializer
-                #return InternalProposalSerializer
-            else:
-                return InternalProposalSerializer
+            # application_type = self.get_object().application_type.name
+            # if application_type in (ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE):
+            #     return ApiaryInternalProposalSerializer
+            #     #return InternalProposalSerializer
+            # else:
+            #     return InternalProposalSerializer
+            return InternalProposalSerializer
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
