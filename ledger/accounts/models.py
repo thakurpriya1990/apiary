@@ -274,9 +274,9 @@ class EmailUser(AbstractBaseUser, PermissionsMixin):
 
     residential_address = models.ForeignKey(Address, null=True, blank=False, related_name='+', on_delete=models.SET_NULL)
     postal_address = models.ForeignKey(Address, null=True, blank=True, related_name='+', on_delete=models.SET_NULL)
-    postal_same_as_residential = models.BooleanField(default=False) 
+    postal_same_as_residential = models.BooleanField(default=False, null=True)
     billing_address = models.ForeignKey(Address, null=True, blank=True, related_name='+', on_delete=models.SET_NULL)
-    billing_same_as_residential = models.BooleanField(default=False)
+    billing_same_as_residential = models.BooleanField(default=False, null=True)
 
     identification = models.ForeignKey(Document, null=True, blank=True, on_delete=models.SET_NULL, related_name='identification_document')
     identification2 = models.ForeignKey(PrivateDocument, null=True, blank=True, on_delete=models.SET_NULL, related_name='identification_document_2')
