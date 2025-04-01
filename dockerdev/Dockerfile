@@ -1,6 +1,6 @@
 # Prepare the base environment.
 FROM dbcawa/disturbance:latest as builder_base_disturbancedev
-
+USER root
 RUN apt-get update
 RUN apt-get install --no-install-recommends -y npm patch
 RUN apt-get install --no-install-recommends -y libpq-dev git ssh sudo 
@@ -12,14 +12,6 @@ RUN openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 -subj  "/C=AU/ST=W
 RUN echo 'if ! [ -n "${SUDO_USER}" -a -n "${SUDO_PS1}" ]; then' >> /etc/bash.bashrc
 RUN echo "export PS1='\[\e[0;31mdev:\e[0;32m \u@\h:~ \e[0;34m\W\$\e\[\e[0m\] '" >> /etc/bash.bashrc
 RUN echo "fi" >> /etc/bash.bashrc
-
-# For Windows
-RUN groupadd -g 1000 docker
-RUN useradd -g 1000 -u 1000 docker -s /bin/bash
-RUN mkdir /home/docker
-RUN chown docker.docker /home/docker
-RUN cp /root/.bashrc /home/docker
-RUN cp /root/.profile /home/docker
 
 # For Linux
 RUN groupadd -g 20000 container
