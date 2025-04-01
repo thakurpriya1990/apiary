@@ -263,6 +263,23 @@ def send_submit_email_notification(request, compliance):
     if compliance.proposal:
         _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender)
 
+def send_compliance_accept_email_notification(compliance,request):
+    email = ComplianceAcceptNotificationEmail()
+
+    context = {
+        'compliance': compliance
+    }    
+    all_ccs = []
+    if compliance.proposal.applicant.email:
+        cc_list = compliance.proposal.applicant.email
+        if cc_list:
+            all_ccs = [cc_list]
+    msg = email.send(compliance.submitter.email, cc=all_ccs, context=context)
+    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    sender = get_sender_user()
+    _log_compliance_email(msg, compliance, sender=sender)
+    _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender)
+
 
 def _log_compliance_email(email_message, compliance, sender=None):
     from disturbance.components.compliances.models import ComplianceLogEntry

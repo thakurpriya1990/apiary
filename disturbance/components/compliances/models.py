@@ -20,7 +20,7 @@ from disturbance.components.organisations.models import Organisation
 from disturbance.components.main.models import CommunicationsLogEntry, Region, UserAction, Document
 from disturbance.components.proposals.models import ProposalRequirement, AmendmentReason
 from disturbance.components.compliances.email import (
-                        #send_compliance_accept_email_notification,
+                        send_compliance_accept_email_notification,
                         send_amendment_email_notification,
                         send_reminder_email_notification,
                         send_external_submit_email_notification,
