@@ -37,7 +37,7 @@ from disturbance.components.proposals.serializers_base import BaseProposalSerial
     ProposalDeclinedDetailsSerializer, EmailUserSerializer, EmailSerializer
 from drf_writable_nested import UniqueFieldsMixin , WritableNestedModelSerializer
 from datetime import datetime
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 
 logger = logging.getLogger(__name__)
@@ -120,7 +120,7 @@ class ListProposalSerializer(BaseProposalSerializer):
     template_group = serializers.SerializerMethodField(read_only=True)
 
     fee_invoice_references = serializers.SerializerMethodField()
-    approval = serializers.CharField(source='approval.lodgement_number')
+    approval = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Proposal
@@ -252,6 +252,11 @@ class ListProposalSerializer(BaseProposalSerializer):
 
     def get_template_group(self, obj):
         return self.context.get('template_group')
+
+    def get_approval(self, obj):
+        if obj.approval:
+            return obj.approval.lodgement_number
+        return None
 
 
 #class ProposalSqsSerializer(BaseProposalSerializer):

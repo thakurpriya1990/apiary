@@ -16,7 +16,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from rest_framework import viewsets, serializers, status, generics, views
-from rest_framework.decorators import detail_route, list_route, renderer_classes
+from rest_framework.decorators import action, renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, BasePermission
@@ -184,7 +184,7 @@ class ApprovalPaginatedViewSet(viewsets.ModelViewSet):
     #    serializer = ApprovalSerializer(result_page, context={'request':request}, many=True)
     #    return self.paginator.get_paginated_response(serializer.data)
 
-    @list_route(methods=['GET',])
+    @action(methods=['GET',], detail=False)
     def approvals_external(self, request, *args, **kwargs):
         """
         Paginated serializer for datatables - used by the internal and external dashboard (filtered by the get_queryset method)
@@ -261,7 +261,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['GET',])
+    @action(methods=['GET',], detail=False)
     def filter_list(self, request, *args, **kwargs):
         """ Used by the external dashboard filters """
         region_qs =  self.get_queryset().filter(current_proposal__region__isnull=False).values_list('current_proposal__region__name', flat=True).distinct()
@@ -278,7 +278,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(approval, context={'request': request})
         return Response(serializer.data)
 
-    @detail_route(methods=['GET',])
+    @action(methods=['GET',], detail=True)
     def approval_wrapper(self, request, *args, **kwargs):
         instance = self.get_object()
         #instance.internal_view_log(request)
@@ -288,7 +288,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
         serializer = serializer_class(instance)
         return Response(serializer.data)
 
-    @detail_route(methods=['POST',])
+    @action(methods=['POST',], detail=True)
     @basic_exception_handler
     def approval_cancellation(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -298,7 +298,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
         serializer = ApprovalSerializer(instance,context={'request':request})
         return Response(serializer.data)
 
-    @detail_route(methods=['POST',])
+    @action(methods=['POST',], detail=True)
     def approval_suspension(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -316,7 +316,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(methods=['POST',], detail=True)
     def approval_reinstate(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -332,7 +332,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(methods=['POST',], detail=True)
     def approval_surrender(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -350,7 +350,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(methods=['GET',], detail=True)
     def approval_pdf_view_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -366,7 +366,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(methods=['GET',], detail=True)
     def action_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -383,7 +383,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(methods=['GET',], detail=True)
     def comms_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -400,7 +400,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(methods=['POST',], detail=True)
     @renderer_classes((JSONRenderer,))
     def add_comms_log(self, request, *args, **kwargs):
         try:
@@ -431,14 +431,14 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @list_route(methods=['GET',])
+    @action(methods=['GET',], detail=False)
     def sti_search(self, request, *args, **kwargs):
         """ Used by the internal users to filter for sti name in ptoposal titlei (for use by external systems) """
         name = request.GET.get('name')
         data = Approval.objects.filter(current_proposal__title__icontains=name).values_list('licence_document___file', flat=True)
         return Response(list(data))
 
-    @list_route(methods=['GET',])
+    @action(methods=['GET',], detail=False)
     def sti_unmatched(self, request, *args, **kwargs):
         """ Used by the internal users to filter for sti name in ptoposal titlei (for use by external systems) """
 
@@ -452,7 +452,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
 
         return Response(list(data))
 
-    @detail_route(methods=['GET',])
+    @action(methods=['GET',], detail=True)
     def requirements(self, request, *args, **kwargs):
         try:
             approval = self.get_object()
@@ -470,7 +470,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     def approval_history(self, request, *args, **kwargs):
         try:
             qs = None

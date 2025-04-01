@@ -34,6 +34,7 @@ class UserOrganisationSerializer(serializers.ModelSerializer):
     abn = serializers.CharField(source='organisation.abn')
     is_consultant = serializers.SerializerMethodField(read_only=True)
     is_admin = serializers.SerializerMethodField(read_only=True)
+    existing_record_text = serializers.SerializerMethodField()
 
     class Meta:
         model = Organisation
@@ -44,6 +45,7 @@ class UserOrganisationSerializer(serializers.ModelSerializer):
             'email',
             'is_consultant',
             'is_admin',
+            'existing_record_text',
         )
 
     def get_is_admin(self, obj):
@@ -57,6 +59,38 @@ class UserOrganisationSerializer(serializers.ModelSerializer):
     def get_email(self, obj):
         email = EmailUser.objects.get(id=self.context.get('user_id')).email
         return email
+
+    def get_existing_record_text(self, obj):
+        notification = ''
+        disable_radio_button = False
+
+        request = self.context.get('request')
+        if request and get_template_group(request) == 'apiary':
+            approval = obj.disturbance_approvals.filter(status__in=[Approval.STATUS_CURRENT, Approval.STATUS_SUSPENDED], apiary_approval=True).first()
+            open_proposal = None
+            # Apiary group applications
+            for proposal in Proposal.objects.filter(applicant=obj, application_type__name__in=[
+                ApplicationType.APIARY,
+                ApplicationType.TEMPORARY_USE,
+                ApplicationType.SITE_TRANSFER,
+                ]):
+                if not proposal.processing_status in [
+                        Proposal.PROCESSING_STATUS_APPROVED, 
+                        Proposal.PROCESSING_STATUS_DECLINED, 
+                        Proposal.PROCESSING_STATUS_DISCARDED
+                        ]:
+                    open_proposal = proposal
+            # Any open Apiary proposal will block the user from opening a new Apiary/Site Transfer/Temporary Use application
+            if open_proposal:
+                disable_radio_button = True
+                notification = '<span class="proposalWarning">  (Application {} in progress)</span>'.format(open_proposal.lodgement_number)
+            elif approval:
+                notification = '<span>  (Make changes to Licence {})</span>'.format(approval.lodgement_number)
+
+        return {
+                "disable_radio_button": disable_radio_button,
+                "notification": notification,
+                }
 
 class UserFilterSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
@@ -83,6 +117,7 @@ class UserSerializer(serializers.ModelSerializer):
     contact_details = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
     is_department_user = serializers.SerializerMethodField()
+    existing_record_text = serializers.SerializerMethodField()
 
     class Meta:
         model = EmailUser
@@ -100,6 +135,7 @@ class UserSerializer(serializers.ModelSerializer):
             'contact_details',
             'is_department_user',
             'full_name',
+            'existing_record_text',
         )
 
 
@@ -136,6 +172,38 @@ class UserSerializer(serializers.ModelSerializer):
                 'request': request
                 }).data
         return serialized_orgs
+
+    def get_existing_record_text(self, obj):
+        notification = ''
+        disable_radio_button = False
+
+        request = self.context.get('request')
+        if request and get_template_group(request) == 'apiary':
+            approval = obj.disturbance_proxy_approvals.filter(status__in=[Approval.STATUS_CURRENT, Approval.STATUS_SUSPENDED], apiary_approval=True).first()
+            open_proposal = None
+            # Apiary group applications
+            for proposal in Proposal.objects.filter(proxy_applicant=obj, application_type__name__in=[
+                ApplicationType.APIARY,
+                ApplicationType.TEMPORARY_USE,
+                ApplicationType.SITE_TRANSFER,
+                ]):
+                if not proposal.processing_status in [
+                        Proposal.PROCESSING_STATUS_APPROVED, 
+                        Proposal.PROCESSING_STATUS_DECLINED, 
+                        Proposal.PROCESSING_STATUS_DISCARDED
+                        ]:
+                    open_proposal = proposal
+            # Any open proposal will block the user from opening a new Apiary/Site Transfer/Temporary Use application
+            if open_proposal:
+                disable_radio_button = True
+                notification = '<span class="proposalWarning">  (Application {} in progress)</span>'.format(open_proposal.lodgement_number)
+            elif approval:
+                notification = '<span>  (Make changes to Licence {})</span>'.format(approval.lodgement_number)
+
+        return {
+                "disable_radio_button": disable_radio_button,
+                "notification": notification,
+                }
 
 
 class PersonalSerializer(serializers.ModelSerializer):

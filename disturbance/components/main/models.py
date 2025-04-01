@@ -7,10 +7,10 @@ from django.contrib.gis.db.models import MultiPolygonField
 from django.db import models
 from django.dispatch import receiver
 from django.db.models.signals import pre_delete
-from django.utils.encoding import python_2_unicode_compatible
+# from django.utils.encoding import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
 from ledger.accounts.models import EmailUser, Document, RevisionedMixin
-from django.contrib.postgres.fields.jsonb import JSONField
+from django.db.models import JSONField
 from django.utils import timezone
 from django.core.cache import cache
 
@@ -37,7 +37,7 @@ class MapLayer(models.Model):
 
 
 class MapColumn(models.Model):
-    map_layer = models.ForeignKey(MapLayer, null=True, blank=True, related_name='columns')
+    map_layer = models.ForeignKey(MapLayer, null=True, blank=True, related_name='columns', on_delete=models.SET_NULL)
     name = models.CharField(max_length=100, blank=True, null=True)
     option_for_internal = models.BooleanField(default=True)
     option_for_external = models.BooleanField(default=True)
@@ -74,7 +74,6 @@ class DASMapLayer(models.Model):
         super(DASMapLayer, self).save(*args, **kwargs)
 
 
-@python_2_unicode_compatible
 class Region(models.Model):
     name = models.CharField(max_length=200, unique=True)
     forest_region = models.BooleanField(default=False)
@@ -92,9 +91,8 @@ class ArchivedDistrictManager(models.Manager):
         #return super().get_queryset().all()
         return super().get_queryset().exclude(archive_date__lte=date.today())
 
-@python_2_unicode_compatible
 class District(models.Model):
-    region = models.ForeignKey(Region, related_name='districts')
+    region = models.ForeignKey(Region, related_name='districts', on_delete=models.CASCADE)
     name = models.CharField(max_length=200, unique=True)
     code = models.CharField(max_length=3)
     archive_date = models.DateField(null=True, blank=True)
@@ -109,7 +107,6 @@ class District(models.Model):
         return self.name
 
 
-@python_2_unicode_compatible
 class ApplicationType(models.Model):
     DISTURBANCE = 'Disturbance'
     DISTURBANCE_UAT = 'Disturbance Training'
@@ -151,7 +148,6 @@ class ApplicationType(models.Model):
         return self.name
 
 
-@python_2_unicode_compatible
 class ActivityMatrix(models.Model):
     # name = models.CharField(verbose_name='Activity matrix name', max_length=24, choices=application_type_choicelist(), default='Disturbance')
     name = models.CharField(verbose_name='Activity matrix name', max_length=24,
@@ -181,11 +177,10 @@ class ActivityMatrix(models.Model):
         return False
 
 
-@python_2_unicode_compatible
 class Tenure(models.Model):
     name = models.CharField(max_length=255, unique=True)
     order = models.PositiveSmallIntegerField(default=0)
-    application_type = models.ForeignKey(ApplicationType, related_name='tenure_app_types')
+    application_type = models.ForeignKey(ApplicationType, related_name='tenure_app_types', null=True, on_delete=models.SET_NULL)
 
     class Meta:
         ordering = ['order', 'name']
@@ -195,9 +190,8 @@ class Tenure(models.Model):
         return '{}: {}'.format(self.name, self.application_type)
 
 
-@python_2_unicode_compatible
 class UserAction(models.Model):
-    who = models.ForeignKey(EmailUser, null=False, blank=False)
+    who = models.ForeignKey(EmailUser, null=False, blank=False, on_delete=models.CASCADE)
     when = models.DateTimeField(null=False, blank=False, auto_now_add=True)
     what = models.TextField(blank=False)
 
@@ -234,8 +228,8 @@ class CommunicationsLogEntry(models.Model):
     subject = models.CharField(max_length=200, blank=True, verbose_name="Subject / Description")
     text = models.TextField(blank=True)
 
-    customer = models.ForeignKey(EmailUser, null=True, related_name='+')
-    staff = models.ForeignKey(EmailUser, null=True, related_name='+')
+    customer = models.ForeignKey(EmailUser, null=True, related_name='+', on_delete=models.SET_NULL)
+    staff = models.ForeignKey(EmailUser, null=True, related_name='+', on_delete=models.SET_NULL)
 
     created = models.DateTimeField(auto_now_add=True, null=False, blank=False)
 
@@ -243,7 +237,6 @@ class CommunicationsLogEntry(models.Model):
         app_label = 'disturbance'
 
 
-@python_2_unicode_compatible
 class Document(models.Model):
     name = models.CharField(max_length=255, blank=True,
                             verbose_name='name', help_text='')
@@ -268,7 +261,6 @@ class Document(models.Model):
         return self.name or self.filename
 
 
-@python_2_unicode_compatible
 class SystemMaintenance(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -293,7 +285,6 @@ class SystemMaintenance(models.Model):
 
 from ckeditor.fields import RichTextField
 
-@python_2_unicode_compatible
 class GlobalSettings(models.Model):
     KEY_ASSESSMENT_REMINDER_DAYS = 'assessment_reminder_days'
     DAS_SHAREPOINT_PAGE = 'das_sharepoint_page'
@@ -355,7 +346,7 @@ class TemporaryDocumentCollection(models.Model):
 class TemporaryDocument(Document):
     temp_document_collection = models.ForeignKey(
         TemporaryDocumentCollection,
-        related_name='documents')
+        related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(max_length=255)
 
     # input_name = models.CharField(max_length=255, null=True, blank=True)
@@ -416,9 +407,9 @@ class TaskMonitor(models.Model):
     task_id = models.PositiveIntegerField()
     status  = models.CharField('Task Status', choices=STATUS_CHOICES, default=STATUS_CREATED, max_length=32)
     retries = models.PositiveSmallIntegerField(default=0)
-    proposal = models.ForeignKey('Proposal')
+    proposal = models.ForeignKey('Proposal', on_delete=models.CASCADE)
     info = models.TextField(blank=True, null=True)
-    requester = models.ForeignKey(EmailUser, blank=False, null=False, related_name='+')
+    requester = models.ForeignKey(EmailUser, blank=False, null=False, related_name='+', on_delete=models.DO_NOTHING)
     created = models.DateTimeField(default=timezone.now, editable=False)
     request_type = models.CharField(max_length=40, choices=RequestTypeEnum.REQUEST_TYPE_CHOICES)
     

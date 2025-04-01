@@ -17,7 +17,7 @@ from django_countries import countries
 from django.db.models.functions import Concat
 from django.db.models import F, Value, CharField
 from rest_framework import viewsets, serializers, status, generics, views
-from rest_framework.decorators import detail_route, list_route,renderer_classes
+from rest_framework.decorators import action, renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, BasePermission
@@ -94,7 +94,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return qs
         return EmailUser.objects.none()
 
-    @list_route(methods=['GET',])
+    @action(methods=['GET',], detail=False)
     def get_department_users(self, request, *args, **kwargs):
         try:
             search_term = request.GET.get('term', '')
@@ -140,7 +140,7 @@ class UserViewSet(viewsets.ModelViewSet):
 #            print(traceback.print_exc())
 #            raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(methods=['POST',], detail=True)
     def update_contact(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -187,7 +187,7 @@ class UserViewSet(viewsets.ModelViewSet):
     #         print(traceback.print_exc())
     #         raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(methods=['POST',], detail=True)
     def update_address(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -234,7 +234,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 
-    @detail_route(methods=['POST',])
+    @action(methods=['POST',], detail=True)
     def upload_id(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -255,7 +255,7 @@ class UserViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=True)
     def pending_org_requests(self, request, *args, **kwargs):
         try:
             instance = self.get_object()

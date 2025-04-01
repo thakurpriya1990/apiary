@@ -6,7 +6,7 @@ import datetime
 from django.db import models,transaction
 from django.dispatch import receiver
 from django.db.models.signals import pre_delete
-from django.utils.encoding import python_2_unicode_compatible
+# from django.utils.encoding import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields.jsonb import JSONField
 from django.utils import timezone
@@ -20,7 +20,7 @@ from disturbance.components.organisations.models import Organisation
 from disturbance.components.main.models import CommunicationsLogEntry, Region, UserAction, Document
 from disturbance.components.proposals.models import ProposalRequirement, AmendmentReason
 from disturbance.components.compliances.email import (
-                        #send_compliance_accept_email_notification,
+                        send_compliance_accept_email_notification,
                         send_amendment_email_notification,
                         send_reminder_email_notification,
                         send_external_submit_email_notification,
@@ -58,17 +58,17 @@ class Compliance(RevisionedMixin):
 
 
     lodgement_number = models.CharField(max_length=9, blank=True, default='')
-    proposal = models.ForeignKey('disturbance.Proposal',related_name='compliances', blank=True, null=True)
-    approval = models.ForeignKey('disturbance.Approval',related_name='compliances')
+    proposal = models.ForeignKey('disturbance.Proposal',related_name='compliances', blank=True, null=True, on_delete=models.CASCADE)
+    approval = models.ForeignKey('disturbance.Approval',related_name='compliances', on_delete=models.SET_NULL, null=True)
     due_date = models.DateField()
     text = models.TextField(blank=True)
     processing_status = models.CharField(choices=PROCESSING_STATUS_CHOICES,max_length=20)
     customer_status = models.CharField(choices=CUSTOMER_STATUS_CHOICES,max_length=20, default=CUSTOMER_STATUS_CHOICES[1][0])
-    assigned_to = models.ForeignKey(EmailUser,related_name='disturbance_compliance_assignments',null=True,blank=True)
+    assigned_to = models.ForeignKey(EmailUser,related_name='disturbance_compliance_assignments',null=True,blank=True, on_delete=models.SET_NULL)
     #requirement = models.TextField(null=True,blank=True)
     requirement = models.ForeignKey(ProposalRequirement, blank=True, null=True, related_name='compliance_requirement', on_delete=models.SET_NULL)
     lodgement_date = models.DateTimeField(blank=True, null=True)
-    submitter = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_compliances')
+    submitter = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_compliances', on_delete=models.SET_NULL)
     reminder_sent = models.BooleanField(default=False)
     post_reminder_sent = models.BooleanField(default=False)
 
@@ -224,7 +224,7 @@ def update_proposal_complaince_filename(instance, filename):
 
 
 class ComplianceDocument(Document):
-    compliance = models.ForeignKey('Compliance',related_name='documents')
+    compliance = models.ForeignKey('Compliance',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_proposal_complaince_filename, max_length=500, storage=private_storage)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
 
@@ -260,13 +260,13 @@ class ComplianceUserAction(UserAction):
             what=str(action)
         )
 
-    compliance = models.ForeignKey(Compliance,related_name='action_logs')
+    compliance = models.ForeignKey(Compliance,related_name='action_logs', on_delete=models.CASCADE)
 
     class Meta:
         app_label = 'disturbance'
 
 class ComplianceLogEntry(CommunicationsLogEntry):
-    compliance = models.ForeignKey(Compliance, related_name='comms_logs')
+    compliance = models.ForeignKey(Compliance, related_name='comms_logs', on_delete=models.CASCADE)
 
     def save(self, **kwargs):
         # save the request id if the reference not provided
@@ -282,17 +282,17 @@ def update_compliance_comms_log_filename(instance, filename):
 
 
 class ComplianceLogDocument(Document):
-    log_entry = models.ForeignKey('ComplianceLogEntry',related_name='documents')
+    log_entry = models.ForeignKey('ComplianceLogEntry',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_compliance_comms_log_filename, storage=private_storage)
 
     class Meta:
         app_label = 'disturbance'
 
 class CompRequest(models.Model):
-    compliance = models.ForeignKey(Compliance)
+    compliance = models.ForeignKey(Compliance, on_delete=models.CASCADE)
     subject = models.CharField(max_length=200, blank=True)
     text = models.TextField(blank=True)
-    officer = models.ForeignKey(EmailUser, null=True)
+    officer = models.ForeignKey(EmailUser, null=True, on_delete=models.SET_NULL)
 
     class Meta:
         app_label = 'disturbance'
@@ -323,7 +323,7 @@ class ComplianceAmendmentRequest(CompRequest):
 
     status = models.CharField('Status', max_length=30, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
     # reason = models.CharField('Reason', max_length=30, choices=REASON_CHOICES, default=REASON_CHOICES[0][0])
-    reason = models.ForeignKey(ComplianceAmendmentReason, blank=True, null=True)
+    reason = models.ForeignKey(ComplianceAmendmentReason, blank=True, null=True, on_delete=models.SET_NULL)
 
     class Meta:
         app_label = 'disturbance'

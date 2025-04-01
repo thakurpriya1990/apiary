@@ -21,7 +21,7 @@ from disturbance.utils import create_helppage_object
 from disturbance.helpers import is_disturbance_admin
 # Register your models here.
 from django.utils.html import format_html
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 

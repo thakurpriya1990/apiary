@@ -5,7 +5,7 @@ from django.conf import settings
 from django.http.response import HttpResponse
 #from ledger.payments.utils import oracle_parser
 from rest_framework import viewsets, serializers, status, generics, views
-from rest_framework.decorators import detail_route, list_route, renderer_classes, parser_classes
+from rest_framework.decorators import action, renderer_classes, parser_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, BasePermission
@@ -34,7 +34,7 @@ class RegionViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return Region.objects.all().order_by('id')
         return Region.objects.none()
 
@@ -46,7 +46,7 @@ class ActivityMatrixViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset_orig(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             # specific to Disturbance application, so only exposing one record (most recent)
             return [ActivityMatrix.objects.filter(name='Disturbance').order_by('-version').first()]
         return ActivityMatrix.objects.none()
@@ -54,7 +54,7 @@ class ActivityMatrixViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         all_latest_matrices=[]
-        if user.is_authenticated():
+        if user.is_authenticated:
             # specific to Disturbance application, so only exposing one record (most recent)
             for matrix in ActivityMatrix.objects.all():
                 if matrix.latest:
@@ -79,11 +79,11 @@ class ApplicationTypeViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return ApplicationType.objects.order_by('order').filter(visible=True)
         return ApplicationType.objects.none()
 
-    @list_route(methods=['GET',])
+    @action(methods=['GET',], detail=False)
     def searchable_application_types(self, request, *args, **kwargs):
         queryset = ApplicationType.objects.order_by('order').filter(visible=True, searchable=True)
         serializer = self.get_serializer(queryset, many=True)

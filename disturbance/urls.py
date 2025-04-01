@@ -83,13 +83,13 @@ router.register(
     r'spatial_query_metrics_paginated', proposal_sqs_api.SpatialQueryMetricsPaginatedViewSet)
 router.register(
     r'spatial_query',
-    proposal_sqs_api.SpatialQueryQuestionViewSet
+    proposal_sqs_api.SpatialQueryQuestionViewSet, basename='spatial_query'
 )
 router.register(
     r'spatial_query_layer',
     proposal_sqs_api.SpatialQueryLayerViewSet
 )
-router.register(r'das_map_proposal',proposal_api.DASMapFilterViewSet)
+router.register(r'das_map_proposal',proposal_api.DASMapFilterViewSet, basename='das_map_proposal')
 
 api_patterns = [
     url(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),

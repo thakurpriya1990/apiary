@@ -64,7 +64,7 @@ INSTALLED_APPS = [
     # 'ledger.taxonomy',
 ]
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -74,7 +74,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     #'dbca_utils.middleware.SSOLoginMiddleware',
-    'dpaw_utils.middleware.SSOLoginMiddleware',
+    'dbca_utils.middleware.SSOLoginMiddleware',
     # 'dpaw_utils.middleware.AuditMiddleware',  # Sets model creator/modifier field values.
     # 'ledger.basket.middleware.BasketMiddleware',
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',

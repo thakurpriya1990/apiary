@@ -18,7 +18,7 @@ from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 from rest_framework import viewsets, serializers, status, views
-from rest_framework.decorators import detail_route, list_route, renderer_classes
+from rest_framework.decorators import action, renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from ledger.accounts.models import EmailUser
@@ -116,10 +116,11 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         try:
             application_type = self.get_object().application_type.name
-            if application_type in (ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE):
-                return ProposalApiaryTypeSerializer
-            else:
-                return ProposalSerializer
+            # if application_type in (ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE):
+            #     return ProposalApiaryTypeSerializer
+            # else:
+            #     return ProposalSerializer
+            return ProposalSerializer
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -132,12 +133,13 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
     def internal_serializer_class(self):
         try:
             #application_type = Proposal.objects.get(id=self.kwargs.get('pk')).application_type.name
-            application_type = self.get_object().application_type.name
-            if application_type in (ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE):
-                return ApiaryInternalProposalSerializer
-                #return InternalProposalSerializer
-            else:
-                return InternalProposalSerializer
+            # application_type = self.get_object().application_type.name
+            # if application_type in (ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE):
+            #     return ApiaryInternalProposalSerializer
+            #     #return InternalProposalSerializer
+            # else:
+            #     return InternalProposalSerializer
+            return InternalProposalSerializer
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -148,7 +150,7 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     @api_exception_handler
     def layers_used(self, request, *args, **kwargs):
         if not is_internal(self.request):
@@ -184,36 +186,36 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
         return response
 
 
-    @list_route(methods=['GET', ])
-    @api_exception_handler
-    def __layers_used(self, request, *args, **kwargs):
-        if not is_internal(self.request):
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+    # @action(methods=['GET', ], detail=False)
+    # @api_exception_handler
+    # def __layers_used(self, request, *args, **kwargs):
+    #     if not is_internal(self.request):
+    #         return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        response = cache.get(f'layers_used')
+    #     response = cache.get(f'layers_used')
 
-        if response:
-            logger.info('Export Layers Used: Retrieved from cache.')
-        else:
-            rows = []
-            rows.append(('Proposal Number', 'Proposal Submitter', 'Proposal Section', 'Layer Name', 'Layer Version', 'Layer Modified Date', 'SQS Timestamp'))
-            p_ids = Proposal.objects.filter(layer_data__isnull=False).values_list('id', flat=True)
-            for p_id in p_ids:
-                proposal = Proposal.objects.get(id=p_id)
-                for data in proposal.layer_data:
-                    rows.append((proposal.lodgement_number, proposal.submitter, data['name'], data['layer_name'], data['layer_version'], data['layer_modified_date'], data['sqs_timestamp']))
+    #     if response:
+    #         logger.info('Export Layers Used: Retrieved from cache.')
+    #     else:
+    #         rows = []
+    #         rows.append(('Proposal Number', 'Proposal Submitter', 'Proposal Section', 'Layer Name', 'Layer Version', 'Layer Modified Date', 'SQS Timestamp'))
+    #         p_ids = Proposal.objects.filter(layer_data__isnull=False).values_list('id', flat=True)
+    #         for p_id in p_ids:
+    #             proposal = Proposal.objects.get(id=p_id)
+    #             for data in proposal.layer_data:
+    #                 rows.append((proposal.lodgement_number, proposal.submitter, data['name'], data['layer_name'], data['layer_version'], data['layer_modified_date'], data['sqs_timestamp']))
 
-            filename = f'layers_used_{datetime.now().strftime("%Y%m%dT%H%M")}.csv'
-            response = HttpResponse(content_type='text/csv')
-            response['Content-Disposition'] = f'attachment; filename={filename}'
-            response['filename'] = filename 
-            writer = csv.writer(response)
-            for row in rows:
-                writer.writerow(row)
+    #         filename = f'layers_used_{datetime.now().strftime("%Y%m%dT%H%M")}.csv'
+    #         response = HttpResponse(content_type='text/csv')
+    #         response['Content-Disposition'] = f'attachment; filename={filename}'
+    #         response['filename'] = filename 
+    #         writer = csv.writer(response)
+    #         for row in rows:
+    #             writer.writerow(row)
 
-            cache.set(f'layers_used', response, settings.LAYERS_USED_CACHE_TIMEOUT)
+    #         cache.set(f'layers_used', response, settings.LAYERS_USED_CACHE_TIMEOUT)
 
-        return response
+    #     return response
 
 #    @detail_route(methods=['POST',])
 #    @api_exception_handler
@@ -292,7 +294,7 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
 #
 #        return Response(resp.json())
 
-    @detail_route(methods=['POST',])
+    @action(methods=['POST',], detail=True)
     @api_exception_handler
     def sqs_data_single(self, request, *args, **kwargs):
         '''
@@ -465,7 +467,7 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
 #                status=status.HTTP_400_BAD_REQUEST
 #            )
 
-    @detail_route(methods=['POST',])
+    @action(methods=['POST',], detail=True)
     @api_exception_handler
     def refresh(self, request, *args, **kwargs):
         
@@ -593,7 +595,7 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
         return Response(resp_data, status=resp.status_code)
 
 
-    @detail_route(methods=['post'])
+    @action(methods=['post'], detail=True)
     @renderer_classes((JSONRenderer,))
     def prefill_proposal(self, request, *args, **kwargs):
         try:
@@ -601,108 +603,199 @@ class ProposalSqsViewSet(viewsets.ModelViewSet):
             if not instance.shapefile_json:
                 raise serializers.ValidationError(str('Please upload a valid shapefile'))                   
 
-            if instance.apiary_group_application_type:
-                return
-            else:
-                if instance.shapefile_json:
-                    start_time = time.time()
+            # if instance.apiary_group_application_type:
+            #     return
+            # else:
+            #     if instance.shapefile_json:
+            #         start_time = time.time()
 
-                    proposal = instance
-                    proposal.prefill_requested=True
-                    # current_ts = request.data.get('current_ts') # format required '%Y-%m-%dT%H:%M:%S'
-                    if proposal.prefill_timestamp:
-                        current_ts= proposal.prefill_timestamp.strftime('%Y-%m-%dT%H:%M:%S')
-                    else:
-                        current_ts = proposal.prefill_timestamp
-                    geojson=proposal.shapefile_json
-                    #clear_data_option='clear_all'
-                    clear_data_option=request.data.get('option') if 'option' in request.data else 'clear_all'
-                    from disturbance.utils import remove_prefilled_data
-                    if(clear_data_option=='clear_sqs'):
-                        proposal=remove_prefilled_data(proposal)
-                        request_type = RequestTypeEnum.PARTIAL
-                    elif(clear_data_option=='clear_all'):
-                        proposal.data=None
-                        request_type = RequestTypeEnum.FULL
-                    proposal.save(version_comment=f'Proposal data cleared for Prefill')
+            #         proposal = instance
+            #         proposal.prefill_requested=True
+            #         # current_ts = request.data.get('current_ts') # format required '%Y-%m-%dT%H:%M:%S'
+            #         if proposal.prefill_timestamp:
+            #             current_ts= proposal.prefill_timestamp.strftime('%Y-%m-%dT%H:%M:%S')
+            #         else:
+            #             current_ts = proposal.prefill_timestamp
+            #         geojson=proposal.shapefile_json
+            #         #clear_data_option='clear_all'
+            #         clear_data_option=request.data.get('option') if 'option' in request.data else 'clear_all'
+            #         from disturbance.utils import remove_prefilled_data
+            #         if(clear_data_option=='clear_sqs'):
+            #             proposal=remove_prefilled_data(proposal)
+            #             request_type = RequestTypeEnum.PARTIAL
+            #         elif(clear_data_option=='clear_all'):
+            #             proposal.data=None
+            #             request_type = RequestTypeEnum.FULL
+            #         proposal.save(version_comment=f'Proposal data cleared for Prefill')
                 
-                    #masterlist_question_qs = SpatialQueryQuestion.objects.filter()
-                    #masterlist_question_qs = SpatialQueryQuestion.current_questions.all() # exclude expired questions from SQS Query
-                    #masterlist_question_qs = SpatialQueryQuestion.objects.filter(question__question__icontains='2.0 What is the land tenur') # checkbox
-                    #masterlist_question_qs = SpatialQueryQuestion.objects.filter(question__question__icontains='1.4.2 Are these planned dates') # radio
-                    #masterlist_question_qs = SpatialQueryQuestion.objects.filter(question__question__icontains='1.2b Select widget question?') # select
-                    #masterlist_question_qs = SpatialQueryQuestion.objects.filter(question__question__icontains='1.2 In which') # multi-select
-                    #masterlist_question_qs = SpatialQueryQuestion.objects.filter(question__question__icontains='1.1 Proposal purpose and description') # text-area
-                    #masterlist_question_qs = SpatialQueryQuestion.objects.filter(question__question__icontains='1.0 Proposal title') # text
+            #         #masterlist_question_qs = SpatialQueryQuestion.objects.filter()
+            #         #masterlist_question_qs = SpatialQueryQuestion.current_questions.all() # exclude expired questions from SQS Query
+            #         #masterlist_question_qs = SpatialQueryQuestion.objects.filter(question__question__icontains='2.0 What is the land tenur') # checkbox
+            #         #masterlist_question_qs = SpatialQueryQuestion.objects.filter(question__question__icontains='1.4.2 Are these planned dates') # radio
+            #         #masterlist_question_qs = SpatialQueryQuestion.objects.filter(question__question__icontains='1.2b Select widget question?') # select
+            #         #masterlist_question_qs = SpatialQueryQuestion.objects.filter(question__question__icontains='1.2 In which') # multi-select
+            #         #masterlist_question_qs = SpatialQueryQuestion.objects.filter(question__question__icontains='1.1 Proposal purpose and description') # text-area
+            #         #masterlist_question_qs = SpatialQueryQuestion.objects.filter(question__question__icontains='1.0 Proposal title') # text
 
-                    masterlist_question_qs = SpatialQueryQuestion.objects.all() # exclude expired questions from SQS Query
+            #         masterlist_question_qs = SpatialQueryQuestion.objects.all() # exclude expired questions from SQS Query
 
-                    serializer = DTSpatialQueryQuestionSerializer(masterlist_question_qs, context={'data': request.data, 'filter_expired': True}, many=True)
-                    rendered = JSONRenderer().render(serializer.data).decode('utf-8')
-                    masterlist_questions = json.loads(rendered)
+            #         serializer = DTSpatialQueryQuestionSerializer(masterlist_question_qs, context={'data': request.data, 'filter_expired': True}, many=True)
+            #         rendered = JSONRenderer().render(serializer.data).decode('utf-8')
+            #         masterlist_questions = json.loads(rendered)
 
-                    # ONLY include masterlist_questions that are present in proposal.schema to send to SQS
-                    schema_questions = get_schema_questions(proposal.schema) 
-                    questions = [i['masterlist_question']['question'] for i in masterlist_questions if i['masterlist_question']['question'] in schema_questions]
-                    #questions = [i['question'] for i in masterlist_questions if i['question'] in schema_questions and '1.2 In which' in i['question']]
-                    unique_questions = list(set(questions))
+            #         # ONLY include masterlist_questions that are present in proposal.schema to send to SQS
+            #         schema_questions = get_schema_questions(proposal.schema) 
+            #         questions = [i['masterlist_question']['question'] for i in masterlist_questions if i['masterlist_question']['question'] in schema_questions]
+            #         #questions = [i['question'] for i in masterlist_questions if i['question'] in schema_questions and '1.2 In which' in i['question']]
+            #         unique_questions = list(set(questions))
 
-                    # group by question
-                    question_group_list = [{'question_group': i, 'questions': []} for i in unique_questions]
-                    for question_dict in question_group_list:
-                        for sqq_record in masterlist_questions:
-                            #print(j['layer_name'])
-                            if question_dict['question_group'] in sqq_record['masterlist_question'].values():
-                                question_dict['questions'].append(sqq_record)
+            #         # group by question
+            #         question_group_list = [{'question_group': i, 'questions': []} for i in unique_questions]
+            #         for question_dict in question_group_list:
+            #             for sqq_record in masterlist_questions:
+            #                 #print(j['layer_name'])
+            #                 if question_dict['question_group'] in sqq_record['masterlist_question'].values():
+            #                     question_dict['questions'].append(sqq_record)
 
-                    data = dict(
-                        proposal=dict(
-                            id=proposal.id,
-                            current_ts=current_ts,
-                            schema=proposal.schema,
-                            data=proposal.data,
-                        ),
-                        requester = request.user.email,
-                        request_type=request_type,
-                        system=settings.SYSTEM_NAME_SHORT,
-                        masterlist_questions = question_group_list,
-                        geojson = geojson,
-                    )
+            #         data = dict(
+            #             proposal=dict(
+            #                 id=proposal.id,
+            #                 current_ts=current_ts,
+            #                 schema=proposal.schema,
+            #                 data=proposal.data,
+            #             ),
+            #             requester = request.user.email,
+            #             request_type=request_type,
+            #             system=settings.SYSTEM_NAME_SHORT,
+            #             masterlist_questions = question_group_list,
+            #             geojson = geojson,
+            #         )
 
 
-                    #url = get_sqs_url('das/spatial_query/')
-                    url = get_sqs_url('das/task_queue')
-                    #url = get_sqs_url('das_queue/')
-                    log_request(f'{request.user} - {self.__class__.__name__}.{inspect.currentframe().f_code.co_name} - {url}')
-                    resp = requests.post(url=url, data={'data': json.dumps(data)}, auth=HTTPBasicAuth(settings.SQS_USER,settings.SQS_PASS), verify=False)
-                    resp_data = resp.json()
-                    if 'errors' in resp_data:
-                        logger.error(f'Error: {resp_data["errors"]}')
-                        raise serializers.ValidationError(f'Error: {resp_data["errors"]}')                   
+            #         #url = get_sqs_url('das/spatial_query/')
+            #         url = get_sqs_url('das/task_queue')
+            #         #url = get_sqs_url('das_queue/')
+            #         log_request(f'{request.user} - {self.__class__.__name__}.{inspect.currentframe().f_code.co_name} - {url}')
+            #         resp = requests.post(url=url, data={'data': json.dumps(data)}, auth=HTTPBasicAuth(settings.SQS_USER,settings.SQS_PASS), verify=False)
+            #         resp_data = resp.json()
+            #         if 'errors' in resp_data:
+            #             logger.error(f'Error: {resp_data["errors"]}')
+            #             raise serializers.ValidationError(f'Error: {resp_data["errors"]}')                   
                     
-                    sqs_task_id = resp_data['data']['task_id']
-                    task, created = TaskMonitor.objects.get_or_create(
-                            task_id=sqs_task_id, 
-                            defaults={
-                                'proposal': proposal,
-                                'requester': request.user,
-                                'request_type': request_type,
-                            }
-                        )
-                    if not created and task.requester.email != request.user.email:
-                        # another user may attempt to Prefill, whilst job is still queued
-                        logger.info(f'Task ID {task.id}, Proposal {proposal.lodgement_number} requester updated. Prev {task.requester.email}, New {request.user.email}')
-                        task.requester = request.user
-                    serializer = self.get_serializer(proposal)
-                    resp_data['proposal']=serializer.data
+            #         sqs_task_id = resp_data['data']['task_id']
+            #         task, created = TaskMonitor.objects.get_or_create(
+            #                 task_id=sqs_task_id, 
+            #                 defaults={
+            #                     'proposal': proposal,
+            #                     'requester': request.user,
+            #                     'request_type': request_type,
+            #                 }
+            #             )
+            #         if not created and task.requester.email != request.user.email:
+            #             # another user may attempt to Prefill, whilst job is still queued
+            #             logger.info(f'Task ID {task.id}, Proposal {proposal.lodgement_number} requester updated. Prev {task.requester.email}, New {request.user.email}')
+            #             task.requester = request.user
+            #         serializer = self.get_serializer(proposal)
+            #         resp_data['proposal']=serializer.data
 
-                    send_proposal_prefill_request_sent_email_notification(proposal, request.user)
-                    action = ProposalUserAction.ACTION_SEND_PREFILL_REQUEST_TO.format(proposal.lodgement_number, task.id, sqs_task_id, resp_data['position'])
-                    ProposalUserAction.log_action(proposal, action, request.user)
+            #         send_proposal_prefill_request_sent_email_notification(proposal, request.user)
+            #         action = ProposalUserAction.ACTION_SEND_PREFILL_REQUEST_TO.format(proposal.lodgement_number, task.id, sqs_task_id, resp_data['position'])
+            #         ProposalUserAction.log_action(proposal, action, request.user)
 
-                    return Response(resp_data, status=resp.status_code)
+            #         return Response(resp_data, status=resp.status_code)
+            #     else:
+            #         raise serializers.ValidationError(str('Please upload a valid shapefile'))
+
+            if instance.shapefile_json:
+                start_time = time.time()
+
+                proposal = instance
+                proposal.prefill_requested=True
+                # current_ts = request.data.get('current_ts') # format required '%Y-%m-%dT%H:%M:%S'
+                if proposal.prefill_timestamp:
+                    current_ts= proposal.prefill_timestamp.strftime('%Y-%m-%dT%H:%M:%S')
                 else:
-                    raise serializers.ValidationError(str('Please upload a valid shapefile'))                   
+                    current_ts = proposal.prefill_timestamp
+                geojson=proposal.shapefile_json
+                #clear_data_option='clear_all'
+                clear_data_option=request.data.get('option') if 'option' in request.data else 'clear_all'
+                from disturbance.utils import remove_prefilled_data
+                if(clear_data_option=='clear_sqs'):
+                    proposal=remove_prefilled_data(proposal)
+                    request_type = RequestTypeEnum.PARTIAL
+                elif(clear_data_option=='clear_all'):
+                    proposal.data=None
+                    request_type = RequestTypeEnum.FULL
+                proposal.save(version_comment=f'Proposal data cleared for Prefill')
+            
+                masterlist_question_qs = SpatialQueryQuestion.objects.all() # exclude expired questions from SQS Query
+
+                serializer = DTSpatialQueryQuestionSerializer(masterlist_question_qs, context={'data': request.data, 'filter_expired': True}, many=True)
+                rendered = JSONRenderer().render(serializer.data).decode('utf-8')
+                masterlist_questions = json.loads(rendered)
+
+                # ONLY include masterlist_questions that are present in proposal.schema to send to SQS
+                schema_questions = get_schema_questions(proposal.schema)
+                questions = [i['masterlist_question']['question'] for i in masterlist_questions if i['masterlist_question']['question'] in schema_questions]
+                #questions = [i['question'] for i in masterlist_questions if i['question'] in schema_questions and '1.2 In which' in i['question']]
+                unique_questions = list(set(questions))
+
+                # group by question
+                question_group_list = [{'question_group': i, 'questions': []} for i in unique_questions]
+                for question_dict in question_group_list:
+                    for sqq_record in masterlist_questions:
+                        #print(j['layer_name'])
+                        if question_dict['question_group'] in sqq_record['masterlist_question'].values():
+                            question_dict['questions'].append(sqq_record)
+
+                data = dict(
+                    proposal=dict(
+                        id=proposal.id,
+                        current_ts=current_ts,
+                        schema=proposal.schema,
+                        data=proposal.data,
+                    ),
+                    requester = request.user.email,
+                    request_type=request_type,
+                    system=settings.SYSTEM_NAME_SHORT,
+                    masterlist_questions = question_group_list,
+                    geojson = geojson,
+                )
+
+
+                #url = get_sqs_url('das/spatial_query/')
+                url = get_sqs_url('das/task_queue')
+                #url = get_sqs_url('das_queue/')
+                log_request(f'{request.user} - {self.__class__.__name__}.{inspect.currentframe().f_code.co_name} - {url}')
+                resp = requests.post(url=url, data={'data': json.dumps(data)}, auth=HTTPBasicAuth(settings.SQS_USER,settings.SQS_PASS), verify=False)
+                resp_data = resp.json()
+                if 'errors' in resp_data:
+                    logger.error(f'Error: {resp_data["errors"]}')
+                    raise serializers.ValidationError(f'Error: {resp_data["errors"]}')                   
+                
+                sqs_task_id = resp_data['data']['task_id']
+                task, created = TaskMonitor.objects.get_or_create(
+                        task_id=sqs_task_id, 
+                        defaults={
+                            'proposal': proposal,
+                            'requester': request.user,
+                            'request_type': request_type,
+                        }
+                    )
+                if not created and task.requester.email != request.user.email:
+                    # another user may attempt to Prefill, whilst job is still queued
+                    logger.info(f'Task ID {task.id}, Proposal {proposal.lodgement_number} requester updated. Prev {task.requester.email}, New {request.user.email}')
+                    task.requester = request.user
+                serializer = self.get_serializer(proposal)
+                resp_data['proposal']=serializer.data
+
+                send_proposal_prefill_request_sent_email_notification(proposal, request.user)
+                action = ProposalUserAction.ACTION_SEND_PREFILL_REQUEST_TO.format(proposal.lodgement_number, task.id, sqs_task_id, resp_data['position'])
+                ProposalUserAction.log_action(proposal, action, request.user)
+
+                return Response(resp_data, status=resp.status_code)
+            else:
+                raise serializers.ValidationError(str('Please upload a valid shapefile'))                 
 
         except Exception as e:
             logger.error(f'{traceback.print_exc()}')
@@ -820,7 +913,7 @@ class SpatialQueryQuestionPaginatedViewSet(viewsets.ModelViewSet):
         # user = self.request.user
         return SpatialQueryQuestion.objects.all()
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     def spatial_query_question_datatable_list(self, request, *args, **kwargs):
         """ http://localhost:8003/api/spatial_query_paginated/spatial_query_question_datatable_list/?format=datatables&draw=1&length=10 """
         self.serializer_class = DTSpatialQueryQuestionSerializer
@@ -860,7 +953,7 @@ class SpatialQueryQuestionPaginatedViewSet(viewsets.ModelViewSet):
 
         return response
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     def spatial_query_layer_datatable_list(self, request, *args, **kwargs):
         """ http://localhost:8003/api/spatial_query_paginated/spatial_query_layer_datatable_list/?format=datatables&draw=1&length=10&sqq_id=225 """
 
@@ -925,7 +1018,7 @@ class SpatialQueryMetricsPaginatedViewSet(viewsets.ModelViewSet):
         # user = self.request.user
         return SpatialQueryMetrics.objects.all()
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     def spatial_query_metrics_datatable_list(self, request, *args, **kwargs):
         """ http://localhost:8003/api/spatial_query_metrics_paginated/spatial_query_metrics_datatable_list/?format=datatables&draw=1&length=10 """
         self.serializer_class = DTSpatialQueryMetricsSerializer
@@ -943,7 +1036,7 @@ class SpatialQueryMetricsPaginatedViewSet(viewsets.ModelViewSet):
         response = self.paginator.get_paginated_response(data)
         return response
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     def spatial_query_metrics_details_datatable_list(self, request, *args, **kwargs):
         """ http://localhost:8003/api/spatial_query_metrics_paginated/spatial_query_metrics_datatable_list/?format=datatables&draw=1&length=10 """
         self.serializer_class = DTSpatialQueryMetricsDetailsSerializer
@@ -977,7 +1070,7 @@ class SpatialQueryMetricsDetailsPaginatedViewSet(viewsets.ModelViewSet):
         # user = self.request.user
         return SpatialQueryMetrics.objects.all()
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     def spatial_query_metrics_datatable_list(self, request, *args, **kwargs):
         """ http://localhost:8003/api/spatial_query_metrics_paginated/spatial_query_metrics_datatable_list/?format=datatables&draw=1&length=10 """
         self.serializer_class = DTSpatialQueryMetricsDetailsSerializer
@@ -1030,7 +1123,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
 #
 #        return Response(question_group_list)
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     @api_exception_handler
     def get_sqs_layers(self, request, *args, **kwargs):
         '''
@@ -1069,7 +1162,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
 
         return Response(data)
 
-    @list_route(methods=['GET', ])
+    @action(methods=['GET', ], detail=False)
     def get_spatialquery_selects(self, request, *args, **kwargs):
         '''
         INTERNAL DAS API CALLS
@@ -1153,7 +1246,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
             logger.error(str(e))
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(methods=['GET',], detail=True)
     @api_exception_handler
     def check_cddp_question(self, request, *args, **kwargs):
         '''
@@ -1187,7 +1280,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
 
-    @detail_route(methods=['GET',])
+    @action(methods=['GET',], detail=True)
     @api_exception_handler
     def check_sqs_layer(self, request, *args, **kwargs):
         '''
@@ -1226,7 +1319,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
 
         return Response(data)
 
-    @detail_route(methods=['GET',])
+    @action(methods=['GET',], detail=True)
     @api_exception_handler
     def get_sqs_attrs(self, request, *args, **kwargs):
         '''
@@ -1283,7 +1376,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
 
         return Response(data)
 
-    @detail_route(methods=['GET',])
+    @action(methods=['GET',], detail=True)
     @api_exception_handler
     def get_sqs_layer_geojson(self, request, *args, **kwargs):
         '''
@@ -1323,7 +1416,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
 
         return Response(data)
 
-    @detail_route(methods=['POST',])
+    @action(methods=['POST',], detail=True)
     @api_exception_handler
     def create_or_update_sqs_layer(self, request, *args, **kwargs):
         '''
@@ -1435,7 +1528,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
 #        #plt.show()
 #        #return Response(polygon_geojson)
 
-    @detail_route(methods=['DELETE', ])
+    @action(methods=['DELETE', ], detail=True)
     def delete_spatialquery(self, request, *args, **kwargs):
         '''
         Delete spatialquery record.
@@ -1488,7 +1581,7 @@ class SpatialQueryQuestionViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    @detail_route(methods=['POST', ])
+    @action(methods=['POST', ], detail=True)
     def save_spatialquery(self, request, *args, **kwargs):
         '''
         Save spatialquery record.
@@ -1627,7 +1720,7 @@ class SpatialQueryLayerViewSet(viewsets.ModelViewSet):
     queryset = SpatialQueryLayer.objects.all()
     serializer_class = SpatialQueryLayerSerializer
 
-    @detail_route(methods=['DELETE', ])
+    @action(methods=['DELETE', ], detail=True)
     def delete_spatialquerylayer(self, request, *args, **kwargs):
         '''
         Delete spatialquerylayer record.
@@ -1705,7 +1798,7 @@ class SpatialQueryLayerViewSet(viewsets.ModelViewSet):
 
         #return Response(serializer.data)
 
-    @detail_route(methods=['POST', ])
+    @action(methods=['POST', ], detail=True)
     def save_spatialquerylayer(self, request, *args, **kwargs):
         '''
         Save spatialquery record.

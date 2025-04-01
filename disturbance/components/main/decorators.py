@@ -17,6 +17,7 @@ logger = logging.getLogger()
 
 
 def basic_exception_handler(func):
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)

@@ -116,12 +116,12 @@ USE_DJANGO_JQUERY= True
 #CRISPY_TEMPLATE_PACK = 'uni_form'
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-MIDDLEWARE_CLASSES += [
+MIDDLEWARE += [
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'disturbance.middleware.DomainDetectMiddleware',
     # 'corsheaders.middleware.CorsMiddleware',
 ]
 # CORS_ORIGIN_ALLOW_ALL = True
-
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance', 'templates'))
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance','components','organisations', 'templates'))
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance','components','emails', 'templates'))
@@ -311,3 +311,4 @@ LOGGING['loggers']['request_stats'] = {
 KMI_SERVER_URL = env('KMI_SERVER_URL', 'https://kmi.dbca.wa.gov.au')
 DEV_APP_BUILD_URL = env('DEV_APP_BUILD_URL')  # URL of the Dev app.js served by webpack & express
 ENABLE_DJANGO_LOGIN = env('ENABLE_DJANGO_LOGIN', False)
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
