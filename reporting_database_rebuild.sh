@@ -8,7 +8,7 @@ if [ $TEMPORARY_LEDGER_DATABASE ==  'ledger_prod' ]; then
 fi
 
 echo "Dump Core Ledger Production Tables";
-PGPASSWORD="$PRODUCTION_LEDGER_PASSWORD" pg_dump -t 'accounts_emailuser' -t 'basket_basket' -t 'basket_line' -t 'order_order' -t 'order_line' -t 'address_country' -t 'payments_bpaytransaction' -t 'payments_bpointtransaction' -t 'payments_cashtransaction' -t 'payments_invoice' -t 'accounts_organisation' --file /dbdumps/ledger_core_prod.sql --format=custom --host $PRODUCTION_LEDGER_HOST --dbname $PRODUCTION_LEDGER_DATABASE --username $PRODUCTION_LEDGER_USERNAME
+PGPASSWORD="$PRODUCTION_LEDGER_PASSWORD" pg_dump -t 'accounts_emailuser' -t 'basket_basket' -t 'basket_line' -t 'order_order' -t 'order_line' -t 'address_country' -t 'payments_bpaytransaction' -t 'payments_bpointtransaction' -t 'payments_cashtransaction' -t 'payments_invoice' -t 'accounts_organisation' -t 'accounts_organisationaddress' --file /dbdumps/ledger_core_prod.sql --format=custom --host $PRODUCTION_LEDGER_HOST --dbname $PRODUCTION_LEDGER_DATABASE --username $PRODUCTION_LEDGER_USERNAME
 
 echo "Dump Core Disturbance Production Tables";
 PGPASSWORD="$PRODUCTION_LEDGER_PASSWORD" pg_dump -t 'disturbance_*' --file /dbdumps/disturbance_core_prod.sql --format=custom --host $PRODUCTION_LEDGER_HOST --dbname $PRODUCTION_LEDGER_DATABASE --username $PRODUCTION_LEDGER_USERNAME
