@@ -73,6 +73,7 @@ INSTALLED_APPS += [
     'rest_framework_gis',
     'reset_migrations',
     'ckeditor',
+    # "django_ckeditor_5",
     # 'corsheaders',
     'smart_selects',
     'crispy_forms',

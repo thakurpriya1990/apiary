@@ -13,7 +13,7 @@ from disturbance.components.proposals import forms
 from disturbance.components.main.models import ActivityMatrix, SystemMaintenance, ApplicationType, GlobalSettings
 #from disturbance.components.main.models import Activity, SubActivityLevel1, SubActivityLevel2, SubCategory
 from reversion.admin import VersionAdmin
-from django.conf.urls import url
+from django.urls import re_path as url
 from django.template.response import TemplateResponse
 from django.http import HttpResponse, HttpResponseRedirect
 
