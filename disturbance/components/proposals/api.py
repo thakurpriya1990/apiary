@@ -162,7 +162,6 @@ class ProposalFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         search_text = request.GET.get('search[value]', '')
         total_count = queryset.count()
-
         def get_choice(status, choices=Proposal.PROCESSING_STATUS_CHOICES):
             for i in choices:
                 if i[1]==status:
@@ -264,9 +263,8 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             if date_to:
                 queryset = queryset.filter(proposal__lodgement_date__lte=date_to)
 
-        getter = request.query_params.get
-        fields = self.get_fields(getter)
-        ordering = self.get_ordering(getter, fields)
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
         sort_by = request.GET.get('sort_by')
         queryset = queryset.order_by(*ordering)
         if len(ordering):
