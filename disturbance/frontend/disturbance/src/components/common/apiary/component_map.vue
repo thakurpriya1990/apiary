@@ -67,7 +67,7 @@
 </template>
 
 <script>
-    import uuid from 'uuid';
+    import { v4 as uuidv4 } from 'uuid';
     import 'ol/ol.css';
     import 'ol-layerswitcher/dist/ol-layerswitcher.css'
     //import 'index.css';  // copy-and-pasted the contents of this file at the <style> section below in this file
@@ -134,10 +134,10 @@
                 map: null,
                 apiarySitesQuerySource: null,
                 apiarySitesQueryLayer: null,
-                elem_id: uuid(),
-                popup_id: uuid(),
-                popup_closer_id: uuid(),
-                popup_content_id: uuid(),
+                elem_id: uuidv4(),
+                popup_id: uuidv4(),
+                popup_closer_id: uuidv4(),
+                popup_content_id: uuidv4(),
                 overlay: null,
                 content_element: null,
                 modifyInProgressList: [],
@@ -154,8 +154,8 @@
                 
                 awe: null,
                 mapboxAccessToken: null,
-                search_box_id: uuid(),
-                search_input_id: uuid(),
+                search_box_id: uuidv4(),
+                search_input_id: uuidv4(),
             }
         },
         created: async function(){

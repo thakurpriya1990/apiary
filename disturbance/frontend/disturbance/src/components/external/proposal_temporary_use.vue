@@ -35,7 +35,7 @@
 
 <script>
     import Vue from 'vue'
-    import uuid from 'uuid'
+    import {v4 as uuidv4 } from 'uuid';
     import { api_endpoints, helpers } from '@/utils/hooks'
     import SectionsProposalTemporaryUse from '@/components/common/apiary/sections_proposal_temporary_use.vue'
 
@@ -108,9 +108,9 @@
                     }
 
                     // Update PeriodAndSites component
-                    vm.period_and_sites_key = uuid();
+                    vm.period_and_sites_key = uuidv4();
                     // Update TemporaryOccupier component
-                    vm.temporary_occupier_key = uuid();
+                    vm.temporary_occupier_key = uuidv4();
                 });
             },
             save: function(){

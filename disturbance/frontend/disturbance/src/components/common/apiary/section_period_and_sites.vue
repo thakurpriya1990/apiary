@@ -38,7 +38,7 @@
 
 <script>
     import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
-    import uuid from 'uuid'
+    import { v4 as uuidv4 } from 'uuid';
 
     export default {
         name: 'SectionPeriodAndSites',
@@ -135,7 +135,7 @@
             }
             //this.period_from_enabled = this.from_date_enabled;
             //this.period_to_enabled = this.to_date_enabled;
-            this.component_site_selection_key = uuid()
+            this.component_site_selection_key = uuidv4()
         },
         components: {
             ComponentSiteSelection,

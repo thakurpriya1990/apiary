@@ -22,7 +22,7 @@
 <script>
     import FormSection from "@/components/forms/section_toggle.vue"
     import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
-    import uuid from 'uuid'
+    import {v4 as uuidv4} from 'uuid';
     import Vue from 'vue'
     import { helpers, } from "@/utils/hooks.js"
 
@@ -30,7 +30,7 @@
         name: 'SiteTransitions',
         data: function(){
             return {
-                component_site_selection_key: uuid(),
+                component_site_selection_key: uuidv4(),
                 apiary_sites: [],
                 is_local: helpers.is_local(),
             }
@@ -57,7 +57,7 @@
 
                 Vue.http.get('/api/apiary_site/transitable_sites/').then(re => {
                     vm.apiary_sites = re.body.features
-                    this.component_site_selection_key = uuid()
+                    this.component_site_selection_key = uuidv4()
 
                     ////let temp_use = re.body.apiary_temporary_use
                     //vm.apiary_temporary_use = re.body.apiary_temporary_use
@@ -73,9 +73,9 @@
                     //}
 
                     //// Update PeriodAndSites component
-                    //vm.period_and_sites_key = uuid();
+                    //vm.period_and_sites_key = uuidv4();
                     //// Update TemporaryOccupier component
-                    //vm.temporary_occupier_key = uuid();
+                    //vm.temporary_occupier_key = uuidv4();
                 });
             },
         },

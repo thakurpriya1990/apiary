@@ -339,7 +339,7 @@ import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 //import MoreReferrals from '@common-utils/more_referrals.vue'
 import ApiaryReferralsForProposal from '@common-utils/apiary/apiary_referrals_for_proposal.vue'
-import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
+// import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 //import OriginatingApprovalRequirements from '../proposals/originating_approval_requirements.vue'
 //import TargetApprovalRequirements from '../proposals/target_approval_requirements.vue'
 

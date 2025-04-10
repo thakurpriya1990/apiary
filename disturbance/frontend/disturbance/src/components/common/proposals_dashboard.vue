@@ -143,11 +143,12 @@
     </div>
 </template>
 <script>
-import "babel-polyfill"
+// import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 import Vue from 'vue'
 require("select2/dist/css/select2.min.css");
 require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
+require('../../../node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css')
 //require("babel-polyfill"); /* only one of 'import' or 'require' is necessary */
 import {
     api_endpoints,
@@ -372,6 +373,7 @@ export default {
                             return full.lodgement_number
                         } 
                     },
+                    defaultContent: '',
                     orderable: true,
                     searchable: true,
                 },
@@ -383,6 +385,7 @@ export default {
                     'render': function (value) {
                         return helpers.dtPopover(value);
                     },
+                    defaultContent: '',
                     'createdCell': helpers.dtPopoverCellFn,
                     //visible: false,
                     name: 'region__name',
@@ -393,6 +396,7 @@ export default {
                 columnList.push({
                     // 2.5. District
                     data: "district",
+                    defaultContent: '',
                     name: 'district__name',
                     searchable: true,
                 });
@@ -401,6 +405,7 @@ export default {
             columnList.push({
                     // 3. Activity/Application Type
                     data: "activity",
+                    defaultContent: '',
                     searchable: true,
                     name: 'activity',
                 });
@@ -413,6 +418,7 @@ export default {
                         var result= helpers.dtPopover(value);
                         return type=='export' ? value : result;
                     },
+                    defaultContent: '',
                     'createdCell': helpers.dtPopoverCellFn,
                     //visible: false,
                     name: 'title',
@@ -428,6 +434,7 @@ export default {
                         }
                         return ''
                     },
+                    defaultContent: '',
                     //name: vm.submitter_column_name,
                     name: "submitter__email, submitter__first_name, submitter__last_name",
                     searchable: true,
@@ -435,6 +442,7 @@ export default {
                 {
                     // 5. Proponent/Applicant
                     data: "relevant_applicant_name",
+                    defaultContent: '',
                     //name: vm.proponent_applicant_column_name,
                     name: "applicant__organisation__name, proxy_applicant__first_name, proxy_applicant__last_name, proxy_applicant__email",
                     searchable: true,
@@ -447,6 +455,7 @@ export default {
                         }
                         return full.processing_status
                     },
+                    defaultContent: '',
                     searchable: false,
                     name: 'status',
                 },
@@ -456,12 +465,14 @@ export default {
                     mRender:function (data,type,full) {
                         return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
                     },
+                    defaultContent: '',
                     searchable: true,
                 });
             if (!vm.is_external){
                 columnList.push({
                     // 8. Assigned Officer
                     data: "assigned_officer",
+                    defaultContent: '',
                     //visible: false,
                     name: "assigned_officer__first_name, assigned_officer__last_name, assigned_officer__email",
                     searchable: true,
@@ -471,6 +482,7 @@ export default {
                 columnList.push({
                     // 8. Assigned Officer
                     data: "approval",
+                    defaultContent: '',
                     //visible: false,
                     name: "approval__lodgement_number",
                     searchable: true,
@@ -528,6 +540,7 @@ export default {
                         }
                         return links;
                     },
+                    defaultContent: '',
                     name: '',
                     searchable: false,
                     orderable: false,

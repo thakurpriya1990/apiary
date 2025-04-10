@@ -281,6 +281,7 @@ export default {
                             return full.reference;
                         },
                         name: "id, lodgement_number",
+                        defaultContent: '',
                     }]
             if (this.dasTemplateGroup) {
                 columnList.push(
@@ -289,6 +290,7 @@ export default {
                         data: "regions",
                         name: "proposal__region__name", // will be use like: Approval.objects.filter(proposal__region__name='Kimberley')
                         //visible: false,
+                        defaultContent: '',
                     });
             };
             columnList.push(
@@ -297,6 +299,7 @@ export default {
                         data: "activity",
                         name: "proposal__activity",
                         //visible: true,
+                        defaultContent: '',
                     });
             if (this.dasTemplateGroup) {
                 columnList.push(
@@ -305,6 +308,7 @@ export default {
                         data: "title",
                         name: "proposal__title",
                         //visible: false,
+                        defaultContent: '',
                     });
             };
             if (this.dasTemplateGroup) {
@@ -341,6 +345,7 @@ export default {
                             return type=='export' ? value : result;
                         },
                         'createdCell': helpers.dtPopoverCellFn,
+                        defaultContent: '',
                     });
             };
             if (this.dasTemplateGroup) {
@@ -350,6 +355,7 @@ export default {
                         data: "proposal_lodgement_number",
                         name: "proposal__lodgement_number",
                         //visible: false,
+                        defaultContent: '',
                     });
             };
             columnList.push(
@@ -358,17 +364,20 @@ export default {
                         data: "due_date",
                         mRender:function (data,type,full) {
                             return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
-                        }
+                        },
+                        defaultContent: '',
                     },
                     {
                         // 8. District
                         data: "district",
                         searchable: false,
+                        defaultContent: '',
                     },
                     {
                         // 9. Holder
                         data: "holder",
-                        name: "proposal__applicant__organisation__name"
+                        name: "proposal__applicant__organisation__name",
+                        defaultContent: '',
                     },
                     {
                         // 10. Approval/Licence
@@ -376,12 +385,14 @@ export default {
                         mRender:function (data,type,full) {
                             return `A${data}`;
                         },
-                        name: "approval__lodgement_number"
+                        name: "approval__lodgement_number",
+                        defaultContent: '',
                     },
                     {
                         // 11. Status
                         data: vm.level == 'external'? "customer_status" : "processing_status",
-                        searchable: false,  // There is a filter dropdown for 'Status'
+                        searchable: false,  // There is a filter dropdown for 'Status',
+                        defaultContent: '',
                     },
                     );
 
@@ -389,8 +400,9 @@ export default {
                 columnList.push({
                         // 12. Assigned To
                         data: "assigned_to",
-                        name: "assigned_to__first_name, assigned_to__last_name, assigned_to__email"
-                        // visible: false
+                        name: "assigned_to__first_name, assigned_to__last_name, assigned_to__email",
+                        // visible: false,
+                        defaultContent: '',
                     });
             }
             columnList.push(
@@ -422,26 +434,31 @@ export default {
                         },
                         name: '',
                         className: "noexport",
+                        defaultContent: '',
                     },
                     {
                         data: "reference", 
                         visible: false,
                         className: "noexport",
+                        defaultContent: '',
                     },
                     {
                         data: "customer_status", 
                         visible: false,
                         className: "noexport",
+                        defaultContent: '',
                     },
                     {
                         data: "can_user_view", 
                         visible: false,
                         className: "noexport",
+                        defaultContent: '',
                     },
                     {
                         data: "allowed_assessors", 
                         visible: false,
                         className: "noexport",
+                        defaultContent: '',
                     }
             );
             return columnList;

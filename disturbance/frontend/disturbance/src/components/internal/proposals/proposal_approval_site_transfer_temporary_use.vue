@@ -152,7 +152,7 @@ import datatable from '@vue-utils/datatable.vue'
 import RequirementDetail from './proposal_add_requirement.vue'
 import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
-import uuid from 'uuid'
+import {v4 as uuidv4} from 'uuid';
 import SectionsProposalTemporaryUse from '@/components/common/apiary/sections_proposal_temporary_use.vue'
 
 export default {
@@ -233,7 +233,7 @@ export default {
     methods:{
         updateComponentSiteSelectionKey: function(){
             console.log('in updateComponentSiteSelectionKey')
-            this.component_site_selection_key = uuid()
+            this.component_site_selection_key = uuidv4()
         },
         readFile: function() {
             let vm = this;
@@ -306,7 +306,7 @@ export default {
     },
     mounted: function(){
         let vm = this;
-        this.component_site_selection_key = uuid()
+        this.component_site_selection_key = uuidv4()
     }
 }
 </script>

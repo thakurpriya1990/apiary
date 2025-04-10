@@ -108,7 +108,7 @@ uwsgi*.ini
 *.djcache
 
 # front-end build static files
-disturbance/static/disturbance_vue/static/*
+disturbance/static/disturbance_vue/*
 
 # npm locks
 #*-lock.json
@@ -119,4 +119,3 @@ disturbance/static/disturbance_vue/static/*
 apiary.txt
 
 disturbance/frontend/disturbance/tests_output*
-disturbance/static/disturbance_vue/static/*

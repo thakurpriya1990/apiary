@@ -190,9 +190,9 @@
 <script>
     import FormSection from "@/components/forms/section_toggle.vue"
     import ContactLicenceHolderModal from "@/components/common/apiary/contact_licence_holder_modal.vue"
-    import uuid from 'uuid'
+    import {v4 as uuidv4 } from 'uuid';
     import Vue from 'vue'
-    import proj from 'ol/proj'
+    // import proj from 'ol/proj'
     import 'ol/ol.css';
     import 'ol-layerswitcher/dist/ol-layerswitcher.css'
     import Map from 'ol/Map';
@@ -245,7 +245,7 @@
                 debug: true,
                 show_spinner: false,
                 download_shapefile_btn_disabled: false,
-                modalBindId: uuid(),
+                modalBindId: uuidv4(),
                 map: null,
                 proposals: null,
                 filteredProposals: [],
@@ -259,10 +259,10 @@
                 filterProposalApplicant: 'All',
                 proposalQuerySource: null,
                 proposalClusterLayer: null,
-                elem_id: uuid(),
-                popup_id: uuid(),
-                popup_closer_id: uuid(),
-                popup_content_id: uuid(),
+                elem_id: uuidv4(),
+                popup_id: uuidv4(),
+                popup_closer_id: uuidv4(),
+                popup_content_id: uuidv4(),
                 overlay: null,
                 content_element: null,
                 modifyInProgressList: [],
@@ -289,8 +289,8 @@
                 
                 awe: null,
                 mapboxAccessToken: null,
-                search_box_id: uuid(),
-                search_input_id: uuid(),
+                search_box_id: uuidv4(),
+                search_input_id: uuidv4(),
                 search_address_latlng_text: '',
 
                 //filters
@@ -847,7 +847,7 @@
             
             initMap: function() {
                 let vm = this;
-                var ol = {'proj': proj, 'extent': Extent,}
+                // var ol = {'proj': proj, 'extent': Extent,}
                 var projection = getProjection("EPSG:3857");
                 var projectionExtent = projection.getExtent();
                 var s = getWidth(projectionExtent) / 256;
@@ -1332,7 +1332,7 @@
             },
             
             showPopup: function(feature){
-                let unique_id = uuid()
+                let unique_id = uuidv4()
                 // let proposal = feature.getProperties().proposal;
                 // console.log('selected proposal', proposal);
 
@@ -1458,7 +1458,7 @@
                 }
             },
             showPopupforSameFeatures: function(features){
-                let unique_id = uuid()
+                let unique_id = uuidv4()
                 // let proposal = feature.getProperties().proposal;
                 // console.log('selected proposal', proposal);
                 let proposal_rows='';
@@ -1647,7 +1647,7 @@
                 )
             },
             openOnSiteInformationModal: async function(apiary_site_id) {
-                this.modalBindId = uuid()
+                this.modalBindId = uuidv4()
 
                 try {
                     this.$nextTick(() => {

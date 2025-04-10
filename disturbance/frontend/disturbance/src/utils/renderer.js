@@ -21,7 +21,7 @@ import LayerInfo from '../components/forms/layer_info.vue'
 import RefreshRadio from '../components/forms/refresh_radio.vue'
 import {helpers,api_endpoints} from "@/utils/hooks.js"
 
-module.exports = {
+export default{
     renderChildren(h,c,data=null,assessorData=null,_readonly) {
         var is_readonly = this.status_data.readonly;
         var assessorStatus = this.status_data.assessorStatus;

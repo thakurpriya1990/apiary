@@ -17,7 +17,7 @@
     require('../../node_modules/bootstrap/dist/css/bootstrap.css');
     require('../../node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css')
     require('../../node_modules/font-awesome/css/font-awesome.min.css')
-    const easing = require('easing');
+    // const easing = require('easing');
     export default {
         props:{
             proposal:{
