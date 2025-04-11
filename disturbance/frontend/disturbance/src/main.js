@@ -32,7 +32,10 @@ extendMoment(moment);
 
 require( '../node_modules/bootstrap/dist/css/bootstrap.css' );
 // require('../node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css')
-require( '../node_modules/font-awesome/css/font-awesome.min.css' )
+// require('../node_modules/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js')
+require('../node_modules/eonasdan-bootstrap-datetimepicker')
+require('../node_modules/font-awesome/css/font-awesome.min.css' )
+require('../node_modules/jquery.easing')
 
 Vue.config.devtools = true;
 Vue.config.productionTip = false

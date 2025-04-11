@@ -29,7 +29,7 @@ module.exports = defineConfig({
         );
         config.resolve.alias.set(
             'easing',
-            path.resolve(__dirname, 'jquery.easing/jquery.easing.js')
+            path.resolve(__dirname, 'jquery.easing')
         );
         // config.resolve.alias.set(
         //     'datetimepicker',
