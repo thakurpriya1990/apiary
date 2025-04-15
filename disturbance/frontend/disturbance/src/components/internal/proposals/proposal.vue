@@ -456,23 +456,28 @@ export default {
                         title: 'Name',
                         mRender:function (data,type,full) {
                             return full.first_name + " " + full.last_name;
-                        }
+                        },
+                        defaultContent: '',
                     },
                     {
                         title: 'Phone',
-                        data:'phone_number'
+                        data:'phone_number',
+                        defaultContent: '',
                     },
                     {
                         title: 'Mobile',
-                        data:'mobile_number'
+                        data:'mobile_number',
+                        defaultContent: '',
                     },
                     {
                         title: 'Fax',
-                        data:'fax_number'
+                        data:'fax_number',
+                        defaultContent: '',
                     },
                     {
                         title: 'Email',
-                        data:'email'
+                        data:'email',
+                        defaultContent: '',
                     },
                   ],
                   processing: true
