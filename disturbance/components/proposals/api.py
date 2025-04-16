@@ -2161,8 +2161,8 @@ class SchemaMasterlistFilterBackend(DatatablesFilterBackend):
         # for which data is not an Application model field, as property
         # functions will not work with order_by.
         getter = request.query_params.get
-        fields = self.get_fields(getter)
-        ordering = self.get_ordering(getter, fields)
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
@@ -2432,8 +2432,8 @@ class SchemaQuestionFilterBackend(DatatablesFilterBackend):
         # for which data is not an Application model field, as property
         # functions will not work with order_by.
         getter = request.query_params.get
-        fields = self.get_fields(getter)
-        ordering = self.get_ordering(getter, fields)
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
@@ -2790,8 +2790,8 @@ class SchemaProposalTypeFilterBackend(DatatablesFilterBackend):
         # for which data is not an Application model field, as property
         # functions will not work with order_by.
         getter = request.query_params.get
-        fields = self.get_fields(getter)
-        ordering = self.get_ordering(getter, fields)
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 

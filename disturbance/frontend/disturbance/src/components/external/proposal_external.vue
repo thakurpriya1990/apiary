@@ -205,10 +205,10 @@
                             </template>
                             <template v-else>
                                 <p class="pull-right" style="margin-top:5px;">
-                                    <button id="sectionHide" @click.prevent="sectionHide" class="btn btn-primary">Show/Hide sections</button>
+                                    <button id="sectionHide" @click.prevent="sectionHide" class="btn btn-primary" style="margin-right:3px">Show/Hide sections</button>
                                     <span v-if="!isSubmitting">
-                                        <input type="button" @click.prevent="save_exit" class="btn btn-primary" value="Save and Exit"/>
-                                        <input type="button" @click.prevent="save(true)" class="btn btn-primary" value="Save and Continue"/>
+                                        <input type="button" @click.prevent="save_exit" class="btn btn-primary" style="margin-right:3px" value="Save and Exit"/>
+                                        <input type="button" @click.prevent="save(true)" class="btn btn-primary" style="margin-right:3px" value="Save and Continue"/>
                                         <span v-if="!isSaving">
                                             <input type="button" @click.prevent="submit" class="btn btn-primary" value="Submit"/>
                                         </span>
@@ -228,7 +228,7 @@
                             v-if="proposal && !proposal.apiary_group_application_type"
                             type="button"
                             @click.prevent="sectionHide"
-                            class="btn btn-primary"
+                            class="btn btn-primary" style="margin-right:3px"
                             value="Show/Hide Sections"/>
 
                             <router-link class="btn btn-primary" :to="{name: 'external-proposals-dash'}">Back to Dashboard</router-link>
@@ -616,7 +616,6 @@ export default {
             vm.form=document.forms.new_proposal;
             this.submitting = true;
             await this.save(true);
-
             // redirect back to dashboard
             vm.$router.push({
                 name: 'external-proposals-dash'

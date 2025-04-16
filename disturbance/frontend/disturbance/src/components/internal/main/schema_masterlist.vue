@@ -237,15 +237,19 @@ export default {
                 columns: [
                     { 
                         data: "id",
+                        defaultContent: '',
                     },
                     { 
                         data: "options",
+                        defaultContent: '',
                     },
                     { 
                         data: "headers",
+                        defaultContent: '',
                     },
                     { 
                         data: "expanders",
+                        defaultContent: '',
                     },
                     { 
                         data: "question",
@@ -275,10 +279,12 @@ export default {
                             return result
                         },
                         'createdCell': helpers.dtPopoverCellFn,
+                        defaultContent: '',
                     },
                     { 
                         data: "answer_type",
                         width: "10%",
+                        defaultContent: '',
                     },
                     { 
                         data: "id",
@@ -287,7 +293,8 @@ export default {
                             var column = `<a class="edit-row" data-rowid=\"__ROWID__\">Edit</a><br/>`;
                             column += `<a class="delete-row" data-rowid=\"__ROWID__\">Delete</a><br/>`;
                             return column.replace(/__ROWID__/g, full.id);
-                        }
+                        },
+                        defaultContent: '',
                     },
                 ],
                 rowId: function(_data) {

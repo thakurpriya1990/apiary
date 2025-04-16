@@ -505,35 +505,41 @@ export default {
 
         //vm.sub_activities1 = [];
 
-        var [api_activities, res] = this.get_sub_matrix(activity_name, this.activity_matrix)
-        if (res == "null" || res == null) {
-            //for (var i = 0; i < vm.activity_matrix.length; i++) {
-            //    if (activity_name == vm.activity_matrix[i]['text']) {
-            //        vm.activity_matrix[i]['sub_matrix']
-            //    }
-            //}
-            this.proposal.approval_level = api_activities;
-            return;
-        } else if (res == "pass") {
-            var api_sub_activities = this.get_sub_matrix("pass", api_activities[0])[0];
-            if ("pass" in api_sub_activities[0]) {
-                // go straight to categories widget
-                var categories = api_sub_activities[0]['pass']
-                for (var i = 0; i < categories.length; i++) {
-                    this.categories.push( {text: categories[i][0], value: categories[i][0], approval: categories[i][1]} );
-                }
+        // var [api_activities, res] = this.get_sub_matrix(activity_name, this.activity_matrix)
+        
+        var result = this.get_sub_matrix(activity_name, this.activity_matrix);
+        if (Array.isArray(result)) {
+            var [api_activities, res] = result;
 
+            if (res == "null" || res == null) {
+                //for (var i = 0; i < vm.activity_matrix.length; i++) {
+                //    if (activity_name == vm.activity_matrix[i]['text']) {
+                //        vm.activity_matrix[i]['sub_matrix']
+                //    }
+                //}
+                this.proposal.approval_level = api_activities;
+                return;
+            } else if (res == "pass") {
+                var api_sub_activities = this.get_sub_matrix("pass", api_activities[0])[0];
+                if ("pass" in api_sub_activities[0]) {
+                    // go straight to categories widget
+                    var categories = api_sub_activities[0]['pass']
+                    for (var i = 0; i < categories.length; i++) {
+                        this.categories.push( {text: categories[i][0], value: categories[i][0], approval: categories[i][1]} );
+                    }
+
+                } else {
+                    // go to sub_activity2 widget
+                    for (var i = 0; i < api_sub_activities.length; i++) {
+                        var key = Object.keys(api_activities[i])[0];
+                        this.sub_activities1.push( {text: key, value: key, sub_matrix: api_activities[i][key]} );
+                    }
+                }
             } else {
-                // go to sub_activity2 widget
-                for (var i = 0; i < api_sub_activities.length; i++) {
+                for (var i = 0; i < api_activities.length; i++) {
                     var key = Object.keys(api_activities[i])[0];
                     this.sub_activities1.push( {text: key, value: key, sub_matrix: api_activities[i][key]} );
                 }
-            }
-        } else {
-            for (var i = 0; i < api_activities.length; i++) {
-                var key = Object.keys(api_activities[i])[0];
-                this.sub_activities1.push( {text: key, value: key, sub_matrix: api_activities[i][key]} );
             }
         }
 	},
@@ -552,21 +558,25 @@ export default {
         }
 
         //var api_activities = this.get_sub_matrix(activity_name, vm.sub_activities1[0]['text'])
-        var [api_activities, res] = this.get_sub_matrix(activity_name, vm.sub_activities1)
-        if (res == "null" || res == null) {
-            vm.proposal.approval_level = api_activities;
-            return;
-        } else if (res == "pass") {
-            for (var i = 0; i < api_activities.length; i++) {
-                this.categories.push( {text: api_activities[i][0], value: api_activities[i][0], approval: api_activities[i][1]} );
-            }
-        } else {
-            for (var i = 0; i < vm.sub_activities1.length; i++) {
-                if (activity_name == vm.sub_activities1[i]['text']) {
-                    var api_activities2 = vm.sub_activities1[i]['sub_matrix'];
-                    for (var j = 0; j < api_activities2.length; j++) {
-                        var key = Object.keys(api_activities2[j])[0];
-                        this.sub_activities2.push( {text: key, value: key, sub_matrix: api_activities2[j][key]} );
+        // var [api_activities, res] = this.get_sub_matrix(activity_name, vm.sub_activities1)
+        var result = this.get_sub_matrix(activity_name, vm.sub_activities1);
+        if (Array.isArray(result)) {
+            var [api_activities, res] = result;
+            if (res == "null" || res == null) {
+                vm.proposal.approval_level = api_activities;
+                return;
+            } else if (res == "pass") {
+                for (var i = 0; i < api_activities.length; i++) {
+                    this.categories.push( {text: api_activities[i][0], value: api_activities[i][0], approval: api_activities[i][1]} );
+                }
+            } else {
+                for (var i = 0; i < vm.sub_activities1.length; i++) {
+                    if (activity_name == vm.sub_activities1[i]['text']) {
+                        var api_activities2 = vm.sub_activities1[i]['sub_matrix'];
+                        for (var j = 0; j < api_activities2.length; j++) {
+                            var key = Object.keys(api_activities2[j])[0];
+                            this.sub_activities2.push( {text: key, value: key, sub_matrix: api_activities2[j][key]} );
+                        }
                     }
                 }
             }
