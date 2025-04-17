@@ -3008,7 +3008,7 @@ class DASMapFilterViewSet(viewsets.ReadOnlyModelViewSet):
             queryset= queryset.exclude(shapefile_json__isnull=True)
             return queryset
 
-        logger.warn("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
+        logger.warning("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
         return Proposal.objects.none()
 
 

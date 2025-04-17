@@ -106,7 +106,7 @@ class Command(BaseCommand):
                         if sqs_task['status'] == TaskMonitor.STATUS_COMPLETED:
                             if sqs_task['request_log'] is None:
                                 msg = f'Unable to process task_id {task_id}. Request Log is not available'
-                                logger.warn(msg)
+                                logger.warning(msg)
                                 update_retries(msg)
                             elif sqs_task['request_log']['request_type'] in [RequestTypeEnum.FULL, RequestTypeEnum.PARTIAL, RequestTypeEnum.REFRESH_SINGLE, RequestTypeEnum.REFRESH_PARTIAL]:
                                 request_type = sqs_task['request_log']['request_type']
@@ -184,12 +184,12 @@ class Command(BaseCommand):
 
                         else:
                             msg = f'Unable to process task_id {task_id}'
-                            logger.warn(msg)
+                            logger.warning(msg)
                             update_retries(msg)
 
                     else:
                         msg = f'task_id {task_id} not found in SQS API request'
-                        logger.warn(msg)
+                        logger.warning(msg)
                         update_retries(msg)
             else:
                 logger.info("There are no jobs queued.")
