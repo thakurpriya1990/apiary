@@ -72,3 +72,7 @@
 .popover {
     max-width: 100%;
 }
+
+.btn {
+    margin-right: 3px;
+}
