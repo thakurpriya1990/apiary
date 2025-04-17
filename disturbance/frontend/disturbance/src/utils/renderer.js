@@ -186,7 +186,7 @@ export default{
                 // }
                 //console.log(comment_boxes);
                 _elements.push(
-                    <Select name={c.name} label={c.label} value={val} id={id} comment_value={comment_val} options={c.options} value={val} help_text={help_text} help_text_assessor={help_text_assessor} assessorMode={assessorMode} handleChange={this.selectionChanged} readonly={readonly} isMultiple={true} assessor_readonly={assessor_visibility} isRequired={c.isRequired} help_text_url={help_text_url} help_text_assessor_url={help_text_assessor_url} comment_boxes={JSON.stringify(comment_boxes)} layer_val={layer_val} refresh_time_value={refresh_timestamp} proposal_id={proposalId}/>
+                    <Select name={c.name} label={c.label} value={val} id={id} comment_value={comment_val} options={c.options} help_text={help_text} help_text_assessor={help_text_assessor} assessorMode={assessorMode} handleChange={this.selectionChanged} readonly={readonly} isMultiple={true} assessor_readonly={assessor_visibility} isRequired={c.isRequired} help_text_url={help_text_url} help_text_assessor_url={help_text_assessor_url} comment_boxes={JSON.stringify(comment_boxes)} layer_val={layer_val} refresh_time_value={refresh_timestamp} proposal_id={proposalId}/>
                 )
                 break;
             case 'text_area':
