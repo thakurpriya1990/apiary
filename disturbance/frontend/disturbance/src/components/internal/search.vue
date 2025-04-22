@@ -128,9 +128,9 @@
                     <div class="row">
                       <div class="col-lg-12">
                         <div >
-                          <button  v-if="searching" type="button" class="btn btn-primary" style="margin-bottom: 5px" value="Search" disabled>
+                          <button  v-if="searching" type="button" class="btn btn-primary btn-margin" style="margin-bottom: 5px" value="Search" disabled>
                             Search<i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                          <input v-else type="button" @click.prevent="search" class="btn btn-primary" style="margin-bottom: 5px" value="Search"/>
+                          <input v-else type="button" @click.prevent="search" class="btn btn-primary btn-margin" style="margin-bottom: 5px" value="Search"/>
                           <input type="reset" @click.prevent="reset" class="btn btn-primary" style="margin-bottom: 5px" value="Clear"/>
 
                         </div>

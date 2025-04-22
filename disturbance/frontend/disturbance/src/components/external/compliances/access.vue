@@ -113,7 +113,7 @@
                                 <div class="row">
                                     <div class="form-group">
                                         <div class="col-lg-2 pull-right">
-                                            <button v-if="!isFinalised" @click.prevent="submit()" class="btn btn-primary">Submit</button>
+                                            <button v-if="!isFinalised" @click.prevent="submit()" class="btn btn-primary btn-margin">Submit</button>
                                             <button v-if="!isFinalised" @click.prevent="close()" class="btn btn-primary">Close</button>
                                         </div>
                                     </div>

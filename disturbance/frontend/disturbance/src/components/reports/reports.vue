@@ -88,7 +88,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-sm-6">
-                                    <button @click.prevent="generateByAccount()" class="btn btn-primary pull-left" >Generate Report By Accounts</button>
+                                    <button @click.prevent="generateByAccount()" class="btn btn-primary pull-left btn-margin" >Generate Report By Accounts</button>
                                 </div>
                                 <div class="col-sm-6 clearfix">
                                   <button @click.prevent="generateFlatReport()" class="btn btn-primary pull-left" >Generate Report Flat</button>

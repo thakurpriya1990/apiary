@@ -367,7 +367,7 @@
                                         <div class="navbar-inner">
                                             <div v-if="hasAssessorMode" class="container">
                                               <p class="pull-right">
-                                                <button class="btn btn-primary" style="margin-top:5px;" @click.prevent="save()">Save and Continue</button>
+                                                <button class="btn btn-primary btn-margin" style="margin-top:5px;" @click.prevent="save()">Save and Continue</button>
                                                 
                                                 <button class="btn btn-primary" style="margin-top:5px;" @click.prevent="save_exit()">Save and Exit</button>
                                               </p>

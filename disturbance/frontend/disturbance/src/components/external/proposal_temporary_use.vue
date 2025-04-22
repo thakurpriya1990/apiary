@@ -20,9 +20,9 @@
                 <div class="navbar-inner">
                     <div class="container">
                         <p class="pull-right" style="margin-top:5px;">
-                            <input type="button" @click.prevent="save_exit" class="btn btn-primary" value="Save and Exit"/>
-                            <input type="button" @click.prevent="save" class="btn btn-primary" value="Save and Continue"/>
-                            <input v-if="!isSubmitting" type="button" @click.prevent="submit" class="btn btn-primary" value="Submit"/>
+                            <input type="button" @click.prevent="save_exit" class="btn btn-primary btn-margin" value="Save and Exit"/>
+                            <input type="button" @click.prevent="save" class="btn btn-primary btn-margin" value="Save and Continue"/>
+                            <input v-if="!isSubmitting" type="button" @click.prevent="submit" class="btn btn-primary btn-margin" value="Submit"/>
                             <button v-else disabled class="btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Submitting</button>
                         </p>
                     </div>

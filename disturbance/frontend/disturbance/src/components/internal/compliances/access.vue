@@ -58,7 +58,7 @@
                             </div>
                             <div class="col-sm-12 top-buffer-s" v-if="!canViewonly && check_assessor()">
                                 <strong>Action</strong><br/>
-                                <button class="btn btn-primary" @click.prevent="acceptCompliance()">Accept</button><br/>
+                                <button class="btn btn-primary btn-margin" @click.prevent="acceptCompliance()">Accept</button><br/>
                                 <button class="btn btn-primary top-buffer-s" @click.prevent="amendmentRequest()">Request Amendment</button>
                             </div>
                         </div>

@@ -93,7 +93,7 @@
                                     <button type="button" class="btn btn-primary" @click="shapefileButtonClicked(true)"><i class="fa fa-download"></i>
                                         Get GeoJSON File</button>
                                     -->
-                                    <button type="button" class="btn btn-primary" @click="shapefileButtonClicked(false)" :disabled="download_shapefile_btn_disabled">
+                                    <button type="button" class="btn btn-primary btn-margin" @click="shapefileButtonClicked(false)" :disabled="download_shapefile_btn_disabled">
                                         <i v-if="download_shapefile_btn_disabled" class="fa fa-download fa-spinner fa-spin"></i>
                                         <i v-else class="fa fa-download"></i>
                                         Download Shapefile
