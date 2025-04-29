@@ -161,8 +161,8 @@
                     <div class="row">
                       <div class="col-lg-12">
                         <div >
-                          <input type="button" @click.prevent="search" class="btn btn-primary" style="margin-bottom: 5px"value="Search"/>
-                          <input type="reset" @click.prevent="reset" class="btn btn-primary" style="margin-bottom: 5px"value="Clear"/>
+                          <input type="button" @click.prevent="search" class="btn btn-primary btn-margin" style="margin-bottom: 5px"value="Search"/>
+                          <input type="reset" @click.prevent="reset" class="btn btn-primary btn-margin" style="margin-bottom: 5px"value="Clear"/>
                           <input type="geoJsonButtonClicked" @click.prevent="geoJsonButtonClicked" class="btn btn-primary" style="margin-bottom: 5px"value="Get Spatial File"/>
                         </div>
                       </div> 
@@ -182,8 +182,6 @@
             </div>
         </div>
     </div>
-    
-</div>
 </template>
 <script>
 import $ from 'jquery'

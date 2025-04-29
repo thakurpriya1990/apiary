@@ -93,7 +93,7 @@
                                     <button type="button" class="btn btn-primary" @click="shapefileButtonClicked(true)"><i class="fa fa-download"></i>
                                         Get GeoJSON File</button>
                                     -->
-                                    <button type="button" class="btn btn-primary" @click="shapefileButtonClicked(false)" :disabled="download_shapefile_btn_disabled">
+                                    <button type="button" class="btn btn-primary btn-margin" @click="shapefileButtonClicked(false)" :disabled="download_shapefile_btn_disabled">
                                         <i v-if="download_shapefile_btn_disabled" class="fa fa-download fa-spinner fa-spin"></i>
                                         <i v-else class="fa fa-download"></i>
                                         Download Shapefile
@@ -190,9 +190,9 @@
 <script>
     import FormSection from "@/components/forms/section_toggle.vue"
     import ContactLicenceHolderModal from "@/components/common/apiary/contact_licence_holder_modal.vue"
-    import uuid from 'uuid'
+    import {v4 as uuidv4 } from 'uuid';
     import Vue from 'vue'
-    import proj from 'ol/proj'
+    // import proj from 'ol/proj'
     import 'ol/ol.css';
     import 'ol-layerswitcher/dist/ol-layerswitcher.css'
     import Map from 'ol/Map';
@@ -245,7 +245,7 @@
                 debug: true,
                 show_spinner: false,
                 download_shapefile_btn_disabled: false,
-                modalBindId: uuid(),
+                modalBindId: uuidv4(),
                 map: null,
                 proposals: null,
                 filteredProposals: [],
@@ -259,10 +259,10 @@
                 filterProposalApplicant: 'All',
                 proposalQuerySource: null,
                 proposalClusterLayer: null,
-                elem_id: uuid(),
-                popup_id: uuid(),
-                popup_closer_id: uuid(),
-                popup_content_id: uuid(),
+                elem_id: uuidv4(),
+                popup_id: uuidv4(),
+                popup_closer_id: uuidv4(),
+                popup_content_id: uuidv4(),
                 overlay: null,
                 content_element: null,
                 modifyInProgressList: [],
@@ -289,8 +289,8 @@
                 
                 awe: null,
                 mapboxAccessToken: null,
-                search_box_id: uuid(),
-                search_input_id: uuid(),
+                search_box_id: uuidv4(),
+                search_input_id: uuidv4(),
                 search_address_latlng_text: '',
 
                 //filters
@@ -847,7 +847,7 @@
             
             initMap: function() {
                 let vm = this;
-                var ol = {'proj': proj, 'extent': Extent,}
+                // var ol = {'proj': proj, 'extent': Extent,}
                 var projection = getProjection("EPSG:3857");
                 var projectionExtent = projection.getExtent();
                 var s = getWidth(projectionExtent) / 256;
@@ -866,13 +866,13 @@
                 });
                 
                 let satelliteTileWms = new TileWMS({
-                    url: env['kmi_server_url'] + '/geoserver/public/wms',
+                    url: env['kmi_server_url'] + '/geoserver/kaartdijin-boodja-public/wms',
                     params: {
                         'FORMAT': 'image/png',
                         'VERSION': '1.1.1',
                         tiled: true,
                         STYLES: '',
-                        LAYERS: 'public:mapbox-satellite',
+                        LAYERS: 'kaartdijin-boodja-public:mapbox-satellite-public',
                     },
                 });
                 vm.tileLayerOsmWorking= new TileLayer({
@@ -883,7 +883,7 @@
                         // url: "https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
                         url: "/kmi-proxy/geoserver/gwc/service/wmts",
                         format: "image/png",
-                        layer: "public:mapbox-streets",
+                        layer: "kaartdijin-boodja-public:mapbox-streets-public",
                         matrixSet: matrixSet,
                         projection: 'EPSG:3857',
                         tileGrid: m,
@@ -892,19 +892,19 @@
 
                         // url: "https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
                         // format: "image/png",
-                        // layer: "public:mapbox-streets",
+                        // layer: "kaartdijin-boodja-public:mapbox-streets-public",
                         // style: 'default',
                         // projection: 'EPSG:3857',
                     })
                 
                 let streetsTileWMS = new TileWMS({
-                url: env['kmi_server_url'] + '/geoserver/public/wms',
+                url: env['kmi_server_url'] + '/geoserver/kaartdijin-boodja-public/wms',
                 params: {
                     FORMAT: 'image/png',
                     VERSION: '1.1.1',
                     tiled: true,
                     STYLES: '',
-                    LAYERS: "public:mapbox-streets",
+                    LAYERS: "kaartdijin-boodja-public:mapbox-streets-public",
                 },
                 });
                 
@@ -1179,7 +1179,6 @@
                             
                         });
                         if (feature){
-
                             let features = feature.get('features')
                             if (features.length == 1){
                                 if (!feature.id){
@@ -1192,7 +1191,6 @@
                                 let proposal = features[0].getProperties().proposal;
                                 vm.showPopup(feature[0])
                             } else {
-
                                 //if proposal id is different but geometry is exactly same
                                 sameFeature = false;
                                 for(var i=0; i<features.length; i++ ){
@@ -1332,7 +1330,7 @@
             },
             
             showPopup: function(feature){
-                let unique_id = uuid()
+                let unique_id = uuidv4()
                 // let proposal = feature.getProperties().proposal;
                 // console.log('selected proposal', proposal);
 
@@ -1458,7 +1456,7 @@
                 }
             },
             showPopupforSameFeatures: function(features){
-                let unique_id = uuid()
+                let unique_id = uuidv4()
                 // let proposal = feature.getProperties().proposal;
                 // console.log('selected proposal', proposal);
                 let proposal_rows='';
@@ -1647,7 +1645,7 @@
                 )
             },
             openOnSiteInformationModal: async function(apiary_site_id) {
-                this.modalBindId = uuid()
+                this.modalBindId = uuidv4()
 
                 try {
                     this.$nextTick(() => {

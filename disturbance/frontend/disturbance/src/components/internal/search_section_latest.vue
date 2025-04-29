@@ -161,12 +161,12 @@
                     <div class="row">
                       <div class="col-lg-12">
                         <div >
-                          <button type="button" class="btn btn-primary" @click.prevent="search()" :disabled="search_btn_disabled">
+                          <button type="button" class="btn btn-primary btn-margin" @click.prevent="search()" :disabled="search_btn_disabled">
                               <i v-if="search_btn_disabled" class="fa fa-search fa-spinner fa-spin"></i>
                               <i v-else class="fa fa-search"></i>
                               Search
                           </button>
-                          <button type="button" class="btn btn-primary" @click.prevent="reset">
+                          <button type="button" class="btn btn-primary btn-margin" @click.prevent="reset">
                               <i class="fa fa-eraser"></i>
                               Clear
                           </button>
@@ -193,8 +193,6 @@
             </div>
         </div>
     </div>
-    
-</div>
 </template>
 <script>
 import $ from 'jquery'

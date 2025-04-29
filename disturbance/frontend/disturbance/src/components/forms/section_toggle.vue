@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import uuid from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 export default {
     name:"FormSection",
@@ -49,7 +49,7 @@ export default {
             title:"Section title",
             //subheading:"",
             panel_chevron_class: null,
-            custom_id: uuid(),
+            custom_id: uuidv4(),
         }
     },
     computed:{

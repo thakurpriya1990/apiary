@@ -155,7 +155,7 @@
     import GeoJSON from 'ol/format/GeoJSON';
     import TextField from '@/components/forms/text.vue'
     import datatable from '@vue-utils/datatable.vue'
-    import uuid from 'uuid';
+    import { v4 as uuidv4 } from 'uuid';
     import { getStatusForColour, getApiaryFeatureStyle,SiteColours, zoomToCoordinates, checkIfValidlatitudeAndlongitude } from '@/components/common/apiary/site_colours.js'
     import Overlay from 'ol/Overlay';
 
@@ -303,9 +303,9 @@
                     })
                 }),
                 // Popup
-                popup_id: uuid(),
-                popup_content_id: uuid(),
-                popup_closer_id: uuid(),
+                popup_id: uuidv4(),
+                popup_content_id: uuidv4(),
+                popup_closer_id: uuidv4(),
                 content_element: null,
                 overlay: null,
 
@@ -460,8 +460,8 @@
 
                 awe: null,
                 mapboxAccessToken: null,
-                search_box_id: uuid(),
-                search_input_id: uuid(),
+                search_box_id: uuidv4(),
+                search_input_id: uuidv4(),
             }
         },
         components: {
@@ -976,7 +976,7 @@
                                 tiled: true,
                                 STYLES: '',
                                 LAYERS: layers[i].layer_full_name,
-                                //LAYERS: 'public:mapbox-satellite'
+                                //LAYERS: 'kaartdijin-boodja-public:mapbox-satellite'
                             }
                         });
 
@@ -1340,8 +1340,8 @@
                 let vm = this;
 
                 let satelliteTileWmts = new WMTS({
-                    url: 'https://kmi.dbca.wa.gov.au/geoserver/gwc/service/wmts',
-                    layer: 'public:mapbox-satellite',
+                    url: 'https://kb.dbca.wa.gov.au/geoserver/gwc/service/wmts',
+                    layer: 'kaartdijin-boodja-public:mapbox-satellite-public',
                     format: 'image/png',
                     matrixSet: 'gda94',
                     projection: 'EPSG:4326',

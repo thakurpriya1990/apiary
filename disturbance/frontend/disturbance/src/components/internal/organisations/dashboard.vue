@@ -78,7 +78,7 @@ import {
   helpers
 }
 from '@/utils/hooks'
-import uuid from 'uuid'
+import {v4 as uuidv4} from 'uuid';
 export default {
   name: 'OrganisationAccessDashboard',
   data() {
@@ -274,7 +274,7 @@ export default {
             const response = await this.$http.get(url)
             this.members = response.body
             //this.loading.splice('Loading Access Group Members',1);
-            this.table_id = uuid()
+            this.table_id = uuidv4()
         },
         fetchProfile: async function(){
             const response = await Vue.http.get(api_endpoints.profile);

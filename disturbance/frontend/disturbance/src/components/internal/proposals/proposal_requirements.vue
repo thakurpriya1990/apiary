@@ -101,6 +101,7 @@ export default {
                             return type=='export' ? value : result;
                         },
                         'createdCell': helpers.dtPopoverCellFn,
+                        defaultContent: '',
 
                         /*'createdCell': function (cell) {
                             //TODO why this is not working?
@@ -114,7 +115,8 @@ export default {
                         mRender:function (data,type,full) {
                             return data != '' && data != null ? moment(data).format('DD/MM/YYYY'): '';
                         },
-                        orderable: false
+                        orderable: false,
+                        defaultContent: '',
                     },
                     {
                         data: "recurrence",
@@ -133,7 +135,8 @@ export default {
                             }
                             return '';
                         },
-                        orderable: false
+                        orderable: false,
+                        defaultContent: '',
                     },
                     {
                         mRender:function (data,type,full) {
@@ -148,7 +151,8 @@ export default {
                             }
                             return links;
                         },
-                        orderable: false
+                        orderable: false,
+                        defaultContent: '',
                     },
                     {
                         mRender:function (data,type,full) {
@@ -160,7 +164,8 @@ export default {
                             }
                             return links;
                         },
-                        orderable: false
+                        orderable: false,
+                        defaultContent: '',
                     }
                 ],
                 processing: true,

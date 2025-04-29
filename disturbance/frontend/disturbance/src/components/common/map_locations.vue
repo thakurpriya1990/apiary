@@ -415,9 +415,9 @@ export default {
           );
 
           this.tileLayerSat = Leaf.tileLayer.wmts(
-            "https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
+            "https://kb.dbca.wa.gov.au/geoserver/gwc/service/wmts",
             {
-              layer: "public:mapbox-satellite",
+              layer: "kaartdijin-boodja-public:mapbox-satellite-public",
               tilematrixSet: "mercator",
               format: "image/png"
             }

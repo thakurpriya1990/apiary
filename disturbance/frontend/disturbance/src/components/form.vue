@@ -17,7 +17,7 @@
     require('../../node_modules/bootstrap/dist/css/bootstrap.css');
     require('../../node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css')
     require('../../node_modules/font-awesome/css/font-awesome.min.css')
-    const easing = require('easing');
+    // const easing = require('easing');
     export default {
         props:{
             proposal:{
@@ -66,17 +66,20 @@
                    }, 1000, 'easeInOutExpo');
                    event.preventDefault();
                });
-               $(window).scroll(function () {
+               $(window).on("scroll", (function () {
                     var wScroll = $(this).scrollTop();
-                    if (wScroll >= $('#scrollspy-heading').offset().top-56) {
-                        var width = $('.fixed').width();
-                        $('.fixed').addClass('fixed-top');
-                        $('.fixed-top').width(width);
-                    }else{
-                        $('.fixed').removeClass('fixed-top');
-                        $('.fixed').width('100%');
+                    var scrollspyHeading = $('#scrollspy-heading');
+                    if (scrollspyHeading.length) { // Check if the element exists
+                        if (wScroll >= $('#scrollspy-heading').offset().top-56) {
+                            var width = $('.fixed').width();
+                            $('.fixed').addClass('fixed-top');
+                            $('.fixed-top').width(width);
+                        }else{
+                            $('.fixed').removeClass('fixed-top');
+                            $('.fixed').width('100%');
+                        }
                     }
-                });
+                }));
             }
         },
         render(h) {

@@ -367,7 +367,7 @@
                                         <div class="navbar-inner">
                                             <div v-if="hasAssessorMode" class="container">
                                               <p class="pull-right">
-                                                <button class="btn btn-primary" style="margin-top:5px;" @click.prevent="save()">Save and Continue</button>
+                                                <button class="btn btn-primary btn-margin" style="margin-top:5px;" @click.prevent="save()">Save and Continue</button>
                                                 
                                                 <button class="btn btn-primary" style="margin-top:5px;" @click.prevent="save_exit()">Save and Exit</button>
                                               </p>
@@ -411,7 +411,7 @@ import ApprovalScreen from './proposal_approval.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import RevisionHistory from '@common-utils/revision_history.vue'
 import MoreReferrals from '@common-utils/more_referrals.vue'
-import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
+// import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import { api_endpoints, helpers } from '@/utils/hooks'
 export default {
     name: 'InternalProposal',
@@ -456,23 +456,28 @@ export default {
                         title: 'Name',
                         mRender:function (data,type,full) {
                             return full.first_name + " " + full.last_name;
-                        }
+                        },
+                        defaultContent: '',
                     },
                     {
                         title: 'Phone',
-                        data:'phone_number'
+                        data:'phone_number',
+                        defaultContent: '',
                     },
                     {
                         title: 'Mobile',
-                        data:'mobile_number'
+                        data:'mobile_number',
+                        defaultContent: '',
                     },
                     {
                         title: 'Fax',
-                        data:'fax_number'
+                        data:'fax_number',
+                        defaultContent: '',
                     },
                     {
                         title: 'Email',
-                        data:'email'
+                        data:'email',
+                        defaultContent: '',
                     },
                   ],
                   processing: true

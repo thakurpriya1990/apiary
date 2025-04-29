@@ -1,7 +1,6 @@
 from confy import env
 from django.urls import reverse
 from django.shortcuts import redirect
-from django.utils.http import urlquote_plus
 
 import re
 import datetime

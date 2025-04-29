@@ -105,7 +105,8 @@
 <script>
     import FormSection from "@/components/forms/section_toggle.vue"
     import ContactLicenceHolderModal from "@/components/common/apiary/contact_licence_holder_modal.vue"
-    import uuid from 'uuid'
+    // import uuid from 'uuid'
+    import { v4 as uuidv4 } from 'uuid';
     import Vue from 'vue'
 
     import 'ol/ol.css';
@@ -149,7 +150,7 @@
 
             return {
                 debug: true,
-                modalBindId: uuid(),
+                modalBindId: uuidv4(),
 
                 show_action_make_vacant: true,
                 show_action_contact_licence_holder: true,
@@ -157,10 +158,10 @@
                 map: null,
                 apiarySitesQuerySource: null,
                 apiarySitesClusterLayer: null,
-                elem_id: uuid(),
-                popup_id: uuid(),
-                popup_closer_id: uuid(),
-                popup_content_id: uuid(),
+                elem_id: uuidv4(),
+                popup_id: uuidv4(),
+                popup_closer_id: uuidv4(),
+                popup_content_id: uuidv4(),
                 overlay: null,
                 content_element: null,
                 modifyInProgressList: [],
@@ -303,8 +304,8 @@
                 ],
                 awe: null,
                 mapboxAccessToken: null,
-                search_box_id: uuid(),
-                search_input_id: uuid(),
+                search_box_id: uuidv4(),
+                search_input_id: uuidv4(),
                 search_address_latlng_text: '',
             }
         },
@@ -879,13 +880,13 @@
                 let vm = this;
 
                 let satelliteTileWms = new TileWMS({
-                    url: env['kmi_server_url'] + '/geoserver/public/wms',
+                    url: env['kmi_server_url'] + '/geoserver/kaartdijin-boodja-public/wms',
                     params: {
                         'FORMAT': 'image/png',
                         'VERSION': '1.1.1',
                         tiled: true,
                         STYLES: '',
-                        LAYERS: 'public:mapbox-satellite',
+                        LAYERS: 'kaartdijin-boodja-public:mapbox-satellite-public',
                     }
                 });
 
@@ -1208,7 +1209,7 @@
                 return ret_str
             },
             showPopup: function(feature){
-                let unique_id = uuid()
+                let unique_id = uuidv4()
 
                 if (feature){
                     let geometry = feature.getGeometry();
@@ -1383,7 +1384,7 @@
                 )
             },
             openOnSiteInformationModal: async function(apiary_site_id) {
-                this.modalBindId = uuid()
+                this.modalBindId = uuidv4()
 
                 try {
                     this.$nextTick(() => {

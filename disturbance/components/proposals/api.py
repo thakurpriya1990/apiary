@@ -162,7 +162,6 @@ class ProposalFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         search_text = request.GET.get('search[value]', '')
         total_count = queryset.count()
-
         def get_choice(status, choices=Proposal.PROCESSING_STATUS_CHOICES):
             for i in choices:
                 if i[1]==status:
@@ -264,9 +263,8 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             if date_to:
                 queryset = queryset.filter(proposal__lodgement_date__lte=date_to)
 
-        getter = request.query_params.get
-        fields = self.get_fields(getter)
-        ordering = self.get_ordering(getter, fields)
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
         sort_by = request.GET.get('sort_by')
         queryset = queryset.order_by(*ordering)
         if len(ordering):
@@ -320,7 +318,6 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
 
         http://localhost:8499/api/proposal_paginated/proposal_paginated_internal/?format=datatables&draw=1&length=2
         """
-
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 
@@ -2163,8 +2160,8 @@ class SchemaMasterlistFilterBackend(DatatablesFilterBackend):
         # for which data is not an Application model field, as property
         # functions will not work with order_by.
         getter = request.query_params.get
-        fields = self.get_fields(getter)
-        ordering = self.get_ordering(getter, fields)
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
@@ -2434,8 +2431,8 @@ class SchemaQuestionFilterBackend(DatatablesFilterBackend):
         # for which data is not an Application model field, as property
         # functions will not work with order_by.
         getter = request.query_params.get
-        fields = self.get_fields(getter)
-        ordering = self.get_ordering(getter, fields)
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
@@ -2792,8 +2789,8 @@ class SchemaProposalTypeFilterBackend(DatatablesFilterBackend):
         # for which data is not an Application model field, as property
         # functions will not work with order_by.
         getter = request.query_params.get
-        fields = self.get_fields(getter)
-        ordering = self.get_ordering(getter, fields)
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
@@ -3010,7 +3007,7 @@ class DASMapFilterViewSet(viewsets.ReadOnlyModelViewSet):
             queryset= queryset.exclude(shapefile_json__isnull=True)
             return queryset
 
-        logger.warn("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
+        logger.warning("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
         return Proposal.objects.none()
 
 

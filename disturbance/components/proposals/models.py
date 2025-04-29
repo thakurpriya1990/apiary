@@ -1548,7 +1548,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
        import geopandas as gpd 
        try:
            if self.shapefile_json is None:
-               logger.warn(f'No shapefile found. Upload shapefile to the Proposal first')
+               logger.warning(f'No shapefile found. Upload shapefile to the Proposal first')
                return
            gdf = gpd.read_file(json.dumps(self.shapefile_json), driver='GeoJSON')
            return gdf.centroid[0]
@@ -2911,7 +2911,6 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
         filter_regex = ".*\".*\":\s\"(\\\\\"|[^\"])*"+search_words_regex+"(\\\\\"|[^\"])*\".*"
         #extract_regex = "(?i)\'*\':\s\'(?:\\\\\'|[^\'])*"+search_words_regex+"(?:\\\\\'|[^\'])*\'" #attempted to further optimise but additional regex had a negligable impact at the cost of the data key
         if searchProposal:
-            
             proposal_list = proposal_list.filter(data__iregex=filter_regex)
             for p in proposal_list:
                 name = ""
@@ -3282,7 +3281,7 @@ class MasterlistQuestion(models.Model):
                         MasterlistOptionEncoder, self).encode_list(obj, iter)
 
         if not isinstance(options, list) and self.id:
-            logger.warn('{0} - MasterlistQuestion: {1}'.format(
+            logger.warning('{0} - MasterlistQuestion: {1}'.format(
                 'set_property_cache_options() NOT LIST', self.id))
             return
 
@@ -3347,7 +3346,7 @@ class MasterlistQuestion(models.Model):
                         TableHeaderEncoder, self).encode_list(obj, iter)
 
         if not isinstance(headers, list) and self.id:
-            logger.warn('{0} - MasterlistQuestion: {1}'.format(
+            logger.warning('{0} - MasterlistQuestion: {1}'.format(
                 'set_property_cache_headers() NOT LIST', self.id))
             return
 
@@ -3413,7 +3412,7 @@ class MasterlistQuestion(models.Model):
                         TableExpanderEncoder, self).encode_list(obj, iter)
 
         if not isinstance(expanders, list) and self.id:
-            logger.warn('{0} - MasterlistQuestion: {1}'.format(
+            logger.warning('{0} - MasterlistQuestion: {1}'.format(
                 'set_property_cache_expanders() NOT LIST', self.id))
             return
 
@@ -3590,7 +3589,7 @@ class SectionQuestion(models.Model):
                         QuestionOptionEncoder, self).encode_list(obj, iter)
 
         if not isinstance(options, list) and self.id:
-            logger.warn('{0} - SectionQuestion: {1}'.format(
+            logger.warning('{0} - SectionQuestion: {1}'.format(
                 'set_property_cache_options() NOT LIST', self.id))
             return
 

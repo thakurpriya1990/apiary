@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.forms import ModelForm
-from django.conf.urls import url
 from django.utils.html import format_html
 from django.urls import reverse
 

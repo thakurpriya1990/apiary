@@ -21,7 +21,7 @@ import LayerInfo from '../components/forms/layer_info.vue'
 import RefreshRadio from '../components/forms/refresh_radio.vue'
 import {helpers,api_endpoints} from "@/utils/hooks.js"
 
-module.exports = {
+export default{
     renderChildren(h,c,data=null,assessorData=null,_readonly) {
         var is_readonly = this.status_data.readonly;
         var assessorStatus = this.status_data.assessorStatus;
@@ -186,7 +186,7 @@ module.exports = {
                 // }
                 //console.log(comment_boxes);
                 _elements.push(
-                    <Select name={c.name} label={c.label} value={val} id={id} comment_value={comment_val} options={c.options} value={val} help_text={help_text} help_text_assessor={help_text_assessor} assessorMode={assessorMode} handleChange={this.selectionChanged} readonly={readonly} isMultiple={true} assessor_readonly={assessor_visibility} isRequired={c.isRequired} help_text_url={help_text_url} help_text_assessor_url={help_text_assessor_url} comment_boxes={JSON.stringify(comment_boxes)} layer_val={layer_val} refresh_time_value={refresh_timestamp} proposal_id={proposalId}/>
+                    <Select name={c.name} label={c.label} value={val} id={id} comment_value={comment_val} options={c.options} help_text={help_text} help_text_assessor={help_text_assessor} assessorMode={assessorMode} handleChange={this.selectionChanged} readonly={readonly} isMultiple={true} assessor_readonly={assessor_visibility} isRequired={c.isRequired} help_text_url={help_text_url} help_text_assessor_url={help_text_assessor_url} comment_boxes={JSON.stringify(comment_boxes)} layer_val={layer_val} refresh_time_value={refresh_timestamp} proposal_id={proposalId}/>
                 )
                 break;
             case 'text_area':

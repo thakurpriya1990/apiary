@@ -339,7 +339,7 @@
 
 <script>
 //import $ from 'jquery'
-import uuid from 'uuid'
+import {v4 as uuidv4} from 'uuid';
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 import {helpers,api_endpoints} from "@/utils/hooks.js"
@@ -1003,7 +1003,7 @@ export default {
         } else {
             this.setApiarySiteCheckedStatuses();
         }
-        this.component_site_selection_key = uuid()
+        this.component_site_selection_key = uuidv4()
     }
 }
 </script>

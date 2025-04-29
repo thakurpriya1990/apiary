@@ -106,9 +106,9 @@ class ComplianceFilterBackend(DatatablesFilterBackend):
         if due_date_to:
             queryset = queryset.filter(due_date__lte=due_date_to)
 
-        getter = request.query_params.get
-        fields = self.get_fields(getter)
-        ordering = self.get_ordering(getter, fields)
+        # getter = request.query_params.get
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
         queryset = queryset.order_by(*ordering)
         if len(ordering):
             #for num, item in enumerate(ordering):

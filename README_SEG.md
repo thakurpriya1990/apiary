@@ -95,9 +95,11 @@ Update the environment variables:
 - DATABASE_URL=postgis://das_dev:<passwd>@172.17.0.1:15432/das_seg_dev
 - ENABLE_DJANGO_LOGIN=True
 
-# Step 6: Update pip version to 24.0
+# Step 6: Update python version to 3.12.3
 
-# Step 7: Install pip modules:
+# Step 7: Update pip version to 24.0
+
+# Step 8: Install pip modules:
 ```
 pip install -r requirements.txt
 ```
@@ -110,5 +112,11 @@ pip install -r requirements.txt
 # Step 9: Delete the Apiary Proposal Types
 
 delete the Apiary proposal type in Admin (via Django Admin) - those with blank application_name (and v1)
+
+# Step 10: Follow the steps for django-cron missing table if gives error
+
+# Step 11: Follow the steps to dump the scheme questions data if necessary
+
+# Step 12: Change the env variables for kmi to kb
 
 

@@ -23,7 +23,8 @@
             {% bootstrap_css %}
                 <link type="text/css" href="{% static 'disturbance/css/base.css' %}" rel="stylesheet">
             {% if not dev %}
-	    <link rel="stylesheet" href="{% static 'disturbance_vue/static/css/app.css' %}?v={{build_tag}}">
+	    <link rel="stylesheet" href="{% static 'disturbance_vue/css/app.css' %}?v={{build_tag}}">
+        <link rel="stylesheet" href="{% static 'disturbance_vue/css/chunk-vendors.css' %}?v={{build_tag}}">
             {% endif %}
             {% block extra_css %}
             {% endblock %}
@@ -209,14 +210,16 @@
         {% if not dev %}
             <!--<script type="text/javascript" src="https://static.dpaw.wa.gov.au/static/cdnjs/ajax/libs/jquery/2.1.2/jquery.min.js"></script>
             <script type="text/javascript" src="https://static.dpaw.wa.gov.au/static/cdnjs/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>-->
-	<script type="text/javascript" src="{% static 'disturbance_vue/static/js/manifest.js' %}?v={{build_tag}}"></script>
+	{% comment %} <script type="text/javascript" src="{% static 'disturbance_vue/static/js/manifest.js' %}?v={{build_tag}}"></script>
 	<script type="text/javascript" src="{% static 'disturbance_vue/static/js/vendor.js' %}?v={{build_tag}}"></script>
             {% if app_build_url %}
 	    <!-- script type="text/javascript" src="{% static 'disturbance_vue/static/js/app.js' %}?v={{build_tag}}"></script -->
 	<script type="text/javascript" src="{{ app_build_url }}?v={{build_tag}}"></script>
-            {% else %}
-	<script type="text/javascript" src="{% static 'disturbance_vue/static/js/app.js' %}?v={{build_tag}}"></script>
-            {% endif %}
+            {% else %} {% endcomment %}
+    <script type="text/javascript" src="{% static 'disturbance_vue/js/chunk-vendors.js' %}?v={{build_tag}}"></script>
+	<script type="text/javascript" src="{% static 'disturbance_vue/js/app.js' %}?v={{build_tag}}"></script>
+
+            {% comment %} {% endif %} {% endcomment %}
         {% else %}
             <script type="text/javascript" src="{{ dev_url }}"></script>
         {% endif %}

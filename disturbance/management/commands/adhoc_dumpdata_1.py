@@ -192,7 +192,7 @@ class Command(BaseCommand):
             from disturbance.components.proposals.models import DASMapLayer
             from disturbance.components.main.models import GlobalSettings
 
-            qs1 = DASMapLayer.objects.exclude(layer_url__icontains='kmi.dbca.wa.gov.au')
+            qs1 = DASMapLayer.objects.exclude(layer_url__icontains='kb.dbca.wa.gov.au')
             qs2 = GlobalSettings.objects.filter()
  
             yield from chain(qs1, qs2)

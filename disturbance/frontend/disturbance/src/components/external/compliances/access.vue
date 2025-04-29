@@ -113,7 +113,7 @@
                                 <div class="row">
                                     <div class="form-group">
                                         <div class="col-lg-2 pull-right">
-                                            <button v-if="!isFinalised" @click.prevent="submit()" class="btn btn-primary">Submit</button>
+                                            <button v-if="!isFinalised" @click.prevent="submit()" class="btn btn-primary btn-margin">Submit</button>
                                             <button v-if="!isFinalised" @click.prevent="close()" class="btn btn-primary">Close</button>
                                         </div>
                                     </div>
@@ -133,7 +133,7 @@ import $ from 'jquery'
 import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
-import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
+// import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import {
   api_endpoints,
   helpers

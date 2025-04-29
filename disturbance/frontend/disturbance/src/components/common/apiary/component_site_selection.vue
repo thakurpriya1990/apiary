@@ -37,7 +37,7 @@
 <script>
     import Vue from 'vue'
     import datatable from '@vue-utils/datatable.vue'
-    import uuid from 'uuid'
+    import { v4 as uuidv4 } from 'uuid';
     import ComponentMap from '@/components/common/apiary/component_map.vue'
     import { getDisplayNameFromStatus, getStatusForColour, SiteColours } from '@/components/common/apiary/site_colours.js'
 
@@ -175,7 +175,7 @@
                 selectAllCheckboxes: false,
                 apiary_sites_local: JSON.parse(JSON.stringify(this.apiary_sites)),  // Deep copy the array
                 component_map_key: '',
-                table_id: uuid(),
+                table_id: uuidv4(),
                 apiary_site_geojson_array: [],  // This is passed to the ComponentMap as props
                 default_checkbox_checked: false,  // If checked property isn't set as a apiary_site's property, this default value is used
                 popup_opened_by_link: false,
@@ -543,7 +543,7 @@
                 }
 
                 // Reload ComponentMap by assigning a new key value
-                this.component_map_key = uuid()
+                this.component_map_key = uuidv4()
             },
             constructApiarySitesTable: function(apiary_sites) {
                 if (this.$refs.table_apiary_site){
@@ -685,7 +685,7 @@
 
                                 // Remove the site from the map
                                 this.$refs.component_map.removeApiarySiteById(apiary_site_id)
-                                //vm.component_map_key = uuid()
+                                //vm.component_map_key = uuidv4()
                             },
                             reject=>{
                                 swal(

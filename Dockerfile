@@ -37,6 +37,7 @@ RUN mv /etc/apt/sourcesau.list /etc/apt/sources.list
 RUN apt-get update && apt-get install -y software-properties-common
 
 RUN apt-get clean && \
+apt-get update && \
 apt-get upgrade -y && \
 apt-get install --no-install-recommends -y \
 wget \
@@ -47,13 +48,11 @@ binutils \
 libproj-dev \
 gdal-bin \
 libgdal-dev \
+python3 \
 python3-setuptools \
+python3-dev \
 python3-pip \
 tzdata \
-cron \
-#nginx \
-rsyslog \
-gunicorn \
 libreoffice \
 libpq-dev \
 patch \
@@ -61,8 +60,6 @@ postgresql-client \
 mtr \
 htop \
 vim \
-#ssh \
-python3-gevent \
 software-properties-common \
 imagemagick \
 libspatialindex-dev \
@@ -128,23 +125,26 @@ WORKDIR /app
 USER oim
 RUN virtualenv /app/venv
 ENV PATH=/app/venv/bin:$PATH
+RUN git config --global --add safe.directory /app
 COPY --chown=oim:oim requirements.txt ./
-RUN pip install --upgrade pip
-# RUN pip install -r requirements.txt
+# RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
 # Install the project (ensure that frontend projects have been built prior to this step).
 FROM python_libs_das
-COPY gunicorn.ini manage_ds.py ./
+COPY --chown=oim:oim gunicorn.ini manage_ds.py ./
+RUN touch /app/.env
 COPY --chown=oim:oim .git ./.git
 COPY --chown=oim:oim python-cron python-cron
 COPY --chown=oim:oim disturbance ./disturbance
+COPY --chown=oim:oim ledger ./ledger
 RUN mkdir -p /app/disturbance/static/disturbance_vue/static
 RUN ls -al /app/disturbance/frontend/disturbance
-# RUN cd /app/disturbance/frontend/disturbance; npm install
-# RUN cd /app/disturbance/frontend/disturbance; npm run build
-# RUN python manage_ds.py collectstatic --noinput && \
-# mkdir /app/tmp/ && \
-# chmod 777 /app/tmp/
+RUN cd /app/disturbance/frontend/disturbance/; npm install
+RUN cd /app/disturbance/frontend/disturbance/; npm run build
+RUN python manage_ds.py collectstatic --noinput
+RUN mkdir /app/tmp/
+RUN chmod 777 /app/tmp/
 
 # IPYTHONDIR - Will allow shell_plus (in Docker) to remember history between sessions
 # 1. will create dir, if it does not already exist

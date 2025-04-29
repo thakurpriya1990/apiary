@@ -65,11 +65,12 @@
 </template>
 
 <script>
-    import uuid from 'uuid';
+    import {v4 as uuidv4 } from 'uuid';
+    
     import 'ol/ol.css';
     import 'ol-layerswitcher/dist/ol-layerswitcher.css'
     //import 'index.css';  // copy-and-pasted the contents of this file at the <style> section below in this file
-    import proj from 'ol/proj'
+    // import proj from 'ol/proj'
     import Extent from 'ol/interaction/Extent';
     import WMTSTilegrid from 'ol/tilegrid/WMTS';
     import Map from 'ol/Map';
@@ -138,10 +139,10 @@
                 map: null,
                 apiarySitesQuerySource: null,
                 apiarySitesQueryLayer: null,
-                elem_id: uuid(),
-                popup_id: uuid(),
-                popup_closer_id: uuid(),
-                popup_content_id: uuid(),
+                elem_id: uuidv4(),
+                popup_id: uuidv4(),
+                popup_closer_id: uuidv4(),
+                popup_content_id: uuidv4(),
                 overlay: null,
                 content_element: null,
                 modifyInProgressList: [],
@@ -331,7 +332,7 @@
             initMap: function() {
                 let vm = this;
 
-                var ol = {'proj': proj, 'extent': Extent,}
+                // var ol = {'proj': proj, 'extent': Extent,}
                 var projection = getProjection("EPSG:3857");
                 var projectionExtent = projection.getExtent();
                 var s = getWidth(projectionExtent) / 256;
@@ -349,13 +350,13 @@
                 });
 
                 let satelliteTileWms = new TileWMS({
-                            url: env['kmi_server_url'] + '/geoserver/public/wms',
+                            url: env['kmi_server_url'] + '/geoserver/kaartdijin-boodja-public/wms',
                             params: {
                                 'FORMAT': 'image/png',
                                 'VERSION': '1.1.1',
                                 tiled: true,
                                 STYLES: '',
-                                LAYERS: 'public:mapbox-satellite',
+                                LAYERS: 'kaartdijin-boodja-public:mapbox-satellite-public',
                             }
                         });
 
@@ -374,7 +375,7 @@
                         //url: "https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
                         url: "/kmi-proxy/geoserver/gwc/service/wmts",
                         format: "image/png",
-                        layer: "public:mapbox-streets",
+                        layer: "kaartdijin-boodja-public:mapbox-streets-public",
                         matrixSet: matrixSet,
                         projection: 'EPSG:3857',
                         tileGrid: m
@@ -388,13 +389,13 @@
                     })
 
                 let streetsTileWMS = new TileWMS({
-                url: env['kmi_server_url'] + '/geoserver/public/wms',
+                url: env['kmi_server_url'] + '/geoserver/kaartdijin-boodja-public/wms',
                 params: {
                     FORMAT: 'image/png',
                     VERSION: '1.1.1',
                     tiled: true,
                     STYLES: '',
-                    LAYERS: "public:mapbox-streets",
+                    LAYERS: "kaartdijin-boodja-public:mapbox-streets-public",
                 },
                 });
                 

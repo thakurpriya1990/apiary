@@ -43,10 +43,10 @@ KMI_PASSWORD = env('KMI_PASSWORD', LEDGER_PASS)
 KB_USER = env('KB_USER', LEDGER_USER)
 KB_PASSWORD = env('KB_PASSWORD', LEDGER_PASS)
 
-KMI_SERVER_URL = env('KMI_SERVER_URL', 'https://kmi.dbca.wa.gov.au')
-KMI_API_SERVER_URL = env('KMI_API_SERVER_URL', 'https://kmi-api.dbca.wa.gov.au/')
+KMI_SERVER_URL = env('KMI_SERVER_URL', 'https://kb.dbca.wa.gov.au')
+KMI_API_SERVER_URL = env('KMI_API_SERVER_URL', 'https://kb-api.dbca.wa.gov.au/')
 # KB_SERVER_URL = env('KB_SERVER_URL', 'https://gis-kaartdijin-boodja-geoserver-api-dev.dbca.wa.gov.au/')
-KB_SERVER_URL = env('KB_SERVER_URL', 'https://kaartdijin-boodja-geoserver-api.dbca.wa.gov.au/')
+KB_SERVER_URL = env('KB_SERVER_URL', 'https://kb-api.dbca.wa.gov.au/')
 KB_API_URL=env("KMI_URL", 'https://kaartdijin-boodja.dbca.wa.gov.au/')
 
 KB_LAYER_URL = env('KB_LAYER_URL', 'https://kaartdijin-boodja.dbca.wa.gov.au/api/catalogue/entries/{{layer_name}}/layer/')
@@ -73,6 +73,7 @@ INSTALLED_APPS += [
     'rest_framework_gis',
     'reset_migrations',
     'ckeditor',
+    # "django_ckeditor_5",
     # 'corsheaders',
     'smart_selects',
     'crispy_forms',
@@ -154,12 +155,14 @@ REQUEST_TIMEOUT = env('REQUEST_TIMEOUT', 60*5) # 5mins
 
 STATIC_ROOT=os.path.join(BASE_DIR, 'staticfiles_ds')
 STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, 'disturbance', 'static')))
-STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, 'disturbance', 'static', 'disturbance_vue', 'static')))
+STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, 'disturbance', 'static', 'disturbance_vue')))
 DEV_STATIC = env('DEV_STATIC',False)
 DEV_STATIC_URL = env('DEV_STATIC_URL')
 if DEV_STATIC and not DEV_STATIC_URL:
     raise ImproperlyConfigured('If running in DEV_STATIC, DEV_STATIC_URL has to be set')
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None
+STATIC_URL = '/static/'
+
 
 # Department details
 SYSTEM_NAME = env('SYSTEM_NAME', 'Disturbance Approval System')
@@ -308,7 +311,7 @@ LOGGING['loggers']['request_stats'] = {
 #import json
 #print(json.dumps(LOGGING, indent=4))
 
-KMI_SERVER_URL = env('KMI_SERVER_URL', 'https://kmi.dbca.wa.gov.au')
+KMI_SERVER_URL = env('KMI_SERVER_URL', 'https://kb.dbca.wa.gov.au')
 DEV_APP_BUILD_URL = env('DEV_APP_BUILD_URL')  # URL of the Dev app.js served by webpack & express
 ENABLE_DJANGO_LOGIN = env('ENABLE_DJANGO_LOGIN', False)
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"

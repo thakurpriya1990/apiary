@@ -215,7 +215,7 @@
     import FormSection from "@/components/forms/section_toggle.vue"
     import SiteLocations from '@/components/common/apiary/site_locations.vue'
     import ApiaryChecklist from '@/components/common/apiary/section_checklist.vue'
-    import uuid from 'uuid'
+    import {v4 as uuidv4 } from 'uuid';
     import DeedPoll from "@/components/common/apiary/section_deed_poll.vue"
     import { api_endpoints, helpers }from '@/utils/hooks'
     export default {
@@ -569,7 +569,7 @@
         },
         mounted: function() {
             let vm = this;
-            this.component_site_selection_key = uuid()
+            this.component_site_selection_key = uuidv4()
             this.$nextTick(() => {
                 vm.addEventListeners();
             });

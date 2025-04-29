@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 from django.core.mail import EmailMultiAlternatives, EmailMessage
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 from django.urls import reverse
 from django.conf import settings
 
@@ -872,12 +872,12 @@ def _log_proposal_referral_email(email_message, referral, sender=None):
         # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
-        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
+        fromm = smart_str(sender) if sender else smart_str(email_message.from_email)
         # the to email is normally a list
         if isinstance(email_message.to, list):
             to = ','.join(email_message.to)
         else:
-            to = smart_text(email_message.to)
+            to = smart_str(email_message.to)
         # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
         all_ccs = []
         if email_message.cc:
@@ -887,10 +887,10 @@ def _log_proposal_referral_email(email_message, referral, sender=None):
         all_ccs = ','.join(all_ccs)
 
     else:
-        text = smart_text(email_message)
+        text = smart_str(email_message)
         subject = ''
         to = referral.proposal.applicant.email if referral.proposal.applicant.email else ''
-        fromm = smart_text(sender) if sender else SYSTEM_NAME
+        fromm = smart_str(sender) if sender else SYSTEM_NAME
         all_ccs = ''
 
     customer = referral.referral
@@ -918,12 +918,12 @@ def _log_proposal_email(email_message, proposal, sender=None):
         # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
-        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
+        fromm = smart_str(sender) if sender else smart_str(email_message.from_email)
         # the to email is normally a list
         if isinstance(email_message.to, list):
             to = ','.join(email_message.to)
         else:
-            to = smart_text(email_message.to)
+            to = smart_str(email_message.to)
         # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
         all_ccs = []
         if email_message.cc:
@@ -933,10 +933,10 @@ def _log_proposal_email(email_message, proposal, sender=None):
         all_ccs = ','.join(all_ccs)
 
     else:
-        text = smart_text(email_message)
+        text = smart_str(email_message)
         subject = ''
         to = proposal.submitter.email
-        fromm = smart_text(sender) if sender else SYSTEM_NAME
+        fromm = smart_str(sender) if sender else SYSTEM_NAME
         all_ccs = ''
 
     customer = proposal.submitter
@@ -965,12 +965,12 @@ def _log_org_email(email_message, organisation, customer ,sender=None):
         # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
-        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
+        fromm = smart_str(sender) if sender else smart_str(email_message.from_email)
         # the to email is normally a list
         if isinstance(email_message.to, list):
             to = ','.join(email_message.to)
         else:
-            to = smart_text(email_message.to)
+            to = smart_str(email_message.to)
         # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
         all_ccs = []
         if email_message.cc:
@@ -980,10 +980,10 @@ def _log_org_email(email_message, organisation, customer ,sender=None):
         all_ccs = ','.join(all_ccs)
 
     else:
-        text = smart_text(email_message)
+        text = smart_str(email_message)
         subject = ''
         to = customer
-        fromm = smart_text(sender) if sender else SYSTEM_NAME
+        fromm = smart_str(sender) if sender else SYSTEM_NAME
         all_ccs = ''
 
     customer = customer
@@ -1011,12 +1011,12 @@ def _log_user_email(email_message, emailuser, customer ,sender=None):
         # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
-        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
+        fromm = smart_str(sender) if sender else smart_str(email_message.from_email)
         # the to email is normally a list
         if isinstance(email_message.to, list):
             to = ','.join(email_message.to)
         else:
-            to = smart_text(email_message.to)
+            to = smart_str(email_message.to)
         # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
         all_ccs = []
         if email_message.cc:
@@ -1026,10 +1026,10 @@ def _log_user_email(email_message, emailuser, customer ,sender=None):
         all_ccs = ','.join(all_ccs)
 
     else:
-        text = smart_text(email_message)
+        text = smart_str(email_message)
         subject = ''
         to = customer
-        fromm = smart_text(sender) if sender else SYSTEM_NAME
+        fromm = smart_str(sender) if sender else SYSTEM_NAME
         all_ccs = ''
 
     customer = customer

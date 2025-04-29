@@ -30,7 +30,7 @@
 <script>
     import Vue from 'vue'
     import datatable from '@vue-utils/datatable.vue'
-    import uuid from 'uuid'
+    import { v4 as uuidv4 } from 'uuid';
     import { api_endpoints, helpers, } from '@/utils/hooks'
     import OnSiteInformationModal from './on_site_information_modal'
 
@@ -289,7 +289,7 @@
                 console.log(obj_to_edit)
 
                 // Refresh the component key
-                this.modalBindId = uuid()
+                this.modalBindId = uuidv4()
 
                 this.on_site_information_to_edit = obj_to_edit;
 

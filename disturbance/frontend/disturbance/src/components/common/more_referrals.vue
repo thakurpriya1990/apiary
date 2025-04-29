@@ -56,18 +56,21 @@ export default {
                         data: 'lodged_on',
                         render: function (date) {
                             return moment(date).format(vm.dateFormat);
-                        }
+                        },
+                        defaultContent: '',
                     },
                     {
                         title: 'Referral',
                         data: 'referral',
                         render: function (data,type,full){
                             return `<span>${data.first_name} ${data.last_name}</span>`; 
-                        }
+                        },
+                        defaultContent: '',
                     },
                     {
                         title: 'Status',
-                        data: 'referral_status'
+                        data: 'referral_status',
+                        defaultContent: '',
                     },
                     {
                         title: 'Action',
@@ -85,7 +88,8 @@ export default {
                                 result = `<a href="" data-id="${data}" data-user="${user}" class="resendRef">Resend</a>`;
                             }
                             return result;
-                        }
+                        },
+                        defaultContent: '',
                     },
                     {
                         title: 'Referral Comments',
@@ -116,6 +120,7 @@ export default {
                             return result;
                         },
                         'createdCell': helpers.dtPopoverCellFn,
+                        defaultContent: '',
                     }
                 ]
             },
