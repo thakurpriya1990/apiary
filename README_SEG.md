@@ -95,9 +95,11 @@ Update the environment variables:
 - DATABASE_URL=postgis://das_dev:<passwd>@172.17.0.1:15432/das_seg_dev
 - ENABLE_DJANGO_LOGIN=True
 
-# Step 6: Update pip version to 24.0
+# Step 6: Update python version to 3.12.3
 
-# Step 7: Install pip modules:
+# Step 7: Update pip version to 24.0
+
+# Step 8: Install pip modules:
 ```
 pip install -r requirements.txt
 ```
