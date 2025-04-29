@@ -182,8 +182,6 @@
             </div>
         </div>
     </div>
-    
-</div>
 </template>
 <script>
 import $ from 'jquery'

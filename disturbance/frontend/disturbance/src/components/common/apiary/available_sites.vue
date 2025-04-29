@@ -880,13 +880,13 @@
                 let vm = this;
 
                 let satelliteTileWms = new TileWMS({
-                    url: env['kmi_server_url'] + '/geoserver/public/wms',
+                    url: env['kmi_server_url'] + '/geoserver/kaartdijin-boodja-public/wms',
                     params: {
                         'FORMAT': 'image/png',
                         'VERSION': '1.1.1',
                         tiled: true,
                         STYLES: '',
-                        LAYERS: 'public:mapbox-satellite',
+                        LAYERS: 'kaartdijin-boodja-public:mapbox-satellite-public',
                     }
                 });
 

@@ -308,7 +308,7 @@ def kmiProxyView(request, path):
         if proxy_cache is None:
             proxy_response = proxy_view(request, remoteurl, basic_auth={"user": user, "password": password})
             proxy_response_content_encoded = base64.b64encode(proxy_response.content)
-            base64_json = {"status_code": proxy_response.status_code, "content_type": proxy_response._headers['content-type'][1], "content" : proxy_response_content_encoded.decode('utf-8'), "cache_expiry": CACHE_EXPIRY}
+            base64_json = {"status_code": proxy_response.status_code, "content_type": proxy_response.headers['content-type'][1], "content" : proxy_response_content_encoded.decode('utf-8'), "cache_expiry": CACHE_EXPIRY}
             if proxy_response.status_code == 200: 
                 cache.set(query_string_remote_url, json.dumps(base64_json), CACHE_EXPIRY)
             else:
@@ -341,7 +341,7 @@ def kbProxyView(request, path):
         if proxy_cache is None:
             proxy_response = proxy_view(request, remoteurl, basic_auth={"user": user, "password": password})
             proxy_response_content_encoded = base64.b64encode(proxy_response.content)
-            base64_json = {"status_code": proxy_response.status_code, "content_type": proxy_response._headers['content-type'][1], "content" : proxy_response_content_encoded.decode('utf-8'), "cache_expiry": CACHE_EXPIRY}
+            base64_json = {"status_code": proxy_response.status_code, "content_type": proxy_response.headers['content-type'][1], "content" : proxy_response_content_encoded.decode('utf-8'), "cache_expiry": CACHE_EXPIRY}
             if proxy_response.status_code == 200: 
                 cache.set(query_string_remote_url, json.dumps(base64_json), CACHE_EXPIRY)
             else:
@@ -361,7 +361,6 @@ def kbProxyView(request, path):
 @csrf_exempt
 def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     
-    from requests.auth import HTTPBasicAuth
     if request.user.is_authenticated:
         proxy_cache= None
         proxy_response = None
@@ -391,7 +390,7 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
                     auth_details = {"user": auth_user, 'password' : auth_password}
                 proxy_response = proxy_view(request, remoteurl, basic_auth=auth_details)
                 proxy_response_content_encoded = base64.b64encode(proxy_response.content)
-                base64_json = {"status_code": proxy_response.status_code, "content_type": proxy_response._headers['content-type'][1], "content" : proxy_response_content_encoded.decode('utf-8'), "cache_expiry": CACHE_EXPIRY}
+                base64_json = {"status_code": proxy_response.status_code, "content_type": proxy_response.headers['content-type'][1], "content" : proxy_response_content_encoded.decode('utf-8'), "cache_expiry": CACHE_EXPIRY}
                 if proxy_response.status_code == 200: 
                     cache.set(query_string_remote_url, json.dumps(base64_json), CACHE_EXPIRY)
                 else:

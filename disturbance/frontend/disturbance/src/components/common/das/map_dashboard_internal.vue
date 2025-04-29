@@ -866,13 +866,13 @@
                 });
                 
                 let satelliteTileWms = new TileWMS({
-                    url: env['kmi_server_url'] + '/geoserver/public/wms',
+                    url: env['kmi_server_url'] + '/geoserver/kaartdijin-boodja-public/wms',
                     params: {
                         'FORMAT': 'image/png',
                         'VERSION': '1.1.1',
                         tiled: true,
                         STYLES: '',
-                        LAYERS: 'public:mapbox-satellite',
+                        LAYERS: 'kaartdijin-boodja-public:mapbox-satellite-public',
                     },
                 });
                 vm.tileLayerOsmWorking= new TileLayer({
@@ -883,7 +883,7 @@
                         // url: "https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
                         url: "/kmi-proxy/geoserver/gwc/service/wmts",
                         format: "image/png",
-                        layer: "public:mapbox-streets",
+                        layer: "kaartdijin-boodja-public:mapbox-streets-public",
                         matrixSet: matrixSet,
                         projection: 'EPSG:3857',
                         tileGrid: m,
@@ -892,19 +892,19 @@
 
                         // url: "https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
                         // format: "image/png",
-                        // layer: "public:mapbox-streets",
+                        // layer: "kaartdijin-boodja-public:mapbox-streets-public",
                         // style: 'default',
                         // projection: 'EPSG:3857',
                     })
                 
                 let streetsTileWMS = new TileWMS({
-                url: env['kmi_server_url'] + '/geoserver/public/wms',
+                url: env['kmi_server_url'] + '/geoserver/kaartdijin-boodja-public/wms',
                 params: {
                     FORMAT: 'image/png',
                     VERSION: '1.1.1',
                     tiled: true,
                     STYLES: '',
-                    LAYERS: "public:mapbox-streets",
+                    LAYERS: "kaartdijin-boodja-public:mapbox-streets-public",
                 },
                 });
                 
@@ -1179,7 +1179,6 @@
                             
                         });
                         if (feature){
-
                             let features = feature.get('features')
                             if (features.length == 1){
                                 if (!feature.id){
@@ -1192,7 +1191,6 @@
                                 let proposal = features[0].getProperties().proposal;
                                 vm.showPopup(feature[0])
                             } else {
-
                                 //if proposal id is different but geometry is exactly same
                                 sameFeature = false;
                                 for(var i=0; i<features.length; i++ ){

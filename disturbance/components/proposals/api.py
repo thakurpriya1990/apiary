@@ -318,7 +318,6 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
 
         http://localhost:8499/api/proposal_paginated/proposal_paginated_internal/?format=datatables&draw=1&length=2
         """
-
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 

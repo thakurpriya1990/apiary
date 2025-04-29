@@ -111,4 +111,10 @@ pip install -r requirements.txt
 
 delete the Apiary proposal type in Admin (via Django Admin) - those with blank application_name (and v1)
 
+# Step 10: Follow the steps for django-cron missing table if gives error
+
+# Step 11: Follow the steps to dump the scheme questions data if necessary
+
+# Step 12: Change the env variables for kmi to kb
+
 

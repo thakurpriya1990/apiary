@@ -2911,7 +2911,6 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
         filter_regex = ".*\".*\":\s\"(\\\\\"|[^\"])*"+search_words_regex+"(\\\\\"|[^\"])*\".*"
         #extract_regex = "(?i)\'*\':\s\'(?:\\\\\'|[^\'])*"+search_words_regex+"(?:\\\\\'|[^\'])*\'" #attempted to further optimise but additional regex had a negligable impact at the cost of the data key
         if searchProposal:
-            
             proposal_list = proposal_list.filter(data__iregex=filter_regex)
             for p in proposal_list:
                 name = ""

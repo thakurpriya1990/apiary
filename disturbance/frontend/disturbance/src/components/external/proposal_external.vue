@@ -171,7 +171,7 @@
                                                 </span>
                                             </span>
                                             <span v-else-if="isSubmitting">
-                                                <button disabled class="btn "><i class="fa fa-spin fa-spinner"></i>&nbsp;Submitting</button>
+                                                <button disabled class="btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Submitting</button>
                                             </span>
 
                                             <input id="save_and_continue_btn" type="hidden" @click.prevent="save(false)" class="btn btn-primary" value="Save Without Confirmation"/>

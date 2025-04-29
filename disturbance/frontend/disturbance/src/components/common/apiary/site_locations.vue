@@ -976,7 +976,7 @@
                                 tiled: true,
                                 STYLES: '',
                                 LAYERS: layers[i].layer_full_name,
-                                //LAYERS: 'public:mapbox-satellite'
+                                //LAYERS: 'kaartdijin-boodja-public:mapbox-satellite'
                             }
                         });
 
@@ -1340,8 +1340,8 @@
                 let vm = this;
 
                 let satelliteTileWmts = new WMTS({
-                    url: 'https://kmi.dbca.wa.gov.au/geoserver/gwc/service/wmts',
-                    layer: 'public:mapbox-satellite',
+                    url: 'https://kb.dbca.wa.gov.au/geoserver/gwc/service/wmts',
+                    layer: 'kaartdijin-boodja-public:mapbox-satellite-public',
                     format: 'image/png',
                     matrixSet: 'gda94',
                     projection: 'EPSG:4326',
