@@ -21,7 +21,7 @@ psql
 # Update disturbance.env DATABASE_URL with DB das_seg_dev2
 ```
 ...
-DATABASE_URL=postgis://das_dev:<passwd>@172.17.0.1:25432/das_seg_dev
+DATABASE_URL=postgis://das_dev:<passwd>@172.17.0.1:5432/das_seg_dev
 ...
 
 ```
@@ -49,7 +49,7 @@ NOTE: normally for PROD you would not exclude the reversion tables as in the com
 
 Run pg_dump on the ledger database.
 
-`pg_dump -U ledger_prod -W --exclude-table='django_cron*' --exclude-table='reversion_revision' --exclude-table='reversion_version' -t 'disturbance_*' -t 'accounts_*' -t 'address_*' -t 'analytics_*' -t 'auth_*' -t 'django_*' -t 'taggit_*' -Fc ledger_prod -h <db_hostname> -p 5432 > /dbdumps/dumps/das_seg_tables_DDMMYYYY.sql
+`pg_dump -U ledger_prod -W --exclude-table='django_cron*' --exclude-table='reversion_revision' --exclude-table='reversion_version' -t 'disturbance_*' -t 'taggit_*' -t 'accounts_*' -t 'address_*' -t 'analytics_*' -t 'auth_*' -t 'django_*' ledger_prod -h <db_hostname> -p 5432 > /dbdumps/dumps/das_seg_tables_DDMMYYYY.sql
 
 ### Append empty reversion tables
 `pg_dump -U ledger_prod -W --schema-only -t reversion_revision -t reversion_version ledger_prod -h <db_hostname> -p 5432 >> /dbdumps/dumps/reversion_schema_das_seg_tables_DDMMYYYY.sql
@@ -92,31 +92,32 @@ psql
 
 Update the environment variables:
 
-- DATABASE_URL=postgis://das_dev:<passwd>@172.17.0.1:15432/das_seg_dev
+- DATABASE_URL=postgis://das_dev:<passwd>@172.17.0.1:5432/das_seg_dev
 - ENABLE_DJANGO_LOGIN=True
 
-# Step 6: Update python version to 3.12.3
-
-# Step 7: Update pip version to 24.0
-
-# Step 8: Install pip modules:
+# Step 6: delete the migrations for app django_cron
 ```
-pip install -r requirements.txt
+./manage_ds.py dbshell
+
+delete from django_migrations where app = 'django_cron';
 ```
 
-# Step 8: Run all other migrations
+# Step 7: Run all other migrations
 ```
 ./manage_ds.py migrate disturbance
+./manage_ds.py migrate taggit
+./manage_ds.py migrate
 ```
 
-# Step 9: Delete the Apiary Proposal Types
+# Step 8: Delete the Apiary Proposal Types
 
-delete the Apiary proposal type in Admin (via Django Admin) - those with blank application_name (and v1)
+<!-- delete the Apiary proposal type in Admin (via Django Admin) - those with blank application_name (and v1) OR -->
+```
+./manage_ds.py shell_plus
 
-# Step 10: Follow the steps for django-cron missing table if gives error
+apiary_proposal_types=['Apiary','Site Transfer','Temporary Use']
+ProposalType.objects.filter(name__in=apiary_proposal_types).delete()
+```
 
-# Step 11: Follow the steps to dump the scheme questions data if necessary
-
-# Step 12: Change the env variables for kmi to kb
-
+# Step 9: Follow the steps to dump the scheme questions data if necessary
 
