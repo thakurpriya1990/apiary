@@ -34,7 +34,7 @@ DATABASE_URL=postgis://das_dev:<passwd>@172.17.0.1:5432/das_seg_dev
 ```
 
 # Delete the Apiary Proposal Types
-deleted the Apiary proposal type in Admin (via Django Admin) - those with blank application_name (and v1)
+delete the Apiary proposal type in Admin (via Django Admin) - those with blank application_name (and v1)
 
 
 
@@ -122,10 +122,11 @@ ProposalType.objects.filter(name__in=apiary_proposal_types).delete()
 # Step 9: Follow the steps to dump the scheme questions data if necessary 
 NOTE: normally for das_gis prod would not need this spatial schema setup. But for DEV work now, these steps will create the new proposaltype and spatial questions for new Disturbance SQS proposaltype version(v13).
 
+#Copy the files to shared folder or tmp/das folder on rancher 
+Delete the data from tables below:.
 ```
-Copy the files to shared folder or tmp/das folder on rancher 
-Delete the data from tables below:
 ./manage_ds.py shell_plus
+
 QuestionOption.objects.all().delete()
 SectionQuestion.objects.all().delete()
 ProposalTypeSection.objects.all().delete()
@@ -137,12 +138,14 @@ SpatialQueryMetrics.objects.all().delete()
 DASMapLayer.objects.all().delete()
 CddpQuestionGroup.objects.all().delete()
 GlobalSettings.objects.all().delete()
+```
 
-Run the below fixtures to create data:
+#Run the below fixtures to create data:
+```
 python manage_ds.py loaddata  dasmap_globsetting_DDMMMYYY.json
 python manage_ds.py loaddata  proposal_type_das_DDMMMYYY.json
 python manage_ds.py loaddata  proposal_type_et_DDMMMYYY.json
 python manage_ds.py loaddata  sqq_DDMMMYYY.json
-
+```
 
 
