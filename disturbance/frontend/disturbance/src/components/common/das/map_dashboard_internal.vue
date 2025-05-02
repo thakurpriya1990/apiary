@@ -150,7 +150,7 @@
                                 </div>
                             </transition>
                             <transition v-if="optionalLayers.length">
-                                <div div class="layer_options" v-show="hover" @mouseleave="hover=false" >
+                                <div class="layer_options" v-show="hover" @mouseover="showOptions"  @mouseleave="hideOptions">
                                     <div v-for="layer in optionalLayers">
                                         <input
                                             type="checkbox"
@@ -1699,7 +1699,13 @@
                                 console.log(errorMessage);
                             }
                         })
-            }//End fetch_ajax_data
+            },//End fetch_ajax_data
+            showOptions() {
+                this.hover = true;
+            },
+            hideOptions() {
+                this.hover = false;
+            },
         },
         
         created: async function() {
