@@ -39,17 +39,17 @@ LEDGER_PASS = env('LEDGER_PASS', '')
 SQS_USER = env('SQS_USER', LEDGER_USER)
 SQS_PASS = env('SQS_PASS', LEDGER_PASS)
 
-KMI_USER = env('KMI_USER', LEDGER_USER)
-KMI_PASSWORD = env('KMI_PASSWORD', LEDGER_PASS)
+# KMI_USER = env('KMI_USER', LEDGER_USER)
+# KMI_PASSWORD = env('KMI_PASSWORD', LEDGER_PASS)
 
 KB_USER = env('KB_USER', LEDGER_USER)
 KB_PASSWORD = env('KB_PASSWORD', LEDGER_PASS)
 
-KMI_SERVER_URL = env('KMI_SERVER_URL', 'https://kb.dbca.wa.gov.au')
-KMI_API_SERVER_URL = env('KMI_API_SERVER_URL', 'https://kb-api.dbca.wa.gov.au/')
+# KMI_SERVER_URL = env('KMI_SERVER_URL', 'https://kb.dbca.wa.gov.au')
+# KMI_API_SERVER_URL = env('KMI_API_SERVER_URL', 'https://kb-api.dbca.wa.gov.au/')
 # KB_SERVER_URL = env('KB_SERVER_URL', 'https://gis-kaartdijin-boodja-geoserver-api-dev.dbca.wa.gov.au/')
-KB_SERVER_URL = env('KB_SERVER_URL', 'https://kb-api.dbca.wa.gov.au/')
-KB_API_URL=env("KMI_URL", 'https://kaartdijin-boodja.dbca.wa.gov.au/')
+KB_SERVER_URL = env('KB_SERVER_URL', 'https://kb.dbca.wa.gov.au/')
+# KB_API_URL=env("KMI_URL", 'https://kaartdijin-boodja.dbca.wa.gov.au/')
 
 KB_LAYER_URL = env('KB_LAYER_URL', 'https://kaartdijin-boodja.dbca.wa.gov.au/api/catalogue/entries/{{layer_name}}/layer/')
 SHOW_DAS_MAP = env('SHOW_DAS_MAP', True)
@@ -313,7 +313,7 @@ LOGGING['loggers']['request_stats'] = {
 #import json
 #print(json.dumps(LOGGING, indent=4))
 
-KMI_SERVER_URL = env('KMI_SERVER_URL', 'https://kb.dbca.wa.gov.au')
+# KMI_SERVER_URL = env('KMI_SERVER_URL', 'https://kb.dbca.wa.gov.au')
 DEV_APP_BUILD_URL = env('DEV_APP_BUILD_URL')  # URL of the Dev app.js served by webpack & express
 ENABLE_DJANGO_LOGIN = env('ENABLE_DJANGO_LOGIN', False)
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"

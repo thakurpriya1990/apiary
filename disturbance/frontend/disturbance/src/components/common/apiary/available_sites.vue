@@ -839,7 +839,7 @@
                     let layers = response.body
                     for (var i = 0; i < layers.length; i++){
                         let l = new TileWMS({
-                            url: env['kmi_server_url'] + '/geoserver/' + layers[i].layer_group_name + '/wms',
+                            url: env['kb_server_url'] + '/geoserver/' + layers[i].layer_group_name + '/wms',
                             params: {
                                 'FORMAT': 'image/png',
                                 'VERSION': '1.1.1',
@@ -880,7 +880,7 @@
                 let vm = this;
 
                 let satelliteTileWms = new TileWMS({
-                    url: env['kmi_server_url'] + '/geoserver/kaartdijin-boodja-public/wms',
+                    url: env['kb_server_url'] + '/geoserver/kaartdijin-boodja-public/wms',
                     params: {
                         'FORMAT': 'image/png',
                         'VERSION': '1.1.1',

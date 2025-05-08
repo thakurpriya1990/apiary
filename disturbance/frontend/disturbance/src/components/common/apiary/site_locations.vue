@@ -969,7 +969,7 @@
                     for (var i = 0; i < layers.length; i++){
                         let l = new TileWMS({
                             //url: 'https://kmi.dpaw.wa.gov.au/geoserver/' + layers[i].layer_group_name + '/wms',
-                            url: env['kmi_server_url'] + '/geoserver/' + layers[i].layer_group_name + '/wms',
+                            url: env['kb_server_url'] + '/geoserver/' + layers[i].layer_group_name + '/wms',
                             params: {
                                 'FORMAT': 'image/png',
                                 'VERSION': '1.1.1',
@@ -1340,7 +1340,7 @@
                 let vm = this;
 
                 let satelliteTileWmts = new WMTS({
-                    url: 'https://kb.dbca.wa.gov.au/geoserver/gwc/service/wmts',
+                    url: env['kb_server_url'] +'/geoserver/gwc/service/wmts',
                     layer: 'kaartdijin-boodja-public:mapbox-satellite-public',
                     format: 'image/png',
                     matrixSet: 'gda94',
