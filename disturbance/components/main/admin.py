@@ -4,13 +4,13 @@ from django.utils.html import format_html
 from django.urls import reverse
 
 from disturbance.components.main.models import MapLayer, MapColumn, DASMapLayer, TaskMonitor
-from disturbance.settings import KMI_SERVER_URL
+from disturbance.settings import KB_SERVER_URL
 
 
 class MyForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(MyForm, self).__init__(*args, **kwargs)
-        self.fields['layer_name'].help_text = "Enter the layer name defined in geoserver (<a href='{}' target='_blank'>GeoServer</a>)<br /><div>Example:</div><span style='padding:1em;'>public:dbca_legislated_lands_and_waters</span>".format(KMI_SERVER_URL)
+        self.fields['layer_name'].help_text = "Enter the layer name defined in geoserver (<a href='{}' target='_blank'>GeoServer</a>)<br /><div>Example:</div><span style='padding:1em;'>public:dbca_legislated_lands_and_waters</span>".format(KB_SERVER_URL)
         self.fields['display_all_columns'].help_text = "When checked, display all the attributes(columns) in the table regardless of the configurations below"
         self.fields['option_for_internal'].help_text = "When checked, a checkbox for this layer is displayed for the internal user"
         self.fields['option_for_external'].help_text = "When checked, a checkbox for this layer is displayed for the external user"
@@ -18,7 +18,7 @@ class MyForm(ModelForm):
 class DASMapLayerForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(DASMapLayerForm, self).__init__(*args, **kwargs)
-        self.fields['layer_name'].help_text = "Enter the layer name defined in geoserver (<a href='{}' target='_blank'>GeoServer</a>)<br /><div>Example:</div><span style='padding:1em;'>public:dbca_legislated_lands_and_waters</span>".format(KMI_SERVER_URL)
+        self.fields['layer_name'].help_text = "Enter the layer name defined in geoserver (<a href='{}' target='_blank'>GeoServer</a>)<br /><div>Example:</div><span style='padding:1em;'>public:dbca_legislated_lands_and_waters</span>".format(KB_SERVER_URL)
         self.fields['display_all_columns'].help_text = "When checked, display all the attributes(columns) in the table regardless of the configurations below"
         self.fields['option_for_internal'].help_text = "When checked, a checkbox for this layer is displayed for the internal user"
         self.fields['option_for_external'].help_text = "When checked, a checkbox for this layer is displayed for the external user"

@@ -350,7 +350,7 @@
                 });
 
                 let satelliteTileWms = new TileWMS({
-                            url: env['kmi_server_url'] + '/geoserver/kaartdijin-boodja-public/wms',
+                            url: env['kb_server_url'] + '/geoserver/kaartdijin-boodja-public/wms',
                             params: {
                                 'FORMAT': 'image/png',
                                 'VERSION': '1.1.1',
@@ -373,7 +373,7 @@
                     visible: !0,
                     source: new WMTS({
                         //url: "https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
-                        url: "/kmi-proxy/geoserver/gwc/service/wmts",
+                        url: "/kb-proxy/geoserver/gwc/service/wmts",
                         format: "image/png",
                         layer: "kaartdijin-boodja-public:mapbox-streets-public",
                         matrixSet: matrixSet,
@@ -389,7 +389,7 @@
                     })
 
                 let streetsTileWMS = new TileWMS({
-                url: env['kmi_server_url'] + '/geoserver/kaartdijin-boodja-public/wms',
+                url: env['kb_server_url'] + '/geoserver/kaartdijin-boodja-public/wms',
                 params: {
                     FORMAT: 'image/png',
                     VERSION: '1.1.1',
