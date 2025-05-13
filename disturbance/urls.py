@@ -177,7 +177,7 @@ urlpatterns = [
     # Reports
     # url('kmi-proxy/(?P<path>.*)', views.kmiProxyView),
     # url('kb-proxy/(?P<path>.*)', views.kbProxyView),
-    url('kmi-proxy/(?P<path>.*)', views.mapProxyView),
+    # url('kmi-proxy/(?P<path>.*)', views.mapProxyView),
     url('kb-proxy/(?P<path>.*)', views.mapProxyView),
 
                   # url(r'^external/proposal/(?P<proposal_pk>\d+)/submit_temp_use_success/$', success_view, name='external-proposal-temporary-use-submit-success'),

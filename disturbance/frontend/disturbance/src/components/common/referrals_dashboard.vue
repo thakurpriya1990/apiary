@@ -278,9 +278,10 @@ export default {
                         },
                         searchable: false,
                         orderable: false,
-                        name: ''
+                        name: '',
+                        defaultContent: '',
                     },
-                    {data: "can_be_processed", visible: false},
+                    {data: "can_be_processed", visible: false,},
                     {data: "proposal_lodgement_number", visible: false},
                     {data: "id", visible: false},
                     {

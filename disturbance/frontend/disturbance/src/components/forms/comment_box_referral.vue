@@ -8,7 +8,7 @@
               <label :id="box.id" class="col-md-3" for="label" >{{ box.label }}</label>
               <div class="col-md-9" v-if="box.referral_box">
                   <!-- <textarea :readonly="box.readonly" :type="box.type" :class="box.box_class" :name="box.name" :value="box.value" :data-question="box.question"></textarea> -->
-                       <CommentTextarea :readonly="box.readonly" :type="box.type" :box_class="box_class" :name="box.name" :value="box.value" :question="box.question"></CommentTextarea>
+                       <CommentTextarea :readonly="box.readonly" :type="box.type" :box_class="box.box_class" :name="box.name" :value="box.value" :question="box.question"></CommentTextarea>
               </div>
               <div class="col-md-9" v-else>
                   <CommentTextarea :readonly="box.readonly" :type="box.type" :box_class="box.box_class" :name="box.name" :value="box.value" :question="box.question"></CommentTextarea>
