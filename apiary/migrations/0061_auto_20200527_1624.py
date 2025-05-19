@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0060_auto_20200527_1335'),
+        ('apiary', '0060_auto_20200527_1335'),
     ]
 
     operations = [
@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='apiaryreferral',
             name='referral',
-            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_referral', to='disturbance.Referral'),
+            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_referral', to='apiary.Referral'),
         ),
         migrations.AlterField(
             model_name='proposaltype',

@@ -30,105 +30,105 @@ def get_sender_user():
 
 class ApprovalExpireNotificationEmail(TemplateEmailBase):
     subject = 'Your Approval has expired.'
-    html_template = 'disturbance/emails/approval_expire_notification.html'
-    txt_template = 'disturbance/emails/approval_expire_notification.txt'
+    html_template = 'apiary/emails/approval_expire_notification.html'
+    txt_template = 'apiary/emails/approval_expire_notification.txt'
 
 
 class ApprovalCancelNotificationEmail(TemplateEmailBase):
     subject = 'Your Approval has been cancelled.'
-    html_template = 'disturbance/emails/approval_cancel_notification.html'
-    txt_template = 'disturbance/emails/approval_cancel_notification.txt'
+    html_template = 'apiary/emails/approval_cancel_notification.html'
+    txt_template = 'apiary/emails/approval_cancel_notification.txt'
 
 
 class ApprovalSuspendNotificationEmail(TemplateEmailBase):
     subject = 'Your Approval has been suspended.'
-    html_template = 'disturbance/emails/approval_suspend_notification.html'
-    txt_template = 'disturbance/emails/approval_suspend_notification.txt'
+    html_template = 'apiary/emails/approval_suspend_notification.html'
+    txt_template = 'apiary/emails/approval_suspend_notification.txt'
 
 
 class ApprovalSurrenderNotificationEmail(TemplateEmailBase):
     subject = 'Your Approval has been surrendered.'
-    html_template = 'disturbance/emails/approval_surrender_notification.html'
-    txt_template = 'disturbance/emails/approval_surrender_notification.txt'
+    html_template = 'apiary/emails/approval_surrender_notification.html'
+    txt_template = 'apiary/emails/approval_surrender_notification.txt'
 
 
 class ApprovalReinstateNotificationEmail(TemplateEmailBase):
     subject = 'Your Approval has been reinstated.'
-    html_template = 'disturbance/emails/approval_reinstate_notification.html'
-    txt_template = 'disturbance/emails/approval_reinstate_notification.txt'
+    html_template = 'apiary/emails/approval_reinstate_notification.html'
+    txt_template = 'apiary/emails/approval_reinstate_notification.txt'
 
 
 class ApprovalRenewalNotificationEmail(TemplateEmailBase):
     subject = 'Your Approval is due for renewal.'
-    html_template = 'disturbance/emails/approval_renewal_notification.html'
-    txt_template = 'disturbance/emails/approval_renewal_notification.txt'
+    html_template = 'apiary/emails/approval_renewal_notification.html'
+    txt_template = 'apiary/emails/approval_renewal_notification.txt'
 
 ### Apiary templates
 
 class ApiaryApprovalExpireNotificationEmail(TemplateEmailBase):
     subject = 'Your Licence has expired.'
-    html_template = 'disturbance/emails/apiary_approval_expire_notification.html'
-    txt_template = 'disturbance/emails/apiary_approval_expire_notification.txt'
+    html_template = 'apiary/emails/apiary_approval_expire_notification.html'
+    txt_template = 'apiary/emails/apiary_approval_expire_notification.txt'
 
 
 class ApiaryApprovalCancelNotificationEmail(TemplateEmailBase):
     subject = 'Your Licence has been cancelled.'
-    html_template = 'disturbance/emails/apiary_approval_cancel_notification.html'
-    txt_template = 'disturbance/emails/apiary_approval_cancel_notification.txt'
+    html_template = 'apiary/emails/apiary_approval_cancel_notification.html'
+    txt_template = 'apiary/emails/apiary_approval_cancel_notification.txt'
 
 
 class ApiaryApprovalSuspendNotificationEmail(TemplateEmailBase):
     subject = 'Your Licence has been suspended.'
-    html_template = 'disturbance/emails/apiary_approval_suspend_notification.html'
-    txt_template = 'disturbance/emails/apiary_approval_suspend_notification.txt'
+    html_template = 'apiary/emails/apiary_approval_suspend_notification.html'
+    txt_template = 'apiary/emails/apiary_approval_suspend_notification.txt'
 
 
 class ApiaryApprovalSurrenderNotificationEmail(TemplateEmailBase):
     subject = 'Your Licence has been surrendered.'
-    html_template = 'disturbance/emails/apiary_approval_surrender_notification.html'
-    txt_template = 'disturbance/emails/apiary_approval_surrender_notification.txt'
+    html_template = 'apiary/emails/apiary_approval_surrender_notification.html'
+    txt_template = 'apiary/emails/apiary_approval_surrender_notification.txt'
 
 
 class ApiaryApprovalReinstateNotificationEmail(TemplateEmailBase):
     subject = 'Your Licence has been reinstated.'
-    html_template = 'disturbance/emails/apiary_approval_reinstate_notification.html'
-    txt_template = 'disturbance/emails/apiary_approval_reinstate_notification.txt'
+    html_template = 'apiary/emails/apiary_approval_reinstate_notification.html'
+    txt_template = 'apiary/emails/apiary_approval_reinstate_notification.txt'
 
 
 class ApiaryApprovalRenewalNotificationEmail(TemplateEmailBase):
     subject = 'Your Licence is due for renewal.'
-    html_template = 'disturbance/emails/apiary_approval_renewal_notification.html'
-    txt_template = 'disturbance/emails/apiary_approval_renewal_notification.txt'
+    html_template = 'apiary/emails/apiary_approval_renewal_notification.html'
+    txt_template = 'apiary/emails/apiary_approval_renewal_notification.txt'
 
 
 class ApprovalAnnualRentalFeeInvoiceEmail(TemplateEmailBase):
     subject = 'Annual site fee invoice for your licensed apiary sites.'
-    html_template = 'disturbance/emails/approval_annual_rental_fee_invoice.html'
-    txt_template = 'disturbance/emails/approval_annual_rental_fee_invoice.txt'
+    html_template = 'apiary/emails/approval_annual_rental_fee_invoice.html'
+    txt_template = 'apiary/emails/approval_annual_rental_fee_invoice.txt'
 
 
 class ApprovalAnnualRentalFeeAwaitingPaymentConfirmationEmail(TemplateEmailBase):
     #subject = 'Annual site fee awaiting payment confirmation for your licence has been issued.'
     subject = 'Annual site fee invoice for your licensed apiary sites.'
-    html_template = 'disturbance/emails/approval_annual_rental_fee_awaiting_payment_confirmation.html'
-    txt_template = 'disturbance/emails/approval_annual_rental_fee_awaiting_payment_confirmation.txt'
+    html_template = 'apiary/emails/approval_annual_rental_fee_awaiting_payment_confirmation.html'
+    txt_template = 'apiary/emails/approval_annual_rental_fee_awaiting_payment_confirmation.txt'
 
 
 class ContactLicenceHolderEmail(TemplateEmailBase):
     subject = 'Someone is interested in your apiary site available.'
-    html_template = 'disturbance/emails/contact_licence_holder_email.html'
-    txt_template = 'disturbance/emails/contact_licence_holder_email.txt'
+    html_template = 'apiary/emails/contact_licence_holder_email.html'
+    txt_template = 'apiary/emails/contact_licence_holder_email.txt'
 
 
 class OnSiteNotificationEmail(TemplateEmailBase):
     subject = 'On-site notification submitted for site'
-    html_template = 'disturbance/emails/onsite-notification_email.html'
-    txt_template = 'disturbance/emails/onsite-notification_email.txt'
+    html_template = 'apiary/emails/onsite-notification_email.html'
+    txt_template = 'apiary/emails/onsite-notification_email.txt'
 
 class OnSiteNotificationUpdateEmail(TemplateEmailBase):
     subject = 'On-site notification update submitted for site'
-    html_template = 'disturbance/emails/onsite-notification_update_email.html'
-    txt_template = 'disturbance/emails/onsite-notification_update_email.txt'
+    html_template = 'apiary/emails/onsite-notification_update_email.html'
+    txt_template = 'apiary/emails/onsite-notification_update_email.txt'
 
 
 def get_value_of_annual_rental_fee_awaiting_payment_confirmation(annual_rental_fee):

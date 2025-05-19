@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0045_merge_20200515_1350'),
+        ('apiary', '0045_merge_20200515_1350'),
     ]
 
     operations = [
@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('answer', models.NullBooleanField()),
-                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='apiary_applicant_checklist', to='disturbance.Proposal')),
+                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='apiary_applicant_checklist', to='apiary.Proposal')),
             ],
             options={
                 'verbose_name': 'CheckList answer',
@@ -32,6 +32,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='apiaryapplicantchecklistanswer',
             name='question',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='answers', to='disturbance.ApiaryApplicantChecklistQuestion'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='answers', to='apiary.ApiaryApplicantChecklistQuestion'),
         ),
     ]

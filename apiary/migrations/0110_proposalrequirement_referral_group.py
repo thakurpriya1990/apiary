@@ -9,13 +9,13 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0109_auto_20200715_0909'),
+        ('apiary', '0109_auto_20200715_0909'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='proposalrequirement',
             name='referral_group',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_requirement_referral_groups', to='disturbance.ApiaryReferralGroup'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_requirement_referral_groups', to='apiary.ApiaryReferralGroup'),
         ),
     ]

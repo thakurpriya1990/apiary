@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0146_apiarysite_pending_payment'),
+        ('apiary', '0146_apiarysite_pending_payment'),
     ]
 
     operations = [
@@ -18,13 +18,13 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('apiary_site_status_when_submitted', models.CharField(blank=True, max_length=40)),
-                ('apiary_site', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.ApiarySite')),
-                ('proposal_apiary', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.ProposalApiary')),
+                ('apiary_site', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.ApiarySite')),
+                ('proposal_apiary', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.ProposalApiary')),
             ],
         ),
         migrations.AddField(
             model_name='proposalapiary',
             name='beehive_sites',
-            field=models.ManyToManyField(related_name='proposal_apiary_set', through='disturbance.ApiarySiteOnProposal', to='disturbance.ApiarySite'),
+            field=models.ManyToManyField(related_name='proposal_apiary_set', through='apiary.ApiarySiteOnProposal', to='apiary.ApiarySite'),
         ),
     ]

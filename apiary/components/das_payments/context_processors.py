@@ -3,7 +3,7 @@ from apiary import helpers
 
 
 def disturbance_url(request):
-    template_group = 'disturbance'
+    template_group = 'apiary'
     TERMS = "/know/online-disturbance-apiary-terms-and-conditions"
 
     is_officer = False

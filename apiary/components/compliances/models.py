@@ -66,8 +66,8 @@ class Compliance(RevisionedMixin):
 
 
     lodgement_number = models.CharField(max_length=9, blank=True, default='')
-    proposal = models.ForeignKey('disturbance.Proposal',related_name='compliances', blank=True, null=True)
-    approval = models.ForeignKey('disturbance.Approval',related_name='compliances')
+    proposal = models.ForeignKey('apiary.Proposal',related_name='compliances', blank=True, null=True)
+    approval = models.ForeignKey('apiary.Approval',related_name='compliances')
     due_date = models.DateField()
     text = models.TextField(blank=True)
     processing_status = models.CharField(choices=PROCESSING_STATUS_CHOICES,max_length=20)
@@ -83,7 +83,7 @@ class Compliance(RevisionedMixin):
 
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
     @property
     def regions(self):
@@ -279,7 +279,7 @@ class ComplianceDocument(Document):
         logger.info('Cannot delete existing document object after Compliance has been submitted (including document submitted before Compliance pushback to status Due): {}'.format(self.name))
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 class ComplianceUserAction(UserAction):
@@ -308,7 +308,7 @@ class ComplianceUserAction(UserAction):
     compliance = models.ForeignKey(Compliance,related_name='action_logs')
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 class ComplianceLogEntry(CommunicationsLogEntry):
     compliance = models.ForeignKey(Compliance, related_name='comms_logs')
@@ -320,7 +320,7 @@ class ComplianceLogEntry(CommunicationsLogEntry):
         super(ComplianceLogEntry, self).save(**kwargs)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 def update_compliance_comms_log_filename(instance, filename):
     return 'proposals/{}/compliance/{}/communications/{}/{}'.format(instance.log_entry.compliance.proposal.id,instance.log_entry.compliance.id,instance.log_entry.id,filename)
@@ -331,7 +331,7 @@ class ComplianceLogDocument(Document):
     _file = models.FileField(upload_to=update_compliance_comms_log_filename, storage=private_storage)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 class CompRequest(models.Model):
     compliance = models.ForeignKey(Compliance)
@@ -340,13 +340,13 @@ class CompRequest(models.Model):
     officer = models.ForeignKey(EmailUser, null=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 class ComplianceAmendmentReason(models.Model):
     reason = models.CharField('Reason', max_length=125)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
     def __str__(self):
         return self.reason
@@ -371,7 +371,7 @@ class ComplianceAmendmentRequest(CompRequest):
     reason = models.ForeignKey(ComplianceAmendmentReason, blank=True, null=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
     def generate_amendment(self,request):
         with transaction.atomic():

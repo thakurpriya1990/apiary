@@ -92,7 +92,7 @@ class AnnualRentalFeeView(TemplateView):
 
 
 class InvoicePaymentView(TemplateView):
-    # template_name = 'disturbance/payment/success.html'
+    # template_name = 'apiary/payment/success.html'
 
     def get_object(self):
         return get_object_or_404(Invoice, reference=self.kwargs['invoice_reference'])
@@ -125,7 +125,7 @@ class InvoicePaymentView(TemplateView):
 
 
 class ApplicationFeeView(TemplateView):
-    template_name = 'disturbance/payment/success.html'
+    template_name = 'apiary/payment/success.html'
 
     def get_object(self):
         return get_object_or_404(Proposal, id=self.kwargs['proposal_pk'])
@@ -181,7 +181,7 @@ class ApplicationFeeView(TemplateView):
 
 
 class SiteTransferApplicationFeeSuccessView(TemplateView):
-    template_name = 'disturbance/payment/success_fee.html'
+    template_name = 'apiary/payment/success_fee.html'
 
     def get(self, request, *args, **kwargs):
         print (" SITE TRANSFER APPLICATION FEE SUCCESS ")
@@ -296,7 +296,7 @@ class SiteTransferApplicationFeeSuccessView(TemplateView):
 
 
 class InvoicePaymentSuccessView(TemplateView):
-    template_name = 'disturbance/payment/invoice_payment_success.html'
+    template_name = 'apiary/payment/invoice_payment_success.html'
 
     def get(self, request, *args, **kwargs):
         invoice = None
@@ -325,7 +325,7 @@ class InvoicePaymentSuccessView(TemplateView):
                     # This invoice is issued for the Annual Site Fee
                     annual_rental_fee = annual_rental_fee.first()
                     can_access_invoice, to_email_addresses = AnnualRentalFeeSuccessView.send_invoice_mail(annual_rental_fee, invoice, request)
-                    self.template_name = 'disturbance/payment/annual_rental_fee_success.html'
+                    self.template_name = 'apiary/payment/annual_rental_fee_success.html'
 
                     context = {
                         'invoice_reference': invoice.reference,
@@ -345,7 +345,7 @@ class InvoicePaymentSuccessView(TemplateView):
 
 
 class AnnualRentalFeeSuccessView(TemplateView):
-    template_name = 'disturbance/payment/annual_rental_fee_success.html'
+    template_name = 'apiary/payment/annual_rental_fee_success.html'
 
     def get(self, request, *args, **kwargs):
         invoice = None
@@ -426,7 +426,7 @@ class AnnualRentalFeeSuccessView(TemplateView):
 
 
 class ApplicationFeeSuccessView(TemplateView):
-    template_name = 'disturbance/payment/success_fee.html'
+    template_name = 'apiary/payment/success_fee.html'
 
     def get(self, request, *args, **kwargs):
         proposal = None

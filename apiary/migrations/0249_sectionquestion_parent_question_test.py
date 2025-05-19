@@ -9,13 +9,13 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0248_sectionquestion_parent_question_another'),
+        ('apiary', '0248_sectionquestion_parent_question_another'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='sectionquestion',
             name='parent_question_test',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.MasterlistQuestion'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.MasterlistQuestion'),
         ),
     ]

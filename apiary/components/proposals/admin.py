@@ -12,7 +12,7 @@ from apiary.components.proposals import models
 from apiary.components.proposals import forms
 from apiary.components.main.models import ActivityMatrix, SystemMaintenance, ApplicationType, GlobalSettings, \
     ApiaryGlobalSettings
-#from disturbance.components.main.models import Activity, SubActivityLevel1, SubActivityLevel2, SubCategory
+#from apiary.components.main.models import Activity, SubActivityLevel1, SubActivityLevel2, SubCategory
 from reversion.admin import VersionAdmin
 from django.conf.urls import url
 from django.template.response import TemplateResponse
@@ -112,7 +112,7 @@ class ProposalTypeAdmin(admin.ModelAdmin):
         context['new_schema']=new_schema
         return TemplateResponse(
             request,
-            'disturbance/admin/proposaltype_action.html',
+            'apiary/admin/proposaltype_action.html',
             context,
         )
     
@@ -277,7 +277,7 @@ class ProposalStandardRequirementAdmin(admin.ModelAdmin):
 class HelpPageAdmin(admin.ModelAdmin):
     list_display = ['application_type','help_type', 'description', 'version']
     form = forms.DisturbanceHelpPageAdminForm
-    change_list_template = "disturbance/help_page_changelist.html"
+    change_list_template = "apiary/help_page_changelist.html"
     ordering = ('application_type', 'help_type', '-version')
     list_filter = ('application_type', 'help_type')
 

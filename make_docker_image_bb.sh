@@ -1,8 +1,8 @@
 #!/bin/bash
 # dbca branch must be checked out and up to date in local work dir
 date_var=$(date +%Y.%m.%d.%H.%M%S)
-BUILD_TAG=dbcawa/disturbance:v$date_var
-cd disturbance/frontend/disturbance/ &&
+BUILD_TAG=dbcawa/apiary:v$date_var
+cd apiary/frontend/apiary/ &&
 
 # Apply front end venv if it exists
 { 

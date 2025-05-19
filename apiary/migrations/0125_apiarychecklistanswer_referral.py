@@ -9,13 +9,13 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0124_apiarychecklistanswer_text_answer'),
+        ('apiary', '0124_apiarychecklistanswer_text_answer'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='apiarychecklistanswer',
             name='referral',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_checklist_referral', to='disturbance.ApiaryReferral'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_checklist_referral', to='apiary.ApiaryReferral'),
         ),
     ]

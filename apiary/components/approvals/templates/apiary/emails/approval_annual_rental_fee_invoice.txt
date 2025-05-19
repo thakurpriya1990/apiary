@@ -1,0 +1,10 @@
+{%  extends 'apiary/emails/base_email.txt' %}
+
+{%  block content %}
+    Your annual site fee has been paid for your licensed apiary sites:
+
+    Licence : {{ approval.lodgement_number}}
+
+    Please find the invoice attached.
+
+{%  endblock %}

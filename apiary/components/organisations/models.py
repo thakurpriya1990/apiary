@@ -44,7 +44,7 @@ class Organisation(models.Model):
     user_pin_two = models.CharField(max_length=50,blank=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
     def __str__(self):
         return str(self.organisation)
@@ -506,7 +506,7 @@ class OrganisationContact(models.Model):
                                   verbose_name="fax number", help_text='')
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         unique_together = (('organisation','email'),)
 
     def __str__(self):
@@ -542,7 +542,7 @@ class UserDelegation(models.Model):
 
     class Meta:
         unique_together = (('organisation','user'),)
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 class OrganisationAction(UserAction):
@@ -577,7 +577,7 @@ class OrganisationAction(UserAction):
     organisation = models.ForeignKey(Organisation,related_name='action_logs')
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 def update_organisation_comms_log_filename(instance, filename):
     return 'organisations/{}/communications/{}/{}'.format(instance.log_entry.organisation.id,instance.id,filename)
@@ -588,7 +588,7 @@ class OrganisationLogDocument(Document):
     _file = models.FileField(upload_to=update_organisation_comms_log_filename, storage=private_storage)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
     
 class OrganisationLogEntry(CommunicationsLogEntry):
@@ -601,7 +601,7 @@ class OrganisationLogEntry(CommunicationsLogEntry):
         super(OrganisationLogEntry, self).save(**kwargs)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 class OrganisationRequest(models.Model):
@@ -629,7 +629,7 @@ class OrganisationRequest(models.Model):
     template_group = models.CharField(max_length=100,choices=TEMPLATE_GROUP_CHOICES, default="das")
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
     def accept(self, request):
         with transaction.atomic():
@@ -743,7 +743,7 @@ class ApiaryOrganisationAccessGroup(models.Model):
         return self.members.all()
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         verbose_name_plural = "Apiary Organisation access group"
 
 
@@ -767,7 +767,7 @@ class OrganisationAccessGroup(models.Model):
         return self.members.all()
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         verbose_name_plural = "Organisation access group"
         
 class OrganisationRequestUserAction(UserAction):
@@ -790,7 +790,7 @@ class OrganisationRequestUserAction(UserAction):
     request = models.ForeignKey(OrganisationRequest,related_name='action_logs')
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 class OrganisationRequestDeclinedDetails(models.Model):
@@ -799,7 +799,7 @@ class OrganisationRequestDeclinedDetails(models.Model):
     reason = models.TextField(blank=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 def update_organisation_request_comms_log_filename(instance, filename):
     return 'organisation_requests/{}/communications/{}/{}'.format(instance.log_entry.request.id,instance.id,filename)
@@ -810,7 +810,7 @@ class OrganisationRequestLogDocument(Document):
     _file = models.FileField(upload_to=update_organisation_request_comms_log_filename, storage=private_storage)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 class OrganisationRequestLogEntry(CommunicationsLogEntry):
     request = models.ForeignKey(OrganisationRequest, related_name='comms_logs')
@@ -822,7 +822,7 @@ class OrganisationRequestLogEntry(CommunicationsLogEntry):
         super(OrganisationRequestLogEntry, self).save(**kwargs)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 

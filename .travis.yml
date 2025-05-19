@@ -43,7 +43,7 @@ before_script:
     - python manage_ds.py migrate --noinput
 script:
     - COVERAGE_FILE=.coverage_ledger coverage run --source="." manage_ds.py test --noinput ledger
-    - COVERAGE_FILE=.coverage_ds coverage run --source="." manage_ds.py test --noinput disturbance/tests/
+    - COVERAGE_FILE=.coverage_ds coverage run --source="." manage_ds.py test --noinput apiary/tests/
     - coverage combine .coverage_ledger .coverage_ds
 after_success:
     - coveralls

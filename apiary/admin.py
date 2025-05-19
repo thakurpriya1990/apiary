@@ -9,11 +9,11 @@ from ledger.accounts.models import EmailUser
 from copy import deepcopy
 
 
-class DisturbanceAdminSite(AdminSite):
-    site_header = 'Disturbance Administration'
-    site_title = 'Disturbance Licensing'
+class ApiaryAdminSite(AdminSite):
+    site_header = 'Apiary Administration'
+    site_title = 'Apiary Licensing'
 
-disturbance_admin_site = DisturbanceAdminSite(name='disturbanceadmin')
+apiary_admin_site = ApiaryAdminSite(name='apiaryadmin')
 
 admin.site.unregister(EmailUser) # because this base classAdmin alsready registered in ledger.accounts.admin
 @admin.register(EmailUser)
@@ -23,7 +23,7 @@ class EmailUserAdmin(ledger_admin.EmailUserAdmin):
     """
 
     def get_fieldsets(self, request, obj=None):
-        """ Remove the is_superuser checkbox from the Admin page, if user is DisturbanceAdmin and NOT superuser """
+        """ Remove the is_superuser checkbox from the Admin page, if user is ApiaryAdmin and NOT superuser """
         fieldsets = super(UserAdmin, self).get_fieldsets(request, obj)
         if not obj:
             return fieldsets

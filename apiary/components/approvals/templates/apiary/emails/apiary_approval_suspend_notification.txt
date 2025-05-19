@@ -1,0 +1,17 @@
+{%  extends 'apiary/emails/apiary_base_email.txt' %}
+
+{%  block content %}
+	{% if future_suspend %}
+		Your Licence has been set to suspend in future:
+	{% else %}
+    	Your Licence has been suspended:
+    {% endif %}
+    Licence : {{ approval.lodgement_number}}
+
+    Suspension Details : {{details}}    
+
+    From Date : {{from_date}}
+
+    To Date : {{to_date}}
+
+{%  endblock %}

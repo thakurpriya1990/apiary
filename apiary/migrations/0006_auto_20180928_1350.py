@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='compliance',
             name='requirement',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='compliance_requirement', to='disturbance.ProposalRequirement'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='compliance_requirement', to='apiary.ProposalRequirement'),
         ),
         # migrations.AlterField(
         #     model_name='proposaltype',

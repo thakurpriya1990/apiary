@@ -11,7 +11,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0017_auto_20191030_1200'),
+        ('apiary', '0017_auto_20191030_1200'),
     ]
 
     operations = [
@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('can_delete', models.BooleanField(default=True)),
                 ('visible', models.BooleanField(default=True)),
                 ('_file', models.FileField(max_length=512, upload_to=apiary.components.proposals.models.update_apiary_doc_filename)),
-                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='apiary_documents', to='disturbance.Proposal')),
+                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='apiary_documents', to='apiary.Proposal')),
             ],
             options={
                 'abstract': False,
@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=200, null=True, verbose_name='Title')),
-                ('proposal', models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_site_location', to='disturbance.Proposal')),
+                ('proposal', models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_site_location', to='apiary.Proposal')),
             ],
         ),
         migrations.CreateModel(
@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('email', models.EmailField(blank=True, max_length=254, null=True, verbose_name='Email of Transferee')),
-                ('proposal', models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_site_transfer', to='disturbance.Proposal')),
+                ('proposal', models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_site_transfer', to='apiary.Proposal')),
             ],
         ),
         migrations.CreateModel(
@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('from_date', models.DateField(blank=True, null=True, verbose_name='Period From Date')),
                 ('to_date', models.DateField(blank=True, null=True, verbose_name='Period To Date')),
-                ('proposal', models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_temporary_use', to='disturbance.Proposal')),
+                ('proposal', models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_temporary_use', to='apiary.Proposal')),
             ],
         ),
         migrations.AlterField(

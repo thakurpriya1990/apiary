@@ -73,8 +73,8 @@ COLUMN_MAPPING = {
 class ApiaryLicenceReader():
     """
     FROM shell_plus:
-        from disturbance.utils.migration_utils_pd import ApiaryLicenceReader
-        alr = ApiaryLicenceReader('disturbance/utils/csv/apiary_migration_file_02Jun2022.xlsx')
+        from apiary.utils.migration_utils_pd import ApiaryLicenceReader
+        alr = ApiaryLicenceReader('apiary/utils/csv/apiary_migration_file_02Jun2022.xlsx')
 
         alr.create_users()
 
@@ -87,7 +87,7 @@ class ApiaryLicenceReader():
         (Pass approvals as a list or a queryset)
 
     FROM mgt-command:
-        python manage_ds.py apiary_migration_script --filename disturbance/utils/csv/apiary_migration_file_02Jun2022.xlsx
+        python manage_ds.py apiary_migration_script --filename apiary/utils/csv/apiary_migration_file_02Jun2022.xlsx
 
 
     Check for unique permit numbers

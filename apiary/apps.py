@@ -2,8 +2,8 @@ from __future__ import unicode_literals
 
 from django.apps import AppConfig
 
-class DisturbanceConfig(AppConfig):
-    name = 'disturbance'
+class ApiaryConfig(AppConfig):
+    name = 'apiary'
 
     run_once = False
     def ready(self):

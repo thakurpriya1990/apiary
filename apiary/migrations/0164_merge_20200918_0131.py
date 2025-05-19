@@ -8,7 +8,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0161_merge_20200915_1504'),
+        ('apiary', '0161_merge_20200915_1504'),
         ('disturbance', '0163_apiarysiteonapproval_site_category'),
     ]
 

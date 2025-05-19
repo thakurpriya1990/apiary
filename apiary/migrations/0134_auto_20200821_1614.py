@@ -10,7 +10,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0133_merge_20200819_1332'),
+        ('apiary', '0133_merge_20200819_1332'),
     ]
 
     operations = [
@@ -23,12 +23,12 @@ class Migration(migrations.Migration):
                 ('uploaded_date', models.DateTimeField(auto_now_add=True)),
                 ('_file', models.FileField(upload_to=apiary.components.approvals.models.update_approval_doc_filename)),
                 ('can_delete', models.BooleanField(default=True)),
-                ('approval', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='renewal_documents', to='disturbance.Approval')),
+                ('approval', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='renewal_documents', to='apiary.Approval')),
             ],
         ),
         migrations.AddField(
             model_name='approval',
             name='apiary_renewal_document',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_renewal_document', to='disturbance.RenewalDocument'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_renewal_document', to='apiary.RenewalDocument'),
         ),
     ]

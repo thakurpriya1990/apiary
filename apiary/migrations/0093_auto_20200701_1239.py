@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0092_apiarysite_workflow_selected_status'),
+        ('apiary', '0092_apiarysite_workflow_selected_status'),
     ]
 
     operations = [

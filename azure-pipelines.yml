@@ -33,7 +33,7 @@ stages:
               latest
               $(tagDate)
         containerRegistry: DockerHub
-        repository: dbcawa/disturbance
+        repository: dbcawa/apiary
     - task: Docker@2
       displayName: Dev Build image and Push
       inputs:

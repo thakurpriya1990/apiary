@@ -97,8 +97,8 @@ class DomainDetectMiddleware(object):
         settings.DOMAIN_DETECTED = 'das'
         settings.SYSTEM_NAME = env('SYSTEM_NAME', 'Disturbance Approval System')
         settings.SYSTEM_NAME_SHORT = 'DAS'
-        settings.BASE_EMAIL_TEXT = 'disturbance/emails/base_email.txt'
-        settings.BASE_EMAIL_HTML = 'disturbance/emails/base_email.html'
+        settings.BASE_EMAIL_TEXT = 'apiary/emails/base_email.txt'
+        settings.BASE_EMAIL_HTML = 'apiary/emails/base_email.html'
 
         http_host = request.META.get('HTTP_HOST', None)
 
@@ -108,8 +108,8 @@ class DomainDetectMiddleware(object):
             settings.DOMAIN_DETECTED = 'apiary'
             settings.SYSTEM_NAME = settings.APIARY_SYSTEM_NAME
             settings.SYSTEM_NAME_SHORT = 'Apiary'
-            settings.BASE_EMAIL_TEXT = 'disturbance/emails/apiary_base_email.txt'
-            settings.BASE_EMAIL_HTML = 'disturbance/emails/apiary_base_email.html'
+            settings.BASE_EMAIL_TEXT = 'apiary/emails/apiary_base_email.txt'
+            settings.BASE_EMAIL_HTML = 'apiary/emails/apiary_base_email.html'
 
         return None
 

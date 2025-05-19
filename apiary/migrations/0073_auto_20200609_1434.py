@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0072_auto_20200608_2244'),
+        ('apiary', '0072_auto_20200608_2244'),
     ]
 
     operations = [
@@ -32,6 +32,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='temporarydocument',
             name='temp_document_collection',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='disturbance.TemporaryDocumentCollection'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='apiary.TemporaryDocumentCollection'),
         ),
     ]

@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0047_temporaryuseapiarysite'),
+        ('apiary', '0047_temporaryuseapiarysite'),
     ]
 
     operations = [
@@ -20,6 +20,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='proposalapiarytemporaryuse',
             name='proposal',
-            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_temporary_use', to='disturbance.Proposal'),
+            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_temporary_use', to='apiary.Proposal'),
         ),
     ]

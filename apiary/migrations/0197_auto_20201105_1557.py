@@ -9,18 +9,18 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0196_auto_20201103_1429'),
+        ('apiary', '0196_auto_20201103_1429'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='proposal',
             name='self_clone',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='proposal_current_state', to='disturbance.Proposal'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='proposal_current_state', to='apiary.Proposal'),
         ),
         migrations.AddField(
             model_name='proposalapiary',
             name='self_clone',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='disturbance.ProposalApiary'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='apiary.ProposalApiary'),
         ),
     ]

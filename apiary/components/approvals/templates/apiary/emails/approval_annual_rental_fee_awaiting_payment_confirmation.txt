@@ -1,0 +1,12 @@
+{%  extends 'apiary/emails/apiary_base_email.txt' %}
+
+{%  block content %}
+    Annual site fee awaiting payment confirmation has been issued:
+
+    Licence : {{ approval.lodgement_number}}
+
+    Please find the attached annual site fee awaiting payment confirmation.
+
+    Please access here: {{ url_to_pay }} to pay.
+
+{%  endblock %}

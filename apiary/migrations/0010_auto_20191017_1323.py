@@ -11,7 +11,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0009_auto_20190111_1713'),
+        ('apiary', '0009_auto_20190111_1713'),
     ]
 
     operations = [
@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('input_name', models.CharField(blank=True, max_length=255, null=True)),
                 ('can_delete', models.BooleanField(default=True)),
                 ('visible', models.BooleanField(default=True)),
-                ('amendment_request', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='amendment_request_documents', to='disturbance.AmendmentRequest')),
+                ('amendment_request', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='amendment_request_documents', to='apiary.AmendmentRequest')),
             ],
             options={
                 'abstract': False,
@@ -35,9 +35,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PreviewTempApproval',
             fields=[
-                ('approval_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='disturbance.Approval')),
+                ('approval_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='apiary.Approval')),
             ],
-            bases=('disturbance.approval',),
+            bases=('apiary.approval',),
         ),
         migrations.AddField(
             model_name='approval',

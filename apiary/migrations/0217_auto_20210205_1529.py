@@ -10,7 +10,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0216_proposal_fee_invoice_references'),
+        ('apiary', '0216_proposal_fee_invoice_references'),
     ]
 
     operations = [

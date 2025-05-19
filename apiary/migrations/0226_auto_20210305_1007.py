@@ -9,28 +9,28 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0225_auto_20210305_1000'),
+        ('apiary', '0225_auto_20210305_1000'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='proposaltypesection',
             name='proposal_type',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='sections', to='disturbance.ProposalType'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='sections', to='apiary.ProposalType'),
         ),
         migrations.AlterField(
             model_name='sectionquestion',
             name='parent_question',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='children_question', to='disturbance.MasterlistQuestion'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='children_question', to='apiary.MasterlistQuestion'),
         ),
         migrations.AlterField(
             model_name='sectionquestion',
             name='question',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='question_sections', to='disturbance.MasterlistQuestion'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='question_sections', to='apiary.MasterlistQuestion'),
         ),
         migrations.AlterField(
             model_name='sectionquestion',
             name='section',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='section_questions', to='disturbance.ProposalTypeSection'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='section_questions', to='apiary.ProposalTypeSection'),
         ),
     ]

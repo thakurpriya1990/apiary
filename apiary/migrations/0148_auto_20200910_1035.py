@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0147_auto_20200910_1029'),
+        ('apiary', '0147_auto_20200910_1029'),
     ]
 
     operations = [
@@ -17,13 +17,13 @@ class Migration(migrations.Migration):
             name='ApiarySiteOnApproval',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('apiary_site', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.ApiarySite')),
-                ('approval', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.Approval')),
+                ('apiary_site', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.ApiarySite')),
+                ('approval', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.Approval')),
             ],
         ),
         migrations.AddField(
             model_name='approval',
             name='beehive_sites',
-            field=models.ManyToManyField(related_name='approval_set', through='disturbance.ApiarySiteOnApproval', to='disturbance.ApiarySite'),
+            field=models.ManyToManyField(related_name='approval_set', through='apiary.ApiarySiteOnApproval', to='apiary.ApiarySite'),
         ),
     ]

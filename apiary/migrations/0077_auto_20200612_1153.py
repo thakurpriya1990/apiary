@@ -10,7 +10,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0076_approval_proxy_applicant'),
+        ('apiary', '0076_approval_proxy_applicant'),
     ]
 
     operations = [

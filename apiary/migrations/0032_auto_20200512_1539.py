@@ -10,7 +10,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0031_auto_20200512_1155'),
+        ('apiary', '0031_auto_20200512_1155'),
     ]
 
     operations = [
@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('fee_type', models.CharField(choices=[('new_application', 'New Application'), ('amendment', 'Amendment'), ('renewal', 'Renewal'), ('transfer', 'Transfer')], default='new_application', max_length=40)),
                 ('amount', models.DecimalField(decimal_places=2, default='0.00', max_digits=8)),
                 ('date_of_enforcement', models.DateField(blank=True, null=True)),
-                ('site_category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='site_fees', to='disturbance.SiteCategory')),
+                ('site_category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='site_fees', to='apiary.SiteCategory')),
             ],
             options={
                 'ordering': ('date_of_enforcement',),

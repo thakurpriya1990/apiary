@@ -22,7 +22,7 @@ class MapLayer(models.Model):
     display_all_columns = models.BooleanField(default=False)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         verbose_name = 'apiary map layer'
 
     def __str__(self):
@@ -43,7 +43,7 @@ class MapColumn(models.Model):
     option_for_external = models.BooleanField(default=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         verbose_name = 'apiary map column'
 
     def __str__(self):
@@ -57,7 +57,7 @@ class Region(models.Model):
 
     class Meta:
         ordering = ['name']
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
     def __str__(self):
         return self.name
@@ -79,7 +79,7 @@ class District(models.Model):
 
     class Meta:
         ordering = ['name']
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
     def __str__(self):
         return self.name
@@ -94,7 +94,7 @@ class DistrictDbca(models.Model):
 
     class Meta:
         ordering = ['object_id', ]
-        app_label = 'disturbance'
+        app_label = 'apiary'
         verbose_name_plural = "Apiary DBCA Districts"
 
 
@@ -107,7 +107,7 @@ class RegionDbca(models.Model):
 
     class Meta:
         ordering = ['object_id', ]
-        app_label = 'disturbance'
+        app_label = 'apiary'
         verbose_name_plural = "Apiary DBCA Regions"
 
 
@@ -119,7 +119,7 @@ class CategoryDbca(models.Model):
     category_name = models.CharField(max_length=20, blank=True, null=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 class WaCoast(models.Model):
@@ -132,7 +132,7 @@ class WaCoast(models.Model):
     smoothed = models.BooleanField(default=False)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 @python_2_unicode_compatible
@@ -180,7 +180,7 @@ class ApplicationType(models.Model):
 
     class Meta:
         ordering = ['order', 'name']
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
     def __str__(self):
         return self.name
@@ -198,7 +198,7 @@ class ActivityMatrix(models.Model):
     ordered = models.BooleanField('Activities Ordered Alphabetically', default=False)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         unique_together = ('name', 'version')
         verbose_name_plural = "Approval matrix"
 
@@ -214,7 +214,7 @@ class Tenure(models.Model):
 
     class Meta:
         ordering = ['order', 'name']
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
     def __str__(self):
         return '{}: {}'.format(self.name, self.application_type)
@@ -235,7 +235,7 @@ class UserAction(models.Model):
 
     class Meta:
         abstract = True
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 class CommunicationsLogEntry(models.Model):
@@ -265,7 +265,7 @@ class CommunicationsLogEntry(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=False, blank=False)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 @python_2_unicode_compatible
@@ -277,7 +277,7 @@ class Document(models.Model):
     uploaded_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         abstract = True
 
     @property
@@ -308,7 +308,7 @@ class SystemMaintenance(models.Model):
     duration.short_description = 'Duration (mins)'
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         verbose_name_plural = "System maintenance"
 
     def __str__(self):
@@ -349,7 +349,7 @@ class ApiaryGlobalSettings(models.Model):
     _file = models.FileField(upload_to='apiary_licence_template', null=True, blank=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         verbose_name_plural = "Apiary Global Settings"
 
     def save(self, force_insert=False, force_update=False, using=None,
@@ -380,7 +380,7 @@ class GlobalSettings(models.Model):
     value = models.CharField(max_length=255)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         verbose_name_plural = "Global Settings"
 
     def __str__(self):
@@ -391,7 +391,7 @@ class TemporaryDocumentCollection(models.Model):
     # input_name = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 # temp document obj for generic file upload component
@@ -404,7 +404,7 @@ class TemporaryDocument(Document):
     # input_name = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 

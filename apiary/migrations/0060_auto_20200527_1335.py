@@ -25,9 +25,9 @@ class Migration(migrations.Migration):
                 ('processing_status', models.CharField(choices=[('with_referral', 'Awaiting'), ('recalled', 'Recalled'), ('completed', 'Completed')], default='with_referral', max_length=30, verbose_name='Processing Status')),
                 ('text', models.TextField(blank=True)),
                 ('referral_text', models.TextField(blank=True)),
-                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='referrals', to='disturbance.ProposalApiary')),
+                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='referrals', to='apiary.ProposalApiary')),
                 ('referral', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='disturbance_apiary_referalls', to=settings.AUTH_USER_MODEL)),
-                ('referral_group', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='referral_groups', to='disturbance.ApiaryReferralGroup')),
+                ('referral_group', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='referral_groups', to='apiary.ApiaryReferralGroup')),
                 ('sent_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='disturbance_apiary_assessor_referrals', to=settings.AUTH_USER_MODEL)),
             ],
             options={

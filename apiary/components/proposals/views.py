@@ -15,7 +15,7 @@ from reversion.models import Version
 
 
 class ProposalView(TemplateView):
-    template_name = 'disturbance/proposal.html'
+    template_name = 'apiary/proposal.html'
 
     def post(self, request, *args, **kwargs):
         extracted_fields = []
@@ -40,7 +40,7 @@ class ProposalHistoryCompareView(HistoryCompareDetailView):
     View for reversion_compare
     """
     model = Proposal
-    template_name = 'disturbance/reversion_history.html'
+    template_name = 'apiary/reversion_history.html'
 
 
 class ProposalHistoryLatestCompareView(HistoryCompareDetailView):
@@ -48,7 +48,7 @@ class ProposalHistoryLatestCompareView(HistoryCompareDetailView):
     View for reversion_compare that returns on the x most recent revisions
     """
     model = Proposal
-    template_name = 'disturbance/reversion_history.html'
+    template_name = 'apiary/reversion_history.html'
 
 
 class ProposalFilteredHistoryCompareView(HistoryCompareDetailView):
@@ -77,12 +77,12 @@ class ReferralHistoryCompareView(HistoryCompareDetailView):
     View for reversion_compare
     """
     model = Referral
-    template_name = 'disturbance/reversion_history.html'
+    template_name = 'apiary/reversion_history.html'
 
 
 class ExternalProposalTemporaryUseSubmitSuccessView(TemplateView):
     model = Proposal
-    template_name = 'disturbance/temporary_use_submit_success.html'
+    template_name = 'apiary/temporary_use_submit_success.html'
 
     def post(self, request, *args, **kwargs):
         proposal_id = kwargs['proposal_pk']
@@ -99,7 +99,7 @@ class ApprovalHistoryCompareView(HistoryCompareDetailView):
     View for reversion_compare
     """
     model = Approval
-    template_name = 'disturbance/reversion_history.html'
+    template_name = 'apiary/reversion_history.html'
 
 
 class ComplianceHistoryCompareView(HistoryCompareDetailView):
@@ -107,7 +107,7 @@ class ComplianceHistoryCompareView(HistoryCompareDetailView):
     View for reversion_compare
     """
     model = Compliance
-    template_name = 'disturbance/reversion_history.html'
+    template_name = 'apiary/reversion_history.html'
 
 
 
@@ -116,7 +116,7 @@ class ProposalTypeHistoryCompareView(HistoryCompareDetailView):
     View for reversion_compare
     """
     model = ProposalType
-    template_name = 'disturbance/reversion_history.html'
+    template_name = 'apiary/reversion_history.html'
 
 
 class HelpPageHistoryCompareView(HistoryCompareDetailView):
@@ -124,7 +124,7 @@ class HelpPageHistoryCompareView(HistoryCompareDetailView):
     View for reversion_compare
     """
     model = HelpPage
-    template_name = 'disturbance/reversion_history.html'
+    template_name = 'apiary/reversion_history.html'
 
 
 class PreviewLicencePDFView(View):

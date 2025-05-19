@@ -10,7 +10,7 @@ import smart_selects.db_fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0275_merge_20211108_1106'),
+        ('apiary', '0275_merge_20211108_1106'),
     ]
 
     operations = [
@@ -21,12 +21,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='apiaryreferralgroup',
             name='district',
-            field=smart_selects.db_fields.ChainedForeignKey(auto_choose=True, chained_field='region', chained_model_field='region', default=1, on_delete=django.db.models.deletion.CASCADE, to='disturbance.District'),
+            field=smart_selects.db_fields.ChainedForeignKey(auto_choose=True, chained_field='region', chained_model_field='region', default=1, on_delete=django.db.models.deletion.CASCADE, to='apiary.District'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='apiaryreferralgroup',
             name='region',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='disturbance.Region'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='apiary.Region'),
         ),
     ]

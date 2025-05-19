@@ -10,7 +10,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0003_compliance_post_reminder_sent'),
+        ('apiary', '0003_compliance_post_reminder_sent'),
     ]
 
     operations = [
@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='approval',
             name='current_proposal',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='approvals', to='disturbance.Proposal'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='approvals', to='apiary.Proposal'),
         ),
         migrations.AlterField(
             model_name='compliancedocument',

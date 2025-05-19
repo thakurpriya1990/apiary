@@ -10,7 +10,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0027_auto_20200505_1156'),
+        ('apiary', '0027_auto_20200505_1156'),
     ]
 
     operations = [
@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('period_from', models.DateField(blank=True, null=True)),
                 ('period_to', models.DateField(blank=True, null=True)),
                 ('comments', models.TextField(blank=True)),
-                ('apiary_site', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.ApiarySite')),
+                ('apiary_site', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.ApiarySite')),
             ],
         ),
         migrations.AlterField(

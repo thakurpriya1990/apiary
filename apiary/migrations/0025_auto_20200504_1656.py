@@ -10,14 +10,14 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0024_auto_20200504_1005'),
+        ('apiary', '0024_auto_20200504_1005'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='apiarysite',
             name='proposal_apiary_site_location',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_sites', to='disturbance.ProposalApiarySiteLocation'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_sites', to='apiary.ProposalApiarySiteLocation'),
         ),
         migrations.AlterField(
             model_name='apiarysite',

@@ -20,7 +20,7 @@ from apiary.components.main.models import ApplicationType
 #                                   'bw_dpaw_header_logo.png')
 from apiary.doctopdf import create_apiary_licence_pdf_contents
 
-BW_DPAW_HEADER_LOGO = os.path.join(settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'img',
+BW_DPAW_HEADER_LOGO = os.path.join(settings.BASE_DIR, 'apiary', 'static', 'apiary', 'img',
                                    'dbca-logo.jpg')
 
 COLOUR_DPAW_HEADER_LOGO = os.path.join(settings.BASE_DIR, 'wildlifelicensing', 'static', 'wl', 'img',

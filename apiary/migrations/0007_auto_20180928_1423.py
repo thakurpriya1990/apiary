@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='proposalrequirement',
             name='copied_from',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='disturbance.ProposalRequirement'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='apiary.ProposalRequirement'),
         ),
         migrations.AddField(
             model_name='proposalrequirement',

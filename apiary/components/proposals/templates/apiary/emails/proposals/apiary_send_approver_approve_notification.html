@@ -1,0 +1,27 @@
+{%  extends 'apiary/emails/apiary_base_email.html' %}
+
+{%  block content %}
+	The application {{ proposal.lodgement_number }} has been assessed and has been recommended for approval. 
+    
+    
+    <p>
+    Title: {{proposal.title}}<br>
+    Activity: {{proposal.activity}}<br>
+    </p>
+
+    {% if proposal.proposed_issuance_approval %}
+        <p>
+        	<span>Approved: </span>
+        </p>
+        <p>Start date: {{ start_date }}</p>
+        <p>Expiry date: {{ expiry_date }}</p>
+        <p>Details: {{ details }}</p>
+    {% endif %}
+
+    <p>
+    You can access this application using the following link:
+    </p>
+    <a href="{{url}}">Access application</a>
+
+
+{%  endblock %}

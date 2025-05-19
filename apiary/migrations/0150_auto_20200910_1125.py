@@ -9,7 +9,7 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0149_apiarysitelocation'),
+        ('apiary', '0149_apiarysitelocation'),
     ]
 
     operations = [

@@ -1,0 +1,13 @@
+{%  extends 'apiary/emails/apiary_base_email.txt' %}
+
+{%  block content %}
+    The application {{ proposal.lodgement_number }} is waiting for assessment.
+
+    Activity: {{proposal.activity}}
+   
+    You can access this application using the following link:
+  
+    {{url}}
+
+
+{%  endblock %}

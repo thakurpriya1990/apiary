@@ -1,6 +1,6 @@
 [
     {
-        "model": "disturbance.proposalapprovergroup",
+        "model": "apiary.proposalapprovergroup",
         "fields":
         {
             "name":"Default Group",

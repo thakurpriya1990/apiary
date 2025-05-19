@@ -236,9 +236,9 @@ class APITestSetup(APITestCase):
             #u'selected_licence_holder': u'firstname.lastname@test.com',
             }
         # submit_proposal_data
-        with open('disturbance/tests/all_the_features_1.json', 'r') as features_file_1:
+        with open('apiary/tests/all_the_features_1.json', 'r') as features_file_1:
             self.all_the_features_1 = json.load(features_file_1)
-        with open('disturbance/tests/all_the_features_2.json', 'r') as features_file_2:
+        with open('apiary/tests/all_the_features_2.json', 'r') as features_file_2:
             self.all_the_features_2 = json.load(features_file_2)
 
         # Dates

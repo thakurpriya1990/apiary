@@ -9,7 +9,7 @@ os.environ.setdefault("BASE_DIR", BASE_DIR)
 from ledger.settings_base import *
 
 
-ROOT_URLCONF = 'disturbance.urls'
+ROOT_URLCONF = 'apiary.urls'
 SITE_ID = 1
 DEPT_DOMAINS = env('DEPT_DOMAINS', ['dpaw.wa.gov.au', 'dbca.wa.gov.au'])
 SUPERVISOR_STOP_CMD = env('SUPERVISOR_STOP_CMD')
@@ -26,15 +26,15 @@ SHOW_ROOT_API = env('SHOW_ROOT_API', False)
 INSTALLED_APPS += [
     'reversion_compare',
     'bootstrap3',
-    'disturbance',
-    'disturbance.components.main',
-    'disturbance.components.organisations',
-    'disturbance.components.users',
-    'disturbance.components.proposals',
-    'disturbance.components.approvals',
-    'disturbance.components.compliances',
-    'disturbance.components.das_payments',
-    'disturbance.components.history',
+    'apiary',
+    'apiary.components.main',
+    'apiary.components.organisations',
+    'apiary.components.users',
+    'apiary.components.proposals',
+    'apiary.components.approvals',
+    'apiary.components.compliances',
+    'apiary.components.das_payments',
+    'apiary.components.history',
     'taggit',
     'rest_framework',
     'rest_framework_datatables',
@@ -48,11 +48,11 @@ INSTALLED_APPS += [
 ADD_REVERSION_ADMIN=True
 
 # maximum number of days allowed for a booking
-WSGI_APPLICATION = 'disturbance.wsgi.application'
+WSGI_APPLICATION = 'apiary.wsgi.application'
 
 '''REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
-        'disturbance.perms.OfficerPermission',
+        'apiary.perms.OfficerPermission',
     )
 }'''
 
@@ -79,20 +79,20 @@ USE_DJANGO_JQUERY= True
 # JQUERY_URL = True
 
 MIDDLEWARE_CLASSES += [
-    'disturbance.middleware.BookingTimerMiddleware',
-    'disturbance.middleware.FirstTimeNagScreenMiddleware',
-    'disturbance.middleware.RevisionOverrideMiddleware',
-    'disturbance.middleware.DomainDetectMiddleware',
-    'disturbance.middleware.CacheControlMiddleware',
+    'apiary.middleware.BookingTimerMiddleware',
+    'apiary.middleware.FirstTimeNagScreenMiddleware',
+    'apiary.middleware.RevisionOverrideMiddleware',
+    'apiary.middleware.DomainDetectMiddleware',
+    'apiary.middleware.CacheControlMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     # 'corsheaders.middleware.CorsMiddleware',
 ]
 # CORS_ORIGIN_ALLOW_ALL = True
 
-TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance', 'templates'))
-TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance','components','organisations', 'templates'))
-TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance','components','emails', 'templates'))
-TEMPLATES[0]['OPTIONS']['context_processors'].append('disturbance.context_processors.apiary_url')
+TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'apiary', 'templates'))
+TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'apiary','components','organisations', 'templates'))
+TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'apiary','components','emails', 'templates'))
+TEMPLATES[0]['OPTIONS']['context_processors'].append('apiary.context_processors.apiary_url')
 if 'css_url' in BOOTSTRAP3:
     del BOOTSTRAP3['css_url']
 #BOOTSTRAP3 = {
@@ -109,12 +109,12 @@ if 'css_url' in BOOTSTRAP3:
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': os.path.join(BASE_DIR, 'disturbance', 'cache'),
+        'LOCATION': os.path.join(BASE_DIR, 'apiary', 'cache'),
     }
 }
 STATIC_ROOT=os.path.join(BASE_DIR, 'staticfiles_ds')
-STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, 'disturbance', 'static')))
-STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, 'disturbance', 'static', 'disturbance_vue', 'static')))
+STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, 'apiary', 'static')))
+STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, 'apiary', 'static', 'apiary_vue', 'static')))
 DEV_STATIC = env('DEV_STATIC',False)
 DEV_STATIC_URL = env('DEV_STATIC_URL')
 if DEV_STATIC and not DEV_STATIC_URL:
@@ -204,7 +204,7 @@ DOMAIN_DETECTED = 'das'
 HTTP_HOST_FOR_TEST = 'localhost:8071'
 
 # Additional logging for commercialoperator
-LOGGING['loggers']['disturbance'] = {
+LOGGING['loggers']['apiary'] = {
             'handlers': [],
             'level': 'DEBUG',
             'propagate': True,

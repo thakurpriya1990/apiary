@@ -10,14 +10,14 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0030_auto_20200511_1512'),
+        ('apiary', '0030_auto_20200511_1512'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='apiarysite',
             name='site_category',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.SiteCategory'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.SiteCategory'),
         ),
         migrations.AlterField(
             model_name='compliancedocument',

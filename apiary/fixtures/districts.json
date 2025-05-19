@@ -1,42 +1,42 @@
 [
 {
     "pk": 1,
-    "model": "disturbance.region",
+    "model": "apiary.region",
     "fields": {
         "name": "Goldfields"
     }
 },
 {
     "pk": 2,
-    "model": "disturbance.region",
+    "model": "apiary.region",
     "fields": {
         "name": "Kimberley"
     }
 },
 {
     "pk": 3,
-    "model": "disturbance.region",
+    "model": "apiary.region",
     "fields": {
         "name": "Midwest"
     }
 },
 {
     "pk": 4,
-    "model": "disturbance.region",
+    "model": "apiary.region",
     "fields": {
         "name": "Pilbara"
     }
 },
 {
     "pk": 5,
-    "model": "disturbance.region",
+    "model": "apiary.region",
     "fields": {
         "name": "South Coast"
     }
 },
 {
     "pk": 6,
-    "model": "disturbance.region",
+    "model": "apiary.region",
     "fields": {
         "name": "South West",
         "forest_region": true
@@ -44,7 +44,7 @@
 },
 {
     "pk": 7,
-    "model": "disturbance.region",
+    "model": "apiary.region",
     "fields": {
         "name": "Swan",
         "forest_region": true
@@ -52,7 +52,7 @@
 },
 {
     "pk": 8,
-    "model": "disturbance.region",
+    "model": "apiary.region",
     "fields": {
         "name": "Warren",
         "forest_region": true
@@ -60,7 +60,7 @@
 },
 {
     "pk": 9,
-    "model": "disturbance.region",
+    "model": "apiary.region",
     "fields": {
         "name": "Wheatbelt"
     }
@@ -68,7 +68,7 @@
 
 {
     "pk": 1,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 1,
@@ -78,7 +78,7 @@
 },
 {
     "pk": 2,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 2,
@@ -88,7 +88,7 @@
 },
 {
     "pk": 3,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 2,
@@ -98,7 +98,7 @@
 },
 {
     "pk": 4,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 3,
@@ -108,7 +108,7 @@
 },
 {
     "pk": 5,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 3,
@@ -118,7 +118,7 @@
 },
 {
     "pk": 6,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 3,
@@ -128,7 +128,7 @@
 },
 {
     "pk": 7,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 4,
@@ -138,7 +138,7 @@
 },
 {
     "pk": 8,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 4,
@@ -148,7 +148,7 @@
 },
 {
     "pk": 9,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 5,
@@ -158,7 +158,7 @@
 },
 {
     "pk": 10,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 5,
@@ -168,7 +168,7 @@
 },
 {
     "pk": 11,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 6,
@@ -178,7 +178,7 @@
 },
 {
     "pk": 12,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 6,
@@ -188,7 +188,7 @@
 },
 {
     "pk": 13,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 7,
@@ -198,7 +198,7 @@
 },
 {
     "pk": 14,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 7,
@@ -208,7 +208,7 @@
 },
 {
     "pk": 15,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 8,
@@ -218,7 +218,7 @@
 },
 {
     "pk": 16,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 8,
@@ -228,7 +228,7 @@
 },
 {
     "pk": 17,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 9,
@@ -238,7 +238,7 @@
 },
 {
     "pk": 18,
-    "model": "disturbance.district",
+    "model": "apiary.district",
     "fields": {
         "archive_date": null,
         "region": 9,

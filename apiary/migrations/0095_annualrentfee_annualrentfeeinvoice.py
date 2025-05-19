@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('expiry_time', models.DateTimeField(auto_now_add=True, null=True)),
                 ('payment_type', models.SmallIntegerField(choices=[(0, 'Internet booking'), (1, 'Reception booking'), (2, 'Black booking'), (3, 'Temporary reservation')], default=0)),
                 ('cost', models.DecimalField(decimal_places=2, default='0.00', max_digits=8)),
-                ('approval', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='annual_rent_fees', to='disturbance.Approval')),
+                ('approval', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='annual_rent_fees', to='apiary.Approval')),
                 ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='created_by_annual_rent_fee', to=settings.AUTH_USER_MODEL)),
             ],
         ),
@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('invoice_reference', models.CharField(blank=True, default='', max_length=50, null=True)),
-                ('annual_rent_fee', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='annual_rent_fee_invoices', to='disturbance.AnnualRentFee')),
+                ('annual_rent_fee', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='annual_rent_fee_invoices', to='apiary.AnnualRentFee')),
             ],
         ),
     ]

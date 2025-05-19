@@ -1,1 +1,1 @@
-default_app_config = 'disturbance.apps.DisturbanceConfig'
+default_app_config = 'apiary.apps.ApiaryConfig'

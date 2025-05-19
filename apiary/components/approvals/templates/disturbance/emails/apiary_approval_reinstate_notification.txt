@@ -1,9 +1,0 @@
-{%  extends 'disturbance/emails/apiary_base_email.txt' %}
-
-{%  block content %}
-    Your Licence has been reinstated:
-
-    Licence : {{ approval.lodgement_number}}
-
-   
-{%  endblock %}

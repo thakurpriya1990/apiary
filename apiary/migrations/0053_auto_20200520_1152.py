@@ -9,13 +9,13 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0052_auto_20200520_1149'),
+        ('apiary', '0052_auto_20200520_1149'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='proposalapiary',
             name='proposal',
-            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='proposal_apiary', to='disturbance.Proposal'),
+            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='proposal_apiary', to='apiary.Proposal'),
         ),
     ]

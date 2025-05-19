@@ -21,8 +21,8 @@ def create_apiary_licence_pdf_contents(approval, proposal, copied_to_permit, app
         path_to_template = licence_template._file.path
     else:
         # Use default template file
-        #path_to_template = os.path.join(settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'apiary_authority_template.docx')
-        path_to_template = os.path.join(settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'apiary_authority_permit_template_v3.docx')
+        #path_to_template = os.path.join(settings.BASE_DIR, 'apiary', 'static', 'apiary', 'apiary_authority_template.docx')
+        path_to_template = os.path.join(settings.BASE_DIR, 'apiary', 'static', 'apiary', 'apiary_authority_permit_template_v3.docx')
 
     doc = DocxTemplate(path_to_template)
     # address = ''
@@ -40,8 +40,8 @@ def create_apiary_licence_pdf_contents(approval, proposal, copied_to_permit, app
     from apiary.components.approvals.serializers import ApprovalSerializerForLicenceDoc
 
     #dbca_logo = InlineImage(doc, image_descriptor='img/apiary_permit_dbca_logo.jpg', width=Mm(20), height=Mm(10))
-    #path_to_image = os.path.join(settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'img', 'apiary_permit_dbca_logo.jpg')
-    path_to_image = os.path.join(settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'img', 'dbca-logo.jpg')
+    #path_to_image = os.path.join(settings.BASE_DIR, 'apiary', 'static', 'apiary', 'img', 'apiary_permit_dbca_logo.jpg')
+    path_to_image = os.path.join(settings.BASE_DIR, 'apiary', 'static', 'apiary', 'img', 'dbca-logo.jpg')
     serializer_context = {
             'approver': approver,
             'site_transfer_preview': site_transfer_preview,

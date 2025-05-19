@@ -62,7 +62,7 @@ class ApprovalDocument(Document):
         logger.info('Cannot delete existing document object after Proposal has been submitted (including document submitted before Proposal pushback to status Draft): {}'.format(self.name))
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 class RenewalDocument(Document):
@@ -76,7 +76,7 @@ class RenewalDocument(Document):
         logger.info('Cannot delete existing document object after Proposal has been submitted (including document submitted before Proposal pushback to status Draft): {}'.format(self.name))
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 class ApiarySiteOnApproval(models.Model):
@@ -115,7 +115,7 @@ class ApiarySiteOnApproval(models.Model):
         return ''
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         unique_together = ['apiary_site', 'approval',]
 
 
@@ -165,7 +165,7 @@ class Approval(RevisionedMixin):
     migrated = models.BooleanField(default=False)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         unique_together = ('lodgement_number', 'issue_date')
 
     def add_apiary_sites_to_proposal_apiary_for_renewal(self, proposal_apiary):
@@ -631,14 +631,14 @@ class Approval(RevisionedMixin):
 
 class PreviewTempApproval(Approval):
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         #unique_together= ('lodgement_number', 'issue_date')
 
 class ApprovalLogEntry(CommunicationsLogEntry):
     approval = models.ForeignKey(Approval, related_name='comms_logs')
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
     def save(self, **kwargs):
         # save the application reference if the reference not provided
@@ -653,7 +653,7 @@ class ApprovalLogDocument(Document):
     #_file = models.FileField(upload_to=update_approval_doc_filename)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 class ApprovalUserAction(UserAction):
@@ -670,7 +670,7 @@ class ApprovalUserAction(UserAction):
     ACTION_UPDATE_NO_CHARGE_DATE_UNTIL = "'Do not charge annual site fee until' date updated to {} for approval {}"
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         ordering = ('-when',)
 
     @classmethod
@@ -731,7 +731,7 @@ class MigratedApiaryLicence(models.Model):
     licencee_type = models.CharField(max_length=40, choices=LICENCEE_TYPE_CHOICES)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         #ordering = ('-when',)
 
 

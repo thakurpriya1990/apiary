@@ -9,18 +9,18 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0220_auto_20210224_1617'),
+        ('apiary', '0220_auto_20210224_1617'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='sectionquestion',
             name='parent_answer',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.QuestionOption'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.QuestionOption'),
         ),
         migrations.AlterField(
             model_name='sectionquestion',
             name='parent_question',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children_question', to='disturbance.MasterlistQuestion'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children_question', to='apiary.MasterlistQuestion'),
         ),
     ]

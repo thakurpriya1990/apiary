@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0185_merge_20201005_1601'),
+        ('apiary', '0185_merge_20201005_1601'),
     ]
 
     operations = [

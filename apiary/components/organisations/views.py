@@ -7,4 +7,4 @@ class OrganisationHistoryCompareView(HistoryCompareDetailView):
     View for reversion_compare
     """
     model = Organisation
-    template_name = 'disturbance/reversion_history.html'
+    template_name = 'apiary/reversion_history.html'

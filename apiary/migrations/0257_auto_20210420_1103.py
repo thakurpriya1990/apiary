@@ -10,13 +10,13 @@ import smart_selects.db_fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0256_auto_20210420_1047'),
+        ('apiary', '0256_auto_20210420_1047'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='sectionquestion',
             name='parent_answer',
-            field=smart_selects.db_fields.ChainedForeignKey(blank=True, chained_field='parent_question', chained_model_field='masterlistquestion', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='options', to='disturbance.QuestionOption'),
+            field=smart_selects.db_fields.ChainedForeignKey(blank=True, chained_field='parent_question', chained_model_field='masterlistquestion', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='options', to='apiary.QuestionOption'),
         ),
     ]

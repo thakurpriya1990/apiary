@@ -27,7 +27,7 @@ class Payment(RevisionedMixin):
     expiry_time = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         abstract = True
 
     @property
@@ -118,7 +118,7 @@ class ApplicationFee(Payment):
         return 'Application {} : Invoice {}'.format(self.proposal, self.application_fee_invoices.last())
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 class AnnualRentalFeePeriod(RevisionedMixin):
@@ -129,7 +129,7 @@ class AnnualRentalFeePeriod(RevisionedMixin):
         return 'AnnualRentalFeePeriod from {} to {}'.format(self.period_start_date, self.period_end_date)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
         ordering = ['-period_end_date', '-period_start_date',]
         unique_together = ('period_start_date', 'period_end_date',)
 
@@ -147,7 +147,7 @@ class AnnualRentalFee(Payment):
         return 'Approval {} : Invoice {}'.format(self.approval, self.invoice_reference)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 class AnnualRentalFeeApiarySite(RevisionedMixin):
@@ -155,7 +155,7 @@ class AnnualRentalFeeApiarySite(RevisionedMixin):
     annual_rental_fee = models.ForeignKey(AnnualRentalFee, blank=True, null=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
 
 class ApplicationFeeInvoice(RevisionedMixin):
@@ -166,7 +166,7 @@ class ApplicationFeeInvoice(RevisionedMixin):
         return 'Application Fee {} : Invoice #{}'.format(self.id,self.invoice_reference)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = 'apiary'
 
     @property
     def active(self):

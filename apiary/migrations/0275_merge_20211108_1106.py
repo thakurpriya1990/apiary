@@ -8,7 +8,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0274_remove_maplayer_availability'),
+        ('apiary', '0274_remove_maplayer_availability'),
         ('disturbance', '0272_temporaryusepublicliabilityinsurancedocument'),
     ]
 

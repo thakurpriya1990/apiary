@@ -9,13 +9,13 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0077_auto_20200612_1153'),
+        ('apiary', '0077_auto_20200612_1153'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='approval',
             name='applicant',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='disturbance_approvals', to='disturbance.Organisation'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='disturbance_approvals', to='apiary.Organisation'),
         ),
     ]

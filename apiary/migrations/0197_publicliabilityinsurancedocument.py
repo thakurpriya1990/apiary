@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0196_auto_20201103_1429'),
+        ('apiary', '0196_auto_20201103_1429'),
     ]
 
     operations = [
@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('description', models.TextField(blank=True, verbose_name='description')),
                 ('uploaded_date', models.DateTimeField(auto_now_add=True)),
                 ('_file', models.FileField(max_length=255, upload_to=b'')),
-                ('proposal', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='public_liability_insurance_documents', to='disturbance.ProposalApiary')),
+                ('proposal', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='public_liability_insurance_documents', to='apiary.ProposalApiary')),
             ],
         ),
     ]

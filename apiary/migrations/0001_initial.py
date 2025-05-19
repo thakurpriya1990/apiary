@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
                 ('schema', django.contrib.postgres.fields.jsonb.JSONField()),
                 ('version', models.SmallIntegerField(default=1)),
                 ('ordered', models.BooleanField(default=False, verbose_name='Activities Ordered Alphabetically')),
-                ('replaced_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='disturbance.ActivityMatrix')),
+                ('replaced_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='apiary.ActivityMatrix')),
             ],
             options={
                 'verbose_name_plural': 'Activity matrix',
@@ -89,7 +89,7 @@ class Migration(migrations.Migration):
                 ('description', models.TextField(blank=True, verbose_name='description')),
                 ('uploaded_date', models.DateTimeField(auto_now_add=True)),
                 ('_file', models.FileField(upload_to=apiary.components.approvals.models.update_approval_doc_filename)),
-                ('approval', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='disturbance.Approval')),
+                ('approval', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='apiary.Approval')),
             ],
         ),
         migrations.CreateModel(
@@ -108,7 +108,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('when', models.DateTimeField(auto_now_add=True)),
                 ('what', models.TextField()),
-                ('approval', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='action_logs', to='disturbance.Approval')),
+                ('approval', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='action_logs', to='apiary.Approval')),
                 ('who', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -140,7 +140,7 @@ class Migration(migrations.Migration):
                 ('customer_status', models.CharField(choices=[('due', 'Due'), ('future', 'Future'), ('with_assessor', 'Under Review'), ('approved', 'Approved')], default='future', max_length=20)),
                 ('lodgement_date', models.DateTimeField(blank=True, null=True)),
                 ('reminder_sent', models.BooleanField(default=False)),
-                ('approval', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='compliances', to='disturbance.Approval')),
+                ('approval', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='compliances', to='apiary.Approval')),
                 ('assigned_to', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='disturbance_compliance_assignments', to=settings.AUTH_USER_MODEL)),
             ],
         ),
@@ -159,7 +159,7 @@ class Migration(migrations.Migration):
                 ('description', models.TextField(blank=True, verbose_name='description')),
                 ('uploaded_date', models.DateTimeField(auto_now_add=True)),
                 ('_file', models.FileField(upload_to=apiary.components.compliances.models.update_proposal_complaince_filename)),
-                ('compliance', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='disturbance.Compliance')),
+                ('compliance', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='apiary.Compliance')),
             ],
         ),
         migrations.CreateModel(
@@ -178,7 +178,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('when', models.DateTimeField(auto_now_add=True)),
                 ('what', models.TextField()),
-                ('compliance', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='action_logs', to='disturbance.Compliance')),
+                ('compliance', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='action_logs', to='apiary.Compliance')),
                 ('who', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
@@ -210,7 +210,7 @@ class Migration(migrations.Migration):
                 ('description', models.CharField(blank=True, max_length=256, null=True)),
                 ('help_type', models.SmallIntegerField(choices=[(1, 'External'), (2, 'Internal')], default=1, verbose_name='Help Type')),
                 ('version', models.SmallIntegerField(default=1)),
-                ('application_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.ApplicationType')),
+                ('application_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.ApplicationType')),
             ],
         ),
         migrations.CreateModel(
@@ -238,7 +238,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('when', models.DateTimeField(auto_now_add=True)),
                 ('what', models.TextField()),
-                ('organisation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='action_logs', to='disturbance.Organisation')),
+                ('organisation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='action_logs', to='apiary.Organisation')),
                 ('who', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
@@ -252,7 +252,7 @@ class Migration(migrations.Migration):
                 ('phone_number', models.CharField(blank=True, max_length=50, null=True, verbose_name='phone number')),
                 ('mobile_number', models.CharField(blank=True, max_length=50, null=True, verbose_name='mobile number')),
                 ('fax_number', models.CharField(blank=True, max_length=50, null=True, verbose_name='fax number')),
-                ('organisation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='contacts', to='disturbance.Organisation')),
+                ('organisation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='contacts', to='apiary.Organisation')),
             ],
         ),
         migrations.CreateModel(
@@ -282,7 +282,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('reason', models.TextField(blank=True)),
                 ('officer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('request', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.OrganisationRequest')),
+                ('request', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.OrganisationRequest')),
             ],
         ),
         migrations.CreateModel(
@@ -299,7 +299,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('when', models.DateTimeField(auto_now_add=True)),
                 ('what', models.TextField()),
-                ('request', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='action_logs', to='disturbance.OrganisationRequest')),
+                ('request', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='action_logs', to='apiary.OrganisationRequest')),
                 ('who', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
@@ -328,9 +328,9 @@ class Migration(migrations.Migration):
                 ('tenure', models.CharField(blank=True, max_length=255, null=True)),
                 ('approval_level', models.CharField(blank=True, max_length=255, null=True, verbose_name='Activity matrix approval level')),
                 ('approval_comment', models.TextField(blank=True)),
-                ('applicant', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='proposals', to='disturbance.Organisation')),
-                ('application_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.ApplicationType')),
-                ('approval', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.Approval')),
+                ('applicant', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='proposals', to='apiary.Organisation')),
+                ('application_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.ApplicationType')),
+                ('approval', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.Approval')),
             ],
         ),
         migrations.CreateModel(
@@ -358,7 +358,7 @@ class Migration(migrations.Migration):
                 ('reason', models.TextField(blank=True)),
                 ('cc_email', models.TextField(null=True)),
                 ('officer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('proposal', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='disturbance.Proposal')),
+                ('proposal', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='apiary.Proposal')),
             ],
         ),
         migrations.CreateModel(
@@ -370,7 +370,7 @@ class Migration(migrations.Migration):
                 ('uploaded_date', models.DateTimeField(auto_now_add=True)),
                 ('_file', models.FileField(upload_to=apiary.components.proposals.models.update_proposal_doc_filename)),
                 ('input_name', models.CharField(blank=True, max_length=255, null=True)),
-                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='disturbance.Proposal')),
+                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='apiary.Proposal')),
             ],
         ),
         migrations.CreateModel(
@@ -402,7 +402,7 @@ class Migration(migrations.Migration):
                 ('recurrence', models.BooleanField(default=False)),
                 ('recurrence_pattern', models.SmallIntegerField(choices=[(1, 'Weekly'), (2, 'Monthly'), (3, 'Yearly')], default=1)),
                 ('recurrence_schedule', models.IntegerField(blank=True, null=True)),
-                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='requirements', to='disturbance.Proposal')),
+                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='requirements', to='apiary.Proposal')),
             ],
         ),
         migrations.CreateModel(
@@ -423,7 +423,7 @@ class Migration(migrations.Migration):
                 ('schema', django.contrib.postgres.fields.jsonb.JSONField()),
                 ('version', models.SmallIntegerField(default=1)),
                 ('activities', taggit.managers.TaggableManager(help_text='A comma-separated list of activities.', through='taggit.TaggedItem', to='taggit.Tag', verbose_name='Activities')),
-                ('replaced_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='disturbance.ProposalType')),
+                ('replaced_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='apiary.ProposalType')),
             ],
         ),
         migrations.CreateModel(
@@ -432,7 +432,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('when', models.DateTimeField(auto_now_add=True)),
                 ('what', models.TextField()),
-                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='action_logs', to='disturbance.Proposal')),
+                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='action_logs', to='apiary.Proposal')),
                 ('who', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -449,7 +449,7 @@ class Migration(migrations.Migration):
                 ('processing_status', models.CharField(choices=[('with_referral', 'Awaiting'), ('recalled', 'Recalled'), ('completed', 'Completed')], default='with_referral', max_length=30, verbose_name='Processing Status')),
                 ('text', models.TextField(blank=True)),
                 ('referral_text', models.TextField(blank=True)),
-                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='referrals', to='disturbance.Proposal')),
+                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='referrals', to='apiary.Proposal')),
                 ('referral', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='disturbance_referalls', to=settings.AUTH_USER_MODEL)),
                 ('sent_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='disturbance_assessor_referrals', to=settings.AUTH_USER_MODEL)),
             ],
@@ -485,7 +485,7 @@ class Migration(migrations.Migration):
             name='TaggedProposalApproverGroupActivities',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('content_object', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.ProposalApproverGroup')),
+                ('content_object', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.ProposalApproverGroup')),
                 ('tag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='disturbance_taggedproposalapprovergroupactivities_items', to='taggit.Tag')),
             ],
         ),
@@ -493,7 +493,7 @@ class Migration(migrations.Migration):
             name='TaggedProposalApproverGroupRegions',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('content_object', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.ProposalApproverGroup')),
+                ('content_object', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.ProposalApproverGroup')),
                 ('tag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='disturbance_taggedproposalapprovergroupregions_items', to='taggit.Tag')),
             ],
         ),
@@ -501,7 +501,7 @@ class Migration(migrations.Migration):
             name='TaggedProposalAssessorGroupActivities',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('content_object', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.ProposalAssessorGroup')),
+                ('content_object', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.ProposalAssessorGroup')),
                 ('tag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='disturbance_taggedproposalassessorgroupactivities_items', to='taggit.Tag')),
             ],
         ),
@@ -509,7 +509,7 @@ class Migration(migrations.Migration):
             name='TaggedProposalAssessorGroupRegions',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('content_object', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.ProposalAssessorGroup')),
+                ('content_object', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.ProposalAssessorGroup')),
                 ('tag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='disturbance_taggedproposalassessorgroupregions_items', to='taggit.Tag')),
             ],
         ),
@@ -519,7 +519,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=255, unique=True)),
                 ('order', models.PositiveSmallIntegerField(default=0)),
-                ('application_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tenure_app_types', to='disturbance.ApplicationType')),
+                ('application_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tenure_app_types', to='apiary.ApplicationType')),
             ],
             options={
                 'ordering': ['order', 'name'],
@@ -529,88 +529,88 @@ class Migration(migrations.Migration):
             name='UserDelegation',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('organisation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.Organisation')),
+                ('organisation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.Organisation')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
             name='AmendmentRequest',
             fields=[
-                ('proposalrequest_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='disturbance.ProposalRequest')),
+                ('proposalrequest_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='apiary.ProposalRequest')),
                 ('status', models.CharField(choices=[('requested', 'Requested'), ('amended', 'Amended')], default='requested', max_length=30, verbose_name='Status')),
-                ('reason', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.AmendmentReason')),
+                ('reason', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.AmendmentReason')),
             ],
-            bases=('disturbance.proposalrequest',),
+            bases=('apiary.proposalrequest',),
         ),
         migrations.CreateModel(
             name='ApprovalLogEntry',
             fields=[
-                ('communicationslogentry_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='disturbance.CommunicationsLogEntry')),
+                ('communicationslogentry_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='apiary.CommunicationsLogEntry')),
             ],
-            bases=('disturbance.communicationslogentry',),
+            bases=('apiary.communicationslogentry',),
         ),
         migrations.CreateModel(
             name='Assessment',
             fields=[
-                ('proposalrequest_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='disturbance.ProposalRequest')),
+                ('proposalrequest_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='apiary.ProposalRequest')),
                 ('status', models.CharField(choices=[('awaiting_assessment', 'Awaiting Assessment'), ('assessed', 'Assessed'), ('assessment_expired', 'Assessment Period Expired')], default='awaiting_assessment', max_length=20, verbose_name='Status')),
                 ('date_last_reminded', models.DateField(blank=True, null=True)),
                 ('comment', models.TextField(blank=True)),
                 ('purpose', models.TextField(blank=True)),
                 ('assigned_assessor', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
-            bases=('disturbance.proposalrequest',),
+            bases=('apiary.proposalrequest',),
         ),
         migrations.CreateModel(
             name='ComplianceAmendmentRequest',
             fields=[
-                ('comprequest_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='disturbance.CompRequest')),
+                ('comprequest_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='apiary.CompRequest')),
                 ('status', models.CharField(choices=[('requested', 'Requested'), ('amended', 'Amended')], default='requested', max_length=30, verbose_name='Status')),
-                ('reason', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.ComplianceAmendmentReason')),
+                ('reason', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.ComplianceAmendmentReason')),
             ],
-            bases=('disturbance.comprequest',),
+            bases=('apiary.comprequest',),
         ),
         migrations.CreateModel(
             name='ComplianceLogEntry',
             fields=[
-                ('communicationslogentry_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='disturbance.CommunicationsLogEntry')),
+                ('communicationslogentry_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='apiary.CommunicationsLogEntry')),
             ],
-            bases=('disturbance.communicationslogentry',),
+            bases=('apiary.communicationslogentry',),
         ),
         migrations.CreateModel(
             name='ComplianceRequest',
             fields=[
-                ('proposalrequest_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='disturbance.ProposalRequest')),
+                ('proposalrequest_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='apiary.ProposalRequest')),
                 ('reason', models.CharField(choices=[('outstanding', 'There are currently outstanding returns for the previous licence'), ('other', 'Other')], default='outstanding', max_length=30, verbose_name='Reason')),
             ],
-            bases=('disturbance.proposalrequest',),
+            bases=('apiary.proposalrequest',),
         ),
         migrations.CreateModel(
             name='OrganisationLogEntry',
             fields=[
-                ('communicationslogentry_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='disturbance.CommunicationsLogEntry')),
+                ('communicationslogentry_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='apiary.CommunicationsLogEntry')),
             ],
-            bases=('disturbance.communicationslogentry',),
+            bases=('apiary.communicationslogentry',),
         ),
         migrations.CreateModel(
             name='OrganisationRequestLogEntry',
             fields=[
-                ('communicationslogentry_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='disturbance.CommunicationsLogEntry')),
-                ('request', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comms_logs', to='disturbance.OrganisationRequest')),
+                ('communicationslogentry_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='apiary.CommunicationsLogEntry')),
+                ('request', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comms_logs', to='apiary.OrganisationRequest')),
             ],
-            bases=('disturbance.communicationslogentry',),
+            bases=('apiary.communicationslogentry',),
         ),
         migrations.CreateModel(
             name='ProposalLogEntry',
             fields=[
-                ('communicationslogentry_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='disturbance.CommunicationsLogEntry')),
+                ('communicationslogentry_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='apiary.CommunicationsLogEntry')),
             ],
-            bases=('disturbance.communicationslogentry',),
+            bases=('apiary.communicationslogentry',),
         ),
         migrations.AddField(
             model_name='proposalrequirement',
             name='standard_requirement',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.ProposalStandardRequirement'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.ProposalStandardRequirement'),
         ),
         migrations.AddField(
             model_name='proposalrequest',
@@ -620,22 +620,22 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='proposalrequest',
             name='proposal',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.Proposal'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.Proposal'),
         ),
         migrations.AddField(
             model_name='proposalassessorgroup',
             name='region',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.Region'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.Region'),
         ),
         migrations.AddField(
             model_name='proposalapprovergroup',
             name='region',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.Region'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.Region'),
         ),
         migrations.AddField(
             model_name='proposal',
             name='approval_level_document',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='approval_level_document', to='disturbance.ProposalDocument'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='approval_level_document', to='apiary.ProposalDocument'),
         ),
         migrations.AddField(
             model_name='proposal',
@@ -650,12 +650,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='proposal',
             name='district',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.District'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.District'),
         ),
         migrations.AddField(
             model_name='proposal',
             name='previous_application',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='disturbance.Proposal'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='apiary.Proposal'),
         ),
         migrations.AddField(
             model_name='proposal',
@@ -665,7 +665,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='proposal',
             name='region',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.Region'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.Region'),
         ),
         migrations.AddField(
             model_name='proposal',
@@ -675,7 +675,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='organisation',
             name='delegates',
-            field=models.ManyToManyField(blank=True, related_name='disturbance_organisations', through='disturbance.UserDelegation', to=settings.AUTH_USER_MODEL),
+            field=models.ManyToManyField(blank=True, related_name='disturbance_organisations', through='apiary.UserDelegation', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='organisation',
@@ -685,12 +685,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='district',
             name='region',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='districts', to='disturbance.Region'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='districts', to='apiary.Region'),
         ),
         migrations.AddField(
             model_name='comprequest',
             name='compliance',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.Compliance'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.Compliance'),
         ),
         migrations.AddField(
             model_name='comprequest',
@@ -700,12 +700,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='compliance',
             name='proposal',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='compliances', to='disturbance.Proposal'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='compliances', to='apiary.Proposal'),
         ),
         migrations.AddField(
             model_name='compliance',
             name='requirement',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='compliance_requirement', to='disturbance.ProposalRequirement'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='compliance_requirement', to='apiary.ProposalRequirement'),
         ),
         migrations.AddField(
             model_name='compliance',
@@ -725,32 +725,32 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='approval',
             name='applicant',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='disturbance_approvals', to='disturbance.Organisation'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='disturbance_approvals', to='apiary.Organisation'),
         ),
         migrations.AddField(
             model_name='approval',
             name='cover_letter_document',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='cover_letter_document', to='disturbance.ApprovalDocument'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='cover_letter_document', to='apiary.ApprovalDocument'),
         ),
         migrations.AddField(
             model_name='approval',
             name='current_proposal',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='disturbance.Proposal'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='apiary.Proposal'),
         ),
         migrations.AddField(
             model_name='approval',
             name='licence_document',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='licence_document', to='disturbance.ApprovalDocument'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='licence_document', to='apiary.ApprovalDocument'),
         ),
         migrations.AddField(
             model_name='approval',
             name='renewal_document',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='renewal_document', to='disturbance.ApprovalDocument'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='renewal_document', to='apiary.ApprovalDocument'),
         ),
         migrations.AddField(
             model_name='approval',
             name='replaced_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.Approval'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.Approval'),
         ),
         migrations.AlterUniqueTogether(
             name='userdelegation',
@@ -763,27 +763,27 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='proposallogentry',
             name='proposal',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comms_logs', to='disturbance.Proposal'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comms_logs', to='apiary.Proposal'),
         ),
         migrations.AddField(
             model_name='proposallogdocument',
             name='log_entry',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='disturbance.ProposalLogEntry'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='apiary.ProposalLogEntry'),
         ),
         migrations.AddField(
             model_name='organisationrequestlogdocument',
             name='log_entry',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='disturbance.OrganisationRequestLogEntry'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='apiary.OrganisationRequestLogEntry'),
         ),
         migrations.AddField(
             model_name='organisationlogentry',
             name='organisation',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comms_logs', to='disturbance.Organisation'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comms_logs', to='apiary.Organisation'),
         ),
         migrations.AddField(
             model_name='organisationlogdocument',
             name='log_entry',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='disturbance.OrganisationLogEntry'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='apiary.OrganisationLogEntry'),
         ),
         migrations.AlterUniqueTogether(
             name='organisationcontact',
@@ -796,22 +796,22 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='compliancelogentry',
             name='compliance',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comms_logs', to='disturbance.Compliance'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comms_logs', to='apiary.Compliance'),
         ),
         migrations.AddField(
             model_name='compliancelogdocument',
             name='log_entry',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='disturbance.ComplianceLogEntry'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='apiary.ComplianceLogEntry'),
         ),
         migrations.AddField(
             model_name='approvallogentry',
             name='approval',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comms_logs', to='disturbance.Approval'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comms_logs', to='apiary.Approval'),
         ),
         migrations.AddField(
             model_name='approvallogdocument',
             name='log_entry',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='disturbance.ApprovalLogEntry'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='apiary.ApprovalLogEntry'),
         ),
         migrations.AlterUniqueTogether(
             name='approval',

@@ -9,18 +9,18 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0117_proposalrequirement_site_transfer_approval'),
+        ('apiary', '0117_proposalrequirement_site_transfer_approval'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='proposalapiary',
             name='target_approval',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='site_transfer_target_approval', to='disturbance.Approval'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='site_transfer_target_approval', to='apiary.Approval'),
         ),
         migrations.AlterField(
             model_name='proposalapiary',
             name='originating_approval',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='site_transfer_originating_approval', to='disturbance.Approval'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='site_transfer_originating_approval', to='apiary.Approval'),
         ),
     ]

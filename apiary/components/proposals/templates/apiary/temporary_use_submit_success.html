@@ -1,0 +1,14 @@
+{% extends 'apiary/base.html' %}
+{% load static %}
+{% block content %}
+<div class="container">
+    <div class="well">
+        <div class="row"><div class="col-sm-12">
+            <div>
+                <strong>Your Temporary Use form has been successfully submitted.</strong>
+            </div>
+            <strong>Date / Time: {{ modified_date|date:"d/m/Y H:i" }} </strong>
+        </div></div>
+    </div>
+</div>
+{% endblock %}

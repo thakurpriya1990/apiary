@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0054_auto_20200520_1507'),
+        ('apiary', '0054_auto_20200520_1507'),
     ]
 
     operations = [
@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='referral',
             name='referral_group',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_referral_groups', to='disturbance.ApiaryReferralGroup'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_referral_groups', to='apiary.ApiaryReferralGroup'),
         ),
         migrations.AlterField(
             model_name='apiaryreferralgroup',

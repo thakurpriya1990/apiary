@@ -8,13 +8,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('disturbance', '0272_maplayer'),
+        ('apiary', '0272_maplayer'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='masterlistquestion',
             name='option',
-            field=models.ManyToManyField(blank=True, to='disturbance.QuestionOption'),
+            field=models.ManyToManyField(blank=True, to='apiary.QuestionOption'),
         ),
     ]

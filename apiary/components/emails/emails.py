@@ -28,9 +28,9 @@ def host_reverse(name, args=None, kwargs=None):
 
 class TemplateEmailBase(object):
     subject = ''
-    html_template = 'disturbance/emails/base_email.html'
+    html_template = 'apiary/emails/base_email.html'
     # txt_template can be None, in this case a 'tag-stripped' version of the html will be sent. (see send)
-    txt_template = 'disturbance/emails/base-email.txt'
+    txt_template = 'apiary/emails/base-email.txt'
 
     def send_to_user(self, user, context=None):
         return self.send(user.email, context=context)
