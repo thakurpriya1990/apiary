@@ -1,6 +1,6 @@
 import logging
 
-from ledger.payments.models import Invoice
+from ledger_api_client.ledger_models import Invoice
 import collections
 from apiary.components.proposals.models import (
                                     ProposalType,

@@ -1,4 +1,4 @@
-from ledger.accounts.models import EmailUser,Address
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser,Address
 from django.utils import timezone
 from apiary import settings
 from apiary.components.approvals.models import (

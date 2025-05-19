@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('apiary', '0124_apiarychecklistanswer_text_answer'),
+        ('disturbance', '0124_apiarychecklistanswer_text_answer'),
     ]
 
     operations = [

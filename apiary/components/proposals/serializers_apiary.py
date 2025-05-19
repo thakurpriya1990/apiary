@@ -5,7 +5,7 @@ from datetime import datetime
 
 from django.db.models import Q
 
-from ledger.settings_base import TIME_ZONE
+import apiary.settings
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from apiary.components.approvals.serializers_apiary import ApiarySiteOnApprovalGeometrySerializer
@@ -59,11 +59,10 @@ from apiary.components.approvals.models import (
 )
 
 from rest_framework import serializers
-from ledger.accounts.models import Address
 from reversion.models import Version
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Address
 from copy import deepcopy
 
 from apiary.settings import SITE_STATUS_DRAFT
@@ -1115,7 +1114,7 @@ class ProposalApiarySerializer(serializers.ModelSerializer):
         return lodgement_number
 
     def get_site_remainders(self, proposal_apiary):
-        today_local = datetime.now(pytz.timezone(TIME_ZONE)).date()
+        today_local = datetime.now(pytz.timezone(settings.TIME_ZONE)).date()
 
         ret_list = []
         for category in SiteCategory.CATEGORY_CHOICES:

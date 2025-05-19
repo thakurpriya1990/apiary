@@ -11,7 +11,7 @@ from django.core.cache import cache
 from django.db import connection, transaction
 from django.db.models.query_utils import Q
 from rest_framework import serializers
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 from apiary.components.main.decorators import timeit
 from apiary.settings import SITE_STATUS_DRAFT, SITE_STATUS_APPROVED, SITE_STATUS_TRANSFERRED, RESTRICTED_RADIUS, \

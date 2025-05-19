@@ -5,7 +5,10 @@ from crispy_forms.layout import Layout, Submit
 from django.contrib.auth import get_user_model
 from django.forms import Form, ModelForm, CharField, ValidationError, EmailField
 
-from ledger.accounts.models import Profile, Address, Organisation
+from ledger_api_client.ledger_models import Address
+from apiary.components.organisations.models import (
+    Organisation
+)
 
 
 User = get_user_model()
@@ -70,35 +73,35 @@ class AddressForm(ModelForm):
         self.helper.add_input(Submit('cancel', 'Cancel'))
 
 
-class OrganisationAdminForm(ModelForm):
-    """ModelForm that is used in the Django admin site.
-    """
-    model = Organisation
+#class OrganisationAdminForm(ModelForm):
+#    """ModelForm that is used in the Django admin site.
+#    """
+#    model = Organisation
 
-    def clean_abn(self):
-        data = self.cleaned_data['abn']
-        # If it's changed, check for any existing organisations with the same ABN.
-        if data and self.instance.abn != data and Organisation.objects.filter(abn=data).exists():
-            raise ValidationError('An organisation with this ABN already exists.')
-        return data
+    #def clean_abn(self):
+    #    data = self.cleaned_data['abn']
+    #    # If it's changed, check for any existing organisations with the same ABN.
+    #    if data and self.instance.abn != data and Organisation.objects.filter(abn=data).exists():
+    #        raise ValidationError('An organisation with this ABN already exists.')
+    #    return data
 
 
-class OrganisationForm(OrganisationAdminForm):
-
-    class Meta:
-        model = Organisation
-        fields = ['name', 'abn', 'identification']
-
-    def __init__(self, *args, **kwargs):
-        super(OrganisationForm, self).__init__(*args, **kwargs)
-        self.fields['name'].label = 'Company name'
-        self.fields['identification'].label = 'Certificate of incorporation'
-        self.fields['identification'].help_text = 'Electronic copy of current certificate (e.g. image/PDF)'
-        self.helper = BaseFormHelper(self)
-        self.helper.form_id = 'id_form_organisation'
-        self.helper.attrs = {'novalidate': ''}
-        self.helper.add_input(Submit('save', 'Save', css_class='btn-lg'))
-        self.helper.add_input(Submit('cancel', 'Cancel'))
+#class OrganisationForm(OrganisationAdminForm):
+#
+#    class Meta:
+#        model = Organisation
+#        fields = ['name', 'abn', 'identification']
+#
+#    def __init__(self, *args, **kwargs):
+#        super(OrganisationForm, self).__init__(*args, **kwargs)
+        #self.fields['name'].label = 'Company name'
+        #self.fields['identification'].label = 'Certificate of incorporation'
+        #self.fields['identification'].help_text = 'Electronic copy of current certificate (e.g. image/PDF)'
+        #self.helper = BaseFormHelper(self)
+        #self.helper.form_id = 'id_form_organisation'
+        #self.helper.attrs = {'novalidate': ''}
+        #self.helper.add_input(Submit('save', 'Save', css_class='btn-lg'))
+        #self.helper.add_input(Submit('cancel', 'Cancel'))
 
 
 class DelegateAccessForm(Form):

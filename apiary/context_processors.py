@@ -1,6 +1,6 @@
 from confy import env
 from django.conf import settings
-from ledger.payments.helpers import is_payment_admin
+from ledger_api_client.helpers import is_payment_admin
 from apiary.settings import KMI_SERVER_URL
 import logging
 

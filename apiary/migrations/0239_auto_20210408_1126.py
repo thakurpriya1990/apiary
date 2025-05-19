@@ -10,7 +10,7 @@ import smart_selects.db_fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('apiary', '0238_auto_20210408_1124'),
+        ('disturbance', '0238_auto_20210408_1124'),
     ]
 
     operations = [

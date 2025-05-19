@@ -10,7 +10,7 @@ import smart_selects.db_fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('apiary', '0250_remove_sectionquestion_parent_question_test'),
+        ('disturbance', '0250_remove_sectionquestion_parent_question_test'),
     ]
 
     operations = [

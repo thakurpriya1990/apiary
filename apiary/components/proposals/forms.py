@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from apiary.components.proposals.models import (
         ProposalAssessorGroup,
         ProposalApproverGroup, 
@@ -156,19 +156,19 @@ class MasterlistQuestionAdminForm(forms.ModelForm):
 
    
 
-class SectionQuestionAdminForm(forms.ModelForm):
-    class Meta:
-        model = SectionQuestion
-        fields = '__all__'
-        #fields= ('section', 'question','order', 'parent_question','parent_answer', 'section__section_name')
-
-    def __init__(self, *args, **kwargs):
-        super(SectionQuestionAdminForm, self).__init__(*args, **kwargs)
-        #if self.instance:
-            #queryset_option=QuestionOption.objects.none()
-            #self.fields['parent_question'].queryset = MasterlistQuestion.objects.filter(option__isnull=False).distinct()
-            #import ipdb; ipdb.set_trace()
-            #self.fields['parent_question_another'].queryset = MasterlistQuestion.objects.filter(option__isnull=False).distinct()
+#class SectionQuestionAdminForm(forms.ModelForm):
+#    class Meta:
+#        model = SectionQuestion
+#        fields = '__all__'
+#        #fields= ('section', 'question','order', 'parent_question','parent_answer', 'section__section_name')
+#
+#    def __init__(self, *args, **kwargs):
+#        super(SectionQuestionAdminForm, self).__init__(*args, **kwargs)
+#        #if self.instance:
+#            #queryset_option=QuestionOption.objects.none()
+#            #self.fields['parent_question'].queryset = MasterlistQuestion.objects.filter(option__isnull=False).distinct()
+#            #import ipdb; ipdb.set_trace()
+#            #self.fields['parent_question_another'].queryset = MasterlistQuestion.objects.filter(option__isnull=False).distinct()
 
 
 class ProposalTypeActionForm(forms.Form):

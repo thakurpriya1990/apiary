@@ -1,4 +1,4 @@
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 

@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from django.conf import settings
 
 import logging
@@ -8,6 +8,16 @@ from rest_framework import serializers
 
 from apiary.components.organisations.models import Organisation
 logger = logging.getLogger(__name__)
+
+def in_dbca_domain(request):
+    user = request.user
+    domain = user.email.split('@')[1]
+    if domain in settings.DEPT_DOMAINS:
+        if not user.is_staff:
+            user.is_staff = True
+            user.save()
+        return True
+    return False
 
 def belongs_to(user, group_name):
     """

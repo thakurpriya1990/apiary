@@ -1,23 +1,22 @@
 import pytz
 from django.db.models import Q
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from datetime import datetime, timedelta
 
 from django.http.response import HttpResponse
-from ledger.settings_base import TIME_ZONE
+import apiary.settings
 
 from apiary.components.main.models import ApplicationType, ApiaryGlobalSettings
 from apiary.components.proposals.models import SiteCategory, ApiarySiteFeeType, \
     ApiarySiteFeeRemainder, ApiaryAnnualRentalFee, ApiarySite
 from apiary.components.das_payments.models import ApplicationFee, AnnualRentalFee, ApplicationFeeInvoice
-from ledger.checkout.utils import create_basket_session, create_checkout_session, calculate_excl_gst, \
+from ledger_api_client.utils import create_basket_session, create_checkout_session, calculate_excl_gst, \
     use_existing_basket_from_invoice
-from ledger.payments.models import Invoice
-from ledger.payments.utils import oracle_parser
+from ledger_api_client.ledger_models import Invoice
 
 import logging
 
@@ -136,7 +135,7 @@ def delete_session_site_transfer_application_invoice(session):
 def create_fee_lines_site_transfer(proposal):
     #import ipdb;ipdb.set_trace()
     now = datetime.now().strftime('%Y-%m-%d %H:%M')
-    today_local = datetime.now(pytz.timezone(TIME_ZONE)).date()
+    today_local = datetime.now(pytz.timezone(settings.TIME_ZONE)).date()
     #MIN_NUMBER_OF_SITES_TO_APPLY = 5
     line_items = []
 
@@ -256,7 +255,7 @@ def _get_remainders_obj(number_of_sites_to_add_as_remainder, site_category_id, p
 
 def create_fee_lines_apiary(proposal):
     now = datetime.now().strftime('%Y-%m-%d %H:%M')
-    today_local = datetime.now(pytz.timezone(TIME_ZONE)).date()
+    today_local = datetime.now(pytz.timezone(settings.TIME_ZONE)).date()
     MIN_NUMBER_OF_SITES_TO_RENEW = 5
     MIN_NUMBER_OF_SITES_TO_NEW = 5
     line_items = []
@@ -432,11 +431,6 @@ def checkout(request, proposal, lines, return_url_ns='public_payment_success', r
 #        )
 
     return response
-
-
-def oracle_integration(date,override):
-    system = '0517'
-    oracle_codes = oracle_parser(date, system, 'Disturbance Approval System', override=override)
 
 
 #def create_other_invoice_for_annual_rental_fee(approval, today_now, period, apiary_sites, request=None):

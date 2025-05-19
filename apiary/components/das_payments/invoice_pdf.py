@@ -2,7 +2,7 @@ import os
 
 from decimal import Decimal as D
 from io import BytesIO
-from oscar.templatetags.currency_filters import currency
+#from oscar.templatetags.currency_filters import currency
 from reportlab.lib import enums
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import BaseDocTemplate, PageTemplate, Frame, Paragraph, Spacer, Table, TableStyle, ListFlowable, \
@@ -17,7 +17,7 @@ from reportlab.lib import colors
 from django.core.files import File
 from django.conf import settings
 
-from ledger.checkout.utils import calculate_excl_gst
+#from ledger.checkout.utils import calculate_excl_gst
 from apiary.components.main.utils import to_local_tz
 
 DPAW_HEADER_LOGO = os.path.join(settings.PROJECT_DIR, 'payments','static', 'payments', 'img','dbca_logo.jpg')

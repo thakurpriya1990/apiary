@@ -8,7 +8,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('apiary', '0256_sectionquestion_property_cache'),
+        ('disturbance', '0256_sectionquestion_property_cache'),
         ('disturbance', '0267_auto_20210711_1208'),
     ]
 

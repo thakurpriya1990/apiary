@@ -11,7 +11,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('apiary', '0017_auto_20191030_1200'),
+        ('disturbance', '0017_auto_20191030_1200'),
     ]
 
     operations = [

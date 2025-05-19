@@ -1,11 +1,11 @@
 from django.conf import settings
-from ledger.accounts.models import EmailUser,Address, Document
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser,Address, Document
 from apiary.components.organisations.models import (   
                                     Organisation,
                                 )
 from apiary.components.organisations.utils import can_admin_org, is_consultant
 from rest_framework import serializers
-from ledger.accounts.utils import in_dbca_domain
+from apiary.helpers import in_dbca_domain
 from apiary.components.approvals.models import Approval
 from apiary.components.proposals.models import Proposal
 from apiary.components.main.models import ApplicationType

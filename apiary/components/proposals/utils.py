@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.db import transaction
 from django.contrib.gis.geos import Point, GEOSGeometry
-from ledger.accounts.models import EmailUser, Document
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Document
 from rest_framework import serializers
 
 from apiary.components.main.decorators import timeit

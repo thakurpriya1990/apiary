@@ -1,13 +1,13 @@
 import logging
 
 from django.core.mail import EmailMultiAlternatives, EmailMessage
-from django.utils.encoding import smart_text
-from django.core.urlresolvers import reverse
+from django.utils.encoding import smart_bytes
+from django.urls import reverse
 from django.conf import settings
 
 from apiary.components.emails.emails import TemplateEmailBase
 from apiary.components.main.decorators import update_settings_handler
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 logger = logging.getLogger(__name__)
 
@@ -396,12 +396,12 @@ def _log_org_request_email(email_message, request, sender=None):
         # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
-        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
+        fromm = smart_bytes(sender) if sender else smart_bytes(email_message.from_email)
         # the to email is normally a list
         if isinstance(email_message.to, list):
             to = ','.join(email_message.to)
         else:
-            to = smart_text(email_message.to)
+            to = smart_bytes(email_message.to)
         # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
         all_ccs = []
         if email_message.cc:
@@ -411,10 +411,10 @@ def _log_org_request_email(email_message, request, sender=None):
         all_ccs = ','.join(all_ccs)
 
     else:
-        text = smart_text(email_message)
+        text = smart_bytes(email_message)
         subject = ''
         to = request.requester.email
-        fromm = smart_text(sender) if sender else SYSTEM_NAME
+        fromm = smart_bytes(sender) if sender else SYSTEM_NAME
         all_ccs = ''
 
     customer = request.requester
@@ -443,12 +443,12 @@ def _log_org_email(email_message, organisation, customer ,sender=None):
         # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
-        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
+        fromm = smart_bytes(sender) if sender else smart_bytes(email_message.from_email)
         # the to email is normally a list
         if isinstance(email_message.to, list):
             to = ','.join(email_message.to)
         else:
-            to = smart_text(email_message.to)
+            to = smart_bytes(email_message.to)
         # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
         all_ccs = []
         if email_message.cc:
@@ -458,10 +458,10 @@ def _log_org_email(email_message, organisation, customer ,sender=None):
         all_ccs = ','.join(all_ccs)
 
     else:
-        text = smart_text(email_message)
+        text = smart_bytes(email_message)
         subject = ''
         to = request.requester.email
-        fromm = smart_text(sender) if sender else SYSTEM_NAME
+        fromm = smart_bytes(sender) if sender else SYSTEM_NAME
         all_ccs = ''
 
     customer = customer

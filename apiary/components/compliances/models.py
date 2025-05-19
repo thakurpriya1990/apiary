@@ -6,19 +6,17 @@ import datetime
 from django.db import models,transaction
 from django.dispatch import receiver
 from django.db.models.signals import pre_delete
-from django.utils.encoding import python_2_unicode_compatible
+from django.utils.six import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields.jsonb import JSONField
 from django.utils import timezone
 from django.contrib.sites.models import Site
 from taggit.managers import TaggableManager
 from taggit.models import TaggedItemBase
-from ledger.accounts.models import Organisation as ledger_organisation
-from ledger.accounts.models import EmailUser, RevisionedMixin
-from ledger.licence.models import  Licence
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from apiary import exceptions
 from apiary.components.organisations.models import Organisation
-from apiary.components.main.models import CommunicationsLogEntry, Region, UserAction, Document
+from apiary.components.main.models import CommunicationsLogEntry, Region, UserAction, Document, RevisionedMixin
 from apiary.components.proposals.models import ProposalRequirement, AmendmentReason
 from apiary.components.compliances.email import (
                         send_compliance_accept_email_notification,
@@ -66,24 +64,24 @@ class Compliance(RevisionedMixin):
 
 
     lodgement_number = models.CharField(max_length=9, blank=True, default='')
-    proposal = models.ForeignKey('apiary.Proposal',related_name='compliances', blank=True, null=True)
-    approval = models.ForeignKey('apiary.Approval',related_name='compliances')
+    proposal = models.ForeignKey('apiary.Proposal',related_name='compliances', blank=True, null=True, on_delete=models.CASCADE)
+    approval = models.ForeignKey('apiary.Approval',related_name='compliances', on_delete=models.CASCADE)
     due_date = models.DateField()
     text = models.TextField(blank=True)
     processing_status = models.CharField(choices=PROCESSING_STATUS_CHOICES,max_length=20)
     customer_status = models.CharField(choices=CUSTOMER_STATUS_CHOICES,max_length=20, default=CUSTOMER_STATUS_CHOICES[1][0])
-    assigned_to = models.ForeignKey(EmailUser,related_name='disturbance_compliance_assignments',null=True,blank=True)
+    assigned_to = models.ForeignKey(EmailUser,related_name='disturbance_compliance_assignments',null=True,blank=True, on_delete=models.CASCADE)
     #requirement = models.TextField(null=True,blank=True)
     requirement = models.ForeignKey(ProposalRequirement, blank=True, null=True, related_name='compliance_requirement', on_delete=models.SET_NULL)
     lodgement_date = models.DateTimeField(blank=True, null=True)
-    submitter = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_compliances')
+    submitter = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_compliances', on_delete=models.CASCADE)
     reminder_sent = models.BooleanField(default=False)
     post_reminder_sent = models.BooleanField(default=False)
     apiary_compliance = models.BooleanField(default=False)
 
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
     @property
     def regions(self):
@@ -269,7 +267,7 @@ def update_proposal_complaince_filename(instance, filename):
 
 
 class ComplianceDocument(Document):
-    compliance = models.ForeignKey('Compliance',related_name='documents')
+    compliance = models.ForeignKey('Compliance',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_proposal_complaince_filename, max_length=500, storage=private_storage)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
 
@@ -279,7 +277,7 @@ class ComplianceDocument(Document):
         logger.info('Cannot delete existing document object after Compliance has been submitted (including document submitted before Compliance pushback to status Due): {}'.format(self.name))
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 class ComplianceUserAction(UserAction):
@@ -305,13 +303,13 @@ class ComplianceUserAction(UserAction):
             what=str(action)
         )
 
-    compliance = models.ForeignKey(Compliance,related_name='action_logs')
+    compliance = models.ForeignKey(Compliance,related_name='action_logs', on_delete=models.CASCADE)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 class ComplianceLogEntry(CommunicationsLogEntry):
-    compliance = models.ForeignKey(Compliance, related_name='comms_logs')
+    compliance = models.ForeignKey(Compliance, related_name='comms_logs', on_delete=models.CASCADE)
 
     def save(self, **kwargs):
         # save the request id if the reference not provided
@@ -320,33 +318,33 @@ class ComplianceLogEntry(CommunicationsLogEntry):
         super(ComplianceLogEntry, self).save(**kwargs)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 def update_compliance_comms_log_filename(instance, filename):
     return 'proposals/{}/compliance/{}/communications/{}/{}'.format(instance.log_entry.compliance.proposal.id,instance.log_entry.compliance.id,instance.log_entry.id,filename)
 
 
 class ComplianceLogDocument(Document):
-    log_entry = models.ForeignKey('ComplianceLogEntry',related_name='documents')
+    log_entry = models.ForeignKey('ComplianceLogEntry',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_compliance_comms_log_filename, storage=private_storage)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 class CompRequest(models.Model):
-    compliance = models.ForeignKey(Compliance)
+    compliance = models.ForeignKey(Compliance, on_delete=models.CASCADE)
     subject = models.CharField(max_length=200, blank=True)
     text = models.TextField(blank=True)
-    officer = models.ForeignKey(EmailUser, null=True)
+    officer = models.ForeignKey(EmailUser, null=True, on_delete=models.CASCADE)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 class ComplianceAmendmentReason(models.Model):
     reason = models.CharField('Reason', max_length=125)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
     def __str__(self):
         return self.reason
@@ -368,10 +366,10 @@ class ComplianceAmendmentRequest(CompRequest):
 
     status = models.CharField('Status', max_length=30, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
     # reason = models.CharField('Reason', max_length=30, choices=REASON_CHOICES, default=REASON_CHOICES[0][0])
-    reason = models.ForeignKey(ComplianceAmendmentReason, blank=True, null=True)
+    reason = models.ForeignKey(ComplianceAmendmentReason, blank=True, null=True, on_delete=models.CASCADE)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
     def generate_amendment(self,request):
         with transaction.atomic():

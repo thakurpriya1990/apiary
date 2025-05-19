@@ -4,7 +4,6 @@ from django.conf.urls import url, include
 from django.conf.urls.static import static
 from rest_framework import routers
 from apiary import views
-from apiary.admin import disturbance_admin_site
 from apiary.components.main.views import deed_poll_url, GeocodingAddressSearchTokenView
 from apiary.components.proposals import views as proposal_views
 from apiary.components.organisations import views as organisation_views
@@ -19,7 +18,7 @@ from apiary.components.compliances import api as compliances_api
 from apiary.components.main import api as main_api
 from apiary.components.history import api as history_api
 
-from ledger.urls import urlpatterns as ledger_patterns
+from ledger_api_client.urls import urlpatterns as ledger_patterns
 from django_media_serv.urls import urlpatterns as media_serv_patterns
 
 # API patterns

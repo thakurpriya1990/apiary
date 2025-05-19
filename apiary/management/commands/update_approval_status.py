@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.conf import settings
 from apiary.components.approvals.models import Approval, ApprovalUserAction
 from apiary.components.proposals.models import Proposal, ProposalUserAction
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 import datetime
 from apiary.components.approvals.email import (
     send_approval_expire_email_notification, 

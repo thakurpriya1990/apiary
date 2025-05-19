@@ -10,7 +10,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('apiary', '0003_compliance_post_reminder_sent'),
+        ('disturbance', '0003_compliance_post_reminder_sent'),
     ]
 
     operations = [

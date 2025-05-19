@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import Q, Min
 from ledger.checkout.utils import createCustomBasket
-from ledger.payments.invoice.models import Invoice
+from ledger_api_client.ledger_models import Invoice
 from ledger.payments.invoice.utils import CreateInvoiceBasket
 from ledger.settings_base import TIME_ZONE
 

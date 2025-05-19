@@ -9,7 +9,7 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('apiary', '0182_remove_approval_apiary_renewal_document'),
+        ('disturbance', '0182_remove_approval_apiary_renewal_document'),
     ]
 
     operations = [

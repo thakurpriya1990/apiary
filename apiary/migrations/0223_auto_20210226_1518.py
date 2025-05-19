@@ -9,7 +9,7 @@ import multiselectfield.db.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('apiary', '0222_auto_20210226_1115'),
+        ('disturbance', '0222_auto_20210226_1115'),
     ]
 
     operations = [

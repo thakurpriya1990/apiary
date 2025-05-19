@@ -3,9 +3,8 @@ from wsgiref.util import FileWrapper
 
 from django.conf import settings
 from django.http.response import HttpResponse
-from ledger.payments.utils import oracle_parser
 from rest_framework import viewsets, serializers, status, generics, views
-from rest_framework.decorators import detail_route, list_route, renderer_classes, parser_classes
+from rest_framework.decorators import action, renderer_classes, parser_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, BasePermission
@@ -73,7 +72,7 @@ class ApplicationTypeViewSet(viewsets.ReadOnlyModelViewSet):
             return ApplicationType.objects.order_by('order').filter(visible=True)
         return ApplicationType.objects.none()
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def searchable_application_types(self, request, *args, **kwargs):
         queryset = ApplicationType.objects.order_by('order').filter(visible=True, searchable=True)
         serializer = self.get_serializer(queryset, many=True)
@@ -109,13 +108,6 @@ class BookingSettlementReportView(views.APIView):
             traceback.print_exc()
 
 
-def oracle_integration(date, override):
-    system = PAYMENT_SYSTEM_PREFIX
-    #oracle_codes = oracle_parser(date, system, 'Commercial Operator Licensing', override=override)
-    # oracle_codes = oracle_parser(date, system, 'WildlifeCompliance', override=override)
-    oracle_codes = oracle_parser(date, system, 'Apiary Licensing System', override=override)
-
-
 class OracleJob(views.APIView):
     renderer_classes = [JSONRenderer]
 
@@ -127,7 +119,7 @@ class OracleJob(views.APIView):
             }
             serializer = OracleSerializer(data=data)
             serializer.is_valid(raise_exception=True)
-            oracle_integration(serializer.validated_data['date'].strftime('%Y-%m-%d'),serializer.validated_data['override'])
+            #oracle_integration(serializer.validated_data['date'].strftime('%Y-%m-%d'),serializer.validated_data['override'])
             data = {'successful':True}
             return Response(data)
         except serializers.ValidationError:

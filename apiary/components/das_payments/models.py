@@ -5,15 +5,15 @@ from datetime import datetime, timedelta
 from django.contrib.postgres.fields import JSONField
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models, transaction
-from django.utils.encoding import python_2_unicode_compatible
+from django.utils.six import python_2_unicode_compatible
 from django.utils import timezone
-from ledger.accounts.models import EmailUser, RevisionedMixin
-from ledger.payments.models import Invoice
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from apiary.components.main.models import RevisionedMixin
+from ledger_api_client.ledger_models import Invoice
 
 from apiary.components.approvals.models import Approval
 from apiary.components.proposals.models import Proposal, ApiarySite
 from decimal import Decimal as D
-from ledger.checkout.utils import calculate_excl_gst
 
 import logging
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class Payment(RevisionedMixin):
     expiry_time = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         abstract = True
 
     @property
@@ -118,7 +118,7 @@ class ApplicationFee(Payment):
         return 'Application {} : Invoice {}'.format(self.proposal, self.application_fee_invoices.last())
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 class AnnualRentalFeePeriod(RevisionedMixin):
@@ -129,7 +129,7 @@ class AnnualRentalFeePeriod(RevisionedMixin):
         return 'AnnualRentalFeePeriod from {} to {}'.format(self.period_start_date, self.period_end_date)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         ordering = ['-period_end_date', '-period_start_date',]
         unique_together = ('period_start_date', 'period_end_date',)
 
@@ -147,26 +147,26 @@ class AnnualRentalFee(Payment):
         return 'Approval {} : Invoice {}'.format(self.approval, self.invoice_reference)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 class AnnualRentalFeeApiarySite(RevisionedMixin):
-    apiary_site = models.ForeignKey(ApiarySite, blank=True, null=True)
-    annual_rental_fee = models.ForeignKey(AnnualRentalFee, blank=True, null=True)
+    apiary_site = models.ForeignKey(ApiarySite, blank=True, null=True, on_delete=models.CASCADE)
+    annual_rental_fee = models.ForeignKey(AnnualRentalFee, blank=True, null=True, on_delete=models.CASCADE)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 class ApplicationFeeInvoice(RevisionedMixin):
-    application_fee = models.ForeignKey(ApplicationFee, related_name='application_fee_invoices')
+    application_fee = models.ForeignKey(ApplicationFee, related_name='application_fee_invoices', on_delete=models.CASCADE)
     invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
 
     def __str__(self):
         return 'Application Fee {} : Invoice #{}'.format(self.id,self.invoice_reference)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
     @property
     def active(self):

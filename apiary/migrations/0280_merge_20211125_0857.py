@@ -8,7 +8,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('apiary', '0279_auto_20211116_1812'),
+        ('disturbance', '0279_auto_20211116_1812'),
         ('disturbance', '0278_auto_20211122_1614'),
     ]
 

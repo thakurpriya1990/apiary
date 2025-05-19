@@ -1,4 +1,4 @@
-from ledger.payments.invoice.models import Invoice
+from ledger_api_client.ledger_models import Invoice
 from rest_framework import serializers
 
 from apiary.components.das_payments.models import AnnualRentalFee, AnnualRentalFeePeriod

@@ -8,7 +8,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('apiary', '0184_remove_renewaldocument_for_expiry_date'),
+        ('disturbance', '0184_remove_renewaldocument_for_expiry_date'),
         ('disturbance', '0182_merge_20201005_0959'),
     ]
 

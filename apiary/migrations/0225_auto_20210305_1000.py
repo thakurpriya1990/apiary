@@ -10,7 +10,7 @@ import smart_selects.db_fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('apiary', '0224_masterlistquestion_help_text_assessor_url'),
+        ('disturbance', '0224_masterlistquestion_help_text_assessor_url'),
     ]
 
     operations = [

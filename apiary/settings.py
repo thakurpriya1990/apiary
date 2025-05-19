@@ -1,14 +1,14 @@
 from django.core.exceptions import ImproperlyConfigured
 
 import os, hashlib
-import confy
+from confy import env
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-confy.read_environment_file(BASE_DIR+"/.env")
+#confy.read_environment_file(BASE_DIR+"/.env")
 os.environ.setdefault("BASE_DIR", BASE_DIR)
 
-from ledger.settings_base import *
+from ledger_api_client.settings_base import *
 
-
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 ROOT_URLCONF = 'apiary.urls'
 SITE_ID = 1
 DEPT_DOMAINS = env('DEPT_DOMAINS', ['dpaw.wa.gov.au', 'dbca.wa.gov.au'])
@@ -43,6 +43,7 @@ INSTALLED_APPS += [
     'ckeditor',
     # 'corsheaders',
     'smart_selects',
+    'ledger_api_client',
 ]
 
 ADD_REVERSION_ADMIN=True
@@ -77,6 +78,12 @@ REST_FRAMEWORK = {
 
 USE_DJANGO_JQUERY= True
 # JQUERY_URL = True
+
+MIDDLEWARE = (
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+)
 
 MIDDLEWARE_CLASSES += [
     'apiary.middleware.BookingTimerMiddleware',

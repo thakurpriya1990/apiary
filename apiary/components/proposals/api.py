@@ -7,15 +7,15 @@ import json
 from dateutil import parser
 
 import pytz
-from ledger.settings_base import TIME_ZONE, DATABASES
+import apiary.settings
 from django.db.models import Q
 from django.db import transaction, connection
 from django.core.exceptions import ValidationError
 from rest_framework import viewsets, serializers, status, views
-from rest_framework.decorators import detail_route, list_route, renderer_classes
+from rest_framework.decorators import action, renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from datetime import datetime
 from reversion.models import Version
 from rest_framework.exceptions import NotFound
@@ -339,7 +339,7 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
 #        #response.data['regions'] = self.get_queryset().filter(region__isnull=False).values_list('region__name', flat=True).distinct()
 #        return response
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def proposals_internal(self, request, *args, **kwargs):
         """
         Used by the internal dashboard
@@ -377,7 +377,7 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
         #serializer = DTProposalSerializer(result_page, context={'request':request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
 
-    #@list_route(methods=['GET',])
+    #@action(detail=False,methods=['GET',])
     #def referrals_internal(self, request, *args, **kwargs):
     #    """
     #    Used by the internal dashboard
@@ -408,7 +408,7 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
     #        }, many=True)
     #    return self.paginator.get_paginated_response(serializer.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def referrals_internal(self, request, *args, **kwargs):
         """
         Used by the internal dashboard
@@ -444,7 +444,7 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
         return self.paginator.get_paginated_response(serializer.data)
 
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def proposals_external(self, request, *args, **kwargs):
         """
         Used by the external dashboard
@@ -525,7 +525,7 @@ class OnSiteInformationViewSet(viewsets.ModelViewSet):
         with transaction.atomic():
             instance = self.get_object()
 
-            now = datetime.now(pytz.timezone(TIME_ZONE))
+            now = datetime.now(pytz.timezone(settings.TIME_ZONE))
             serializer = OnSiteInformationSerializer(instance, {'datetime_deleted': now}, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
@@ -600,14 +600,14 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
                 return True
         return False
 
-    # @detail_route(methods=['GET',])
+    # @action(detail=True,methods=['GET',])
     # @basic_exception_handler
     # def relevant_applicant_name(self, request, *args, **kwargs):
     #     apiary_site = self.get_object()
     #     relevant_applicant = apiary_site.get_relevant_applicant_name()
     #     return Response({'relevant_applicant': relevant_applicant})
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     @basic_exception_handler
     def relevant_applicant_name(self, request, pk=None):
         try:
@@ -632,7 +632,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
             #logger.warn("User is neither internal user nor customer: {} <{}>".format(user.get_full_name(), user.email))
             return ApiarySite.objects.none()
         
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     @basic_exception_handler
     def contact_licence_holder(self, request, pk=None):
         # apiary_site = self.get_object()
@@ -654,7 +654,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
 
         return Response({})
 
-    @list_route(methods=['GET', ])
+    @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_draft(self, request):
         proposal_id = request.query_params.get('proposal_id', None)
@@ -664,7 +664,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         serializer_proposal_draft = ApiarySiteOnProposalDraftMinimalGeometrySerializer(qs_on_proposal_draft, many=True)
         return Response(serializer_proposal_draft.data)
 
-    @list_route(methods=['GET', ])
+    @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_vacant(self, request):
         search_text = request.query_params.get('search_text', '')
@@ -674,7 +674,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         serializer_vacant_approval.data['features'].extend(serializer_vacant_proposal.data['features'])
         return Response(serializer_vacant_approval.data)
 
-    @list_route(methods=['GET', ])
+    @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_pending(self, request):
         search_text = request.query_params.get('search_text', '')
@@ -682,7 +682,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         serializer = ApiarySiteOnProposalProcessedMinimalGeometrySerializer(qs_sites, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['GET', ])
+    @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_denied(self, request):
         search_text = request.query_params.get('search_text', '')
@@ -690,7 +690,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         serializer = ApiarySiteOnProposalProcessedMinimalGeometrySerializer(qs_sites, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['GET', ])
+    @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_current_available(self, request):
         search_text = request.query_params.get('search_text', '')
@@ -698,7 +698,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_sites, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['GET', ])
+    @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_current_unavailable(self, request):
         search_text = request.query_params.get('search_text', '')
@@ -706,7 +706,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_sites, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['GET', ])
+    @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_current(self, request):
         search_text = request.query_params.get('search_text', '')
@@ -714,7 +714,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_sites, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['GET', ])
+    @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_suspended(self, request):
         search_text = request.query_params.get('search_text', '')
@@ -722,7 +722,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_sites, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['GET', ])
+    @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_not_to_be_reissued(self, request):
         search_text = request.query_params.get('search_text', '')
@@ -730,7 +730,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_sites, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['GET', ])
+    @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_discarded(self, request):
         search_text = request.query_params.get('search_text', '')
@@ -738,7 +738,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         serializer = ApiarySiteOnProposalProcessedMinimalGeometrySerializer(qs_sites, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     @basic_exception_handler
     @timeit
     #@query_debugger
@@ -747,7 +747,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         serializer_vacant_proposal_d = ApiarySiteOnProposalVacantDraftMinimalGeometrySerializer(qs_vacant_site_proposal.filter(wkb_geometry_processed__isnull=True), many=True)
         return Response(serializer_vacant_proposal_d.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     @basic_exception_handler
     @timeit
     #@query_debugger
@@ -757,7 +757,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         serializer_vacant_proposal = ApiarySiteOnProposalVacantProcessedMinimalGeometrySerializer(qs_vacant_site_proposal.filter(wkb_geometry_processed__isnull=False), many=True)
         return Response(serializer_vacant_proposal.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     @basic_exception_handler
     @timeit
     #@query_debugger
@@ -766,7 +766,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         serializer_vacant_approval = ApiarySiteOnApprovalMinGeometrySerializer(qs_vacant_site_approval, many=True)
         return Response(serializer_vacant_approval.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     @basic_exception_handler
     @timeit
     #@query_debugger
@@ -778,7 +778,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         serializer_proposal_draft = ApiarySiteOnProposalDraftMinimalGeometrySerializer(qs_on_proposal_draft, many=True)
         return Response(serializer_proposal_draft.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     @basic_exception_handler
     @timeit
     #@query_debugger
@@ -789,7 +789,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         serializer_proposal_processed = ApiarySiteOnProposalProcessedMinimalGeometrySerializer(qs_on_proposal_processed, many=True)
         return Response(serializer_proposal_processed.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     @basic_exception_handler
     @timeit
     #@query_debugger
@@ -822,7 +822,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         qs_on_proposal = ApiarySiteOnProposal.objects.filter(q_include_proposal).distinct('apiary_site')
         return qs_on_proposal
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     @basic_exception_handler
     def available_sites(self, request):
         qs_on_approval = self._available_sites_qs()
@@ -830,7 +830,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     @basic_exception_handler
     def transitable_sites(self, request):
         qs_on_proposal = self._denied_sites_qs()
@@ -894,7 +894,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
     serializer_class = ProposalApiarySerializer
 
     # To solve the performance issue
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     @basic_exception_handler
     def apiary_sites(self, request, *args, **kwargs):
         proposal_apiary = self.get_object()
@@ -908,7 +908,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
             ret.append(serializer(inter_obj).data)
         return Response(ret)
 
-    @detail_route(methods=['GET', ])
+    @action(detail=True,methods=['GET', ])
     def on_site_information_list(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = ProposalApiarySerializer(instance)
@@ -936,7 +936,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
             pass
             #return InternalProposalSerializer
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def internal_apiary_proposal(self, request, *args, **kwargs):
         instance = self.get_object()
         proposal_instance = instance.proposal
@@ -946,7 +946,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
         serializer = serializer_class(proposal_instance,context={'request':request})
         return Response(serializer.data)
 
-    @detail_route(methods=['POST'])
+    @action(detail=True,methods=['POST'])
     @renderer_classes((JSONRenderer,))
     @basic_exception_handler
     def process_deed_poll_document(self, request, *args, **kwargs):
@@ -957,7 +957,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
         else:
             return Response()
 
-    @detail_route(methods=['POST'])
+    @action(detail=True,methods=['POST'])
     @renderer_classes((JSONRenderer,))
     @basic_exception_handler
     def process_public_liability_insurance_document(self, request, *args, **kwargs):
@@ -972,7 +972,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
         else:
             return Response()
 
-    @detail_route(methods=['POST'])
+    @action(detail=True,methods=['POST'])
     @renderer_classes((JSONRenderer,))
     @basic_exception_handler
     def process_supporting_application_document(self, request, *args, **kwargs):
@@ -983,7 +983,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
         else:
             return Response()
 
-    @detail_route(methods=['post'])
+    @action(detail=True,methods=['post'])
     @basic_exception_handler
     def apiary_assessor_send_referral(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -997,7 +997,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
         serializer = serializer_class(instance.proposal,context={'request':request})
         return Response(serializer.data)
 
-    @detail_route(methods=['post'])
+    @action(detail=True,methods=['post'])
     @renderer_classes((JSONRenderer,))
     @basic_exception_handler
     def assessor_save(self, request, *args, **kwargs):
@@ -1008,7 +1008,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
                 self)
         return redirect(reverse('external'))
 
-    @detail_route(methods=['GET', ])
+    @action(detail=True,methods=['GET', ])
     @renderer_classes((JSONRenderer,))
     def proposal_history(self, request, *args, **kwargs):
         try:
@@ -1034,7 +1034,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     @basic_exception_handler
     def final_approval(self, request, *args, **kwargs):
         with transaction.atomic():
@@ -1089,7 +1089,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
                 return licence_response
             return Response(serializer.data)
 
-    @detail_route(methods=['POST', ])
+    @action(detail=True,methods=['POST', ])
     def get_licence_holders(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1134,7 +1134,7 @@ class ApiaryReferralViewSet(viewsets.ModelViewSet):
             return queryset
         return ApiaryReferral.objects.none()
 
-    #@list_route(methods=['GET',])
+    #@action(detail=False,methods=['GET',])
     #def filter_list(self, request, *args, **kwargs):
     #    """ Used by the external dashboard filters """
     #    qs =  self.get_queryset().filter(referral=request.user)
@@ -1160,19 +1160,19 @@ class ApiaryReferralViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance, context={'request':request})
         return Response(serializer.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def user_list(self, request, *args, **kwargs):
         qs = self.get_queryset().filter(referral__referral=request.user)
         serializer = DTReferralSerializer(qs, many=True)
         #serializer = DTReferralSerializer(self.get_queryset(), many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def user_group_list(self, request, *args, **kwargs):
         qs = ApiaryReferralGroup.objects.filter().values_list('name', flat=True)
         return Response(qs)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def datatable_list(self, request, *args, **kwargs):
         proposal_field = request.GET.get('proposal',None)
         proposal = Proposal.objects.get(id=int(proposal_field))
@@ -1186,7 +1186,7 @@ class ApiaryReferralViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def referral_list(self, request, *args, **kwargs):
         instance = self.get_object()
         #qs = self.get_queryset().all()
@@ -1201,7 +1201,7 @@ class ApiaryReferralViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    @detail_route(methods=['GET', 'POST'])
+    @action(detail=True,methods=['GET', 'POST'])
     def complete(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1236,7 +1236,7 @@ class ApiaryReferralViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def remind(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1254,7 +1254,7 @@ class ApiaryReferralViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def recall(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1273,7 +1273,7 @@ class ApiaryReferralViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def resend(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1292,7 +1292,7 @@ class ApiaryReferralViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['post'])
+    @action(detail=True,methods=['post'])
     def send_referral(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1312,7 +1312,7 @@ class ApiaryReferralViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def assign_request_user(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1333,7 +1333,7 @@ class ApiaryReferralViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def assign_to(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1363,7 +1363,7 @@ class ApiaryReferralViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def unassign(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1456,7 +1456,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def get_revision(self, request, *args, **kwargs):
         """
         Use the Proposal model method to get a particular Proposal revision.
@@ -1477,7 +1477,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def get_revision_diffs(self, request, *args, **kwargs):
         """
         Use the Proposal model method to get the differences between the lastest revision and
@@ -1500,7 +1500,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET'])
+    @action(detail=True,methods=['GET'])
     def version_differences(self, request, *args, **kwargs):
         """ Returns a json response containing the differences between two 
             versions.
@@ -1517,7 +1517,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
         return Response(differences)
 
-    @detail_route(methods=['GET'])
+    @action(detail=True,methods=['GET'])
     def version_differences_comment_data(self, request, *args, **kwargs):
         """ Returns a json response containing the differences between two 
             versions.
@@ -1534,7 +1534,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
         return JsonResponse(differences, safe=False)
 
-    @detail_route(methods=['GET'])
+    @action(detail=True,methods=['GET'])
     def version_differences_assessor_data(self, request, *args, **kwargs):
         """ Returns a json response containing the differences between two 
             versions.
@@ -1551,7 +1551,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
         return JsonResponse(differences, safe=False)
 
-    @detail_route(methods=['GET'])
+    @action(detail=True,methods=['GET'])
     def version_differences_documents(self, request, *args, **kwargs):
         """ Returns a json response containing the differences between two 
             versions.
@@ -1569,7 +1569,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
         return JsonResponse(differences, safe=False)
 
-    @detail_route(methods=['POST'])
+    @action(detail=True,methods=['POST'])
     @renderer_classes((JSONRenderer,))
     def process_deed_poll_document(self, request, *args, **kwargs):
         try:
@@ -1589,7 +1589,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def filter_list(self, request, *args, **kwargs):
         """ Used by the internal/external dashboard filters """
         template_group = get_template_group(request)
@@ -1626,7 +1626,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
         )
         return Response(data)
 
-    @detail_route(methods=['POST'])
+    @action(detail=True,methods=['POST'])
     @renderer_classes((JSONRenderer,))
     def process_document(self, request, *args, **kwargs):
         try:
@@ -1708,7 +1708,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
 #        serializer = ListProposalSerializer(self.get_queryset(), context={'request':request}, many=True)
 #        return Response(serializer.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def list_paginated(self, request, *args, **kwargs):
         """
         https://stackoverflow.com/questions/29128225/django-rest-framework-3-1-breaks-pagination-paginationserializer
@@ -1721,7 +1721,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
         serializer = ListProposalSerializer(result_page, context={'request':request}, many=True)
         return paginator.get_paginated_response(serializer.data)
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def action_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1738,7 +1738,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def comms_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1755,7 +1755,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     @renderer_classes((JSONRenderer,))
     def add_comms_log(self, request, *args, **kwargs):
         try:
@@ -1791,7 +1791,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def requirements(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1809,7 +1809,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def apiary_site_transfer_originating_approval_requirements(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1830,7 +1830,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def apiary_site_transfer_target_approval_requirements(self, request, *args, **kwargs):
         # for new licences, sitetransfer_approval is None
         try:
@@ -1854,7 +1854,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def amendment_request(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1872,14 +1872,14 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def user_list(self, request, *args, **kwargs):
         qs = self.get_queryset().exclude(processing_status=Proposal.PROCESSING_STATUS_DISCARDED)
         #serializer = DTProposalSerializer(qs, many=True)
         serializer = ListProposalSerializer(qs,context={'request':request}, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def user_list_paginated(self, request, *args, **kwargs):
         """
         Placing Paginator class here (instead of settings.py) allows specific method for desired behaviour),
@@ -1894,7 +1894,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
         serializer = ListProposalSerializer(result_page, context={'request':request}, many=True)
         return paginator.get_paginated_response(serializer.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def list_paginated(self, request, *args, **kwargs):
         """
         Placing Paginator class here (instead of settings.py) allows specific method for desired behaviour),
@@ -1909,7 +1909,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
         serializer = ListProposalSerializer(result_page, context={'request':request}, many=True)
         return paginator.get_paginated_response(serializer.data)
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def internal_proposal(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.internal_view_log(request)
@@ -1918,7 +1918,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
         serializer = serializer_class(instance,context={'request': request})
         return Response(serializer.data)
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def internal_revision_proposal(self, request, *args, **kwargs):
         
         instance = self.get_object()
@@ -1934,7 +1934,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def internal_proposal_wrapper(self, request, *args, **kwargs):
         instance = self.get_object()
         #instance.internal_view_log(request)
@@ -1944,7 +1944,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
         serializer = serializer_class(instance)
         return Response(serializer.data)
 
-    @detail_route(methods=['post'])
+    @action(detail=True,methods=['post'])
     @renderer_classes((JSONRenderer,))
     def submit(self, request, *args, **kwargs):
         try:
@@ -1968,7 +1968,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def assign_request_user(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1987,7 +1987,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def assign_to(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2014,7 +2014,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def unassign(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2033,7 +2033,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def switch_status(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2058,7 +2058,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def reissue_approval(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2082,7 +2082,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def renew_approval(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2100,7 +2100,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             else:
                 raise
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def amend_approval(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2114,7 +2114,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             else:
                 raise
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def proposed_approval(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2139,7 +2139,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def approval_level_document(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2157,7 +2157,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def approval_level_comment(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2175,21 +2175,21 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     @basic_exception_handler
     def final_approval_temp_use(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.final_approval_temp_use(request,)
         return Response({})
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     @basic_exception_handler
     def final_decline_temp_use(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.final_decline_temp_use(request,)
         return Response({})
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def final_approval(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2209,7 +2209,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def proposed_decline(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2229,7 +2229,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def final_decline(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2249,7 +2249,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['post'])
+    @action(detail=True,methods=['post'])
     def assesor_send_referral(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2271,7 +2271,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['post'])
+    @action(detail=True,methods=['post'])
     @basic_exception_handler
     def remove_apiary_site(self, request, *args, **kwargs):
         proposal_obj = self.get_object()
@@ -2283,7 +2283,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
         return Response({'removed': 'success'})
 
-    @detail_route(methods=['post'])
+    @action(detail=True,methods=['post'])
     @renderer_classes((JSONRenderer,))
     def draft(self, request, *args, **kwargs):
         try:
@@ -2304,7 +2304,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['post'])
+    @action(detail=True,methods=['post'])
     @renderer_classes((JSONRenderer,))
     def update_region_section(self, request, *args, **kwargs):
         try:
@@ -2339,7 +2339,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
         raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['post'])
+    @action(detail=True,methods=['post'])
     @renderer_classes((JSONRenderer,))
     def assessor_save(self, request, *args, **kwargs):
         try:
@@ -2639,7 +2639,7 @@ class ReferralViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def filter_list(self, request, *args, **kwargs):
         """ Used by the external dashboard filters """
         template_group = get_template_group(request)
@@ -2679,7 +2679,7 @@ class ReferralViewSet(viewsets.ModelViewSet):
         )
         return Response(data)
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def referral_wrapper(self, request, *args, **kwargs):
         instance = self.get_object()
         #instance.internal_view_log(request)
@@ -2696,14 +2696,14 @@ class ReferralViewSet(viewsets.ModelViewSet):
         #serializer = self.get_serializer_class(request)
         return Response(serializer.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def user_list(self, request, *args, **kwargs):
         qs = self.get_queryset().filter(referral=request.user)
         serializer = DTReferralSerializer(qs, many=True)
         #serializer = DTReferralSerializer(self.get_queryset(), many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def datatable_list(self, request, *args, **kwargs):
         proposal = request.GET.get('proposal',None)
         qs = self.get_queryset().all()
@@ -2712,7 +2712,7 @@ class ReferralViewSet(viewsets.ModelViewSet):
         serializer = DTReferralSerializer(qs, many=True)
         return Response(serializer.data)
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def referral_list(self, request, *args, **kwargs):
         instance = self.get_object()
         qs = self.get_queryset().all()
@@ -2722,7 +2722,7 @@ class ReferralViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    @detail_route(methods=['GET', 'POST'])
+    @action(detail=True,methods=['GET', 'POST'])
     def complete(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2739,7 +2739,7 @@ class ReferralViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def remind(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2756,7 +2756,7 @@ class ReferralViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def recall(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2773,7 +2773,7 @@ class ReferralViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def resend(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2790,7 +2790,7 @@ class ReferralViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['post'])
+    @action(detail=True,methods=['post'])
     def send_referral(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2825,7 +2825,7 @@ class ProposalRequirementViewSet(viewsets.ModelViewSet):
             return qs
         return ProposalRequirement.objects.none()
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def move_up(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2843,7 +2843,7 @@ class ProposalRequirementViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def move_down(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2861,7 +2861,7 @@ class ProposalRequirementViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def discard(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -2898,7 +2898,7 @@ class ProposalStandardRequirementViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def disturbance_standard_requirements(self, request, *args, **kwargs):
         # Only Disturbance standard requirements
         queryset = self.get_queryset().filter(system='disturbance')
@@ -2911,7 +2911,7 @@ class ProposalStandardRequirementViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def apiary_standard_requirements(self, request, *args, **kwargs):
         # Only Apiary standard requirements
         queryset = self.get_queryset().filter(system='apiary')
@@ -2964,7 +2964,7 @@ class AmendmentRequestViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     @renderer_classes((JSONRenderer,))
     def delete_document(self, request, *args, **kwargs):
         try:
@@ -3056,7 +3056,7 @@ class ApiarySiteFeeViewSet(viewsets.ModelViewSet):
         else:
             return ApiarySiteFee.objects.none()
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def get_site_transfer_fees(self, request, *args, **kwargs):
         south_west = ApiarySiteFee.objects.filter(apiary_site_fee_type__name='transfer', site_category__name='south_west').order_by('-date_of_enforcement')[0]
         remote = ApiarySiteFee.objects.filter(apiary_site_fee_type__name='transfer', site_category__name='remote').order_by('-date_of_enforcement')[0]
@@ -3157,7 +3157,7 @@ class SchemaMasterlistPaginatedViewSet(viewsets.ModelViewSet):
             return MasterlistQuestion.objects.all()
         return MasterlistQuestion.objects.none()
 
-    @list_route(methods=['GET', ])
+    @action(detail=False,methods=['GET', ])
     def schema_masterlist_datatable_list(self, request, *args, **kwargs):
         self.serializer_class = DTSchemaMasterlistSerializer
         queryset = self.get_queryset()
@@ -3183,7 +3183,7 @@ class SchemaMasterlistViewSet(viewsets.ModelViewSet):
             return MasterlistQuestion.objects.all()
         return MasterlistQuestion.objects.none()
 
-    @detail_route(methods=['GET', ])
+    @action(detail=True,methods=['GET', ])
     def get_masterlist_selects(self, request, *args, **kwargs):
         '''
         Get independant Select lists associated with Schema Masterlist.
@@ -3223,7 +3223,7 @@ class SchemaMasterlistViewSet(viewsets.ModelViewSet):
             logger.exception()
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET', ])
+    @action(detail=True,methods=['GET', ])
     def get_masterlist_options(self, request, *args, **kwargs):
         '''
         Get associated QuestionOption for Schema Masterlist type.
@@ -3260,7 +3260,7 @@ class SchemaMasterlistViewSet(viewsets.ModelViewSet):
             logger.exception()
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['DELETE', ])
+    @action(detail=True,methods=['DELETE', ])
     def delete_masterlist(self, request, *args, **kwargs):
         '''
         Delete Masterlist record.
@@ -3292,7 +3292,7 @@ class SchemaMasterlistViewSet(viewsets.ModelViewSet):
             logger.exception()
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST', ])
+    @action(detail=True,methods=['POST', ])
     def save_masterlist(self, request, *args, **kwargs):
         '''
         Save Masterlist record.
@@ -3437,7 +3437,7 @@ class SchemaQuestionPaginatedViewSet(viewsets.ModelViewSet):
             return SectionQuestion.objects.all()
         return SectionQuestion.objects.none()
 
-    @list_route(methods=['GET', ])
+    @action(detail=False,methods=['GET', ])
     def schema_question_datatable_list(self, request, *args, **kwargs):
         self.serializer_class = DTSchemaQuestionSerializer
         queryset = self.get_queryset()
@@ -3464,7 +3464,7 @@ class SchemaQuestionViewSet(viewsets.ModelViewSet):
             return SectionQuestion.objects.all()
         return SectionQuestion.objects.none()
 
-    @detail_route(methods=['GET', ])
+    @action(detail=True,methods=['GET', ])
     def get_question_parents(self, request, *args, **kwargs):
         '''
         Get all Parent Question associated with Schema Questions in Section.
@@ -3521,7 +3521,7 @@ class SchemaQuestionViewSet(viewsets.ModelViewSet):
             logger.exception()
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET', ])
+    @action(detail=True,methods=['GET', ])
     def get_question_sections(self, request, *args, **kwargs):
         '''
         Get all Sections associated with Schema Questions with Licence Purpose.
@@ -3570,7 +3570,7 @@ class SchemaQuestionViewSet(viewsets.ModelViewSet):
             logger.exception()
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET', ])
+    @action(detail=True,methods=['GET', ])
     def get_question_order(self, request, *args, **kwargs):
         '''
         Get order number for Schema Question using Schema Group.
@@ -3602,7 +3602,7 @@ class SchemaQuestionViewSet(viewsets.ModelViewSet):
             logger.exception()
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET', ])
+    @action(detail=True,methods=['GET', ])
     def get_question_selects(self, request, *args, **kwargs):
         '''
         Get independant Select lists associated with Schema Questions.
@@ -3660,7 +3660,7 @@ class SchemaQuestionViewSet(viewsets.ModelViewSet):
             logger.exception()
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['DELETE', ])
+    @action(detail=True,methods=['DELETE', ])
     def delete_question(self, request, *args, **kwargs):
         '''
         Delete Section Question record.
@@ -3692,7 +3692,7 @@ class SchemaQuestionViewSet(viewsets.ModelViewSet):
             logger.exception()
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST', ])
+    @action(detail=True,methods=['POST', ])
     def save_question(self, request, *args, **kwargs):
         '''
         Save Section Question record.
@@ -3805,7 +3805,7 @@ class SchemaProposalTypePaginatedViewSet(viewsets.ModelViewSet):
             return ProposalTypeSection.objects.all()
         return ProposalTypeSection.objects.none()
 
-    @list_route(methods=['GET', ])
+    @action(detail=False,methods=['GET', ])
     def schema_proposal_type_datatable_list(self, request, *args, **kwargs):
         self.serializer_class = DTSchemaProposalTypeSerializer
         queryset = self.get_queryset()
@@ -3832,7 +3832,7 @@ class SchemaProposalTypeViewSet(viewsets.ModelViewSet):
             return ProposalTypeSection.objects.all()
         return ProposalTypeSection.objects.none()
 
-    @detail_route(methods=['GET', ])
+    @action(detail=True,methods=['GET', ])
     def get_proposal_type_selects(self, request, *args, **kwargs):
         '''
         Get independant Select lists associated with Schema Section ProposalType.
@@ -3867,7 +3867,7 @@ class SchemaProposalTypeViewSet(viewsets.ModelViewSet):
             logger.exception()
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET', ])
+    @action(detail=True,methods=['GET', ])
     def get_proposal_type_sections(self, request, *args, **kwargs):
         '''
         Get all Schema Sections associated with Licence ProposalType.
@@ -3903,7 +3903,7 @@ class SchemaProposalTypeViewSet(viewsets.ModelViewSet):
             logger.exception()
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['DELETE', ])
+    @action(detail=True,methods=['DELETE', ])
     def delete_proposal_type(self, request, *args, **kwargs):
         '''
         Delete Licence ProposalType Section record.
@@ -3935,7 +3935,7 @@ class SchemaProposalTypeViewSet(viewsets.ModelViewSet):
             logger.exception()
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST', ])
+    @action(detail=True,methods=['POST', ])
     def save_proposal_type(self, request, *args, **kwargs):
         '''
         Save Licence ProposalType Section record.

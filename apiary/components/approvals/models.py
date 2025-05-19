@@ -9,12 +9,12 @@ from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields.jsonb import JSONField
 from django.utils import timezone
 from django.contrib.gis.db.models.fields import PointField
-from django.contrib.gis.db.models.manager import GeoManager
-from ledger.accounts.models import EmailUser, RevisionedMixin
+from django.db.models import Manager as GeoManager
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from apiary.components.approvals.pdf import create_approval_document
 from apiary.components.organisations.models import Organisation
 from apiary.components.proposals.models import Proposal, ProposalUserAction, ApiarySite, ApiarySiteOnProposal
-from apiary.components.main.models import CommunicationsLogEntry, UserAction, Document
+from apiary.components.main.models import CommunicationsLogEntry, UserAction, Document, RevisionedMixin
 from apiary.components.approvals.email import (
     send_approval_expire_email_notification,
     send_approval_cancel_email_notification,
@@ -52,7 +52,7 @@ def update_approval_comms_log_filename(instance, filename):
 
 
 class ApprovalDocument(Document):
-    approval = models.ForeignKey('Approval',related_name='documents')
+    approval = models.ForeignKey('Approval',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_approval_doc_filename, storage=private_storage)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
 
@@ -62,11 +62,11 @@ class ApprovalDocument(Document):
         logger.info('Cannot delete existing document object after Proposal has been submitted (including document submitted before Proposal pushback to status Draft): {}'.format(self.name))
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 class RenewalDocument(Document):
-    approval = models.ForeignKey('Approval',related_name='renewal_documents')
+    approval = models.ForeignKey('Approval',related_name='renewal_documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_approval_doc_filename, storage=private_storage)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
 
@@ -76,19 +76,19 @@ class RenewalDocument(Document):
         logger.info('Cannot delete existing document object after Proposal has been submitted (including document submitted before Proposal pushback to status Draft): {}'.format(self.name))
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 class ApiarySiteOnApproval(models.Model):
-    apiary_site = models.ForeignKey('ApiarySite',)
-    approval = models.ForeignKey('Approval',)
+    apiary_site = models.ForeignKey('ApiarySite', on_delete=models.CASCADE)
+    approval = models.ForeignKey('Approval', on_delete=models.CASCADE)
     available = models.BooleanField(default=False)
     site_status = models.CharField(default=SITE_STATUS_CURRENT, max_length=20, db_index=True)
     # site_available = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     wkb_geometry = PointField(srid=4326, blank=True, null=True)  # store approved coordinates
-    site_category = models.ForeignKey('SiteCategory', null=True, blank=True,)
+    site_category = models.ForeignKey('SiteCategory', null=True, blank=True, on_delete=models.CASCADE)
     licensed_site = models.BooleanField(default=False)
     issuance_details = JSONField(blank=True, null=True)
 
@@ -115,7 +115,7 @@ class ApiarySiteOnApproval(models.Model):
         return ''
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         unique_together = ['apiary_site', 'approval',]
 
 
@@ -136,12 +136,12 @@ class Approval(RevisionedMixin):
     status = models.CharField(max_length=40, choices=STATUS_CHOICES,
                                        default=STATUS_CHOICES[0][0])
     # NB: licence_document not used for Apiary applications
-    licence_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='licence_document')
-    cover_letter_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='cover_letter_document')
-    replaced_by = models.ForeignKey('self', blank=True, null=True)
+    licence_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='licence_document', on_delete=models.CASCADE)
+    cover_letter_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='cover_letter_document', on_delete=models.CASCADE)
+    replaced_by = models.ForeignKey('self', blank=True, null=True, on_delete=models.CASCADE)
     #current_proposal = models.ForeignKey(Proposal,related_name = '+')
-    current_proposal = models.ForeignKey(Proposal,related_name='approvals')
-    renewal_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='renewal_document')
+    current_proposal = models.ForeignKey(Proposal,related_name='approvals', on_delete=models.CASCADE)
+    renewal_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='renewal_document', on_delete=models.CASCADE)
     # apiary_renewal_document = models.ForeignKey(RenewalDocument, blank=True, null=True, related_name='apiary_renewal_document')
     renewal_sent = models.BooleanField(default=False)
     issue_date = models.DateTimeField()
@@ -165,7 +165,7 @@ class Approval(RevisionedMixin):
     migrated = models.BooleanField(default=False)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         unique_together = ('lodgement_number', 'issue_date')
 
     def add_apiary_sites_to_proposal_apiary_for_renewal(self, proposal_apiary):
@@ -631,14 +631,14 @@ class Approval(RevisionedMixin):
 
 class PreviewTempApproval(Approval):
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         #unique_together= ('lodgement_number', 'issue_date')
 
 class ApprovalLogEntry(CommunicationsLogEntry):
-    approval = models.ForeignKey(Approval, related_name='comms_logs')
+    approval = models.ForeignKey(Approval, related_name='comms_logs', on_delete=models.CASCADE)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
     def save(self, **kwargs):
         # save the application reference if the reference not provided
@@ -647,13 +647,13 @@ class ApprovalLogEntry(CommunicationsLogEntry):
         super(ApprovalLogEntry, self).save(**kwargs)
 
 class ApprovalLogDocument(Document):
-    log_entry = models.ForeignKey('ApprovalLogEntry',related_name='documents', null=True,)
+    log_entry = models.ForeignKey('ApprovalLogEntry',related_name='documents', null=True, on_delete=models.CASCADE)
     #approval = models.ForeignKey(Approval, related_name='comms_logs1')
     _file = models.FileField(upload_to=update_approval_comms_log_filename, null=True, storage=private_storage)
     #_file = models.FileField(upload_to=update_approval_doc_filename)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 class ApprovalUserAction(UserAction):
@@ -670,7 +670,7 @@ class ApprovalUserAction(UserAction):
     ACTION_UPDATE_NO_CHARGE_DATE_UNTIL = "'Do not charge annual site fee until' date updated to {} for approval {}"
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         ordering = ('-when',)
 
     @classmethod
@@ -683,7 +683,7 @@ class ApprovalUserAction(UserAction):
             what=str(action)
         )
 
-    approval= models.ForeignKey(Approval, related_name='action_logs')
+    approval= models.ForeignKey(Approval, related_name='action_logs', on_delete=models.CASCADE)
 
 class MigratedApiaryLicence(models.Model):
 # Records imported from CSV
@@ -731,7 +731,7 @@ class MigratedApiaryLicence(models.Model):
     licencee_type = models.CharField(max_length=40, choices=LICENCEE_TYPE_CHOICES)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         #ordering = ('-when',)
 
 

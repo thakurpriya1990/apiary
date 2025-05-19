@@ -3,7 +3,7 @@ from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from apiary.components.main.models import CommunicationsLogEntry, Region, District, Tenure, ApplicationType, \
     ActivityMatrix, WaCoast, MapLayer, MapColumn
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 
 class WaCoastOptimisedSerializer(serializers.ModelSerializer):

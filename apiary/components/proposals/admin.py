@@ -1,10 +1,10 @@
 import os
 import datetime
 import pytz
-from ledger.settings_base import TIME_ZONE
+import apiary.settings
 
 from django.contrib import admin
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 import apiary
 from apiary.components.main.utils import custom_strftime
@@ -25,7 +25,7 @@ from apiary.utils import create_helppage_object
 from apiary.helpers import is_apiary_admin, is_disturbance_admin, is_das_apiary_admin
 # Register your models here.
 from django.utils.html import format_html
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 
@@ -393,7 +393,7 @@ class ApiaryAnnualRentalFeeRunDateAdmin(admin.ModelAdmin):
     def period_to_be_charged_for(self, obj):
         from apiary.management.commands.send_annual_rental_fee_invoice import get_annual_rental_fee_period
 
-        today_now_local = datetime.datetime.now(pytz.timezone(TIME_ZONE))
+        today_now_local = datetime.datetime.now(pytz.timezone(settings.TIME_ZONE))
         today_date_local = today_now_local.date()
         period_start_date, period_end_date = get_annual_rental_fee_period(today_date_local)
         return '{} --- {}'.format(period_start_date.strftime('%Y/%m/%d'), period_end_date.strftime('%Y/%m/%d'))
@@ -462,11 +462,12 @@ class MasterlistQuestionAdmin(admin.ModelAdmin):
 class ProposalTypeSectionAdmin(admin.ModelAdmin):
     list_display = ['proposal_type', 'index', 'section_label',]
     fields = ('section_label','index', 'proposal_type')
-   
-@admin.register(models.SectionQuestion)
-class SectionQuestionAdmin(admin.ModelAdmin):
-    list_display = ['section', 'question','order', 'parent_question','parent_answer']
-    #list_display = ['section', 'question','parent_question',]
-    form = forms.SectionQuestionAdminForm
+
+#TODO fix for segregation  
+#@admin.register(models.SectionQuestion)
+#class SectionQuestionAdmin(admin.ModelAdmin):
+#    list_display = ['section', 'question','order', 'parent_question','parent_answer']
+#    #list_display = ['section', 'question','parent_question',]
+#    form = forms.SectionQuestionAdminForm
 
     

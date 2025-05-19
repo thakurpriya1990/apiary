@@ -10,7 +10,7 @@ from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 from django.conf import settings
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
-from ledger.payments.invoice.models import Invoice
+from ledger_api_client.ledger_models import Invoice
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.renderers import JSONRenderer
 from apiary.components.main.decorators import timeit

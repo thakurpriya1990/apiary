@@ -5,7 +5,7 @@ from django.db import transaction
 from django.core.exceptions import PermissionDenied
 
 from datetime import datetime, timedelta, date
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 from apiary.components.approvals.email import get_value_of_annual_rental_fee_awaiting_payment_confirmation, \
     send_annual_rental_fee_invoice
@@ -37,13 +37,13 @@ from apiary.components.das_payments.utils import (
 )
 
 from apiary.components.das_payments.models import ApplicationFee, ApplicationFeeInvoice, AnnualRentalFee
-from ledger.payments.utils import update_payments
+from ledger_api_client.utils import update_payments
 from decimal import Decimal
 
-from ledger.payments.models import Invoice
-from ledger.basket.models import Basket
+from ledger_api_client.ledger_models import Invoice
+from ledger_api_client.ledger_models import Basket
 # from oscar.apps.order.models import Order
-from ledger.order.models import Order
+from ledger_api_client.order import Order
 from apiary.helpers import is_internal, is_disturbance_admin, is_in_organisation_contacts
 from apiary.context_processors import apiary_url
 

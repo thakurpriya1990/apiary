@@ -12,7 +12,7 @@ import re
 
 from dateutil.relativedelta import relativedelta
 from django.contrib.gis.db.models.fields import PointField
-from django.contrib.gis.db.models.manager import GeoManager
+from django.db.models import Manager as GeoManager
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.measure import Distance
 from django.contrib.postgres.fields import ArrayField
@@ -21,7 +21,7 @@ from django.contrib.gis.db import models as gis_models
 from django.db.models import Q, Max, F
 from django.dispatch import receiver
 from django.db.models.signals import pre_delete, post_save
-from django.utils.encoding import python_2_unicode_compatible
+from django.utils.six import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields.jsonb import JSONField
 from django.utils import timezone
@@ -35,16 +35,14 @@ from rest_framework import serializers
 from ast import literal_eval
 from taggit.models import TaggedItemBase
 
-from ledger.checkout.utils import createCustomBasket
-from ledger.payments.invoice.utils import CreateInvoiceBasket
-from ledger.settings_base import TIME_ZONE
+from ledger_api_client.settings_base import TIME_ZONE
 
-from ledger.accounts.models import EmailUser, RevisionedMixin
-from ledger.payments.models import Invoice
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from ledger_api_client.ledger_models import Invoice
 from apiary import exceptions
 from apiary.components.organisations.models import Organisation
 from apiary.components.main.models import CommunicationsLogEntry, UserAction, Document, Region, District, \
-    ApplicationType, RegionDbca, DistrictDbca, CategoryDbca
+    ApplicationType, RegionDbca, DistrictDbca, CategoryDbca, RevisionedMixin
 from apiary.components.main.utils import get_department_user
 from apiary.components.proposals.email import (
         send_referral_email_notification,
@@ -108,7 +106,7 @@ class ProposalType(models.Model):
         return '{} - v{}'.format(self.name, self.version)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         unique_together = ('name', 'version')
         verbose_name= 'Schema Proposal Type'
 
@@ -140,16 +138,16 @@ class ProposalType(models.Model):
 
 
 class TaggedProposalAssessorGroupRegions(TaggedItemBase):
-    content_object = models.ForeignKey("ProposalAssessorGroup")
+    content_object = models.ForeignKey("ProposalAssessorGroup", on_delete=models.CASCADE)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 class TaggedProposalAssessorGroupActivities(TaggedItemBase):
-    content_object = models.ForeignKey("ProposalAssessorGroup")
+    content_object = models.ForeignKey("ProposalAssessorGroup", on_delete=models.CASCADE)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 class ProposalAssessorGroup(models.Model):
     name = models.CharField(max_length=255)
@@ -157,11 +155,11 @@ class ProposalAssessorGroup(models.Model):
     #regions = TaggableManager(verbose_name="Regions",help_text="A comma-separated list of regions.",through=TaggedProposalAssessorGroupRegions,related_name = "+",blank=True)
     #activities = TaggableManager(verbose_name="Activities",help_text="A comma-separated list of activities.",through=TaggedProposalAssessorGroupActivities,related_name = "+",blank=True)
     members = models.ManyToManyField(EmailUser)
-    region = models.ForeignKey(Region, null=True, blank=True)
+    region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.CASCADE)
     default = models.BooleanField(default=False)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
     def __str__(self):
         return self.name
@@ -197,16 +195,16 @@ class ProposalAssessorGroup(models.Model):
         return [i.email for i in self.members.all()]
 
 class TaggedProposalApproverGroupRegions(TaggedItemBase):
-    content_object = models.ForeignKey("ProposalApproverGroup")
+    content_object = models.ForeignKey("ProposalApproverGroup", on_delete=models.CASCADE)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 class TaggedProposalApproverGroupActivities(TaggedItemBase):
-    content_object = models.ForeignKey("ProposalApproverGroup")
+    content_object = models.ForeignKey("ProposalApproverGroup", on_delete=models.CASCADE)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 class ProposalApproverGroup(models.Model):
     name = models.CharField(max_length=255)
@@ -214,11 +212,11 @@ class ProposalApproverGroup(models.Model):
     #regions = TaggableManager(verbose_name="Regions",help_text="A comma-separated list of regions.",through=TaggedProposalApproverGroupRegions,related_name = "+",blank=True)
     #activities = TaggableManager(verbose_name="Activities",help_text="A comma-separated list of activities.",through=TaggedProposalApproverGroupActivities,related_name = "+",blank=True)
     members = models.ManyToManyField(EmailUser)
-    region = models.ForeignKey(Region, null=True, blank=True)
+    region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.CASCADE)
     default = models.BooleanField(default=False)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
     def __str__(self):
         return self.name
@@ -261,7 +259,7 @@ class DefaultDocument(Document):
     visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         abstract =True
 
     def delete(self):
@@ -271,7 +269,7 @@ class DefaultDocument(Document):
 
 
 class ProposalDocument(Document):
-    proposal = models.ForeignKey('Proposal',related_name='documents')
+    proposal = models.ForeignKey('Proposal',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_proposal_doc_filename, max_length=500, storage=private_storage)
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
@@ -284,7 +282,7 @@ class ProposalDocument(Document):
         logger.info('Cannot delete existing document object after Proposal has been submitted (including document submitted before Proposal pushback to status Draft): {}'.format(self.name))
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 def fee_invoice_references_default():
     return []
@@ -391,15 +389,15 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
     customer_status = models.CharField('Customer Status', max_length=40, choices=CUSTOMER_STATUS_CHOICES,
                                        default=CUSTOMER_STATUS_CHOICES[1][0])
-    applicant = models.ForeignKey(Organisation, blank=True, null=True, related_name='proposals')
+    applicant = models.ForeignKey(Organisation, blank=True, null=True, related_name='proposals', on_delete=models.CASCADE)
 
     lodgement_number = models.CharField(max_length=9, blank=True, default='')
     lodgement_sequence = models.IntegerField(blank=True, default=0)
     #lodgement_date = models.DateField(blank=True, null=True)
     lodgement_date = models.DateTimeField(blank=True, null=True)
     # 20200512 - proxy_applicant also represents an individual making an Apiary application
-    proxy_applicant = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_proxy')
-    submitter = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_proposals')
+    proxy_applicant = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_proxy', on_delete=models.CASCADE)
+    submitter = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_proposals', on_delete=models.CASCADE)
 
     assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_proposals_assigned', on_delete=models.SET_NULL)
     assigned_approver = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_proposals_approvals', on_delete=models.SET_NULL)
@@ -415,7 +413,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     review_status = models.CharField('Review Status', max_length=30, choices=REVIEW_STATUS_CHOICES,
                                      default=REVIEW_STATUS_CHOICES[0][0])
 
-    approval = models.ForeignKey('apiary.Approval',null=True,blank=True)
+    approval = models.ForeignKey('apiary.Approval',null=True,blank=True, on_delete=models.CASCADE)
 
     previous_application = models.ForeignKey('self', on_delete=models.PROTECT, blank=True, null=True)
     #self_clone = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, related_name='proposal_current_state')
@@ -426,12 +424,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     #region = models.CharField(max_length=255,null=True,blank=True)
     tenure = models.CharField(max_length=255,null=True,blank=True)
     #activity = models.ForeignKey(Activity, null=True, blank=True)
-    region = models.ForeignKey(Region, null=True, blank=True)
-    district = models.ForeignKey(District, null=True, blank=True)
+    region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.CASCADE)
+    district = models.ForeignKey(District, null=True, blank=True, on_delete=models.CASCADE)
     #tenure = models.ForeignKey(Tenure, null=True, blank=True)
-    application_type = models.ForeignKey(ApplicationType)
+    application_type = models.ForeignKey(ApplicationType, on_delete=models.CASCADE)
     approval_level = models.CharField('Activity matrix approval level', max_length=255,null=True,blank=True)
-    approval_level_document = models.ForeignKey(ProposalDocument, blank=True, null=True, related_name='approval_level_document')
+    approval_level_document = models.ForeignKey(ProposalDocument, blank=True, null=True, related_name='approval_level_document', on_delete=models.CASCADE)
     approval_level_comment = models.TextField(blank=True)
     approval_comment = models.TextField(blank=True)
     assessment_reminder_sent = models.BooleanField(default=False)
@@ -447,7 +445,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         #ordering = ['-id']
 
     def __str__(self):
@@ -2378,17 +2376,17 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
 
 class ProposalLogDocument(Document):
-    log_entry = models.ForeignKey('ProposalLogEntry',related_name='documents')
+    log_entry = models.ForeignKey('ProposalLogEntry',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_proposal_comms_log_filename, storage=private_storage)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 class ProposalLogEntry(CommunicationsLogEntry):
-    proposal = models.ForeignKey(Proposal, related_name='comms_logs')
+    proposal = models.ForeignKey(Proposal, related_name='comms_logs', on_delete=models.CASCADE)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
     def save(self, **kwargs):
         # save the application reference if the reference not provided
@@ -2397,7 +2395,7 @@ class ProposalLogEntry(CommunicationsLogEntry):
         super(ProposalLogEntry, self).save(**kwargs)
 
 class AmendmentRequestDocument(Document):
-    amendment_request = models.ForeignKey('AmendmentRequest',related_name='amendment_request_documents')
+    amendment_request = models.ForeignKey('AmendmentRequest',related_name='amendment_request_documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_amendment_request_doc_filename, max_length=500, storage=private_storage)
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
@@ -2408,13 +2406,13 @@ class AmendmentRequestDocument(Document):
             return super(AmendmentRequestDocument, self).delete()
 
 class ProposalRequest(models.Model):
-    proposal = models.ForeignKey(Proposal)
+    proposal = models.ForeignKey(Proposal, on_delete=models.CASCADE)
     subject = models.CharField(max_length=200, blank=True)
     text = models.TextField(blank=True)
-    officer = models.ForeignKey(EmailUser, null=True)
+    officer = models.ForeignKey(EmailUser, null=True, on_delete=models.CASCADE)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 class ComplianceRequest(ProposalRequest):
     REASON_CHOICES = (('outstanding', 'There are currently outstanding returns for the previous licence'),
@@ -2422,14 +2420,14 @@ class ComplianceRequest(ProposalRequest):
     reason = models.CharField('Reason', max_length=30, choices=REASON_CHOICES, default=REASON_CHOICES[0][0])
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 class AmendmentReason(models.Model):
     reason = models.CharField('Reason', max_length=125)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         verbose_name = "Proposal Amendment Reason" # display name in Admin
         verbose_name_plural = "Proposal Amendment Reasons"
 
@@ -2458,11 +2456,11 @@ class AmendmentRequest(ProposalRequest):
 
     status = models.CharField('Status', max_length=30, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
     #reason = models.CharField('Reason', max_length=30, choices=REASON_CHOICES, default=REASON_CHOICES[0][0])
-    reason = models.ForeignKey(AmendmentReason, blank=True, null=True)
+    reason = models.ForeignKey(AmendmentReason, blank=True, null=True, on_delete=models.CASCADE)
     #reason = models.ForeignKey(AmendmentReason)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
     def generate_amendment(self,request):
         with transaction.atomic():
@@ -2514,7 +2512,7 @@ class AmendmentRequest(ProposalRequest):
 class Assessment(ProposalRequest):
     STATUS_CHOICES = (('awaiting_assessment', 'Awaiting Assessment'), ('assessed', 'Assessed'),
                       ('assessment_expired', 'Assessment Period Expired'))
-    assigned_assessor = models.ForeignKey(EmailUser, blank=True, null=True)
+    assigned_assessor = models.ForeignKey(EmailUser, blank=True, null=True, on_delete=models.CASCADE)
     status = models.CharField('Status', max_length=20, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
     date_last_reminded = models.DateField(null=True, blank=True)
     #requirements = models.ManyToManyField('Requirement', through='AssessmentRequirement')
@@ -2522,16 +2520,16 @@ class Assessment(ProposalRequest):
     purpose = models.TextField(blank=True)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 class ProposalDeclinedDetails(models.Model):
-    proposal = models.OneToOneField(Proposal)
-    officer = models.ForeignKey(EmailUser, null=False)
+    proposal = models.OneToOneField(Proposal, on_delete=models.CASCADE)
+    officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
     reason = models.TextField(blank=True)
     cc_email = models.TextField(null=True)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 @python_2_unicode_compatible
 #class ProposalStandardRequirement(models.Model):
@@ -2549,7 +2547,7 @@ class ProposalStandardRequirement(RevisionedMixin):
         return self.code
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 #class ReferralRecipientGroup(models.Model):
@@ -2594,17 +2592,17 @@ class ApiaryReferralGroup(models.Model):
 
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         verbose_name = "Apiary Referral Group"
         verbose_name_plural = "Apiary Referral groups"
 
 class ProposalRequirement(OrderedModel):
     #from apiary.components.approvals.models import Approval
     RECURRENCE_PATTERNS = [(1, 'Weekly'), (2, 'Monthly'), (3, 'Yearly')]
-    standard_requirement = models.ForeignKey(ProposalStandardRequirement,null=True,blank=True)
+    standard_requirement = models.ForeignKey(ProposalStandardRequirement,null=True,blank=True, on_delete=models.CASCADE)
     free_requirement = models.TextField(null=True,blank=True)
     standard = models.BooleanField(default=True)
-    proposal = models.ForeignKey(Proposal,related_name='requirements')
+    proposal = models.ForeignKey(Proposal,related_name='requirements', on_delete=models.CASCADE)
     due_date = models.DateField(null=True,blank=True)
     recurrence = models.BooleanField(default=False)
     recurrence_pattern = models.SmallIntegerField(choices=RECURRENCE_PATTERNS,default=1)
@@ -2614,15 +2612,15 @@ class ProposalRequirement(OrderedModel):
     copied_for_renewal = models.BooleanField(default=False)
     require_due_date = models.BooleanField(default=False)
     # temporary location during Site Transfer applications - copied to apiary_approval during final_approval()
-    sitetransfer_approval = models.ForeignKey('apiary.Approval',null=True,blank=True, related_name='sitetransferapproval_requirement')
+    sitetransfer_approval = models.ForeignKey('apiary.Approval',null=True,blank=True, related_name='sitetransferapproval_requirement', on_delete=models.CASCADE)
     # permanent location for apiary / site transfer approvals
-    apiary_approval = models.ForeignKey('apiary.Approval',null=True,blank=True, related_name='proposalrequirement_set')
+    apiary_approval = models.ForeignKey('apiary.Approval',null=True,blank=True, related_name='proposalrequirement_set', on_delete=models.CASCADE)
     #order = models.IntegerField(default=1)
     # referral_group is no longer required for Apiary
-    referral_group = models.ForeignKey(ApiaryReferralGroup,null=True,blank=True,related_name='apiary_requirement_referral_groups')
+    referral_group = models.ForeignKey(ApiaryReferralGroup,null=True,blank=True,related_name='apiary_requirement_referral_groups', on_delete=models.CASCADE)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
     @property
@@ -2659,7 +2657,7 @@ class ProposalRequirement(OrderedModel):
 #            return super(RequirementDocument, self).delete()
 #
 #    class Meta:
-#        app_label = 'apiary'
+#        app_label = 'disturbance'
 
 
 class ProposalUserAction(UserAction):
@@ -2730,7 +2728,7 @@ class ProposalUserAction(UserAction):
     APIARY_REFERRAL_UNASSIGN_ASSESSOR = "Unassign assessor from Referral {} of application {}"
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         ordering = ('-when',)
 
     @classmethod
@@ -2743,7 +2741,7 @@ class ProposalUserAction(UserAction):
             what=str(action)
         )
 
-    proposal = models.ForeignKey(Proposal, related_name='action_logs')
+    proposal = models.ForeignKey(Proposal, related_name='action_logs', on_delete=models.CASCADE)
 
 
 
@@ -2758,9 +2756,9 @@ class Referral(models.Model):
                                  ('completed', 'Completed'),
                                  )
     lodged_on = models.DateTimeField(auto_now_add=True)
-    proposal = models.ForeignKey(Proposal,related_name='referrals')
-    sent_by = models.ForeignKey(EmailUser,related_name='apiary_assessor_referrals')
-    referral = models.ForeignKey(EmailUser,null=True,blank=True,related_name='apiary_referalls')
+    proposal = models.ForeignKey(Proposal,related_name='referrals', on_delete=models.CASCADE)
+    sent_by = models.ForeignKey(EmailUser,related_name='apiary_assessor_referrals', on_delete=models.CASCADE)
+    referral = models.ForeignKey(EmailUser,null=True,blank=True,related_name='apiary_referalls', on_delete=models.CASCADE)
     linked = models.BooleanField(default=False)
     sent_from = models.SmallIntegerField(choices=SENT_CHOICES,default=SENT_CHOICES[0][0])
     processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
@@ -2770,7 +2768,7 @@ class Referral(models.Model):
 
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         ordering = ('-lodged_on',)
 
     def __str__(self):
@@ -3197,14 +3195,14 @@ class HelpPage(models.Model):
         (HELP_TEXT_INTERNAL, 'Internal'),
     )
 
-    application_type = models.ForeignKey(ApplicationType)
+    application_type = models.ForeignKey(ApplicationType, on_delete=models.CASCADE)
     content = RichTextField()
     description = models.CharField(max_length=256, blank=True, null=True)
     help_type = models.SmallIntegerField('Help Type', choices=HELP_TYPE_CHOICES, default=HELP_TEXT_EXTERNAL)
     version = models.SmallIntegerField(default=1, blank=False, null=False)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         unique_together = ('application_type', 'help_type', 'version')
 
 
@@ -3222,13 +3220,13 @@ class HelpPage(models.Model):
 #        return 'id:{}: (apiary_site: {}, proposal_apiary: {})'.format(self.id, self.apiary_site.id, self.proposal_apiary.id)
 #
 #    class Meta:
-#        app_label = 'apiary'
+#        app_label = 'disturbance'
 #        unique_together = ['apiary_site', 'proposal_apiary',]
 
 
 class ApiarySiteOnProposal(RevisionedMixin):
-    apiary_site = models.ForeignKey('ApiarySite',)
-    proposal_apiary = models.ForeignKey('ProposalApiary',)
+    apiary_site = models.ForeignKey('ApiarySite', on_delete=models.CASCADE)
+    proposal_apiary = models.ForeignKey('ProposalApiary', on_delete=models.CASCADE)
     apiary_site_status_when_submitted = models.CharField(max_length=40, blank=True)
     apiary_site_is_vacant_when_submitted = models.BooleanField(default=False)
     for_renewal = models.BooleanField(default=False)
@@ -3239,8 +3237,8 @@ class ApiarySiteOnProposal(RevisionedMixin):
     modified_at = models.DateTimeField(auto_now=True)
     wkb_geometry_draft = PointField(srid=4326, blank=True, null=True)  # store the coordinates before submit
     wkb_geometry_processed = PointField(srid=4326, blank=True, null=True)  # store approved coordinates
-    site_category_draft = models.ForeignKey('SiteCategory', null=True, blank=True, related_name='intermediate_draft')
-    site_category_processed = models.ForeignKey('SiteCategory', null=True, blank=True, related_name='intermediate_processed')
+    site_category_draft = models.ForeignKey('SiteCategory', null=True, blank=True, related_name='intermediate_draft', on_delete=models.CASCADE)
+    site_category_processed = models.ForeignKey('SiteCategory', null=True, blank=True, related_name='intermediate_processed', on_delete=models.CASCADE)
     application_fee_paid = models.BooleanField(default=False)  # To avoid overcharging when the proposal is sent back to the customer, we need this flag
     licensed_site = models.BooleanField(default=False)  # used only during approval process, licensed site, have an independent PDF Licence page
     issuance_details = JSONField(blank=True, null=True)
@@ -3268,14 +3266,14 @@ class ApiarySiteOnProposal(RevisionedMixin):
         return ''
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         unique_together = ['apiary_site', 'proposal_apiary',]
 
 
 class ProposalApiary(RevisionedMixin):
     title = models.CharField('Title', max_length=200, null=True)
     location = gis_models.PointField(srid=4326, blank=True, null=True)
-    proposal = models.OneToOneField(Proposal, related_name='proposal_apiary', null=True)
+    proposal = models.OneToOneField(Proposal, related_name='proposal_apiary', null=True, on_delete=models.CASCADE)
 
     # We don't use GIS field, because these are just fields user input into the <input> field
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
@@ -3283,11 +3281,11 @@ class ProposalApiary(RevisionedMixin):
 
     # required for Site Transfer applications
     # transferee used to store EmailUser without existing licence
-    transferee = models.ForeignKey(EmailUser, blank=True, null=True, related_name='apiary_transferee')
+    transferee = models.ForeignKey(EmailUser, blank=True, null=True, related_name='apiary_transferee', on_delete=models.CASCADE)
     transferee_email_text = models.CharField(max_length=200, null=True)
-    originating_approval = models.ForeignKey('apiary.Approval', blank=True, null=True, related_name="site_transfer_originating_approval")
-    target_approval = models.ForeignKey('apiary.Approval', blank=True, null=True, related_name="site_transfer_target_approval")
-    target_approval_organisation = models.ForeignKey(Organisation, blank=True, null=True)
+    originating_approval = models.ForeignKey('apiary.Approval', blank=True, null=True, related_name="site_transfer_originating_approval", on_delete=models.CASCADE)
+    target_approval = models.ForeignKey('apiary.Approval', blank=True, null=True, related_name="site_transfer_target_approval", on_delete=models.CASCADE)
+    target_approval_organisation = models.ForeignKey(Organisation, blank=True, null=True, on_delete=models.CASCADE)
     target_approval_start_date = models.DateField(blank=True, null=True)
     target_approval_expiry_date = models.DateField(blank=True, null=True)
     reissue_originating_approval = models.BooleanField(default=False)
@@ -3301,7 +3299,7 @@ class ProposalApiary(RevisionedMixin):
         return 'id:{} - {}'.format(self.id, self.title)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
     def validate_apiary_sites(self, raise_exception=False):
         validity = True
@@ -3568,6 +3566,8 @@ class ProposalApiary(RevisionedMixin):
 
     # ProposalApiary final approval
     def final_approval(self,request,details,preview=False):
+        #TODO fix for segregation (payment)
+
         from apiary.components.approvals.models import Approval
         try:
             approval_created = None
@@ -4285,7 +4285,7 @@ class SiteCategory(models.Model):
         return '---'
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         verbose_name = 'apiary site fee'
 
 
@@ -4310,17 +4310,17 @@ class ApiarySiteFeeType(RevisionedMixin):
         return '---'
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 class ApiarySiteFee(RevisionedMixin):
     amount = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
     date_of_enforcement = models.DateField(blank=True, null=True)
-    site_category = models.ForeignKey(SiteCategory, related_name='site_fees')
-    apiary_site_fee_type = models.ForeignKey(ApiarySiteFeeType, null=True, blank=True)
+    site_category = models.ForeignKey(SiteCategory, related_name='site_fees', on_delete=models.CASCADE)
+    apiary_site_fee_type = models.ForeignKey(ApiarySiteFeeType, null=True, blank=True, on_delete=models.CASCADE)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         ordering = ('date_of_enforcement', )  # oldest record first, latest record last
 
     def __str__(self):
@@ -4336,7 +4336,7 @@ class ApiaryAnnualRentalFee(RevisionedMixin):
     date_from = models.DateField(blank=True, null=True)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         ordering = ('date_from', )  # oldest record first, latest record last
         verbose_name = 'Annual Site Fee'
 
@@ -4397,7 +4397,7 @@ class ApiaryAnnualRentalFeePeriodStartDate(RevisionedMixin):
             return '{}'.format(self.name)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         ordering = ('period_start_date', )  # oldest record first, latest record last
         verbose_name = 'Annual Site Fee Period Start Date'
 
@@ -4416,7 +4416,7 @@ class ApiaryAnnualRentalFeeRunDate(RevisionedMixin):
     enabled_for_new_site = models.BooleanField(default=False, verbose_name='Apply when approved', help_text='Sets whether the annual fee is applied when an application is approved')
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         verbose_name = 'Annual Site Fee Issue Date'
 
     def __str__(self):
@@ -4506,7 +4506,7 @@ class ApiarySite(models.Model):
         return current_fee
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 # class ApiarySiteLocation(models.Model):
@@ -4528,7 +4528,7 @@ class ApiarySite(models.Model):
 #     objects = GeoManager()
 #
 #     class Meta:
-#         app_label = 'apiary'
+#         app_label = 'disturbance'
 #         ordering = ['-modified_at', '-created_at',]
 
 
@@ -4538,10 +4538,10 @@ class ApiarySiteFeeRemainder(models.Model):
 
     You have to check the validity of the record by date_expiry and date_used fields
     '''
-    site_category = models.ForeignKey(SiteCategory)
-    apiary_site_fee_type = models.ForeignKey(ApiarySiteFeeType)
-    applicant = models.ForeignKey(Organisation, null=True, blank=True)
-    proxy_applicant = models.ForeignKey(EmailUser, null=True, blank=True)
+    site_category = models.ForeignKey(SiteCategory, on_delete=models.CASCADE)
+    apiary_site_fee_type = models.ForeignKey(ApiarySiteFeeType, on_delete=models.CASCADE)
+    applicant = models.ForeignKey(Organisation, null=True, blank=True, on_delete=models.CASCADE)
+    proxy_applicant = models.ForeignKey(EmailUser, null=True, blank=True, on_delete=models.CASCADE)
     datetime_created = models.DateTimeField(auto_now_add=True)
     date_expiry = models.DateField(null=True, blank=True)
     date_used = models.DateField(null=True, blank=True)
@@ -4551,12 +4551,12 @@ class ApiarySiteFeeRemainder(models.Model):
         return 'Remainder: {} - {} - {} - site(s)'.format(self.applicant, self.site_category, self.apiary_site_fee_type)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 class OnSiteInformation(models.Model):
     # apiary_site = models.ForeignKey(ApiarySite, null=True, blank=True)
-    apiary_site_on_approval = models.ForeignKey('ApiarySiteOnApproval', blank=True, null=True)
+    apiary_site_on_approval = models.ForeignKey('ApiarySiteOnApproval', blank=True, null=True, on_delete=models.CASCADE)
     period_from = models.DateField(null=True, blank=True)
     period_to = models.DateField(null=True, blank=True)
     hives_loc = models.TextField(blank=True)
@@ -4570,19 +4570,19 @@ class OnSiteInformation(models.Model):
         return 'OnSiteInfo id: {}, date: {} to {}'.format(self.id, self.period_from, self.period_to)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 class ProposalApiaryTemporaryUse(models.Model):
     from_date = models.DateField('Period From Date', blank=True, null=True)
     to_date = models.DateField('Period To Date', blank=True, null=True)
-    proposal = models.OneToOneField(Proposal, related_name='apiary_temporary_use', null=True, blank=True)
+    proposal = models.OneToOneField(Proposal, related_name='apiary_temporary_use', null=True, blank=True, on_delete=models.CASCADE)
     # proposal_apiary_base = models.ForeignKey(Proposal, related_name='apiary_temporary_use_set', null=True, blank=True)
     temporary_occupier_name = models.CharField(max_length=255, blank=True, null=True)
     temporary_occupier_phone = models.CharField(max_length=50, blank=True, null=True)
     temporary_occupier_mobile = models.CharField(max_length=50, blank=True, null=True)
     temporary_occupier_email = models.EmailField(blank=True, null=True)
-    loaning_approval = models.ForeignKey('apiary.Approval', blank=True, null=True)
+    loaning_approval = models.ForeignKey('apiary.Approval', blank=True, null=True, on_delete=models.CASCADE)
 
     # def __str__(self):
     #     if self.proposal.proposal_apiary:
@@ -4592,7 +4592,7 @@ class ProposalApiaryTemporaryUse(models.Model):
             # return 'id:{}'.format(self.id)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
     def period_valid_for_temporary_use(self, period):
         detail = {}
@@ -4627,24 +4627,24 @@ class TemporaryUseApiarySite(models.Model):
     """
     Apiary sites under a proposal can be partially used as temporary site
     """
-    proposal_apiary_temporary_use = models.ForeignKey(ProposalApiaryTemporaryUse, blank=True, null=True, related_name='temporary_use_apiary_sites')
+    proposal_apiary_temporary_use = models.ForeignKey(ProposalApiaryTemporaryUse, blank=True, null=True, related_name='temporary_use_apiary_sites', on_delete=models.CASCADE)
     # apiary_site = models.ForeignKey(ApiarySite, blank=True, null=True)
-    apiary_site_on_approval = models.ForeignKey('ApiarySiteOnApproval', blank=True, null=True)
+    apiary_site_on_approval = models.ForeignKey('ApiarySiteOnApproval', blank=True, null=True, on_delete=models.CASCADE)
     selected = models.BooleanField(default=False)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 class SiteTransferApiarySite(models.Model):
-    proposal_apiary = models.ForeignKey(ProposalApiary, blank=True, null=True, related_name='site_transfer_apiary_sites')
+    proposal_apiary = models.ForeignKey(ProposalApiary, blank=True, null=True, related_name='site_transfer_apiary_sites', on_delete=models.CASCADE)
     # apiary_site = models.ForeignKey(ApiarySite, blank=True, null=True)
-    apiary_site_on_approval = models.ForeignKey('apiary.ApiarySiteOnApproval', blank=True, null=True)
+    apiary_site_on_approval = models.ForeignKey('apiary.ApiarySiteOnApproval', blank=True, null=True, on_delete=models.CASCADE)
     internal_selected = models.BooleanField(default=False)
     customer_selected = models.BooleanField(default=False)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 # TODO: remove if no longer required
@@ -4652,11 +4652,11 @@ class ApiarySiteApproval(models.Model):
     """
     This is intermediate table between ApiarySite and Approval to hold an approved apiary site under a certain approval
     """
-    apiary_site = models.ForeignKey(ApiarySite, blank=True, null=True, related_name='apiary_site_approval_set')
-    approval = models.ForeignKey('apiary.Approval', blank=True, null=True, related_name='apiary_site_approval_set')
+    apiary_site = models.ForeignKey(ApiarySite, blank=True, null=True, related_name='apiary_site_approval_set', on_delete=models.CASCADE)
+    approval = models.ForeignKey('apiary.Approval', blank=True, null=True, related_name='apiary_site_approval_set', on_delete=models.CASCADE)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 # TODO: remove if no longer required
@@ -4676,11 +4676,11 @@ class ApiarySiteApproval(models.Model):
 #     #   return '{}'.format(self.title)
 #
 #    class Meta:
-#        app_label = 'apiary'
+#        app_label = 'disturbance'
 
 
 class ProposalApiaryDocument(DefaultDocument):
-    proposal = models.ForeignKey('Proposal', related_name='apiary_documents')
+    proposal = models.ForeignKey('Proposal', related_name='apiary_documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_apiary_doc_filename, max_length=512, storage=private_storage)
 
     def delete(self):
@@ -4691,8 +4691,8 @@ class ProposalApiaryDocument(DefaultDocument):
 class DeedPollDocument(Document):
     DOC_TYPE_NAME = 'deed_poll_documents'
 
-    proposal = models.ForeignKey(ProposalApiary, related_name='deed_poll_documents', blank=True, null=True)
-    base_proposal = models.ForeignKey(Proposal, related_name='deed_poll_documents', blank=True, null=True)
+    proposal = models.ForeignKey(ProposalApiary, related_name='deed_poll_documents', blank=True, null=True, on_delete=models.CASCADE)
+    base_proposal = models.ForeignKey(Proposal, related_name='deed_poll_documents', blank=True, null=True, on_delete=models.CASCADE)
     _file = models.FileField(max_length=255, storage=private_storage)
     input_name = models.CharField(max_length=255, blank=True, null=True)
     # after initial submit prevent document from being deleted
@@ -4705,47 +4705,47 @@ class DeedPollDocument(Document):
             return super(DeedPollDocument, self).delete()
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 class PublicLiabilityInsuranceDocument(Document):
     DOC_TYPE_NAME = 'public_liability_document'
 
-    proposal = models.ForeignKey(ProposalApiary, related_name='public_liability_insurance_documents', blank=True, null=True)
+    proposal = models.ForeignKey(ProposalApiary, related_name='public_liability_insurance_documents', blank=True, null=True, on_delete=models.CASCADE)
     _file = models.FileField(max_length=255, storage=private_storage)
     input_name = models.CharField(max_length=255, blank=True, null=True)
     can_delete = models.BooleanField(default=True)
     visible = models.BooleanField(default=True)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 class TemporaryUsePublicLiabilityInsuranceDocument(Document):
     DOC_TYPE_NAME = 'public_liability_document'
 
-    proposal = models.ForeignKey(ProposalApiaryTemporaryUse, related_name='public_liability_insurance_documents', blank=True, null=True)
+    proposal = models.ForeignKey(ProposalApiaryTemporaryUse, related_name='public_liability_insurance_documents', blank=True, null=True, on_delete=models.CASCADE)
     _file = models.FileField(max_length=255, storage=private_storage)
     input_name = models.CharField(max_length=255, blank=True, null=True)
     can_delete = models.BooleanField(default=True)
     visible = models.BooleanField(default=True)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 
 
 class SupportingApplicationDocument(Document):
     DOC_TYPE_NAME = 'supporting_application_document'
 
-    proposal = models.ForeignKey(ProposalApiary, related_name='supporting_application_documents', blank=True, null=True)
+    proposal = models.ForeignKey(ProposalApiary, related_name='supporting_application_documents', blank=True, null=True, on_delete=models.CASCADE)
     _file = models.FileField(max_length=255, storage=private_storage)
     input_name = models.CharField(max_length=255, blank=True, null=True)
     can_delete = models.BooleanField(default=True)
     visible = models.BooleanField(default=True)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
 
 #class DeedPollDocument(DefaultDocument):
 #    proposal = models.ForeignKey('Proposal', related_name='deed_poll_documents')
@@ -4794,26 +4794,26 @@ class ApiaryChecklistQuestion(RevisionedMixin):
         return self.text
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         ordering = ['order', 'id']
 
 
 class ApiaryChecklistAnswer(models.Model):
-    question=models.ForeignKey(ApiaryChecklistQuestion, related_name='answers')
+    question=models.ForeignKey(ApiaryChecklistQuestion, related_name='answers', on_delete=models.CASCADE)
     answer = models.NullBooleanField()
-    proposal = models.ForeignKey(ProposalApiary, related_name="apiary_checklist")
-    apiary_referral = models.ForeignKey('ApiaryReferral', related_name="apiary_checklist_referral", blank=True, null=True)
+    proposal = models.ForeignKey(ProposalApiary, related_name="apiary_checklist", on_delete=models.CASCADE)
+    apiary_referral = models.ForeignKey('ApiaryReferral', related_name="apiary_checklist_referral", blank=True, null=True, on_delete=models.CASCADE)
     #text_answer= models.CharField(max_length=256, blank=True, null=True)
     text_answer = models.TextField(blank=True, null=True)
     # to delete
-    site=models.ForeignKey(ApiarySiteOnProposal, blank=True, null=True)
-    apiary_site=models.ForeignKey(ApiarySite, blank=True, null=True)
+    site=models.ForeignKey(ApiarySiteOnProposal, blank=True, null=True, on_delete=models.CASCADE)
+    apiary_site=models.ForeignKey(ApiarySite, blank=True, null=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.question.text
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         verbose_name = 'CheckList answer'
         verbose_name_plural = 'CheckList answers'
 
@@ -4854,7 +4854,7 @@ class ApiaryAssessorGroup(models.Model):
         return self.members.all()
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         verbose_name_plural = 'Apiary Assessors Group'
 
     @property
@@ -4882,7 +4882,7 @@ class ApiaryApproverGroup(models.Model):
         return self.members.all()
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         verbose_name_plural = 'Apiary Approvers Group'
 
     @property
@@ -4915,12 +4915,12 @@ class ApiaryReferral(RevisionedMixin):
     ## is document required?
     ##document = models.ForeignKey(ReferralDocument, blank=True, null=True, related_name='referral_document')
 
-    referral = models.OneToOneField(Referral, related_name='apiary_referral', null=True)
-    referral_group = models.ForeignKey(ApiaryReferralGroup,null=True,blank=True,related_name='referral_groups')
+    referral = models.OneToOneField(Referral, related_name='apiary_referral', null=True, on_delete=models.CASCADE)
+    referral_group = models.ForeignKey(ApiaryReferralGroup,null=True,blank=True,related_name='referral_groups', on_delete=models.CASCADE)
     assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='apiary_referrals_assigned', on_delete=models.SET_NULL)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         #ordering = ('-lodged_on',)
 
     def __str__(self):
@@ -5191,7 +5191,7 @@ class QuestionOption(models.Model):
     value = models.CharField(max_length=100)
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         verbose_name = 'Schema Question Option'
 
     def __str__(self):
@@ -5249,7 +5249,7 @@ class MasterlistQuestion(models.Model):
     property_cache = JSONField(null=True, blank=True, default={})
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         verbose_name = 'Schema Masterlist Question'
 
     def __str__(self):
@@ -5462,7 +5462,7 @@ class ProposalTypeSection(models.Model):
     
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         verbose_name = 'Schema Proposal Type Section'
 
     def __str__(self):
@@ -5545,7 +5545,7 @@ class SectionQuestion(models.Model):
 
 
     class Meta:
-        app_label = 'apiary'
+        app_label = 'disturbance'
         verbose_name='Schema Section Question'
 
     def __str__(self):
