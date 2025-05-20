@@ -97,7 +97,7 @@ rm /app/libgeos.py.patch
 
 # Install the project (ensure that frontend projects have been built prior to this step).
 FROM python_libs_cols
-COPY gunicorn.ini manage_ap.py ./
+COPY gunicorn.ini manage_ds.py ./
 #COPY timezone /etc/timezone
 ENV TZ=Australia/Perth
 RUN echo "Australia/Perth" > /etc/timezone && \
@@ -109,7 +109,7 @@ COPY disturbance ./disturbance
 RUN mkdir -p /app/disturbance/static/disturbance_vue/static
 RUN cd /app/disturbance/frontend/disturbance; npm install
 RUN cd /app/disturbance/frontend/disturbance; npm run build
-RUN python manage_ap.py collectstatic --noinput && \
+RUN python manage_ds.py collectstatic --noinput && \
 mkdir /app/tmp/ && \
 chmod 777 /app/tmp/
 

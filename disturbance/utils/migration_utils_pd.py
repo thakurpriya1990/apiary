@@ -87,7 +87,7 @@ class ApiaryLicenceReader():
         (Pass approvals as a list or a queryset)
 
     FROM mgt-command:
-        python manage_ap.py apiary_migration_script --filename disturbance/utils/csv/apiary_migration_file_02Jun2022.xlsx
+        python manage_ds.py apiary_migration_script --filename disturbance/utils/csv/apiary_migration_file_02Jun2022.xlsx
 
 
     Check for unique permit numbers
