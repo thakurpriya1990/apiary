@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
-from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser, UsersInGroup
 from django.conf import settings
+from django.contrib.auth.models import Group
 
 import logging
 
@@ -26,7 +27,11 @@ def belongs_to(user, group_name):
     :param group_name:
     :return:
     """
-    return user.groups.filter(name=group_name).exists()
+    group = Group.objects.filter(name=group_name)
+    if group.exists():
+        return user.id in list(UsersInGroup.objects.filter(group_id=group.first().id).values_list('emailuser_id', flat=True))
+    else:
+        return False
 
 def is_model_backend(request):
     # Return True if user logged in via single sign-on (i.e. an internal)
@@ -38,15 +43,15 @@ def is_email_auth_backend(request):
 
 def is_disturbance_admin(request):
   #  #logger.info('settings.ADMIN_GROUP: {}'.format(settings.ADMIN_GROUP))
-    return request.user.is_authenticated() and is_model_backend(request) and in_dbca_domain(request) and (belongs_to(request.user, settings.ADMIN_GROUP))
+    return request.user.is_authenticated and is_model_backend(request) and in_dbca_domain(request) and (belongs_to(request.user, settings.ADMIN_GROUP))
 
 def is_apiary_admin(request):
   #  #logger.info('settings.ADMIN_GROUP: {}'.format(settings.ADMIN_GROUP))
-    return request.user.is_authenticated() and is_model_backend(request) and in_dbca_domain(request) and (belongs_to(request.user, settings.APIARY_ADMIN_GROUP))
+    return request.user.is_authenticated and is_model_backend(request) and in_dbca_domain(request) and (belongs_to(request.user, settings.APIARY_ADMIN_GROUP))
 
 def is_das_apiary_admin(request):
   #  #logger.info('settings.ADMIN_GROUP: {}'.format(settings.ADMIN_GROUP))
-    return request.user.is_authenticated() and is_model_backend(request) and in_dbca_domain(request) and (belongs_to(request.user, settings.DAS_APIARY_ADMIN_GROUP))
+    return request.user.is_authenticated and is_model_backend(request) and in_dbca_domain(request) and (belongs_to(request.user, settings.DAS_APIARY_ADMIN_GROUP))
 
 def in_dbca_domain(request):
     user = request.user
@@ -73,10 +78,10 @@ def is_approved_external_user(request):
     return False
 
 def is_departmentUser(request):
-    return request.user.is_authenticated() and ( (is_model_backend(request) and in_dbca_domain(request)) or is_approved_external_user(request) )
+    return request.user.is_authenticated and ( (is_model_backend(request) and in_dbca_domain(request)) or is_approved_external_user(request) )
 
 def is_customer(request):
-    return request.user.is_authenticated() and is_email_auth_backend(request)
+    return request.user.is_authenticated and is_email_auth_backend(request)
 
 def is_internal(request):
     return is_departmentUser(request)

@@ -80,7 +80,7 @@ class DisturbanceRoutingView(TemplateView):
     template_name = 'disturbance/index.html'
 
     def get(self, *args, **kwargs):
-        if self.request.user.is_authenticated():
+        if self.request.user.is_authenticated:
             if is_internal(self.request):
                 return redirect('internal')
             return redirect('external')
@@ -99,7 +99,7 @@ class InternalProposalView(DetailView):
     template_name = 'disturbance/dash/index.html'
 
     def get(self, *args, **kwargs):
-        if self.request.user.is_authenticated():
+        if self.request.user.is_authenticated:
             if is_internal(self.request):
                 #return redirect('internal-proposal-detail')
                 return super(InternalProposalView, self).get(*args, **kwargs)
@@ -108,7 +108,7 @@ class InternalProposalView(DetailView):
         return super(DisturbanceRoutingDetailView, self).get(*args, **kwargs)
 
 
-@login_required(login_url='ds_home')
+@login_required(login_url='home')
 def first_time(request):
     context = {}
     if request.method == 'POST':
@@ -143,7 +143,7 @@ class HelpView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(HelpView, self).get_context_data(**kwargs)
 
-        if self.request.user.is_authenticated():
+        if self.request.user.is_authenticated:
             application_type = kwargs.get('application_type', None) 
             if kwargs.get('help_type', None)=='assessor':
                 if is_internal(self.request):
@@ -179,7 +179,7 @@ class TemplateGroupView(views.APIView):
 
     def get(self, request, format=None):
         return Response({
-            'template_group': settings.DOMAIN_DETECTED,
+            'template_group': 'apiary',
             'is_das_admin': True if is_disturbance_admin(request) else False,
             'is_apiary_admin': True if is_apiary_admin(request) else False,
             'is_das_apiary_admin': True if is_das_apiary_admin(request) else False,

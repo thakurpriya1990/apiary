@@ -207,7 +207,7 @@ class SiteTransferApplicationFeeSuccessView(TemplateView):
                 recipient = proposal.submitter.email
             submitter = proposal.submitter
 
-            if self.request.user.is_authenticated():
+            if self.request.user.is_authenticated:
                 basket = Basket.objects.filter(status='Submitted', owner=request.user).order_by('-id')[:1]
             else:
                 basket = Basket.objects.filter(status='Submitted', owner=booking.proposal.submitter).order_by('-id')[:1]
@@ -355,7 +355,7 @@ class AnnualRentalFeeSuccessView(TemplateView):
             # but when accessed sencond time, it is deleted therefore raise an error.
             annual_rental_fee = get_session_annual_rental_fee(request.session)
 
-            # if self.request.user.is_authenticated():
+            # if self.request.user.is_authenticated:
             #     basket = Basket.objects.filter(status='Submitted', owner=request.user).order_by('-id')[:1]
             # else:
             #     pass
@@ -453,7 +453,7 @@ class ApplicationFeeSuccessView(TemplateView):
                 recipient = proposal.submitter.email
             submitter = proposal.submitter
 
-            if self.request.user.is_authenticated():
+            if self.request.user.is_authenticated:
                 basket = Basket.objects.filter(status='Submitted', owner=request.user).order_by('-id')[:1]
             else:
                 basket = Basket.objects.filter(status='Submitted', owner=booking.proposal.submitter).order_by('-id')[:1]

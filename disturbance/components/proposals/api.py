@@ -316,7 +316,7 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if is_internal(self.request): #user.is_authenticated():
+        if is_internal(self.request): #user.is_authenticated:
             #return Proposal.objects.all().order_by('-id')
             return Proposal.objects.exclude(processing_status='hidden')
         elif is_customer(self.request):
@@ -623,7 +623,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         user = self.request.user
 
         # Only internal user is supposed to access here
-        if is_internal(self.request):  # user.is_authenticated():
+        if is_internal(self.request):  # user.is_authenticated:
             return ApiarySite.objects.all()
         #elif is_customer(self.request):
             # qs = qs.exclude(status=ApiarySite.STATUS_DRAFT)
@@ -1128,7 +1128,7 @@ class ApiaryReferralViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated() and is_internal(self.request):
+        if user.is_authenticated and is_internal(self.request):
             #queryset =  Referral.objects.filter(referral=user)
             queryset = ApiaryReferral.objects.all()
             return queryset
@@ -2613,7 +2613,7 @@ class ReferralViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated() and is_internal(self.request):
+        if user.is_authenticated and is_internal(self.request):
             #queryset =  Referral.objects.filter(referral=user)
             queryset =  Referral.objects.all()
             return queryset
@@ -2886,7 +2886,7 @@ class ProposalStandardRequirementViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return ProposalStandardRequirement.objects.all()
         return ProposalStandardRequirement.objects.none()
 
@@ -3039,7 +3039,7 @@ class ApiaryReferralGroupViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         #user = self.request.user
-        if is_internal(self.request): #user.is_authenticated():
+        if is_internal(self.request): #user.is_authenticated:
             return ApiaryReferralGroup.objects.all()
         else:
             return ApiaryReferralGroup.objects.none()
@@ -3051,7 +3051,7 @@ class ApiarySiteFeeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         #user = self.request.user
-        if is_internal(self.request): #user.is_authenticated():
+        if is_internal(self.request): #user.is_authenticated:
             return ApiarySiteFee.objects.all()
         else:
             return ApiarySiteFee.objects.none()
@@ -3153,7 +3153,7 @@ class SchemaMasterlistPaginatedViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return MasterlistQuestion.objects.all()
         return MasterlistQuestion.objects.none()
 
@@ -3179,7 +3179,7 @@ class SchemaMasterlistViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return MasterlistQuestion.objects.all()
         return MasterlistQuestion.objects.none()
 
@@ -3433,7 +3433,7 @@ class SchemaQuestionPaginatedViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return SectionQuestion.objects.all()
         return SectionQuestion.objects.none()
 
@@ -3460,7 +3460,7 @@ class SchemaQuestionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return SectionQuestion.objects.all()
         return SectionQuestion.objects.none()
 
@@ -3801,7 +3801,7 @@ class SchemaProposalTypePaginatedViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return ProposalTypeSection.objects.all()
         return ProposalTypeSection.objects.none()
 
@@ -3828,7 +3828,7 @@ class SchemaProposalTypeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return ProposalTypeSection.objects.all()
         return ProposalTypeSection.objects.none()
 

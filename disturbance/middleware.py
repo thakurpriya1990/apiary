@@ -26,11 +26,11 @@ class FirstTimeNagScreenMiddleware(object):
         #print ("FirstTimeNagScreenMiddleware: REQUEST SESSION")
         if 'static' in request.path:
             return
-        if request.user.is_authenticated() and request.method == 'GET' and 'api' not in request.path and 'admin' not in request.path:
+        if request.user.is_authenticated and request.method == 'GET' and 'api' not in request.path and 'admin' not in request.path:
             #print('DEBUG: {}: {} == {}, {} == {}, {} == {}'.format(request.user, request.user.first_name, (not request.user.first_name), request.user.last_name, (not request.user.last_name), request.user.dob, (not request.user.dob) ))
             if (not request.user.first_name) or (not request.user.last_name):# or (not request.user.dob):
                 path_ft = reverse('first_time')
-                path_logout = reverse('accounts:logout')
+                path_logout = reverse('logout')
                 if request.path not in (path_ft, path_logout):
                     return redirect(reverse('first_time')+"?next="+urlquote_plus(request.get_full_path()))
 
@@ -94,22 +94,11 @@ class DomainDetectMiddleware(object):
         # Do something with request
         # Probably return None
         # Or return an HttpResponse in some cases
-        settings.DOMAIN_DETECTED = 'das'
-        settings.SYSTEM_NAME = env('SYSTEM_NAME', 'Disturbance Approval System')
-        settings.SYSTEM_NAME_SHORT = 'DAS'
-        settings.BASE_EMAIL_TEXT = 'disturbance/emails/base_email.txt'
-        settings.BASE_EMAIL_HTML = 'disturbance/emails/base_email.html'
 
-        http_host = request.META.get('HTTP_HOST', None)
-
-        logger.debug(f'http_host: {http_host}')
-        
-        if http_host and http_host in settings.APIARY_URL:
-            settings.DOMAIN_DETECTED = 'apiary'
-            settings.SYSTEM_NAME = settings.APIARY_SYSTEM_NAME
-            settings.SYSTEM_NAME_SHORT = 'Apiary'
-            settings.BASE_EMAIL_TEXT = 'disturbance/emails/apiary_base_email.txt'
-            settings.BASE_EMAIL_HTML = 'disturbance/emails/apiary_base_email.html'
+        settings.SYSTEM_NAME = settings.APIARY_SYSTEM_NAME
+        settings.SYSTEM_NAME_SHORT = 'Apiary'
+        settings.BASE_EMAIL_TEXT = 'disturbance/emails/apiary_base_email.txt'
+        settings.BASE_EMAIL_HTML = 'disturbance/emails/apiary_base_email.html'
 
         return None
 

@@ -24,6 +24,7 @@ APIARY_MIGRATED_LICENCES_APPROVER = env('APIARY_MIGRATED_LICENCES_APPROVER', 'ja
 SHOW_ROOT_API = env('SHOW_ROOT_API', False)
 
 INSTALLED_APPS += [
+    'reversion',
     'reversion_compare',
     'bootstrap3',
     'disturbance',
@@ -207,7 +208,6 @@ BASE_EMAIL_HTML = ''
 # This is either 'das'/'apiary'
 # default: 'das'
 # This value is determined at the middleware, DomainDetectMiddleware by where the request comes from
-DOMAIN_DETECTED = 'das'
 HTTP_HOST_FOR_TEST = 'localhost:8071'
 
 # Additional logging for commercialoperator

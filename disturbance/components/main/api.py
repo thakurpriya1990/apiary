@@ -34,7 +34,7 @@ class RegionViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return Region.objects.all().order_by('id')
         return Region.objects.none()
 
@@ -46,7 +46,7 @@ class ActivityMatrixViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             # specific to Disturbance application, so only exposing one record (most recent)
             return [ActivityMatrix.objects.filter(name='Disturbance').order_by('-version').first()]
         return ActivityMatrix.objects.none()
@@ -68,7 +68,7 @@ class ApplicationTypeViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return ApplicationType.objects.order_by('order').filter(visible=True)
         return ApplicationType.objects.none()
 
