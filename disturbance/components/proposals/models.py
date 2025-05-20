@@ -2395,11 +2395,14 @@ class ProposalLogEntry(CommunicationsLogEntry):
         super(ProposalLogEntry, self).save(**kwargs)
 
 class AmendmentRequestDocument(Document):
-    amendment_request = models.ForeignKey('AmendmentRequest',related_name='amendment_request_documents', on_delete=models.CASCADE)
+    amendment_request = models.ForeignKey('disturbance.AmendmentRequest',related_name='amendment_request_documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_amendment_request_doc_filename, max_length=500, storage=private_storage)
     input_name = models.CharField(max_length=255,null=True,blank=True)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
     visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history
+
+    class Meta:
+        app_label = 'disturbance'
 
     def delete(self):
         if self.can_delete:

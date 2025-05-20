@@ -256,12 +256,21 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='Document',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(blank=True, max_length=100, verbose_name='name')),
+                ('description', models.TextField(blank=True, verbose_name='description')),
+                ('uploaded_date', models.DateTimeField(auto_now_add=True)),
+            ],
+        ),
+        migrations.CreateModel(
             name='OrganisationLogDocument',
             fields=[
-                ('document_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='accounts.Document')),
+                ('ledgerdocument_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='disturbance.Document')),
                 ('_file', models.FileField(upload_to=disturbance.components.organisations.models.update_organisation_comms_log_filename)),
             ],
-            bases=('accounts.document',),
+            bases=('disturbance.document',),
         ),
         migrations.CreateModel(
             name='OrganisationRequest',
@@ -288,10 +297,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='OrganisationRequestLogDocument',
             fields=[
-                ('document_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='accounts.Document')),
+                ('ledgerdocument_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='disturbance.Document')),
                 ('_file', models.FileField(upload_to=disturbance.components.organisations.models.update_organisation_request_comms_log_filename)),
             ],
-            bases=('accounts.document',),
+            bases=('disturbance.document',),
         ),
         migrations.CreateModel(
             name='OrganisationRequestUserAction',
@@ -679,8 +688,9 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='organisation',
-            name='organisation',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='accounts.Organisation'),
+            name='organisation_id',
+            #field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='accounts.Organisation'),
+            field=models.IntegerField(unique=True, verbose_name='Ledger Organisation ID'),
         ),
         migrations.AddField(
             model_name='district',

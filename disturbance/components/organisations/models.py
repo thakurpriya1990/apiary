@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields.jsonb import JSONField
 #from ledger.accounts.models import Organisation as ledger_organisation
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from disturbance.components.main.models import UserAction,CommunicationsLogEntry, RevisionedMixin, Document
+from disturbance.components.main.models import UserAction,CommunicationsLogEntry, LedgerDocument
 from disturbance.components.organisations.utils import random_generator
 from disturbance.components.organisations.emails import (
                         send_organisation_request_accept_email_notification,
@@ -593,7 +593,7 @@ def update_organisation_comms_log_filename(instance, filename):
     return 'organisations/{}/communications/{}/{}'.format(instance.log_entry.organisation.id,instance.id,filename)
 
 
-class OrganisationLogDocument(Document):
+class OrganisationLogDocument(LedgerDocument):
     log_entry = models.ForeignKey('OrganisationLogEntry',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_organisation_comms_log_filename, storage=private_storage)
 
@@ -854,7 +854,7 @@ def update_organisation_request_comms_log_filename(instance, filename):
     return 'organisation_requests/{}/communications/{}/{}'.format(instance.log_entry.request.id,instance.id,filename)
 
 
-class OrganisationRequestLogDocument(Document):
+class OrganisationRequestLogDocument(LedgerDocument):
     log_entry = models.ForeignKey('OrganisationRequestLogEntry',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_organisation_request_comms_log_filename, storage=private_storage)
 
