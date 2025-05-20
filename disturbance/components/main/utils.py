@@ -82,12 +82,7 @@ def convert_utc_time_to_local(utc_time_str_with_z):
 
 
 def get_template_group(request):
-    web_url = request.META.get('HTTP_HOST', None)
-    template_group = None
-    if web_url in settings.APIARY_URL:
-       template_group = 'apiary'
-    else:
-       template_group = 'das'
+    template_group = 'apiary'
     return template_group
 
 

@@ -269,16 +269,9 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             if date_to:
                 queryset = queryset.filter(proposal__lodgement_date__lte=date_to)
 
-        getter = request.query_params.get
-        fields = self.get_fields(getter)
-        ordering = self.get_ordering(getter, fields)
-        queryset = queryset.order_by(*ordering)
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
         if len(ordering):
-            #for num, item in enumerate(ordering):
-             #   if item == 'status__name':
-              #      ordering[num] = 'status'
-               # elif item == '-status__name':
-                #    ordering[num] = '-status'
             queryset = queryset.order_by(*ordering)
 
         try:
@@ -347,22 +340,13 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
         http://localhost:8499/api/proposal_paginated/proposal_paginated_internal/?format=datatables&draw=1&length=2
         """
         template_group = get_template_group(request)
-        if template_group == 'apiary':
-            #qs = self.get_queryset().filter(application_type__apiary_group_application_type=True)
-            qs = self.get_queryset().filter(
-                application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE]
-            )
-        else:
-            if is_das_apiary_admin(self.request):
-                qs = self.get_queryset()
-            else:
-                qs = self.get_queryset().exclude(
-                    application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE]
-                )
+        qs = self.get_queryset().filter(
+            application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE]
+        )
         #qs = self.filter_queryset(self.request, qs, self)
         #qs = self.filter_queryset(qs).order_by('-id')
+        print(self.request.method)
         qs = self.filter_queryset(qs)
-
         # on the internal organisations dashboard, filter the Proposal/Approval/Compliance datatables by applicant/organisation
         applicant_id = request.GET.get('org_id')
         if applicant_id:
@@ -1592,36 +1576,18 @@ class ProposalViewSet(viewsets.ModelViewSet):
     @action(detail=False,methods=['GET',])
     def filter_list(self, request, *args, **kwargs):
         """ Used by the internal/external dashboard filters """
-        template_group = get_template_group(request)
-        region_qs = []
-        activity_qs = []
-        application_type_qs = []
-        if template_group == 'apiary':
-            qs = self.get_queryset().filter(
-                application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE]
-            )
-            submitter_qs = qs.filter(
-                submitter__isnull=False).filter(
-                    application_type__name__in=[ApplicationType.APIARY,ApplicationType.SITE_TRANSFER,ApplicationType.TEMPORARY_USE]).distinct(
-                    'submitter__email').values_list('submitter__first_name','submitter__last_name','submitter__email')
-        else:
-            qs = self.get_queryset().exclude(
-                application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE])
-            region_qs =  qs.filter(region__isnull=False).values_list('region__name', flat=True).distinct()
-            submitter_qs = qs.filter(submitter__isnull=False).distinct(
-                            'submitter__email').values_list('submitter__first_name','submitter__last_name','submitter__email')
+        qs = self.get_queryset().filter(
+            application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE]
+        )
 
-        activity_qs =  qs.filter(activity__isnull=False).values_list('activity', flat=True).distinct()
-        submitters = [dict(email=i[2], search_term='{} {} ({})'.format(i[0], i[1], i[2])) for i in submitter_qs]
+        activity_qs = qs.filter(activity__isnull=False).values_list('activity', flat=True).distinct()
+        region_qs = qs.filter(region__isnull=False).values_list('region', flat=True).distinct()
+        district_qs = qs.filter(district__isnull=False).values_list('district', flat=True).distinct()
+        
         data = dict(
             regions=region_qs,
-            #districts=district_qs,
+            districts=district_qs,
             activities=activity_qs,
-            submitters=submitters,
-            #application_types=application_type_qs,
-            ##processing_status_choices = [i[1] for i in Proposal.PROCESSING_STATUS_CHOICES],
-            ##processing_status_id_choices = [i[0] for i in Proposal.PROCESSING_STATUS_CHOICES],
-            ##customer_status_choices = [i[1] for i in Proposal.CUSTOMER_STATUS_CHOICES],
             approval_status_choices = [i[1] for i in Approval.STATUS_CHOICES],
         )
         return Response(data)

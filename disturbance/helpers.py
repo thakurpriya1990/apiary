@@ -10,16 +10,6 @@ from rest_framework import serializers
 from disturbance.components.organisations.models import Organisation
 logger = logging.getLogger(__name__)
 
-def in_dbca_domain(request):
-    user = request.user
-    domain = user.email.split('@')[1]
-    if domain in settings.DEPT_DOMAINS:
-        if not user.is_staff:
-            user.is_staff = True
-            user.save()
-        return True
-    return False
-
 def belongs_to(user, group_name):
     """
     Check if the user belongs to the given group.
@@ -53,8 +43,7 @@ def is_das_apiary_admin(request):
   #  #logger.info('settings.ADMIN_GROUP: {}'.format(settings.ADMIN_GROUP))
     return request.user.is_authenticated and is_model_backend(request) and in_dbca_domain(request) and (belongs_to(request.user, settings.DAS_APIARY_ADMIN_GROUP))
 
-def in_dbca_domain(request):
-    user = request.user
+def user_in_dbca_domain(user):
     domain = user.email.split('@')[1]
     if domain in settings.DEPT_DOMAINS:
         if not user.is_staff:
@@ -63,6 +52,10 @@ def in_dbca_domain(request):
             user.save()
         return True
     return False
+
+def in_dbca_domain(request):
+    user = request.user
+    return user_in_dbca_domain(user)
 
 def is_in_organisation_contacts(request, organisation):
     return request.user.email in organisation.contacts.all().values_list('email', flat=True)

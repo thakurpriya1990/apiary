@@ -5,7 +5,7 @@ from disturbance.components.organisations.models import (
                                 )
 from disturbance.components.organisations.utils import can_admin_org, is_consultant
 from rest_framework import serializers
-from disturbance.helpers import in_dbca_domain
+from disturbance.helpers import user_in_dbca_domain
 from disturbance.components.approvals.models import Approval
 from disturbance.components.proposals.models import Proposal
 from disturbance.components.main.models import ApplicationType
@@ -203,7 +203,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_is_department_user(self, obj):
         if obj.email:
-            return in_dbca_domain(obj)
+            return user_in_dbca_domain(obj)
         else:
             return False
 
