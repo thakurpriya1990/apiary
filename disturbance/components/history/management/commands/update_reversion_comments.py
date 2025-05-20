@@ -3,17 +3,17 @@
     can filter based on this when showing a version history on the 
     frontend.
 
-    Usage: ./manage_ds.py update_reversion_comments <app_label> <model_name> <records_to_process>
+    Usage: ./manage_ap.py update_reversion_comments <app_label> <model_name> <records_to_process>
 
     Examples:
     
     Process versions for all proposals in the disturbance app
 
-    ./manage_ds.py update_reversion_comments disturbance Proposal 0
+    ./manage_ap.py update_reversion_comments disturbance Proposal 0
 
     Process versions for proposals with pk=100 in the disturbance app
 
-    ./manage_ds.py update_reversion_comments disturbance Proposal 100
+    ./manage_ap.py update_reversion_comments disturbance Proposal 100
 
     Todo: To make this fully generic, we would need to pass in the list
     of fields that we are checking for changes in. Currently it is checking
