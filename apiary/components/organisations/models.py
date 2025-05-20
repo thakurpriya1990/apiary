@@ -4,7 +4,7 @@ from django.db import models, transaction
 from django.contrib.sites.models import Site
 from django.dispatch import receiver
 from django.db.models.signals import pre_delete
-from django.utils.six import python_2_unicode_compatible
+from six import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields.jsonb import JSONField
 #from ledger.accounts.models import Organisation as ledger_organisation

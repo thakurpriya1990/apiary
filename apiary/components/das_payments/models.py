@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from django.contrib.postgres.fields import JSONField
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models, transaction
-from django.utils.six import python_2_unicode_compatible
+from six import python_2_unicode_compatible
 from django.utils import timezone
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from apiary.components.main.models import RevisionedMixin

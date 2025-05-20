@@ -21,7 +21,7 @@ from django.contrib.gis.db import models as gis_models
 from django.db.models import Q, Max, F
 from django.dispatch import receiver
 from django.db.models.signals import pre_delete, post_save
-from django.utils.six import python_2_unicode_compatible
+from six import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields.jsonb import JSONField
 from django.utils import timezone

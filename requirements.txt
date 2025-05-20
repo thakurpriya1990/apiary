@@ -47,7 +47,7 @@ python-docx~=1.1.2
 docxtpl~=0.20.0
 phonenumbers~=9.0.5
 django-treebeard~=4.7.1
-git+https://github.com/digi604/django-smart-selects.git@js-unlinting-fixes
+django-smart-selects~=1.7.2
 django-multiselectfield~=0.1.13
 psycopg2~=2.9.10
 deepdiff~=8.5.0
@@ -58,5 +58,4 @@ whitenoise~=5.3.0
 git+https://github.com/dbca-wa/django-media-serv.git#egg=django_media_serv
 python-decouple~=3.8
 six~=1.17.0
-django-utils-six~=2.0
 git+https://github.com/dbca-wa/django5-utils-six.git#egg=django5_six
