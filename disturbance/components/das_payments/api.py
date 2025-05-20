@@ -29,12 +29,12 @@ from ledger.address.models import Country
 from datetime import datetime, timedelta, date
 from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
-from apiary.components.proposals.models import Proposal, ApplicationType
+from disturbance.components.proposals.models import Proposal, ApplicationType
 #from disturbance.components.das_payments.models import
 #from disturbance.components.bookings.serializers import
-from apiary.helpers import is_customer, is_internal
+from disturbance.helpers import is_customer, is_internal
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
-from apiary.components.proposals.api import ProposalFilterBackend, ProposalRenderer
+from disturbance.components.proposals.api import ProposalFilterBackend, ProposalRenderer
 
 
 #class PaymentViewSet(viewsets.ModelViewSet):

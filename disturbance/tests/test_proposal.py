@@ -1,5 +1,5 @@
-from apiary.settings import HTTP_HOST_FOR_TEST
-from apiary.tests.test_setup import APITestSetup
+from disturbance.settings import HTTP_HOST_FOR_TEST
+from disturbance.tests.test_setup import APITestSetup
 
 
 class ProposalTests(APITestSetup):

@@ -3,10 +3,10 @@
 from __future__ import unicode_literals
 
 import ckeditor.fields
-import apiary.components.approvals.models
-import apiary.components.compliances.models
-import apiary.components.organisations.models
-import apiary.components.proposals.models
+import disturbance.components.approvals.models
+import disturbance.components.compliances.models
+import disturbance.components.organisations.models
+import disturbance.components.proposals.models
 from django.conf import settings
 import django.contrib.postgres.fields.jsonb
 from django.db import migrations, models
@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('taggit', '0002_auto_20150616_2121'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('accounts', '0013_auto_20180207_1210'),
+        #('accounts', '0013_auto_20180207_1210'),
         ('sites', '0002_alter_domain_unique'),
     ]
 
@@ -88,7 +88,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(blank=True, max_length=100, verbose_name='name')),
                 ('description', models.TextField(blank=True, verbose_name='description')),
                 ('uploaded_date', models.DateTimeField(auto_now_add=True)),
-                ('_file', models.FileField(upload_to=apiary.components.approvals.models.update_approval_doc_filename)),
+                ('_file', models.FileField(upload_to=disturbance.components.approvals.models.update_approval_doc_filename)),
                 ('approval', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='disturbance.Approval')),
             ],
         ),
@@ -99,7 +99,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(blank=True, max_length=100, verbose_name='name')),
                 ('description', models.TextField(blank=True, verbose_name='description')),
                 ('uploaded_date', models.DateTimeField(auto_now_add=True)),
-                ('_file', models.FileField(null=True, upload_to=apiary.components.approvals.models.update_approval_comms_log_filename)),
+                ('_file', models.FileField(null=True, upload_to=disturbance.components.approvals.models.update_approval_comms_log_filename)),
             ],
         ),
         migrations.CreateModel(
@@ -158,7 +158,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(blank=True, max_length=100, verbose_name='name')),
                 ('description', models.TextField(blank=True, verbose_name='description')),
                 ('uploaded_date', models.DateTimeField(auto_now_add=True)),
-                ('_file', models.FileField(upload_to=apiary.components.compliances.models.update_proposal_complaince_filename)),
+                ('_file', models.FileField(upload_to=disturbance.components.compliances.models.update_proposal_complaince_filename)),
                 ('compliance', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='disturbance.Compliance')),
             ],
         ),
@@ -169,7 +169,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(blank=True, max_length=100, verbose_name='name')),
                 ('description', models.TextField(blank=True, verbose_name='description')),
                 ('uploaded_date', models.DateTimeField(auto_now_add=True)),
-                ('_file', models.FileField(upload_to=apiary.components.compliances.models.update_compliance_comms_log_filename)),
+                ('_file', models.FileField(upload_to=disturbance.components.compliances.models.update_compliance_comms_log_filename)),
             ],
         ),
         migrations.CreateModel(
@@ -259,7 +259,7 @@ class Migration(migrations.Migration):
             name='OrganisationLogDocument',
             fields=[
                 ('document_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='accounts.Document')),
-                ('_file', models.FileField(upload_to=apiary.components.organisations.models.update_organisation_comms_log_filename)),
+                ('_file', models.FileField(upload_to=disturbance.components.organisations.models.update_organisation_comms_log_filename)),
             ],
             bases=('accounts.document',),
         ),
@@ -289,7 +289,7 @@ class Migration(migrations.Migration):
             name='OrganisationRequestLogDocument',
             fields=[
                 ('document_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='accounts.Document')),
-                ('_file', models.FileField(upload_to=apiary.components.organisations.models.update_organisation_request_comms_log_filename)),
+                ('_file', models.FileField(upload_to=disturbance.components.organisations.models.update_organisation_request_comms_log_filename)),
             ],
             bases=('accounts.document',),
         ),
@@ -368,7 +368,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(blank=True, max_length=100, verbose_name='name')),
                 ('description', models.TextField(blank=True, verbose_name='description')),
                 ('uploaded_date', models.DateTimeField(auto_now_add=True)),
-                ('_file', models.FileField(upload_to=apiary.components.proposals.models.update_proposal_doc_filename)),
+                ('_file', models.FileField(upload_to=disturbance.components.proposals.models.update_proposal_doc_filename)),
                 ('input_name', models.CharField(blank=True, max_length=255, null=True)),
                 ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='disturbance.Proposal')),
             ],
@@ -380,7 +380,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(blank=True, max_length=100, verbose_name='name')),
                 ('description', models.TextField(blank=True, verbose_name='description')),
                 ('uploaded_date', models.DateTimeField(auto_now_add=True)),
-                ('_file', models.FileField(upload_to=apiary.components.proposals.models.update_proposal_comms_log_filename)),
+                ('_file', models.FileField(upload_to=disturbance.components.proposals.models.update_proposal_comms_log_filename)),
             ],
         ),
         migrations.CreateModel(

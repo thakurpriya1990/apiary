@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from django.conf import settings
 from rest_framework import views
 
-from apiary.components.main.models import ApiaryGlobalSettings
+from disturbance.components.main.models import ApiaryGlobalSettings
 
 logger = logging.getLogger(__name__)
 

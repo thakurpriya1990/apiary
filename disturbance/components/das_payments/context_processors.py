@@ -1,5 +1,5 @@
 from django.conf import settings
-from apiary import helpers
+from disturbance import helpers
 
 
 def disturbance_url(request):

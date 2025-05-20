@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from apiary.components.proposals.models import (
+from disturbance.components.proposals.models import (
         ProposalAssessorGroup,
         ProposalApproverGroup, 
         HelpPage,
@@ -11,7 +11,7 @@ from apiary.components.proposals.models import (
         SectionQuestion,
         QuestionOption,
         )
-from apiary.components.main.models import SystemMaintenance
+from disturbance.components.main.models import SystemMaintenance
 from ckeditor.widgets import CKEditorWidget
 from django.conf import settings
 import pytz

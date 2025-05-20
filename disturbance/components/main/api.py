@@ -11,16 +11,16 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, B
 from rest_framework.pagination import PageNumberPagination
 from django.urls import reverse
 
-from apiary.components.das_payments import reports
-from apiary.components.main.models import Region, District, Tenure, ApplicationType, ActivityMatrix, MapLayer
-from apiary.components.main.serializers import RegionSerializer, DistrictSerializer, TenureSerializer, \
+from disturbance.components.das_payments import reports
+from disturbance.components.main.models import Region, District, Tenure, ApplicationType, ActivityMatrix, MapLayer
+from disturbance.components.main.serializers import RegionSerializer, DistrictSerializer, TenureSerializer, \
     ApplicationTypeSerializer, ActivityMatrixSerializer, BookingSettlementReportSerializer, OracleSerializer, \
     MapLayerSerializer
 from django.core.exceptions import ValidationError
 
-from apiary.components.main.utils import handle_validation_error
-from apiary.helpers import is_internal, is_customer
-from apiary.settings import PAYMENT_SYSTEM_PREFIX
+from disturbance.components.main.utils import handle_validation_error
+from disturbance.helpers import is_internal, is_customer
+from disturbance.settings import PAYMENT_SYSTEM_PREFIX
 
 
 class DistrictViewSet(viewsets.ReadOnlyModelViewSet):

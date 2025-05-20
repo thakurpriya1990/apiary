@@ -1,6 +1,6 @@
 from django.utils.encoding import smart_bytes
 from django.core.mail import EmailMultiAlternatives, EmailMessage
-from apiary.settings import SYSTEM_NAME
+from disturbance.settings import SYSTEM_NAME
 
 
 def _extract_email_headers(email_message, sender=None):

@@ -1,8 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from apiary.components.approvals.models import ApiarySiteOnApproval
-from apiary.settings import SITE_STATUS_TRANSFERRED
+from disturbance.components.approvals.models import ApiarySiteOnApproval
+from disturbance.settings import SITE_STATUS_TRANSFERRED
 
 
 class ApiarySiteOnApprovalListener(object):

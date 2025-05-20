@@ -5,10 +5,10 @@ from django.utils.encoding import smart_bytes
 from django.urls import reverse
 from django.conf import settings
 
-from apiary.components.emails.emails import TemplateEmailBase
-from apiary.components.das_payments.invoice_pdf import create_invoice_pdf_bytes
-from apiary.components.das_payments.confirmation_pdf import create_confirmation_pdf_bytes
-from apiary.context_processors import apiary_url
+from disturbance.components.emails.emails import TemplateEmailBase
+from disturbance.components.das_payments.invoice_pdf import create_invoice_pdf_bytes
+from disturbance.components.das_payments.confirmation_pdf import create_confirmation_pdf_bytes
+from disturbance.context_processors import apiary_url
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 logger = logging.getLogger(__name__)
@@ -95,7 +95,7 @@ def send_application_fee_invoice_apiary_email_notification(request, proposal, in
 
 
 def _log_proposal_email(email_message, proposal, sender=None):
-    from apiary.components.proposals.models import ProposalLogEntry
+    from disturbance.components.proposals.models import ProposalLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
         # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
@@ -142,7 +142,7 @@ def _log_proposal_email(email_message, proposal, sender=None):
 
 
 def _log_org_email(email_message, organisation, customer ,sender=None):
-    from apiary.components.organisations.models import OrganisationLogEntry
+    from disturbance.components.organisations.models import OrganisationLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
         # TODO this will log the plain text body, should we log the html instead
         text = email_message.body

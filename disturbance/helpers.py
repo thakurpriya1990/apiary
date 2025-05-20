@@ -6,7 +6,7 @@ import logging
 
 from rest_framework import serializers
 
-from apiary.components.organisations.models import Organisation
+from disturbance.components.organisations.models import Organisation
 logger = logging.getLogger(__name__)
 
 def in_dbca_domain(request):

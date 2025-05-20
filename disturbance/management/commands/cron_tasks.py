@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.core.mail import send_mail
 from pathlib import Path
-from apiary.components.approvals.models import Approval
+from disturbance.components.approvals.models import Approval
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 import datetime
 

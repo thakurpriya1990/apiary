@@ -1,10 +1,10 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.conf import settings
-from apiary.components.approvals.models import Approval
+from disturbance.components.approvals.models import Approval
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from datetime import date, timedelta
-from apiary.components.approvals.email import (
+from disturbance.components.approvals.email import (
     send_approval_renewal_email_notification,)
 
 import itertools

@@ -11,7 +11,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from django.contrib.postgres.fields.jsonb import JSONField
 from datetime import date
 
-from apiary.components.main.utils import overwrite_regions_polygons, overwrite_districts_polygons
+from disturbance.components.main.utils import overwrite_regions_polygons, overwrite_districts_polygons
 
 class RevisionedMixin(models.Model):
     """
@@ -327,6 +327,7 @@ class Document(models.Model):
                             verbose_name='name', help_text='')
     description = models.TextField(blank=True,
                                    verbose_name='description', help_text='')
+    file = models.FileField(upload_to='%Y/%m/%d')
     uploaded_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:

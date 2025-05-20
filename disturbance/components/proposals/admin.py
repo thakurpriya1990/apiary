@@ -1,16 +1,16 @@
 import os
 import datetime
 import pytz
-import apiary.settings
+import disturbance.settings
 
 from django.contrib import admin
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
-import apiary
-from apiary.components.main.utils import custom_strftime
-from apiary.components.proposals import models
-from apiary.components.proposals import forms
-from apiary.components.main.models import ActivityMatrix, SystemMaintenance, ApplicationType, GlobalSettings, \
+import disturbance
+from disturbance.components.main.utils import custom_strftime
+from disturbance.components.proposals import models
+from disturbance.components.proposals import forms
+from disturbance.components.main.models import ActivityMatrix, SystemMaintenance, ApplicationType, GlobalSettings, \
     ApiaryGlobalSettings
 #from disturbance.components.main.models import Activity, SubActivityLevel1, SubActivityLevel2, SubCategory
 from reversion.admin import VersionAdmin
@@ -18,11 +18,11 @@ from django.conf.urls import url
 from django.template.response import TemplateResponse
 from django.http import HttpResponse, HttpResponseRedirect
 
-from apiary.components.proposals.models import SiteCategory, ApiarySiteFee, ApiarySiteFeeType, \
+from disturbance.components.proposals.models import SiteCategory, ApiarySiteFee, ApiarySiteFeeType, \
     ApiaryAnnualRentalFee, \
     ApiaryAnnualRentalFeeRunDate, ApiaryAnnualRentalFeePeriodStartDate
-from apiary.utils import create_helppage_object
-from apiary.helpers import is_apiary_admin, is_disturbance_admin, is_das_apiary_admin
+from disturbance.utils import create_helppage_object
+from disturbance.helpers import is_apiary_admin, is_disturbance_admin, is_das_apiary_admin
 # Register your models here.
 from django.utils.html import format_html
 from django.urls import reverse
@@ -30,7 +30,7 @@ from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 
 
-from apiary.components.proposals.utils import generate_schema
+from disturbance.components.proposals.utils import generate_schema
 
 
 @admin.register(models.ProposalType)
@@ -391,7 +391,7 @@ class ApiaryAnnualRentalFeeRunDateAdmin(admin.ModelAdmin):
         return False
 
     def period_to_be_charged_for(self, obj):
-        from apiary.management.commands.send_annual_rental_fee_invoice import get_annual_rental_fee_period
+        from disturbance.management.commands.send_annual_rental_fee_invoice import get_annual_rental_fee_period
 
         today_now_local = datetime.datetime.now(pytz.timezone(settings.TIME_ZONE))
         today_date_local = today_now_local.date()
@@ -438,7 +438,7 @@ class SiteCategoryAdmin(admin.ModelAdmin):
     inlines = [ApiarySiteFeeInline,]
 
 
-admin.site.register(apiary.components.proposals.models.SiteCategory, SiteCategoryAdmin)
+admin.site.register(disturbance.components.proposals.models.SiteCategory, SiteCategoryAdmin)
 
 @admin.register(models.ApiaryChecklistQuestion)
 class ApiaryChecklistQuestionAdmin(admin.ModelAdmin):

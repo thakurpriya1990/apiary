@@ -11,22 +11,22 @@ from django.utils import timezone
 from django.contrib.gis.db.models.fields import PointField
 from django.db.models import Manager as GeoManager
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from apiary.components.approvals.pdf import create_approval_document
-from apiary.components.organisations.models import Organisation
-from apiary.components.proposals.models import Proposal, ProposalUserAction, ApiarySite, ApiarySiteOnProposal
-from apiary.components.main.models import CommunicationsLogEntry, UserAction, Document, RevisionedMixin
-from apiary.components.approvals.email import (
+from disturbance.components.approvals.pdf import create_approval_document
+from disturbance.components.organisations.models import Organisation
+from disturbance.components.proposals.models import Proposal, ProposalUserAction, ApiarySite, ApiarySiteOnProposal
+from disturbance.components.main.models import CommunicationsLogEntry, UserAction, Document, RevisionedMixin
+from disturbance.components.approvals.email import (
     send_approval_expire_email_notification,
     send_approval_cancel_email_notification,
     send_approval_suspend_email_notification,
     send_approval_reinstate_email_notification,
     send_approval_surrender_email_notification
 )
-from apiary.doctopdf import create_apiary_licence_pdf_contents
-from apiary.settings import SITE_STATUS_CURRENT, SITE_STATUS_NOT_TO_BE_REISSUED, SITE_STATUS_SUSPENDED, \
+from disturbance.doctopdf import create_apiary_licence_pdf_contents
+from disturbance.settings import SITE_STATUS_CURRENT, SITE_STATUS_NOT_TO_BE_REISSUED, SITE_STATUS_SUSPENDED, \
     SITE_STATUS_TRANSFERRED
-from apiary.utils import search_keys, search_multiple_keys
-from apiary.helpers import is_customer
+from disturbance.utils import search_keys, search_multiple_keys
+from disturbance.helpers import is_customer
 from django_countries.fields import CountryField
 
 #TODO: improvable - these three lines are repeated throughout the models and ought to be set in one place
@@ -399,7 +399,7 @@ class Approval(RevisionedMixin):
         if self.apiary_approval:
             return self.generate_apiary_licence_doc(self.current_proposal, request_user, preview, site_transfer_preview)
         else:
-            from apiary.components.approvals.pdf import create_approval_doc, create_approval_pdf_bytes
+            from disturbance.components.approvals.pdf import create_approval_doc, create_approval_pdf_bytes
             copied_to_permit = self.copiedToPermit_fields(self.current_proposal) #Get data related to isCopiedToPermit tag
             if preview:
                 return create_approval_pdf_bytes(self,self.current_proposal, copied_to_permit, request_user)
@@ -418,7 +418,7 @@ class Approval(RevisionedMixin):
         self.current_proposal.save(version_comment='Created Approval PDF: {}'.format(self.licence_document.name))
 
     def generate_renewal_doc(self):
-        from apiary.components.approvals.pdf import create_renewal_doc, create_apiary_renewal_doc
+        from disturbance.components.approvals.pdf import create_renewal_doc, create_apiary_renewal_doc
         if self.apiary_approval:
             # self.apiary_renewal_document = create_apiary_renewal_doc(self,self.current_proposal)
             # self.save(version_comment='Created Approval PDF: {}'.format(self.apiary_renewal_document.name))

@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.forms import Form, ModelForm, CharField, ValidationError, EmailField
 
 from ledger_api_client.ledger_models import Address
-from apiary.components.organisations.models import (
+from disturbance.components.organisations.models import (
     Organisation
 )
 

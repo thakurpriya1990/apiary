@@ -6,13 +6,13 @@ import pytz
 from django.core.management.base import BaseCommand
 from ledger.settings_base import TIME_ZONE
 
-from apiary.components.approvals.serializers_apiary import ApiarySiteOnApprovalGeometryExportSerializer
-from apiary.components.main.utils import get_qs_vacant_site, get_qs_proposal, get_qs_approval, \
+from disturbance.components.approvals.serializers_apiary import ApiarySiteOnApprovalGeometryExportSerializer
+from disturbance.components.main.utils import get_qs_vacant_site, get_qs_proposal, get_qs_approval, \
     get_qs_vacant_site_for_export, get_qs_proposal_for_export, get_qs_approval_for_export
-from apiary.components.proposals.models import ProposalType, ApiarySite
-from apiary.components.proposals.serializers_apiary import ApiarySiteOnProposalDraftGeometryExportSerializer, \
+from disturbance.components.proposals.models import ProposalType, ApiarySite
+from disturbance.components.proposals.serializers_apiary import ApiarySiteOnProposalDraftGeometryExportSerializer, \
     ApiarySiteOnProposalProcessedGeometryExportSerializer
-from apiary.settings import BASE_DIR, SPATIAL_DATA_DIR
+from disturbance.settings import BASE_DIR, SPATIAL_DATA_DIR
 
 import logging
 logger = logging.getLogger(__name__)

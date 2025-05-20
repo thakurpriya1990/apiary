@@ -2,9 +2,9 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from datetime import date, timedelta
 from django.conf import settings
-from apiary.components.proposals.models import Proposal
-from apiary.components.main.models import GlobalSettings
-from apiary.components.proposals.email import send_assessment_reminder_email_notification
+from disturbance.components.proposals.models import Proposal
+from disturbance.components.main.models import GlobalSettings
+from disturbance.components.proposals.email import send_assessment_reminder_email_notification
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 import datetime
 

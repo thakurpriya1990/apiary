@@ -18,7 +18,7 @@ from rest_framework.response import Response
 
 from reversion.models import Version
 
-from apiary.helpers import is_internal
+from disturbance.helpers import is_internal
 
 logger = logging.getLogger(__name__)
 

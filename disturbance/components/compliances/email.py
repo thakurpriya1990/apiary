@@ -5,7 +5,7 @@ from django.utils.encoding import smart_bytes
 from django.urls import reverse
 from django.conf import settings
 
-from apiary.components.emails.emails import TemplateEmailBase
+from disturbance.components.emails.emails import TemplateEmailBase
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 logger = logging.getLogger(__name__)
@@ -435,7 +435,7 @@ def send_apiary_submit_email_notification(request, compliance):
         _log_org_email(msg, compliance.approval.applicant, compliance.submitter, sender=sender)
 
 def _log_compliance_email(email_message, compliance, sender=None):
-    from apiary.components.compliances.models import ComplianceLogEntry
+    from disturbance.components.compliances.models import ComplianceLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
         # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
@@ -482,7 +482,7 @@ def _log_compliance_email(email_message, compliance, sender=None):
 
 
 def _log_org_email(email_message, organisation, customer ,sender=None):
-    from apiary.components.organisations.models import OrganisationLogEntry
+    from disturbance.components.organisations.models import OrganisationLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
         # TODO this will log the plain text body, should we log the html instead
         text = email_message.body

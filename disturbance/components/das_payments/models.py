@@ -8,11 +8,11 @@ from django.db import models, transaction
 from six import python_2_unicode_compatible
 from django.utils import timezone
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from apiary.components.main.models import RevisionedMixin
+from disturbance.components.main.models import RevisionedMixin
 from ledger_api_client.ledger_models import Invoice
 
-from apiary.components.approvals.models import Approval
-from apiary.components.proposals.models import Proposal, ApiarySite
+from disturbance.components.approvals.models import Approval
+from disturbance.components.proposals.models import Proposal, ApiarySite
 from decimal import Decimal as D
 
 import logging

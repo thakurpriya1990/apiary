@@ -8,8 +8,8 @@ class DisturbanceConfig(AppConfig):
     run_once = False
     def ready(self):
         if not self.run_once:
-            from apiary.components.organisations import signals
-            from apiary.components.proposals import signals
-            from apiary.components.approvals import signals
+            from disturbance.components.organisations import signals
+            from disturbance.components.proposals import signals
+            from disturbance.components.approvals import signals
 
         self.run_once = True

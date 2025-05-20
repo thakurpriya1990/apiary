@@ -1,6 +1,6 @@
 from django.conf import settings
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Address as OrganisationAddress
-from apiary.components.organisations.models import (   
+from disturbance.components.organisations.models import (   
                                 Organisation,
                                 OrganisationContact,
                                 OrganisationRequest,
@@ -9,7 +9,7 @@ from apiary.components.organisations.models import (
                                 OrganisationRequestLogEntry,
                                 OrganisationLogEntry,
                             )
-from apiary.components.organisations.utils import (
+from disturbance.components.organisations.utils import (
                                 can_manage_org,
                                 can_admin_org,
                                 is_consultant,
@@ -17,7 +17,7 @@ from apiary.components.organisations.utils import (
                                 can_relink,
                                 is_last_admin,
                             )
-from apiary.components.main.serializers import CommunicationLogEntrySerializer
+from disturbance.components.main.serializers import CommunicationLogEntrySerializer
 from rest_framework import serializers
 import rest_framework_gis.serializers as gis_serializers
 

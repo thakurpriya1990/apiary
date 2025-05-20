@@ -5,15 +5,15 @@ from django.urls import reverse
 from django.utils.encoding import smart_bytes
 from django.conf import settings
 
-from apiary.components.das_payments.awaiting_payment_invoice_pdf import \
+from disturbance.components.das_payments.awaiting_payment_invoice_pdf import \
     create_annual_rental_fee_awaiting_payment_confirmation
-from apiary.components.das_payments.invoice_pdf import create_annual_rental_fee_invoice
-from apiary.components.emails.emails import TemplateEmailBase
+from disturbance.components.das_payments.invoice_pdf import create_annual_rental_fee_invoice
+from disturbance.components.emails.emails import TemplateEmailBase
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
-from apiary.components.main.email import _extract_email_headers
-from apiary.components.main.models import Region, District
-from apiary.settings import SITE_DOMAIN, SITE_URL
+from disturbance.components.main.email import _extract_email_headers
+from disturbance.components.main.models import Region, District
+from disturbance.settings import SITE_DOMAIN, SITE_URL
 
 logger = logging.getLogger(__name__)
 
@@ -173,7 +173,7 @@ def send_contact_licence_holder_email(apiary_site_on_approval, comments, sender)
     return email_data
 
 
-from apiary.components.main.utils import get_region_district
+from disturbance.components.main.utils import get_region_district
 def send_on_site_notification_email(request_data, sender, update=False):
 
     def get_recipients():
@@ -205,9 +205,9 @@ def send_on_site_notification_email(request_data, sender, update=False):
 
     email = OnSiteNotificationUpdateEmail() if update else OnSiteNotificationEmail()
 
-    from apiary.components.approvals.models import ApiarySiteOnApproval
-    from apiary.components.proposals.models import ApiaryReferralGroup
-    from apiary.components.organisations.models import Organisation
+    from disturbance.components.approvals.models import ApiarySiteOnApproval
+    from disturbance.components.proposals.models import ApiaryReferralGroup
+    from disturbance.components.organisations.models import Organisation
     asoa = ApiarySiteOnApproval.objects.get(id=request_data.get('apiary_site_on_approval_id'))
     period_from = request_data.get('period_from')
     period_to = request_data.get('period_to')
@@ -548,7 +548,7 @@ def send_approval_reinstate_email_notification(approval, request):
 
 
 def _log_approval_email(email_message, approval, sender=None):
-    from apiary.components.approvals.models import ApprovalLogEntry
+    from disturbance.components.approvals.models import ApprovalLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
         # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
@@ -595,7 +595,7 @@ def _log_approval_email(email_message, approval, sender=None):
 
 
 def _log_org_email(email_message, organisation, customer ,sender=None):
-    from apiary.components.organisations.models import OrganisationLogEntry
+    from disturbance.components.organisations.models import OrganisationLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
         # TODO this will log the plain text body, should we log the html instead
         text = email_message.body

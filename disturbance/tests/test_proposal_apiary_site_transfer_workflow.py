@@ -1,13 +1,13 @@
-from apiary.settings import HTTP_HOST_FOR_TEST
-from apiary.tests.test_setup import APITestSetup
+from disturbance.settings import HTTP_HOST_FOR_TEST
+from disturbance.tests.test_setup import APITestSetup
 import json
-from apiary.components.proposals.models import (
+from disturbance.components.proposals.models import (
         Proposal,
         ApiarySite,
         ProposalStandardRequirement,
         )
-from apiary.components.approvals.models import ApiarySiteOnApproval
-from apiary.management.commands.update_compliance_status import Command
+from disturbance.components.approvals.models import ApiarySiteOnApproval
+from disturbance.management.commands.update_compliance_status import Command
 
 
 class ApiarySiteTransferIntegrationTests(APITestSetup):

@@ -14,11 +14,11 @@ from reportlab.lib.colors import HexColor
 from django.core.files import File
 from django.conf import settings
 
-from apiary.components.main.models import ApplicationType
+from disturbance.components.main.models import ApplicationType
 
 #BW_DPAW_HEADER_LOGO = os.path.join(settings.BASE_DIR, 'wildlifelicensing', 'static', 'wl', 'img',
 #                                   'bw_dpaw_header_logo.png')
-from apiary.doctopdf import create_apiary_licence_pdf_contents
+from disturbance.doctopdf import create_apiary_licence_pdf_contents
 
 BW_DPAW_HEADER_LOGO = os.path.join(settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'img',
                                    'dbca-logo.jpg')
@@ -443,7 +443,7 @@ def create_approval_doc(approval,proposal, copied_to_permit, user):
         filename = 'approval-{}-{}.pdf'.format(approval.lodgement_number, proposal.lodgement_number)
     else:
         filename = 'approval-{}.pdf'.format(approval.lodgement_number)
-    from apiary.components.approvals.models import ApprovalDocument
+    from disturbance.components.approvals.models import ApprovalDocument
     document = ApprovalDocument.objects.create(approval=approval,name=filename)
     document._file.save(filename, File(approval_buffer), save=True)
 
@@ -459,7 +459,7 @@ def create_approval_document(approval, proposal, copied_to_permit, user):
         filename = 'approval-{}-{}.pdf'.format(approval.lodgement_number, proposal.lodgement_number)
     else:
         filename = 'approval-{}.pdf'.format(approval.lodgement_number)
-    from apiary.components.approvals.models import ApprovalDocument
+    from disturbance.components.approvals.models import ApprovalDocument
     document = ApprovalDocument.objects.create(approval=approval, name=filename)
     document._file.save(filename, ContentFile(pdf_contents), save=True)
 
@@ -485,7 +485,7 @@ def create_renewal_doc(approval,proposal):
     _create_renewal(renewal_buffer, approval, proposal)
     filename = 'renewal-{}.pdf'.format(approval.lodgement_number)
     #filename = 'renewal-{}.pdf'.format(approval.id)
-    from apiary.components.approvals.models import ApprovalDocument
+    from disturbance.components.approvals.models import ApprovalDocument
     document = ApprovalDocument.objects.create(approval=approval,name=filename)
     document._file.save(filename, File(renewal_buffer), save=True)
 
@@ -499,7 +499,7 @@ def create_apiary_renewal_doc(approval, proposal):
 
     _create_renewal(renewal_buffer, approval, proposal)
     filename = 'renewal-{}-{}.pdf'.format(approval.lodgement_number, proposal.lodgement_number)
-    from apiary.components.approvals.models import RenewalDocument
+    from disturbance.components.approvals.models import RenewalDocument
     document = RenewalDocument.objects.create(approval=approval, name=filename,)
     document._file.save(filename, File(renewal_buffer), save=True)
 

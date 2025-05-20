@@ -2,7 +2,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_delete, pre_save, post_save
 from django.conf import settings
 
-from apiary.components.organisations.models import Organisation,OrganisationContact
+from disturbance.components.organisations.models import Organisation,OrganisationContact
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 class OrganisationListener(object):

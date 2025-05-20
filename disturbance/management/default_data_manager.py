@@ -7,13 +7,13 @@ import pytz
 from django.contrib.auth.models import Group
 from django.contrib.gis.geos import GEOSGeometry, fromfile
 from django.core.exceptions import MultipleObjectsReturned
-import apiary.settings
+import disturbance.settings
 
-from apiary import settings
-from apiary.components.main.models import ApplicationType, GlobalSettings, ApiaryGlobalSettings, RegionDbca, \
+from disturbance import settings
+from disturbance.components.main.models import ApplicationType, GlobalSettings, ApiaryGlobalSettings, RegionDbca, \
     DistrictDbca, CategoryDbca, WaCoast
-from apiary.components.main.utils import overwrite_districts_polygons, overwrite_regions_polygons
-from apiary.components.proposals.models import ApiarySiteFeeType, SiteCategory, ApiarySiteFee, ProposalType, \
+from disturbance.components.main.utils import overwrite_districts_polygons, overwrite_regions_polygons
+from disturbance.components.proposals.models import ApiarySiteFeeType, SiteCategory, ApiarySiteFee, ProposalType, \
     ApiaryAnnualRentalFeePeriodStartDate, ApiaryAnnualRentalFeeRunDate, ApiaryAnnualRentalFee
 
 logger = logging.getLogger(__name__)

@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pytz
 from django.conf import settings
-from apiary.components.proposals.models import Proposal, ProposalType, HelpPage, ApplicationType
+from disturbance.components.proposals.models import Proposal, ProposalType, HelpPage, ApplicationType
 from collections import OrderedDict
 from copy import deepcopy
 

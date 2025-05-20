@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from apiary.components.proposals.models import ProposalType
+from disturbance.components.proposals.models import ProposalType
 
 
 class Command(BaseCommand):

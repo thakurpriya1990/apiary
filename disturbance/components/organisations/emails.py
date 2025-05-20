@@ -5,8 +5,8 @@ from django.utils.encoding import smart_bytes
 from django.urls import reverse
 from django.conf import settings
 
-from apiary.components.emails.emails import TemplateEmailBase
-from apiary.components.main.decorators import update_settings_handler
+from disturbance.components.emails.emails import TemplateEmailBase
+from disturbance.components.main.decorators import update_settings_handler
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 logger = logging.getLogger(__name__)
@@ -372,7 +372,7 @@ def send_organisation_request_decline_email_notification(org_request,request):
 
 @update_settings_handler
 def send_organisation_address_updated_email_notification(address_updated_by,ledger_organisation,wc_organisation,request):
-    from apiary.components.organisations.models import OrganisationContact
+    from disturbance.components.organisations.models import OrganisationContact
 
     email = OrganisationAddressUpdatedNotificationEmail()
 
@@ -391,7 +391,7 @@ def send_organisation_address_updated_email_notification(address_updated_by,ledg
 
 @update_settings_handler
 def _log_org_request_email(email_message, request, sender=None):
-    from apiary.components.organisations.models import OrganisationRequestLogEntry
+    from disturbance.components.organisations.models import OrganisationRequestLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
         # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
@@ -438,7 +438,7 @@ def _log_org_request_email(email_message, request, sender=None):
 
 @update_settings_handler
 def _log_org_email(email_message, organisation, customer ,sender=None):
-    from apiary.components.organisations.models import OrganisationLogEntry
+    from disturbance.components.organisations.models import OrganisationLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
         # TODO this will log the plain text body, should we log the html instead
         text = email_message.body

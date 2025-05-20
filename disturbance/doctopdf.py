@@ -4,7 +4,7 @@ from io import BytesIO
 from django.conf import settings
 from docxtpl import DocxTemplate, InlineImage, R
 from docx.shared import Mm
-from apiary.components.main.models import ApiaryGlobalSettings
+from disturbance.components.main.models import ApiaryGlobalSettings
 
 
 def create_apiary_licence_pdf_contents(approval, proposal, copied_to_permit, approver, site_transfer_preview=None):
@@ -37,7 +37,7 @@ def create_apiary_licence_pdf_contents(approval, proposal, copied_to_permit, app
     # if booking.sticker_created:
     #     sc = booking.sticker_created + timedelta(hours=8)
     #     stickercreated = sc.strftime('%d %B %Y')
-    from apiary.components.approvals.serializers import ApprovalSerializerForLicenceDoc
+    from disturbance.components.approvals.serializers import ApprovalSerializerForLicenceDoc
 
     #dbca_logo = InlineImage(doc, image_descriptor='img/apiary_permit_dbca_logo.jpg', width=Mm(20), height=Mm(10))
     #path_to_image = os.path.join(settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'img', 'apiary_permit_dbca_logo.jpg')

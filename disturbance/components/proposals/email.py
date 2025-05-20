@@ -5,7 +5,7 @@ from django.utils.encoding import smart_bytes
 from django.urls import reverse
 from django.conf import settings
 
-from apiary.components.emails.emails import TemplateEmailBase
+from disturbance.components.emails.emails import TemplateEmailBase
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 logger = logging.getLogger(__name__)
@@ -573,7 +573,7 @@ def send_assessment_reminder_email_notification(proposal):
     return msg
 
 def _log_proposal_referral_email(email_message, referral, sender=None):
-    from apiary.components.proposals.models import ProposalLogEntry
+    from disturbance.components.proposals.models import ProposalLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
         # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
@@ -619,7 +619,7 @@ def _log_proposal_referral_email(email_message, referral, sender=None):
     return email_entry
 
 def _log_proposal_email(email_message, proposal, sender=None):
-    from apiary.components.proposals.models import ProposalLogEntry
+    from disturbance.components.proposals.models import ProposalLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
         #import ipdb; ipdb.set_trace()
         # TODO this will log the plain text body, should we log the html instead
@@ -667,7 +667,7 @@ def _log_proposal_email(email_message, proposal, sender=None):
 
 
 def _log_org_email(email_message, organisation, customer ,sender=None):
-    from apiary.components.organisations.models import OrganisationLogEntry
+    from disturbance.components.organisations.models import OrganisationLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
         # TODO this will log the plain text body, should we log the html instead
         text = email_message.body

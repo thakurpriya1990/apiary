@@ -1,4 +1,4 @@
-from apiary.components.organisations.models import Organisation
+from disturbance.components.organisations.models import Organisation
 from reversion_compare.views import HistoryCompareDetailView
 
 

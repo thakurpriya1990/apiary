@@ -9,9 +9,9 @@ from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields.jsonb import JSONField
 #from ledger.accounts.models import Organisation as ledger_organisation
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from apiary.components.main.models import UserAction,CommunicationsLogEntry, RevisionedMixin, Document
-from apiary.components.organisations.utils import random_generator
-from apiary.components.organisations.emails import (
+from disturbance.components.main.models import UserAction,CommunicationsLogEntry, RevisionedMixin, Document
+from disturbance.components.organisations.utils import random_generator
+from disturbance.components.organisations.emails import (
                         send_organisation_request_accept_email_notification,
                         send_organisation_request_decline_email_notification,
                         send_organisation_link_email_notification,

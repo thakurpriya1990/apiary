@@ -2,8 +2,8 @@ from django.db.models.signals import post_delete, pre_save, post_save, m2m_chang
 from django.dispatch import receiver
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
-from apiary.components.main.utils import get_category
-from apiary.components.proposals.models import (
+from disturbance.components.main.utils import get_category
+from disturbance.components.proposals.models import (
     ProposalAssessorGroup,
     Referral,
     Proposal, ApiarySiteOnProposal

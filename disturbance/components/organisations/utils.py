@@ -3,7 +3,7 @@ import random
 
 
 def can_manage_org(organisation,user):
-    from apiary.components.organisations.models import Organisation, OrganisationAccessGroup,UserDelegation
+    from disturbance.components.organisations.models import Organisation, OrganisationAccessGroup,UserDelegation
     from ledger_api_client.ledger_models import EmailUserRO as EmailUser
     try:
         UserDelegation.objects.get(organisation=organisation,user=user)
@@ -23,7 +23,7 @@ def can_manage_org(organisation,user):
 
 
 def is_last_admin(organisation, user):
-    from apiary.components.organisations.models import OrganisationContact
+    from disturbance.components.organisations.models import OrganisationContact
     ''' A check for whether the user contact is the only administrator for the Organisation. '''
     _last_admin = False
     try:
@@ -39,7 +39,7 @@ def is_last_admin(organisation, user):
 
 
 def can_admin_org(organisation,user):
-    from apiary.components.organisations.models import Organisation, OrganisationAccessGroup,UserDelegation,OrganisationContact
+    from disturbance.components.organisations.models import Organisation, OrganisationAccessGroup,UserDelegation,OrganisationContact
     from ledger_api_client.ledger_models import EmailUserRO as EmailUser
     try:
         org_contact=OrganisationContact.objects.get(organisation_id=organisation,email=user.email)
@@ -52,7 +52,7 @@ def can_admin_org(organisation,user):
 
 
 def can_relink(organisation, user):
-    from apiary.components.organisations.models import OrganisationContact
+    from disturbance.components.organisations.models import OrganisationContact
     ''' Check user contact can be relinked to the Organisation. '''
     _can_relink = False
     try:
@@ -65,7 +65,7 @@ def can_relink(organisation, user):
 
 
 def can_approve(organisation, user):
-    from apiary.components.organisations.models import OrganisationContact
+    from disturbance.components.organisations.models import OrganisationContact
     ''' Check user contact linkage to the Organisation can be approved. '''
     _can_approve = False
     try:
@@ -78,7 +78,7 @@ def can_approve(organisation, user):
 
 
 def is_consultant(organisation,user):
-    from apiary.components.organisations.models import Organisation, OrganisationAccessGroup,UserDelegation,OrganisationContact
+    from disturbance.components.organisations.models import Organisation, OrganisationAccessGroup,UserDelegation,OrganisationContact
     from ledger_api_client.ledger_models import EmailUserRO as EmailUser
     try:
         org_contact=OrganisationContact.objects.get(organisation_id=organisation,email=user.email)
@@ -94,13 +94,13 @@ def random_generator(size=12, chars=string.digits):
 
 
 def generate_new_pins():
-    from apiary.components.organisations.models import Organisation
+    from disturbance.components.organisations.models import Organisation
     all_orgs=Organisation.objects.all()
     for org in all_orgs:
         org.generate_pins()
 
 def activate_org_contacts():
-    from apiary.components.organisations.models import OrganisationContact
+    from disturbance.components.organisations.models import OrganisationContact
     try:
         all_contacts=OrganisationContact.objects.all()
         for contact in all_contacts:
@@ -112,8 +112,8 @@ def activate_org_contacts():
         pass
 
 def add_admin_user():
-    from apiary.components.organisations.models import Organisation
-    from apiary.components.organisations.models import OrganisationContact
+    from disturbance.components.organisations.models import Organisation
+    from disturbance.components.organisations.models import OrganisationContact
     all_orgs=Organisation.objects.all()
     for org in all_orgs:
         all_delegates=[]
@@ -136,8 +136,8 @@ def add_admin_user():
 
 #This script is to make Walter as admin user for DBCA in production:
 def make_walter_admin_user():
-    from apiary.components.organisations.models import Organisation
-    from apiary.components.organisations.models import OrganisationContact
+    from disturbance.components.organisations.models import Organisation
+    from disturbance.components.organisations.models import OrganisationContact
     try:
         contact_email='walter.genuit@dbca.wa.gov.au'
         org_contact=OrganisationContact.objects.get(organisation_id=2, email=contact_email)

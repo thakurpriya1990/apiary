@@ -24,8 +24,8 @@ from collections import OrderedDict
 from django.core.cache import cache
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Address as OrganisationAddress
 from datetime import datetime,timedelta, date
-from apiary.helpers import is_customer, is_internal
-from apiary.components.organisations.models import  (   
+from disturbance.helpers import is_customer, is_internal
+from disturbance.components.organisations.models import  (   
                                     Organisation,
                                     OrganisationContact,
                                     OrganisationRequest,
@@ -37,7 +37,7 @@ from apiary.components.organisations.models import  (
                                     OrganisationAction,
                                 )
 
-from apiary.components.organisations.serializers import (   
+from disturbance.components.organisations.serializers import (   
                                         OrganisationSerializer,
                                         OrganisationAddressSerializer,
                                         #DetailsSerializer,
@@ -57,15 +57,15 @@ from apiary.components.organisations.serializers import (
                                         OrganisationCheckExistSerializer,
                                         OrganisationLogEntrySerializer,
                                     )
-from apiary.components.proposals.serializers import (
+from disturbance.components.proposals.serializers import (
                                         DTProposalSerializer,
                                     )
-from apiary.components.organisations.emails import (
+from disturbance.components.organisations.emails import (
                         send_organisation_address_updated_email_notification,
                         send_organisation_id_upload_email_notification,
                         send_organisation_request_email_notification,
                     )
-from apiary.components.main.utils import get_template_group, handle_validation_error
+from disturbance.components.main.utils import get_template_group, handle_validation_error
 
 
 class OrganisationViewSet(viewsets.ModelViewSet):

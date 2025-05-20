@@ -29,7 +29,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Address
 from datetime import datetime, timedelta, date
 from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
-from apiary.components.compliances.models import (
+from disturbance.components.compliances.models import (
    Compliance,
    ComplianceAmendmentRequest,
    ComplianceAmendmentReason
@@ -37,7 +37,7 @@ from apiary.components.compliances.models import (
 #from disturbance.components.proposals.models import (
  #       Proposal
   #      )
-from apiary.components.compliances.serializers import (
+from disturbance.components.compliances.serializers import (
     ComplianceSerializer,
     SaveComplianceSerializer,
     ComplianceActionSerializer,
@@ -45,10 +45,10 @@ from apiary.components.compliances.serializers import (
     ComplianceAmendmentRequestSerializer,
     CompAmendmentRequestDisplaySerializer
 )
-from apiary.components.main.utils import handle_validation_error
-from apiary.helpers import is_customer, is_internal
+from disturbance.components.main.utils import handle_validation_error
+from disturbance.helpers import is_customer, is_internal
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
-from apiary.components.proposals.api import ProposalFilterBackend #, ProposalRenderer
+from disturbance.components.proposals.api import ProposalFilterBackend #, ProposalRenderer
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.renderers import DatatablesRenderer
 

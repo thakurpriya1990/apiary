@@ -1,6 +1,6 @@
 from django.conf import settings
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser,Address
-from apiary.components.compliances.models import (
+from disturbance.components.compliances.models import (
     Compliance, ComplianceUserAction, ComplianceLogEntry, ComplianceAmendmentRequest, ComplianceAmendmentReason
 )
 from rest_framework import serializers

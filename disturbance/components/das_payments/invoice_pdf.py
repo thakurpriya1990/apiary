@@ -18,7 +18,7 @@ from django.core.files import File
 from django.conf import settings
 
 #from ledger.checkout.utils import calculate_excl_gst
-from apiary.components.main.utils import to_local_tz
+from disturbance.components.main.utils import to_local_tz
 
 DPAW_HEADER_LOGO = os.path.join(settings.PROJECT_DIR, 'payments','static', 'payments', 'img','dbca_logo.jpg')
 DPAW_HEADER_LOGO_SM = os.path.join(settings.PROJECT_DIR, 'payments','static', 'payments', 'img','dbca_logo_small.png')

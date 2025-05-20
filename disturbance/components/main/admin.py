@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.forms import ModelForm
 
-from apiary.components.main.models import MapLayer, MapColumn, RegionDbca, DistrictDbca
-from apiary.settings import KMI_SERVER_URL
+from disturbance.components.main.models import MapLayer, MapColumn, RegionDbca, DistrictDbca
+from disturbance.settings import KMI_SERVER_URL
 
 
 class MyForm(ModelForm):

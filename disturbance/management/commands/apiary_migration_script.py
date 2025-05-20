@@ -6,10 +6,10 @@ from django.conf import settings
 from django.core.mail import send_mail
 from pathlib import Path
 
-from apiary.settings import BASE_DIR
-from apiary.utils.migration_utils_pd import ApiaryLicenceReader
-from apiary.components.proposals.models import Proposal
-from apiary.components.approvals.models import Approval
+from disturbance.settings import BASE_DIR
+from disturbance.utils.migration_utils_pd import ApiaryLicenceReader
+from disturbance.components.proposals.models import Proposal
+from disturbance.components.approvals.models import Approval
 import datetime
 import time
 

@@ -2,8 +2,8 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 import subprocess
 import os
-from apiary.components.main.models import SystemMaintenance
-from apiary.templatetags.users import system_maintenance_can_start
+from disturbance.components.main.models import SystemMaintenance
+from disturbance.templatetags.users import system_maintenance_can_start
 
 import itertools
 

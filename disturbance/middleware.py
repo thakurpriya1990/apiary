@@ -11,7 +11,7 @@ from django.http import HttpResponseRedirect
 from django.utils import timezone
 
 from django.conf import settings
-from apiary.components.das_payments.models import ApplicationFee
+from disturbance.components.das_payments.models import ApplicationFee
 from reversion.middleware  import RevisionMiddleware
 from reversion.views import _request_creates_revision
 

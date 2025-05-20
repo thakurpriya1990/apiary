@@ -2,8 +2,8 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.conf import settings
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from apiary.components.compliances.models import Compliance, ComplianceUserAction
-from apiary.components.compliances.email import send_due_email_notification, send_internal_due_email_notification
+from disturbance.components.compliances.models import Compliance, ComplianceUserAction
+from disturbance.components.compliances.email import send_due_email_notification, send_internal_due_email_notification
 import datetime
 import itertools
 

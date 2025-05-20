@@ -4,7 +4,7 @@ from importlib import import_module
 from django.utils import timezone
 from datetime import timedelta
 
-from apiary.management.default_data_manager import DefaultDataManager
+from disturbance.management.default_data_manager import DefaultDataManager
 #from .models import *
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser, EmailUserManager
 import random
@@ -21,7 +21,7 @@ from rest_framework import status
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Address
 from ledger.address.models import UserAddress
 from requests.auth import HTTPBasicAuth
-from apiary.components.proposals.models import (
+from disturbance.components.proposals.models import (
         ProposalType,
         ApplicationType,
         ApiaryChecklistQuestion,
@@ -32,10 +32,10 @@ from apiary.components.proposals.models import (
         SiteCategory,
         ProposalStandardRequirement,
         )
-from apiary.components.approvals.models import (
+from disturbance.components.approvals.models import (
         Approval,
         )
-from apiary.components.main.models import (
+from disturbance.components.main.models import (
     GlobalSettings, ApiaryGlobalSettings,
 )
 

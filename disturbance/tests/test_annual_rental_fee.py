@@ -1,4 +1,4 @@
-from apiary.tests.test_setup import APITestSetup
+from disturbance.tests.test_setup import APITestSetup
 
 
 class ProposalTests(APITestSetup):

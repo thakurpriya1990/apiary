@@ -39,12 +39,12 @@ from ledger_api_client.settings_base import TIME_ZONE
 
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.ledger_models import Invoice
-from apiary import exceptions
-from apiary.components.organisations.models import Organisation
-from apiary.components.main.models import CommunicationsLogEntry, UserAction, Document, Region, District, \
+from disturbance import exceptions
+from disturbance.components.organisations.models import Organisation
+from disturbance.components.main.models import CommunicationsLogEntry, UserAction, Document, Region, District, \
     ApplicationType, RegionDbca, DistrictDbca, CategoryDbca, RevisionedMixin
-from apiary.components.main.utils import get_department_user
-from apiary.components.proposals.email import (
+from disturbance.components.main.utils import get_department_user
+from disturbance.components.proposals.email import (
         send_referral_email_notification,
         send_apiary_referral_email_notification,
         send_apiary_referral_complete_email_notification,
@@ -60,10 +60,10 @@ from apiary.components.proposals.email import (
         send_referral_recall_email_notification,
         send_site_transfer_approval_email_notification,
         )
-from apiary.ordered_model import OrderedModel
+from disturbance.ordered_model import OrderedModel
 
 
-from apiary.settings import SITE_STATUS_DRAFT, SITE_STATUS_PENDING, SITE_STATUS_APPROVED, SITE_STATUS_DENIED, \
+from disturbance.settings import SITE_STATUS_DRAFT, SITE_STATUS_PENDING, SITE_STATUS_APPROVED, SITE_STATUS_DENIED, \
     SITE_STATUS_CURRENT, RESTRICTED_RADIUS, SITE_STATUS_TRANSFERRED, PAYMENT_SYSTEM_ID, PAYMENT_SYSTEM_PREFIX, \
     SITE_STATUS_SUSPENDED, SITE_STATUS_NOT_TO_BE_REISSUED
 
@@ -1388,7 +1388,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         return ProposalUserAction.log_action(self, action, request.user)
 
     def submit(self,request,viewset):
-        from apiary.components.proposals.utils import save_proponent_data
+        from disturbance.components.proposals.utils import save_proponent_data
         with transaction.atomic():
             if self.can_user_edit:
                 # Save the data first
@@ -1430,7 +1430,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         return self
 
     def update(self,request,viewset):
-        from apiary.components.proposals.utils import save_proponent_data
+        from disturbance.components.proposals.utils import save_proponent_data
         with transaction.atomic():
             if self.can_user_edit:
                 # Save the data first
@@ -1709,8 +1709,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 raise
 
     def preview_approval(self,request,details):
-        from apiary.components.approvals.models import PreviewTempApproval
-        from apiary.components.approvals.models import Approval
+        from disturbance.components.approvals.models import PreviewTempApproval
+        from disturbance.components.approvals.models import Approval
         with transaction.atomic():
             try:
                 if self.processing_status != 'with_approver':
@@ -1874,7 +1874,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             if apiary_site.get('checked'):
                                 apiary_sites_list.append(apiary_site.get('id'))
                                 relation = self.proposal_apiary.get_relation(my_site)
-                                from apiary.components.proposals.serializers_apiary import ApiarySiteOnProposalProcessedLicensedSiteSaveSerializer
+                                from disturbance.components.proposals.serializers_apiary import ApiarySiteOnProposalProcessedLicensedSiteSaveSerializer
                                 #serializer = ApiarySiteOnProposalProcessedLicensedSiteSaveSerializer(relation, data={'licensed_site': apiary_site['properties'].get('licensed_site')})
                                 serializer = ApiarySiteOnProposalProcessedLicensedSiteSaveSerializer(relation, data=apiary_site['properties'])
                                 serializer.is_valid(raise_exception=True)
@@ -1889,7 +1889,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                 geom_str = GEOSGeometry('POINT(' + str(apiary_site['coordinates_moved']['lng']) + ' ' + str(apiary_site['coordinates_moved']['lat']) + ')', srid=4326)
                                 # from disturbance.components.proposals.serializers_apiary import ApiarySiteSavePointPendingSerializer
                                 # serializer = ApiarySiteSavePointPendingSerializer(my_site, data={'wkb_geometry_pending': geom_str}, context={'validate_distance': True})
-                                from apiary.components.proposals.serializers_apiary import ApiarySiteOnProposalProcessedGeometrySaveSerializer
+                                from disturbance.components.proposals.serializers_apiary import ApiarySiteOnProposalProcessedGeometrySaveSerializer
                                 serializer = ApiarySiteOnProposalProcessedGeometrySaveSerializer(relation, data={'wkb_geometry_processed': geom_str, 'licensed_site': apiary_site['properties'].get('licensed_site')})
                                 serializer.is_valid(raise_exception=True)
                                 serializer.save()
@@ -2009,7 +2009,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 raise
 
     def final_approval(self,request,details):
-        from apiary.components.approvals.models import Approval
+        from disturbance.components.approvals.models import Approval
         with transaction.atomic():
             try:
                 if not self.can_assess(request.user):
@@ -2119,7 +2119,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
                     # Generate compliances
                     #self.generate_compliances(approval, request)
-                    from apiary.components.compliances.models import Compliance, ComplianceUserAction
+                    from disturbance.components.compliances.models import Compliance, ComplianceUserAction
                     if created:
                         if self.proposal_type == 'amendment':
                             approval_compliances = Compliance.objects.filter(approval= previous_approval, proposal = self.previous_application, processing_status='future')
@@ -2193,7 +2193,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     def generate_compliances(self,approval, request):
         today = timezone.now().date()
         timedelta = datetime.timedelta
-        from apiary.components.compliances.models import Compliance, ComplianceUserAction
+        from disturbance.components.compliances.models import Compliance, ComplianceUserAction
         #For amendment type of Proposal, check for copied requirements from previous proposal
         if self.proposal_type == 'amendment':
             try:
@@ -2310,7 +2310,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 if self.applicant:
                     self.applicant.log_user_action(ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.lodgement_number), request)
                 #Log entry for approval
-                from apiary.components.approvals.models import ApprovalUserAction
+                from disturbance.components.approvals.models import ApprovalUserAction
                 self.approval.log_user_action(ApprovalUserAction.ACTION_RENEW_APPROVAL.format(self.approval.lodgement_number), request)
                 proposal.save(version_comment='New Amendment/Renewal Proposal created, from origin {}'.format(proposal.previous_application_id))
                 #proposal.save()
@@ -2355,7 +2355,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 if self.applicant:
                     self.applicant.log_user_action(ProposalUserAction.ACTION_AMEND_PROPOSAL.format(self.lodgement_number), request)
                 #Log entry for approval
-                from apiary.components.approvals.models import ApprovalUserAction
+                from disturbance.components.approvals.models import ApprovalUserAction
                 self.approval.log_user_action(ApprovalUserAction.ACTION_AMEND_APPROVAL.format(self.approval.lodgement_number), request)
                 proposal.save(version_comment='New Amendment/Renewal Proposal created, from origin {}'.format(proposal.previous_application_id))
                 #proposal.save()
@@ -3035,9 +3035,9 @@ def clone_apiary_proposal_with_status_reset(original_proposal):
             raise
 
 def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance, is_internal= True):
-    from apiary.utils import search, search_approval, search_compliance
-    from apiary.components.approvals.models import Approval
-    from apiary.components.compliances.models import Compliance
+    from disturbance.utils import search, search_approval, search_compliance
+    from disturbance.components.approvals.models import Approval
+    from disturbance.components.compliances.models import Compliance
     qs = []
     if is_internal:
         proposal_list = Proposal.objects.filter(application_type__name='Disturbance').exclude(processing_status__in=[Proposal.PROCESSING_STATUS_DISCARDED, Proposal.PROCESSING_STATUS_DRAFT])
@@ -3115,8 +3115,8 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
     return qs
 
 def search_reference(reference_number):
-    from apiary.components.approvals.models import Approval
-    from apiary.components.compliances.models import Compliance
+    from disturbance.components.approvals.models import Approval
+    from disturbance.components.compliances.models import Compliance
     proposal_list = Proposal.objects.all().exclude(processing_status__in=[Proposal.PROCESSING_STATUS_DISCARDED,])
     approval_list = Approval.objects.all().order_by('lodgement_number', '-issue_date').distinct('lodgement_number')
     compliance_list = Compliance.objects.all().exclude(processing_status__in=['future'])
@@ -3144,7 +3144,7 @@ def search_reference(reference_number):
         raise ValidationError('Record with provided reference number does not exist')
 
 def search_sections(application_type_name, section_label,question_id,option_label,is_internal= True, region=None,district=None,activity=None):
-    from apiary.utils import search_section
+    from disturbance.utils import search_section
     #print(application_type_name, section_label,question_label,option_label,is_internal)
     qs = []
     if is_internal:
@@ -3396,7 +3396,7 @@ class ProposalApiary(RevisionedMixin):
 
     def get_relations(self):
         if self.proposal.application_type.name == 'Site Transfer':
-            from apiary.components.approvals.models import ApiarySiteOnApproval
+            from disturbance.components.approvals.models import ApiarySiteOnApproval
             relation_objs = ApiarySiteOnApproval.objects.filter(id__in=SiteTransferApiarySite.objects.filter(proposal_apiary=self).values('apiary_site_on_approval_id'))
         else:
             relation_objs = ApiarySiteOnProposal.objects.filter(apiary_site__in=self.apiary_sites.all(), proposal_apiary=self)
@@ -3543,7 +3543,7 @@ class ProposalApiary(RevisionedMixin):
 
     @property
     def retrieve_approval(self):
-        from apiary.components.approvals.models import Approval
+        from disturbance.components.approvals.models import Approval
         approval = None
         if self.proposal.applicant:
             approval = Approval.objects.filter(applicant=self.proposal.applicant, status__in=[Approval.STATUS_CURRENT, Approval.STATUS_SUSPENDED], apiary_approval=True).first()
@@ -3552,7 +3552,7 @@ class ProposalApiary(RevisionedMixin):
         return approval
 
     def create_transferee_approval(self, details, applicant=None, proxy_applicant=None):
-        from apiary.components.approvals.models import Approval
+        from disturbance.components.approvals.models import Approval
         approval = Approval.objects.create(
             current_proposal = self.proposal,
             issue_date= timezone.now(),
@@ -3568,7 +3568,7 @@ class ProposalApiary(RevisionedMixin):
     def final_approval(self,request,details,preview=False):
         #TODO fix for segregation (payment)
 
-        from apiary.components.approvals.models import Approval
+        from disturbance.components.approvals.models import Approval
         try:
             approval_created = None
             if not self.proposal.can_assess(request.user):
@@ -3691,7 +3691,7 @@ class ProposalApiary(RevisionedMixin):
                     self.link_apiary_approval_requirements(target_approval)
             else:
                 # Apiary approval
-                from apiary.components.approvals.models import ApprovalUserAction
+                from disturbance.components.approvals.models import ApprovalUserAction
                 if not approval:
                     # There are no existing approvals.  Create a new one.
                     approval, approval_created = Approval.objects.update_or_create(
@@ -3765,7 +3765,7 @@ class ProposalApiary(RevisionedMixin):
                         )
                 for site_transfer_apiary_site in transfer_sites:
                     relation_original = site_transfer_apiary_site.apiary_site_on_approval
-                    from apiary.components.approvals.models import ApiarySiteOnApproval
+                    from disturbance.components.approvals.models import ApiarySiteOnApproval
 
                     relation_target, asoa_created = ApiarySiteOnApproval.objects.get_or_create(
                         apiary_site=relation_original.apiary_site,
@@ -3816,12 +3816,12 @@ class ProposalApiary(RevisionedMixin):
 
             else:
                 # could this be refactored into a separate method?
-                from apiary.management.commands.send_annual_rental_fee_invoice import get_annual_rental_fee_period
-                from apiary.components.das_payments.models import AnnualRentalFeePeriod
-                from apiary.components.das_payments.utils import generate_line_items_for_annual_rental_fee
-                from apiary.management.commands.send_annual_rental_fee_invoice import make_serializable
-                from apiary.components.das_payments.models import AnnualRentalFee, AnnualRentalFeeApiarySite
-                from apiary.components.approvals.email import send_annual_rental_fee_awaiting_payment_confirmation
+                from disturbance.management.commands.send_annual_rental_fee_invoice import get_annual_rental_fee_period
+                from disturbance.components.das_payments.models import AnnualRentalFeePeriod
+                from disturbance.components.das_payments.utils import generate_line_items_for_annual_rental_fee
+                from disturbance.management.commands.send_annual_rental_fee_invoice import make_serializable
+                from disturbance.components.das_payments.models import AnnualRentalFee, AnnualRentalFeeApiarySite
+                from disturbance.components.approvals.email import send_annual_rental_fee_awaiting_payment_confirmation
 
                 # sites_received = request.data.get('apiary_sites', [])
                 # sites_approved = [site for site in sites_received if site['checked']]
@@ -3881,7 +3881,7 @@ class ProposalApiary(RevisionedMixin):
                         if not preview:
                             email_data = send_annual_rental_fee_awaiting_payment_confirmation(approval, annual_rental_fee, invoice)
 
-                            from apiary.components.approvals.serializers import ApprovalLogEntrySerializer
+                            from disturbance.components.approvals.serializers import ApprovalLogEntrySerializer
                             email_data['approval'] = u'{}'.format(approval.id)
                             serializer = ApprovalLogEntrySerializer(data=email_data)
                             serializer.is_valid(raise_exception=True)
@@ -3891,7 +3891,7 @@ class ProposalApiary(RevisionedMixin):
             # Generate compliances
             #self.generate_compliances(approval, request)
             if self.proposal.application_type.name == ApplicationType.APIARY and not preview:
-                from apiary.components.compliances.models import Compliance, ComplianceUserAction
+                from disturbance.components.compliances.models import Compliance, ComplianceUserAction
                 if approval_created:
                     # ProposalType set during def create api method
                     #if self.proposal.proposal_type == 'amendment':
@@ -3957,7 +3957,7 @@ class ProposalApiary(RevisionedMixin):
                 self.proposal.approval.documents.all().update(can_delete=False)
             elif self.proposal.application_type.name == ApplicationType.SITE_TRANSFER and not preview:
                 # add Site Transfer Compliance/Requirements logic here
-                from apiary.components.compliances.models import Compliance, ComplianceUserAction
+                from disturbance.components.compliances.models import Compliance, ComplianceUserAction
                 ## Originating approval
                 if self.reissue_originating_approval or not originating_approval.reissued:
                     originating_approval.issue_date = timezone.now()
@@ -4060,7 +4060,7 @@ class ProposalApiary(RevisionedMixin):
     def generate_apiary_compliances(self, approval, request):
         today = timezone.now().date()
         timedelta = datetime.timedelta
-        from apiary.components.compliances.models import Compliance, ComplianceUserAction
+        from disturbance.components.compliances.models import Compliance, ComplianceUserAction
 
         #For amendment type of Proposal, check for copied requirements from previous proposal
         if self.proposal.previous_application:
@@ -4173,7 +4173,7 @@ class ProposalApiary(RevisionedMixin):
             if 'coordinates_moved' in my_site:
                 prev_coordinates = apiary_site_on_proposal.wkb_geometry_processed.get_coords()
                 geom_str = GEOSGeometry('POINT(' + str(my_site['coordinates_moved']['lng']) + ' ' + str(my_site['coordinates_moved']['lat']) + ')', srid=4326)
-                from apiary.components.proposals.serializers_apiary import ApiarySiteOnProposalProcessedGeometrySaveSerializer
+                from disturbance.components.proposals.serializers_apiary import ApiarySiteOnProposalProcessedGeometrySaveSerializer
                 serializer = ApiarySiteOnProposalProcessedGeometrySaveSerializer(apiary_site_on_proposal, data={'wkb_geometry_processed': geom_str})
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
@@ -4182,7 +4182,7 @@ class ProposalApiary(RevisionedMixin):
                 self.proposal.log_user_action(ProposalUserAction.APIARY_SITE_MOVED.format(my_site['id'], prev_coordinates, (my_site['coordinates_moved']['lng'], my_site['coordinates_moved']['lat'])), request)
 
             # Because this is final approval, copy the data from the proposal to the approval
-            from apiary.components.approvals.models import ApiarySiteOnApproval
+            from disturbance.components.approvals.models import ApiarySiteOnApproval
             if apiary_site_on_proposal.site_status == SITE_STATUS_APPROVED:
                 # Create a relation between the approved apairy site and the approval
                 apiary_site_on_approval, asoa_created = ApiarySiteOnApproval.objects.get_or_create(apiary_site=a_site, approval=approval)
@@ -4485,7 +4485,7 @@ class ApiarySite(models.Model):
 
     def make_vacant(self, vacant, relation):
         self.is_vacant = vacant
-        from apiary.components.approvals.models import ApiarySiteOnApproval
+        from disturbance.components.approvals.models import ApiarySiteOnApproval
         if isinstance(relation, ApiarySiteOnProposal):
             self.proposal_link_for_vacant = relation if vacant else None
             self.approval_link_for_vacant = None  # make sure either proposal_link_for_vacant or approval_link_for_vacant is True at most.
@@ -4498,7 +4498,7 @@ class ApiarySite(models.Model):
         if isinstance(proposal_apiary_or_approval, ProposalApiary):
             return ApiarySiteOnProposal.objects.get(apiary_site=self, proposal_apiary=proposal_apiary_or_approval)
         else:
-            from apiary.components.approvals.models import ApiarySiteOnApproval
+            from disturbance.components.approvals.models import ApiarySiteOnApproval
             return ApiarySiteOnApproval.objects.get(apiary_site=self, approval=proposal_apiary_or_approval)
 
     def get_current_application_fee_per_site(self):

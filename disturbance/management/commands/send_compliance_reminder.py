@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.conf import settings
-from apiary.components.compliances.models import Compliance
+from disturbance.components.compliances.models import Compliance
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 import datetime
 

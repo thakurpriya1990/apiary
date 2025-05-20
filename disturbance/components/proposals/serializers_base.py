@@ -1,7 +1,7 @@
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from rest_framework import serializers
 
-from apiary.components.proposals.models import Proposal, Referral, ProposalDeclinedDetails
+from disturbance.components.proposals.models import Proposal, Referral, ProposalDeclinedDetails
 
 
 class EmailUserSerializer(serializers.ModelSerializer):

@@ -25,11 +25,11 @@ from collections import OrderedDict
 from django.core.cache import cache
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser,Address
 from datetime import datetime,timedelta, date
-from apiary.components.organisations.models import  (   
+from disturbance.components.organisations.models import  (   
                                     Organisation,
                                 )
 
-from apiary.components.users.serializers import   (   
+from disturbance.components.users.serializers import   (   
                                                 UserSerializer,
                                                 UserAddressSerializer,
                                                 PersonalSerializer,
@@ -37,7 +37,7 @@ from apiary.components.users.serializers import   (
                                                 UserFilterSerializer,
 
                                             )
-from apiary.helpers import is_customer, is_internal
+from disturbance.helpers import is_customer, is_internal
 #from disturbance.components.main.utils import retrieve_department_users
 
 #class DepartmentUserList(views.APIView):

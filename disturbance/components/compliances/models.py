@@ -14,11 +14,11 @@ from django.contrib.sites.models import Site
 from taggit.managers import TaggableManager
 from taggit.models import TaggedItemBase
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from apiary import exceptions
-from apiary.components.organisations.models import Organisation
-from apiary.components.main.models import CommunicationsLogEntry, Region, UserAction, Document, RevisionedMixin
-from apiary.components.proposals.models import ProposalRequirement, AmendmentReason
-from apiary.components.compliances.email import (
+from disturbance import exceptions
+from disturbance.components.organisations.models import Organisation
+from disturbance.components.main.models import CommunicationsLogEntry, Region, UserAction, Document, RevisionedMixin
+from disturbance.components.proposals.models import ProposalRequirement, AmendmentReason
+from disturbance.components.compliances.email import (
                         send_compliance_accept_email_notification,
                         send_amendment_email_notification,
                         send_reminder_email_notification,

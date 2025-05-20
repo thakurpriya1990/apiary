@@ -2,10 +2,10 @@ from django.template import Library
 #from wildlifelicensing.apps.main import helpers
 #from disturbance import helpers
 from django.conf import settings
-from apiary import helpers as disturbance_helpers
-from apiary.components.main.models import SystemMaintenance
-from apiary.components.organisations.models import Organisation
-from apiary.components.organisations.utils import can_admin_org, is_consultant
+from disturbance import helpers as disturbance_helpers
+from disturbance.components.main.models import SystemMaintenance
+from disturbance.components.organisations.models import Organisation
+from disturbance.components.organisations.utils import can_admin_org, is_consultant
 from datetime import datetime, timedelta
 from django.utils import timezone
 import pytz

@@ -6,10 +6,10 @@ from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import View, TemplateView
 
-from apiary.components.proposals.utils import create_data_from_form
-from apiary.components.proposals.models import Proposal, Referral, ProposalType, HelpPage
-from apiary.components.approvals.models import Approval
-from apiary.components.compliances.models import Compliance
+from disturbance.components.proposals.utils import create_data_from_form
+from disturbance.components.proposals.models import Proposal, Referral, ProposalType, HelpPage
+from disturbance.components.approvals.models import Approval
+from disturbance.components.compliances.models import Compliance
 
 from reversion.models import Version
 
