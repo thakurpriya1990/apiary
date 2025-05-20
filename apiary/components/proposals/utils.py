@@ -1077,8 +1077,8 @@ def clone_proposal_with_status_reset(proposal):
         except:
             raise
 
-help_site_url='site_url:/help/apiary/user'
-help_site_assessor_url='site_url:/help/apiary/assessor'
+help_site_url='site_url:/help/disturbance/user'
+help_site_assessor_url='site_url:/help/disturbance/assessor'
 
 def create_richtext_help(question, name):
     global richtext

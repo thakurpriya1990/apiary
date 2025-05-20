@@ -20,6 +20,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='proposalapiarytemporaryuse',
             name='proposal',
-            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_temporary_use', to='apiary.Proposal'),
+            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_temporary_use', to='disturbance.Proposal'),
         ),
     ]

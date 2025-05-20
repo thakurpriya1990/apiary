@@ -16,11 +16,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='apiarysite',
             name='latest_approval_link',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='apiary.ApiarySiteOnApproval'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='disturbance.ApiarySiteOnApproval'),
         ),
         migrations.AlterField(
             model_name='apiarysite',
             name='latest_proposal_link',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='apiary.ApiarySiteOnProposal'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='disturbance.ApiarySiteOnProposal'),
         ),
     ]

@@ -16,11 +16,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='proposal',
             name='self_clone',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='proposal_current_state', to='apiary.Proposal'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='proposal_current_state', to='disturbance.Proposal'),
         ),
         migrations.AddField(
             model_name='proposalapiary',
             name='self_clone',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='apiary.ProposalApiary'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='disturbance.ProposalApiary'),
         ),
     ]

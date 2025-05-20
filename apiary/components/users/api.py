@@ -38,7 +38,7 @@ from apiary.components.users.serializers import   (
 
                                             )
 from apiary.helpers import is_customer, is_internal
-#from apiary.components.main.utils import retrieve_department_users
+#from disturbance.components.main.utils import retrieve_department_users
 
 #class DepartmentUserList(views.APIView):
 #    renderer_classes = [JSONRenderer,]

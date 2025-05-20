@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='apiarychecklistanswer',
             name='referral',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_checklist_referral', to='apiary.ApiaryReferral'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_checklist_referral', to='disturbance.ApiaryReferral'),
         ),
     ]

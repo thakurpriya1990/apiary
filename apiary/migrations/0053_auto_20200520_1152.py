@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='proposalapiary',
             name='proposal',
-            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='proposal_apiary', to='apiary.Proposal'),
+            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='proposal_apiary', to='disturbance.Proposal'),
         ),
     ]

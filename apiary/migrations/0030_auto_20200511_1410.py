@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=255)),
                 ('default', models.BooleanField(default=False)),
                 ('members', models.ManyToManyField(to=settings.AUTH_USER_MODEL)),
-                ('region', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.Region')),
+                ('region', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.Region')),
             ],
         ),
         migrations.AlterField(

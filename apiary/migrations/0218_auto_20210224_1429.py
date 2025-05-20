@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('section_name', models.CharField(max_length=100)),
                 ('section_label', models.CharField(max_length=100)),
                 ('index', models.IntegerField(blank=True, default=0)),
-                ('proposal_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sections', to='apiary.ProposalType')),
+                ('proposal_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sections', to='disturbance.ProposalType')),
             ],
         ),
         migrations.CreateModel(
@@ -45,15 +45,15 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('tag', multiselectfield.db.fields.MultiSelectField(blank=True, choices=[('isCopiedToPermit', 'isCopiedToPermit')], max_length=400, null=True)),
-                ('parent_answer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.QuestionOption')),
-                ('parent_question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='children_question', to='apiary.MasterlistQuestion')),
-                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='question_sections', to='apiary.MasterlistQuestion')),
-                ('section', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='section_questions', to='apiary.ProposalTypeSection')),
+                ('parent_answer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.QuestionOption')),
+                ('parent_question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='children_question', to='disturbance.MasterlistQuestion')),
+                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='question_sections', to='disturbance.MasterlistQuestion')),
+                ('section', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='section_questions', to='disturbance.ProposalTypeSection')),
             ],
         ),
         migrations.AddField(
             model_name='masterlistquestion',
             name='option',
-            field=models.ManyToManyField(to='apiary.QuestionOption'),
+            field=models.ManyToManyField(to='disturbance.QuestionOption'),
         ),
     ]

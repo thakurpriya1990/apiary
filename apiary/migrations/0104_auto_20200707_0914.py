@@ -17,8 +17,8 @@ class Migration(migrations.Migration):
             name='AnnualRentalFeeApiarySite',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('annual_rental_fee', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.AnnualRentalFee')),
-                ('apiary_site', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.ApiarySite')),
+                ('annual_rental_fee', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.AnnualRentalFee')),
+                ('apiary_site', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.ApiarySite')),
             ],
         ),
         migrations.RemoveField(

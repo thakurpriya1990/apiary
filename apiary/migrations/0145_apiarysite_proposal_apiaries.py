@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='apiarysite',
             name='proposal_apiaries',
-            field=models.ManyToManyField(related_name='vacant_apiary_sites', to='apiary.ProposalApiary'),
+            field=models.ManyToManyField(related_name='vacant_apiary_sites', to='disturbance.ProposalApiary'),
         ),
     ]

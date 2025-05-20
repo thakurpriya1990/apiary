@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                 ('can_delete', models.BooleanField(default=True)),
                 ('visible', models.BooleanField(default=True)),
                 ('_file', models.FileField(max_length=512, upload_to=b'')),
-                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='deed_poll_documents', to='apiary.Proposal')),
+                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='deed_poll_documents', to='disturbance.Proposal')),
             ],
             options={
                 'abstract': False,
@@ -33,11 +33,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='apiarysite',
             name='district',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.District'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.District'),
         ),
         migrations.AddField(
             model_name='apiarysite',
             name='region',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.Region'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.Region'),
         ),
     ]

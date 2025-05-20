@@ -17,6 +17,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='sectionquestion',
             name='parent_question',
-            field=smart_selects.db_fields.ChainedForeignKey(blank=True, chained_field='section', chained_model_field='question_sections__section', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='children_question', to='apiary.MasterlistQuestion'),
+            field=smart_selects.db_fields.ChainedForeignKey(blank=True, chained_field='section', chained_model_field='question_sections__section', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='children_question', to='disturbance.MasterlistQuestion'),
         ),
     ]

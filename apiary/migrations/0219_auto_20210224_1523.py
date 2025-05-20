@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='masterlistquestion',
             name='option',
-            field=models.ManyToManyField(blank=True, null=True, to='apiary.QuestionOption'),
+            field=models.ManyToManyField(blank=True, null=True, to='disturbance.QuestionOption'),
         ),
     ]

@@ -16,11 +16,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='sectionquestion',
             name='parent_answer',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.QuestionOption'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.QuestionOption'),
         ),
         migrations.AlterField(
             model_name='sectionquestion',
             name='parent_question',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children_question', to='apiary.MasterlistQuestion'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children_question', to='disturbance.MasterlistQuestion'),
         ),
     ]

@@ -413,7 +413,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     review_status = models.CharField('Review Status', max_length=30, choices=REVIEW_STATUS_CHOICES,
                                      default=REVIEW_STATUS_CHOICES[0][0])
 
-    approval = models.ForeignKey('apiary.Approval',null=True,blank=True, on_delete=models.CASCADE)
+    approval = models.ForeignKey('disturbance.Approval',null=True,blank=True, on_delete=models.CASCADE)
 
     previous_application = models.ForeignKey('self', on_delete=models.PROTECT, blank=True, null=True)
     #self_clone = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True, related_name='proposal_current_state')
@@ -1887,7 +1887,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
                                 # Update coordinate (Assessor and Approver can move the proposed site location)
                                 geom_str = GEOSGeometry('POINT(' + str(apiary_site['coordinates_moved']['lng']) + ' ' + str(apiary_site['coordinates_moved']['lat']) + ')', srid=4326)
-                                # from apiary.components.proposals.serializers_apiary import ApiarySiteSavePointPendingSerializer
+                                # from disturbance.components.proposals.serializers_apiary import ApiarySiteSavePointPendingSerializer
                                 # serializer = ApiarySiteSavePointPendingSerializer(my_site, data={'wkb_geometry_pending': geom_str}, context={'validate_distance': True})
                                 from apiary.components.proposals.serializers_apiary import ApiarySiteOnProposalProcessedGeometrySaveSerializer
                                 serializer = ApiarySiteOnProposalProcessedGeometrySaveSerializer(relation, data={'wkb_geometry_processed': geom_str, 'licensed_site': apiary_site['properties'].get('licensed_site')})
@@ -2159,7 +2159,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
 
     '''def generate_compliances(self,approval):
-        from apiary.components.compliances.models import Compliance
+        from disturbance.components.compliances.models import Compliance
         today = timezone.now().date()
         timedelta = datetime.timedelta
 
@@ -2597,7 +2597,7 @@ class ApiaryReferralGroup(models.Model):
         verbose_name_plural = "Apiary Referral groups"
 
 class ProposalRequirement(OrderedModel):
-    #from apiary.components.approvals.models import Approval
+    #from disturbance.components.approvals.models import Approval
     RECURRENCE_PATTERNS = [(1, 'Weekly'), (2, 'Monthly'), (3, 'Yearly')]
     standard_requirement = models.ForeignKey(ProposalStandardRequirement,null=True,blank=True, on_delete=models.CASCADE)
     free_requirement = models.TextField(null=True,blank=True)
@@ -2612,9 +2612,9 @@ class ProposalRequirement(OrderedModel):
     copied_for_renewal = models.BooleanField(default=False)
     require_due_date = models.BooleanField(default=False)
     # temporary location during Site Transfer applications - copied to apiary_approval during final_approval()
-    sitetransfer_approval = models.ForeignKey('apiary.Approval',null=True,blank=True, related_name='sitetransferapproval_requirement', on_delete=models.CASCADE)
+    sitetransfer_approval = models.ForeignKey('disturbance.Approval',null=True,blank=True, related_name='sitetransferapproval_requirement', on_delete=models.CASCADE)
     # permanent location for apiary / site transfer approvals
-    apiary_approval = models.ForeignKey('apiary.Approval',null=True,blank=True, related_name='proposalrequirement_set', on_delete=models.CASCADE)
+    apiary_approval = models.ForeignKey('disturbance.Approval',null=True,blank=True, related_name='proposalrequirement_set', on_delete=models.CASCADE)
     #order = models.IntegerField(default=1)
     # referral_group is no longer required for Apiary
     referral_group = models.ForeignKey(ApiaryReferralGroup,null=True,blank=True,related_name='apiary_requirement_referral_groups', on_delete=models.CASCADE)
@@ -2757,8 +2757,8 @@ class Referral(models.Model):
                                  )
     lodged_on = models.DateTimeField(auto_now_add=True)
     proposal = models.ForeignKey(Proposal,related_name='referrals', on_delete=models.CASCADE)
-    sent_by = models.ForeignKey(EmailUser,related_name='apiary_assessor_referrals', on_delete=models.CASCADE)
-    referral = models.ForeignKey(EmailUser,null=True,blank=True,related_name='apiary_referalls', on_delete=models.CASCADE)
+    sent_by = models.ForeignKey(EmailUser,related_name='disturbance_assessor_referrals', on_delete=models.CASCADE)
+    referral = models.ForeignKey(EmailUser,null=True,blank=True,related_name='disturbance_referalls', on_delete=models.CASCADE)
     linked = models.BooleanField(default=False)
     sent_from = models.SmallIntegerField(choices=SENT_CHOICES,default=SENT_CHOICES[0][0])
     processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
@@ -3283,8 +3283,8 @@ class ProposalApiary(RevisionedMixin):
     # transferee used to store EmailUser without existing licence
     transferee = models.ForeignKey(EmailUser, blank=True, null=True, related_name='apiary_transferee', on_delete=models.CASCADE)
     transferee_email_text = models.CharField(max_length=200, null=True)
-    originating_approval = models.ForeignKey('apiary.Approval', blank=True, null=True, related_name="site_transfer_originating_approval", on_delete=models.CASCADE)
-    target_approval = models.ForeignKey('apiary.Approval', blank=True, null=True, related_name="site_transfer_target_approval", on_delete=models.CASCADE)
+    originating_approval = models.ForeignKey('disturbance.Approval', blank=True, null=True, related_name="site_transfer_originating_approval", on_delete=models.CASCADE)
+    target_approval = models.ForeignKey('disturbance.Approval', blank=True, null=True, related_name="site_transfer_target_approval", on_delete=models.CASCADE)
     target_approval_organisation = models.ForeignKey(Organisation, blank=True, null=True, on_delete=models.CASCADE)
     target_approval_start_date = models.DateField(blank=True, null=True)
     target_approval_expiry_date = models.DateField(blank=True, null=True)
@@ -4430,12 +4430,12 @@ class ApiarySite(models.Model):
     id = models.IntegerField(primary_key=True, editable=False)
 
     site_guid = models.CharField(max_length=50, blank=True)
-    latest_proposal_link = models.ForeignKey('apiary.ApiarySiteOnProposal', blank=True, null=True, on_delete=models.SET_NULL)
-    latest_approval_link = models.ForeignKey('apiary.ApiarySiteOnApproval', blank=True, null=True, on_delete=models.SET_NULL)
+    latest_proposal_link = models.ForeignKey('disturbance.ApiarySiteOnProposal', blank=True, null=True, on_delete=models.SET_NULL)
+    latest_approval_link = models.ForeignKey('disturbance.ApiarySiteOnApproval', blank=True, null=True, on_delete=models.SET_NULL)
     # Store the proposal link intermediate object this apiary site transitioned from when got the 'vacant' status
-    proposal_link_for_vacant = models.ForeignKey('apiary.ApiarySiteOnProposal', blank=True, null=True, related_name='vacant_apiary_site', on_delete=models.SET_NULL)
+    proposal_link_for_vacant = models.ForeignKey('disturbance.ApiarySiteOnProposal', blank=True, null=True, related_name='vacant_apiary_site', on_delete=models.SET_NULL)
     # Store the approval link intermediate object this apiary site transitioned from when got the 'vacant' status
-    approval_link_for_vacant = models.ForeignKey('apiary.ApiarySiteOnApproval', blank=True, null=True, related_name='vacant_apiary_site', on_delete=models.SET_NULL)
+    approval_link_for_vacant = models.ForeignKey('disturbance.ApiarySiteOnApproval', blank=True, null=True, related_name='vacant_apiary_site', on_delete=models.SET_NULL)
     is_vacant = models.BooleanField(default=False)
 
     def get_relevant_applicant_name(self):
@@ -4582,7 +4582,7 @@ class ProposalApiaryTemporaryUse(models.Model):
     temporary_occupier_phone = models.CharField(max_length=50, blank=True, null=True)
     temporary_occupier_mobile = models.CharField(max_length=50, blank=True, null=True)
     temporary_occupier_email = models.EmailField(blank=True, null=True)
-    loaning_approval = models.ForeignKey('apiary.Approval', blank=True, null=True, on_delete=models.CASCADE)
+    loaning_approval = models.ForeignKey('disturbance.Approval', blank=True, null=True, on_delete=models.CASCADE)
 
     # def __str__(self):
     #     if self.proposal.proposal_apiary:
@@ -4639,7 +4639,7 @@ class TemporaryUseApiarySite(models.Model):
 class SiteTransferApiarySite(models.Model):
     proposal_apiary = models.ForeignKey(ProposalApiary, blank=True, null=True, related_name='site_transfer_apiary_sites', on_delete=models.CASCADE)
     # apiary_site = models.ForeignKey(ApiarySite, blank=True, null=True)
-    apiary_site_on_approval = models.ForeignKey('apiary.ApiarySiteOnApproval', blank=True, null=True, on_delete=models.CASCADE)
+    apiary_site_on_approval = models.ForeignKey('disturbance.ApiarySiteOnApproval', blank=True, null=True, on_delete=models.CASCADE)
     internal_selected = models.BooleanField(default=False)
     customer_selected = models.BooleanField(default=False)
 
@@ -4653,7 +4653,7 @@ class ApiarySiteApproval(models.Model):
     This is intermediate table between ApiarySite and Approval to hold an approved apiary site under a certain approval
     """
     apiary_site = models.ForeignKey(ApiarySite, blank=True, null=True, related_name='apiary_site_approval_set', on_delete=models.CASCADE)
-    approval = models.ForeignKey('apiary.Approval', blank=True, null=True, related_name='apiary_site_approval_set', on_delete=models.CASCADE)
+    approval = models.ForeignKey('disturbance.Approval', blank=True, null=True, related_name='apiary_site_approval_set', on_delete=models.CASCADE)
 
     class Meta:
         app_label = 'disturbance'
@@ -5499,7 +5499,7 @@ class SectionQuestion(models.Model):
     section=models.ForeignKey(ProposalTypeSection, related_name='section_questions', on_delete=models.PROTECT)
     question=models.ForeignKey(MasterlistQuestion, related_name='question_sections',on_delete=models.PROTECT)
     parent_question = ChainedForeignKey(
-        'apiary.MasterlistQuestion',
+        'disturbance.MasterlistQuestion',
         chained_field='section',
         chained_model_field='question_sections__section',
         show_all=False,
@@ -5510,11 +5510,11 @@ class SectionQuestion(models.Model):
         limit_choices_to=limit_sectionquestion_choices_sql(),
         on_delete=models.SET_NULL
     )
-    #parent_question=models.ForeignKey('apiary.MasterlistQuestion', related_name='children_question', null=True, blank=True, on_delete=models.SET_NULL)
+    #parent_question=models.ForeignKey('disturbance.MasterlistQuestion', related_name='children_question', null=True, blank=True, on_delete=models.SET_NULL)
     
     #parent_answer=models.ForeignKey(QuestionOption, null=True, blank=True)
     parent_answer = ChainedForeignKey(
-        'apiary.QuestionOption',
+        'disturbance.QuestionOption',
         chained_field='parent_question',
         chained_model_field='masterlistquestion',
         show_all=False,
@@ -5523,7 +5523,7 @@ class SectionQuestion(models.Model):
         related_name='options',
     )
     # parent_question_another = ChainedForeignKey(
-    #     'apiary.MasterlistQuestion',
+    #     'disturbance.MasterlistQuestion',
     #     chained_field='section',
     #     chained_model_field='question_sections__section',
     #     show_all=False,
@@ -5534,7 +5534,7 @@ class SectionQuestion(models.Model):
     #     limit_choices_to=limit_sectionquestion_choices_sql()
     # )
     # parent_answer = ChainedManyToManyField(
-    #     'apiary.QuestionOption',
+    #     'disturbance.QuestionOption',
     #     chained_field='parent_question',
     #     chained_model_field='parent_question',
     # )

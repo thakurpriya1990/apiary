@@ -17,8 +17,8 @@ class Migration(migrations.Migration):
             name='ApiarySiteApproval',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('apiary_site', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.ApiarySite')),
-                ('approval', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.Approval')),
+                ('apiary_site', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.ApiarySite')),
+                ('approval', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.Approval')),
             ],
         ),
     ]

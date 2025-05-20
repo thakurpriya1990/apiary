@@ -41,7 +41,7 @@ class GetVersionsView(InternalAuthorizationView):
 
             Example:
 
-            api/history/apiary/proposals/Proposal/1933/
+            api/history/disturbance/proposals/Proposal/1933/
         """
         super().get(self)
 
@@ -79,7 +79,7 @@ class GetVersionView(InternalAuthorizationView):
 
             Example:
 
-            api/history/apiary/proposals/Proposal/InternalProposalSerializer/1933/0/
+            api/history/disturbance/proposals/Proposal/InternalProposalSerializer/1933/0/
 
             0 is the most current versions
             1 is one version older
@@ -126,7 +126,7 @@ class GetCompareVersionsView(InternalAuthorizationView):
 
         Example:
 
-        api/history/compare/apiary/Proposal/1933/0/1/
+        api/history/compare/disturbance/Proposal/1933/0/1/
 
         0 is the most current versions
         1 is one version older
@@ -187,7 +187,7 @@ class GetCompareSerializedVersionsView(InternalAuthorizationView):
 
         Example:
 
-        api/history/compare/serialized/apiary/Proposal/InternalProposalSerializer/1933/0/1/
+        api/history/compare/serialized/disturbance/Proposal/InternalProposalSerializer/1933/0/1/
 
     """
     def get(self, request, app_label, component_name, model_name, serializer_name, pk, \
@@ -253,7 +253,7 @@ class GetCompareFieldVersionsView(InternalAuthorizationView):
 
         Example:
 
-        api/history/compare/apiary/Proposal/1933/0/2/data/
+        api/history/compare/disturbance/Proposal/1933/0/2/data/
         
         Takes an optional querystring (get) parameter: "differences_only"
 

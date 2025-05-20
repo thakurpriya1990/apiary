@@ -7,11 +7,11 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from copy import deepcopy
 
 
-class ApiaryAdminSite(AdminSite):
-    site_header = 'Apiary Administration'
-    site_title = 'Apiary Licensing'
+class DisturbanceAdminSite(AdminSite):
+    site_header = 'Disturbance Administration'
+    site_title = 'Disturbance Licensing'
 
-apiary_admin_site = ApiaryAdminSite(name='apiaryadmin')
+disturbance_admin_site = DisturbanceAdminSite(name='disturbanceadmin')
 
 @admin.register(EmailUser)
 class EmailUserAdmin(admin.ModelAdmin):
@@ -20,7 +20,7 @@ class EmailUserAdmin(admin.ModelAdmin):
     """
 
     def get_fieldsets(self, request, obj=None):
-        """ Remove the is_superuser checkbox from the Admin page, if user is ApiaryAdmin and NOT superuser """
+        """ Remove the is_superuser checkbox from the Admin page, if user is DisturbanceAdmin and NOT superuser """
         fieldsets = super(UserAdmin, self).get_fieldsets(request, obj)
         if not obj:
             return fieldsets

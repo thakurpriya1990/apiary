@@ -23,48 +23,48 @@ def get_sender_user():
 
 class ComplianceExternalSubmitSendNotificationEmail(TemplateEmailBase):
     subject = 'Your Compliance with requirements has been submitted.'
-    html_template = 'apiary/emails/send_external_submit_notification.html'
-    txt_template = 'apiary/emails/send_external_submit_notification.txt'
+    html_template = 'disturbance/emails/send_external_submit_notification.html'
+    txt_template = 'disturbance/emails/send_external_submit_notification.txt'
 
 class ComplianceSubmitSendNotificationEmail(TemplateEmailBase):
     subject = 'A new Compliance has been submitted.'
-    html_template = 'apiary/emails/send_submit_notification.html'
-    txt_template = 'apiary/emails/send_submit_notification.txt'
+    html_template = 'disturbance/emails/send_submit_notification.html'
+    txt_template = 'disturbance/emails/send_submit_notification.txt'
 
 class ComplianceAcceptNotificationEmail(TemplateEmailBase):
     subject = 'Your Compliance with requirements has been accepted.'
-    html_template = 'apiary/emails/compliance_accept_notification.html'
-    txt_template = 'apiary/emails/compliance_accept_notification.txt'
+    html_template = 'disturbance/emails/compliance_accept_notification.html'
+    txt_template = 'disturbance/emails/compliance_accept_notification.txt'
 
 class ApiaryComplianceAcceptNotificationEmail(TemplateEmailBase):
     subject = 'Your Compliance with requirements has been accepted.'
-    html_template = 'apiary/emails/apiary_compliance_accept_notification.html'
-    txt_template = 'apiary/emails/apiary_compliance_accept_notification.txt'
+    html_template = 'disturbance/emails/apiary_compliance_accept_notification.html'
+    txt_template = 'disturbance/emails/apiary_compliance_accept_notification.txt'
 
 class ComplianceAmendmentRequestSendNotificationEmail(TemplateEmailBase):
     subject = 'An amendment to your Compliance with requirements is required.'
-    html_template = 'apiary/emails/send_amendment_notification.html'
-    txt_template = 'apiary/emails/send_amendment_notification.txt'
+    html_template = 'disturbance/emails/send_amendment_notification.html'
+    txt_template = 'disturbance/emails/send_amendment_notification.txt'
 
 class ComplianceReminderNotificationEmail(TemplateEmailBase):
     subject = 'Your Compliance with requirements has passed the due date.'
-    html_template = 'apiary/emails/send_reminder_notification.html'
-    txt_template = 'apiary/emails/send_reminder_notification.txt'
+    html_template = 'disturbance/emails/send_reminder_notification.html'
+    txt_template = 'disturbance/emails/send_reminder_notification.txt'
 
 class ComplianceInternalReminderNotificationEmail(TemplateEmailBase):
     subject = 'A Compliance with requirements has passed the due date.'
-    html_template = 'apiary/emails/send_internal_reminder_notification.html'
-    txt_template = 'apiary/emails/send_internal_reminder_notification.txt'
+    html_template = 'disturbance/emails/send_internal_reminder_notification.html'
+    txt_template = 'disturbance/emails/send_internal_reminder_notification.txt'
 
 class ComplianceDueNotificationEmail(TemplateEmailBase):
     subject = 'Your Compliance with requirements is due for submission.'
-    html_template = 'apiary/emails/send_due_notification.html'
-    txt_template = 'apiary/emails/send_due_notification.txt'
+    html_template = 'disturbance/emails/send_due_notification.html'
+    txt_template = 'disturbance/emails/send_due_notification.txt'
 
 class ComplianceInternalDueNotificationEmail(TemplateEmailBase):
     subject = 'A Compliance with requirements is due for submission.'
-    html_template = 'apiary/emails/send_internal_due_notification.html'
-    txt_template = 'apiary/emails/send_internal_due_notification.txt'
+    html_template = 'disturbance/emails/send_internal_due_notification.html'
+    txt_template = 'disturbance/emails/send_internal_due_notification.txt'
 
 def send_amendment_email_notification(amendment_request, request, compliance):
     email = ComplianceAmendmentRequestSendNotificationEmail()

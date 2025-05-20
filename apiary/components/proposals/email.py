@@ -24,130 +24,130 @@ def get_sender_user():
 
 class ReferralSendNotificationEmail(TemplateEmailBase):
     subject = 'A referral for a proposal has been sent to you.'
-    html_template = 'apiary/emails/proposals/send_referral_notification.html'
-    txt_template = 'apiary/emails/proposals/send_referral_notification.txt'
+    html_template = 'disturbance/emails/proposals/send_referral_notification.html'
+    txt_template = 'disturbance/emails/proposals/send_referral_notification.txt'
 
 class ReferralCompleteNotificationEmail(TemplateEmailBase):
     subject = 'A referral for a proposal has been completed.'
-    html_template = 'apiary/emails/proposals/send_referral_complete_notification.html'
-    txt_template = 'apiary/emails/proposals/send_referral_complete_notification.txt'
+    html_template = 'disturbance/emails/proposals/send_referral_complete_notification.html'
+    txt_template = 'disturbance/emails/proposals/send_referral_complete_notification.txt'
 
 class ReferralRecallNotificationEmail(TemplateEmailBase):
     subject = 'A referral for a proposal has been recalled.'
-    html_template = 'apiary/emails/proposals/send_referral_recall_notification.html'
-    txt_template = 'apiary/emails/proposals/send_referral_recall_notification.txt'    
+    html_template = 'disturbance/emails/proposals/send_referral_recall_notification.html'
+    txt_template = 'disturbance/emails/proposals/send_referral_recall_notification.txt'    
 
 class ProposalDeclineSendNotificationEmail(TemplateEmailBase):
     subject = 'Your Proposal has been declined.'
-    html_template = 'apiary/emails/proposals/send_decline_notification.html'
-    txt_template = 'apiary/emails/proposals/send_decline_notification.txt'
+    html_template = 'disturbance/emails/proposals/send_decline_notification.html'
+    txt_template = 'disturbance/emails/proposals/send_decline_notification.txt'
 
 class ProposalApprovalSendNotificationEmail(TemplateEmailBase):
     subject = 'Your Proposal has been approved.'
-    html_template = 'apiary/emails/proposals/send_approval_notification.html'
-    txt_template = 'apiary/emails/proposals/send_approval_notification.txt'
+    html_template = 'disturbance/emails/proposals/send_approval_notification.html'
+    txt_template = 'disturbance/emails/proposals/send_approval_notification.txt'
 
 class AmendmentRequestSendNotificationEmail(TemplateEmailBase):
     subject = 'An amendment to your Proposal is required.'
-    html_template = 'apiary/emails/proposals/send_amendment_notification.html'
-    txt_template = 'apiary/emails/proposals/send_amendment_notification.txt'
+    html_template = 'disturbance/emails/proposals/send_amendment_notification.html'
+    txt_template = 'disturbance/emails/proposals/send_amendment_notification.txt'
 
 class SubmitSendNotificationEmail(TemplateEmailBase):
     subject = 'A new Proposal has been submitted.'
-    html_template = 'apiary/emails/proposals/send_submit_notification.html'
-    txt_template = 'apiary/emails/proposals/send_submit_notification.txt'
+    html_template = 'disturbance/emails/proposals/send_submit_notification.html'
+    txt_template = 'disturbance/emails/proposals/send_submit_notification.txt'
 
 class AssessmentReminderSendNotificationEmail(TemplateEmailBase):
     subject = 'A Proposal is waiting for assessment.'
-    html_template = 'apiary/emails/proposals/send_assessment_reminder_notification.html'
-    txt_template = 'apiary/emails/proposals/send_assessment_reminder_notification.txt'
+    html_template = 'disturbance/emails/proposals/send_assessment_reminder_notification.html'
+    txt_template = 'disturbance/emails/proposals/send_assessment_reminder_notification.txt'
 
 class ExternalSubmitSendNotificationEmail(TemplateEmailBase):
     subject = 'A new Proposal has been submitted.'
-    html_template = 'apiary/emails/proposals/send_external_submit_notification.html'
-    txt_template = 'apiary/emails/proposals/send_external_submit_notification.txt'
+    html_template = 'disturbance/emails/proposals/send_external_submit_notification.html'
+    txt_template = 'disturbance/emails/proposals/send_external_submit_notification.txt'
 
 class ApproverDeclineSendNotificationEmail(TemplateEmailBase):
     subject = 'A Proposal has been recommended for decline.'
-    html_template = 'apiary/emails/proposals/send_approver_decline_notification.html'
-    txt_template = 'apiary/emails/proposals/send_approver_decline_notification.txt'
+    html_template = 'disturbance/emails/proposals/send_approver_decline_notification.html'
+    txt_template = 'disturbance/emails/proposals/send_approver_decline_notification.txt'
 
 class ApproverApproveSendNotificationEmail(TemplateEmailBase):
     subject = 'A Proposal has been recommended for approval.'
-    html_template = 'apiary/emails/proposals/send_approver_approve_notification.html'
-    txt_template = 'apiary/emails/proposals/send_approver_approve_notification.txt'
+    html_template = 'disturbance/emails/proposals/send_approver_approve_notification.html'
+    txt_template = 'disturbance/emails/proposals/send_approver_approve_notification.txt'
 
 class ApproverSendBackNotificationEmail(TemplateEmailBase):
     subject = 'A Proposal has been sent back by approver.'
-    html_template = 'apiary/emails/proposals/send_approver_sendback_notification.html'
-    txt_template = 'apiary/emails/proposals/send_approver_sendback_notification.txt'
+    html_template = 'disturbance/emails/proposals/send_approver_sendback_notification.html'
+    txt_template = 'disturbance/emails/proposals/send_approver_sendback_notification.txt'
 
 ## Apiary Templates
 class ApiaryReferralSendNotificationEmail(TemplateEmailBase):
     subject = 'A referral for an application has been sent to you.'
-    html_template = 'apiary/emails/proposals/apiary_send_referral_notification.html'
-    txt_template = 'apiary/emails/proposals/apiary_send_referral_notification.txt'
+    html_template = 'disturbance/emails/proposals/apiary_send_referral_notification.html'
+    txt_template = 'disturbance/emails/proposals/apiary_send_referral_notification.txt'
 
 class ApiaryReferralCompleteNotificationEmail(TemplateEmailBase):
     subject = 'A referral for an application has been completed.'
-    html_template = 'apiary/emails/proposals/apiary_send_referral_complete_notification.html'
-    txt_template = 'apiary/emails/proposals/apiary_send_referral_complete_notification.txt'
+    html_template = 'disturbance/emails/proposals/apiary_send_referral_complete_notification.html'
+    txt_template = 'disturbance/emails/proposals/apiary_send_referral_complete_notification.txt'
 
 class ApiaryReferralRecallNotificationEmail(TemplateEmailBase):
     subject = 'A referral for an application has been recalled.'
-    html_template = 'apiary/emails/proposals/apiary_send_referral_recall_notification.html'
-    txt_template = 'apiary/emails/proposals/apiary_send_referral_recall_notification.txt'    
+    html_template = 'disturbance/emails/proposals/apiary_send_referral_recall_notification.html'
+    txt_template = 'disturbance/emails/proposals/apiary_send_referral_recall_notification.txt'    
 
 class ApiaryProposalDeclineSendNotificationEmail(TemplateEmailBase):
     subject = 'Your Application has been declined.'
-    html_template = 'apiary/emails/proposals/apiary_send_decline_notification.html'
-    txt_template = 'apiary/emails/proposals/apiary_send_decline_notification.txt'
+    html_template = 'disturbance/emails/proposals/apiary_send_decline_notification.html'
+    txt_template = 'disturbance/emails/proposals/apiary_send_decline_notification.txt'
 
 class ApiaryProposalApprovalSiteTransferSendNotificationEmail(TemplateEmailBase):
     #subject = 'Your Application has been approved.'
     subject = 'Your Licence has been issued.'
-    html_template = 'apiary/emails/proposals/apiary_send_approval_site_transfer_notification.html'
-    txt_template = 'apiary/emails/proposals/apiary_send_approval_site_transfer_notification.txt'
+    html_template = 'disturbance/emails/proposals/apiary_send_approval_site_transfer_notification.html'
+    txt_template = 'disturbance/emails/proposals/apiary_send_approval_site_transfer_notification.txt'
 
 class ApiaryProposalApprovalSendNotificationEmail(TemplateEmailBase):
     subject = 'Your Application has been approved.'
-    html_template = 'apiary/emails/proposals/apiary_send_approval_notification.html'
-    txt_template = 'apiary/emails/proposals/apiary_send_approval_notification.txt'
+    html_template = 'disturbance/emails/proposals/apiary_send_approval_notification.html'
+    txt_template = 'disturbance/emails/proposals/apiary_send_approval_notification.txt'
 
 class ApiaryAmendmentRequestSendNotificationEmail(TemplateEmailBase):
     subject = 'An amendment to your Application is required.'
-    html_template = 'apiary/emails/proposals/apiary_send_amendment_notification.html'
-    txt_template = 'apiary/emails/proposals/apiary_send_amendment_notification.txt'
+    html_template = 'disturbance/emails/proposals/apiary_send_amendment_notification.html'
+    txt_template = 'disturbance/emails/proposals/apiary_send_amendment_notification.txt'
 
 class ApiarySubmitSendNotificationEmail(TemplateEmailBase):
     subject = 'A new Application has been submitted.'
-    html_template = 'apiary/emails/proposals/apiary_send_submit_notification.html'
-    txt_template = 'apiary/emails/proposals/apiary_send_submit_notification.txt'
+    html_template = 'disturbance/emails/proposals/apiary_send_submit_notification.html'
+    txt_template = 'disturbance/emails/proposals/apiary_send_submit_notification.txt'
 
 class ApiaryAssessmentReminderSendNotificationEmail(TemplateEmailBase):
     subject = 'An Application is waiting for assessment.'
-    html_template = 'apiary/emails/proposals/apiary_send_assessment_reminder_notification.html'
-    txt_template = 'apiary/emails/proposals/apiary_send_assessment_reminder_notification.txt'
+    html_template = 'disturbance/emails/proposals/apiary_send_assessment_reminder_notification.html'
+    txt_template = 'disturbance/emails/proposals/apiary_send_assessment_reminder_notification.txt'
 
 class ApiaryExternalSubmitSendNotificationEmail(TemplateEmailBase):
     subject = 'A new Application has been submitted.'
-    html_template = 'apiary/emails/proposals/apiary_send_external_submit_notification.html'
-    txt_template = 'apiary/emails/proposals/apiary_send_external_submit_notification.txt'
+    html_template = 'disturbance/emails/proposals/apiary_send_external_submit_notification.html'
+    txt_template = 'disturbance/emails/proposals/apiary_send_external_submit_notification.txt'
 
 class ApiaryApproverDeclineSendNotificationEmail(TemplateEmailBase):
     subject = 'An Application has been recommended for decline.'
-    html_template = 'apiary/emails/proposals/apiary_send_approver_decline_notification.html'
-    txt_template = 'apiary/emails/proposals/apiary_send_approver_decline_notification.txt'
+    html_template = 'disturbance/emails/proposals/apiary_send_approver_decline_notification.html'
+    txt_template = 'disturbance/emails/proposals/apiary_send_approver_decline_notification.txt'
 
 class ApiaryApproverApproveSendNotificationEmail(TemplateEmailBase):
     subject = 'An Application has been recommended for approval.'
-    html_template = 'apiary/emails/proposals/apiary_send_approver_approve_notification.html'
-    txt_template = 'apiary/emails/proposals/apiary_send_approver_approve_notification.txt'
+    html_template = 'disturbance/emails/proposals/apiary_send_approver_approve_notification.html'
+    txt_template = 'disturbance/emails/proposals/apiary_send_approver_approve_notification.txt'
 
 class ApiaryApproverSendBackNotificationEmail(TemplateEmailBase):
     subject = 'An Application has been sent back by approver.'
-    html_template = 'apiary/emails/proposals/apiary_send_approver_sendback_notification.html'
-    txt_template = 'apiary/emails/proposals/apiary_send_approver_sendback_notification.txt'
+    html_template = 'disturbance/emails/proposals/apiary_send_approver_sendback_notification.html'
+    txt_template = 'disturbance/emails/proposals/apiary_send_approver_sendback_notification.txt'
 
 
 def send_referral_email_notification(referral,request,reminder=False):
@@ -760,7 +760,7 @@ def _log_user_email(email_message, emailuser, customer ,sender=None):
 
 
 #def _log_org_email(email_message, organisation, customer ,sender=None):
-#    from apiary.components.organisations.models import OrganisationLogEntry
+#    from disturbance.components.organisations.models import OrganisationLogEntry
 #    if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
 #        # TODO this will log the plain text body, should we log the html instead
 #        text = email_message.body

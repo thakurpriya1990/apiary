@@ -48,8 +48,8 @@ def update_settings_handler(func):
                 if web_url in settings.APIARY_URL:
                     settings.SYSTEM_NAME = settings.APIARY_SYSTEM_NAME
                     settings.SYSTEM_NAME_SHORT = 'Apiary'
-                    settings.BASE_EMAIL_TEXT = 'apiary/emails/apiary_base_email.txt'
-                    settings.BASE_EMAIL_HTML = 'apiary/emails/apiary_base_email.html'
+                    settings.BASE_EMAIL_TEXT = 'disturbance/emails/apiary_base_email.txt'
+                    settings.BASE_EMAIL_HTML = 'disturbance/emails/apiary_base_email.html'
         return func(*args, **kwargs)
     return wrapper
 

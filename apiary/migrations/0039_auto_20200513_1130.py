@@ -23,9 +23,9 @@ class Migration(migrations.Migration):
                 ('number_of_sites_left', models.SmallIntegerField(default=0)),
                 ('datetime_created', models.DateTimeField(auto_now_add=True)),
                 ('datetime_expired', models.DateTimeField(blank=True, null=True)),
-                ('apiary_site_fee_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.ApiarySiteFeeType')),
+                ('apiary_site_fee_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.ApiarySiteFeeType')),
                 ('applicant', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('site_category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apiary.SiteCategory')),
+                ('site_category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='disturbance.SiteCategory')),
             ],
         ),
         migrations.AlterField(

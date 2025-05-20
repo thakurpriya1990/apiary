@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('fee_type', models.CharField(choices=[('new_application', 'New Application'), ('amendment', 'Amendment'), ('renewal', 'Renewal'), ('transfer', 'Transfer')], default='new_application', max_length=40)),
                 ('amount', models.DecimalField(decimal_places=2, default='0.00', max_digits=8)),
                 ('date_of_enforcement', models.DateField(blank=True, null=True)),
-                ('site_category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='site_fees', to='apiary.SiteCategory')),
+                ('site_category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='site_fees', to='disturbance.SiteCategory')),
             ],
             options={
                 'ordering': ('date_of_enforcement',),

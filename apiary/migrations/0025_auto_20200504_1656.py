@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='apiarysite',
             name='proposal_apiary_site_location',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_sites', to='apiary.ProposalApiarySiteLocation'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_sites', to='disturbance.ProposalApiarySiteLocation'),
         ),
         migrations.AlterField(
             model_name='apiarysite',

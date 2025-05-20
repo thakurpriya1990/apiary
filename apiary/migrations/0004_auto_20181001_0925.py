@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='approval',
             name='current_proposal',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='approvals', to='apiary.Proposal'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='approvals', to='disturbance.Proposal'),
         ),
         migrations.AlterField(
             model_name='compliancedocument',

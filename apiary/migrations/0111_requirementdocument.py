@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                 ('input_name', models.CharField(blank=True, max_length=255, null=True)),
                 ('can_delete', models.BooleanField(default=True)),
                 ('visible', models.BooleanField(default=True)),
-                ('requirement', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='requirement_documents', to='apiary.ProposalRequirement')),
+                ('requirement', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='requirement_documents', to='disturbance.ProposalRequirement')),
             ],
         ),
     ]

@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='proposalapiarytemporaryuse',
             name='proposal_apiary_site_location',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.ProposalApiarySiteLocation'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.ProposalApiarySiteLocation'),
         ),
         migrations.AddField(
             model_name='proposalapiarytemporaryuse',

@@ -16,11 +16,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='proposalapiarytemporaryuse',
             name='loaning_approval',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.Approval'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.Approval'),
         ),
         migrations.AlterField(
             model_name='temporaryuseapiarysite',
             name='proposal_apiary_temporary_use',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_sites_approval', to='apiary.ProposalApiaryTemporaryUse'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_sites_approval', to='disturbance.ProposalApiaryTemporaryUse'),
         ),
     ]

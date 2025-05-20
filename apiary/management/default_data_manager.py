@@ -55,15 +55,15 @@ class DefaultDataManager(object):
                 logger.error('{}, Group name: {}'.format(e, group_name))
 
         # WA coast (original)
-        file_path_original = os.path.join(settings.BASE_DIR, 'apiary', 'static', 'apiary', 'gis', 'wa_coast.geojson')
+        file_path_original = os.path.join(settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'gis', 'wa_coast.geojson')
         self.insert_wa_coast(file_path_original, False)
 
         # WA coast (smoothed)
-        file_path_smoothed = os.path.join(settings.BASE_DIR, 'apiary', 'static', 'apiary', 'gis', 'wa_coast_smoothed.geojson')
+        file_path_smoothed = os.path.join(settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'gis', 'wa_coast_smoothed.geojson')
         self.insert_wa_coast(file_path_smoothed, True)
 
         # Category: store south west apiary zone
-        path_to_zones = os.path.join(settings.BASE_DIR, 'apiary', 'static', 'apiary', 'gis', 'sw_apiary_zone.geojson')
+        path_to_zones = os.path.join(settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'gis', 'sw_apiary_zone.geojson')
         count = CategoryDbca.objects.all().count()
         if not count > 0:
             with open(path_to_zones) as f:
@@ -84,7 +84,7 @@ class DefaultDataManager(object):
         if not count > 0:
             # Only when there are no enabled polygons, load polygons from the default geojson file
             path_to_regions = os.path.join(
-                settings.BASE_DIR, 'apiary', 'static', 'apiary', 'DBCA_Regions.geojson'
+                settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'DBCA_Regions.geojson'
                 )
             overwrite_regions_polygons(path_to_regions)
 
@@ -93,7 +93,7 @@ class DefaultDataManager(object):
         if not count > 0:
             # Only when there are no enabled polygons, load polygons from the default geojson file
             path_to_districts = os.path.join(
-                settings.BASE_DIR, 'apiary', 'static', 'apiary', 'DBCA_Districts.geojson'
+                settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'DBCA_Districts.geojson'
                 )
             overwrite_districts_polygons(path_to_districts)
 

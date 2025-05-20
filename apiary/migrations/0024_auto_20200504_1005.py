@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('site_guid', models.CharField(blank=True, max_length=30)),
-                ('proposal_apiary_site_location', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.ProposalApiarySiteLocation')),
+                ('proposal_apiary_site_location', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.ProposalApiarySiteLocation')),
             ],
         ),
         migrations.AlterField(

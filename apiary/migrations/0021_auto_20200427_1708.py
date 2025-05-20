@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ('payment_type', models.SmallIntegerField(choices=[(0, 'Internet booking'), (1, 'Reception booking'), (2, 'Black booking'), (3, 'Temporary reservation')], default=0)),
                 ('cost', models.DecimalField(decimal_places=2, default='0.00', max_digits=8)),
                 ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='created_by_application_fee', to=settings.AUTH_USER_MODEL)),
-                ('proposal', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='application_fees', to='apiary.Proposal')),
+                ('proposal', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='application_fees', to='disturbance.Proposal')),
             ],
         ),
         migrations.CreateModel(
@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('invoice_reference', models.CharField(blank=True, default='', max_length=50, null=True)),
-                ('application_fee', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='application_fee_invoices', to='apiary.ApplicationFee')),
+                ('application_fee', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='application_fee_invoices', to='disturbance.ApplicationFee')),
             ],
         ),
         migrations.AlterField(

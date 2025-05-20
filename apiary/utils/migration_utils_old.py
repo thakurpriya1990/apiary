@@ -32,8 +32,8 @@ class ImportException(Exception):
 
 class ApiaryLicenceReader():
     '''
-    from apiary.utils.migration_utils import ApiaryLicenceReader
-    reader=ApiaryLicenceReader('apiary/utils/csv/apiary_migration_file_01Sep20211-TEST.csv')
+    from disturbance.utils.migration_utils import ApiaryLicenceReader
+    reader=ApiaryLicenceReader('disturbance/utils/csv/apiary_migration_file_01Sep20211-TEST.csv')
     reader.run_migration()
     '''
     def __init__(self, filename):
@@ -778,8 +778,8 @@ def create_invoice(proposal, payment_method='other'):
 
 class ApiaryLicenceCsvVerifier():
     '''
-    from apiary.utils.migration_utils import ApiaryLicenceCsvVerifier
-    reader=ApiaryLicenceCsvVerifier('apiary/utils/csv/apiary_migration_file_01Sep20211-TEST.csv')
+    from disturbance.utils.migration_utils import ApiaryLicenceCsvVerifier
+    reader=ApiaryLicenceCsvVerifier('disturbance/utils/csv/apiary_migration_file_01Sep20211-TEST.csv')
     '''
     def __init__(self, filename):
         self.filename = filename

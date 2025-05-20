@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 class InternalView(UserPassesTestMixin, TemplateView):
-    template_name = 'apiary/dash/index.html'
+    template_name = 'disturbance/dash/index.html'
 
     def test_func(self):
         return is_internal(self.request)
@@ -50,7 +50,7 @@ class InternalView(UserPassesTestMixin, TemplateView):
 
 
 class ExternalView(LoginRequiredMixin, TemplateView):
-    template_name = 'apiary/dash/index.html'
+    template_name = 'disturbance/dash/index.html'
 
     def get_context_data(self, **kwargs):
         context = super(ExternalView, self).get_context_data(**kwargs)
@@ -62,22 +62,22 @@ class ExternalView(LoginRequiredMixin, TemplateView):
 
 class ReferralView(ReferralOwnerMixin, DetailView):
     model = Referral
-    template_name = 'apiary/dash/index.html'
+    template_name = 'disturbance/dash/index.html'
 
 class ExternalProposalView(DetailView):
     model = Proposal
-    template_name = 'apiary/dash/index.html'
+    template_name = 'disturbance/dash/index.html'
 
 class ExternalComplianceView(DetailView):
     model = Compliance
-    template_name = 'apiary/dash/index.html'
+    template_name = 'disturbance/dash/index.html'
 
 class InternalComplianceView(DetailView):
     model = Compliance
-    template_name = 'apiary/dash/index.html'
+    template_name = 'disturbance/dash/index.html'
 
 class DisturbanceRoutingView(TemplateView):
-    template_name = 'apiary/index.html'
+    template_name = 'disturbance/index.html'
 
     def get(self, *args, **kwargs):
         if self.request.user.is_authenticated():
@@ -88,15 +88,15 @@ class DisturbanceRoutingView(TemplateView):
         return super(DisturbanceRoutingView, self).get(*args, **kwargs)
 
 class DisturbanceContactView(TemplateView):
-    template_name = 'apiary/contact.html'
+    template_name = 'disturbance/contact.html'
 
 class DisturbanceFurtherInformationView(TemplateView):
-    template_name = 'apiary/further_info.html'
+    template_name = 'disturbance/further_info.html'
 
 class InternalProposalView(DetailView):
-    #template_name = 'apiary/index.html'
+    #template_name = 'disturbance/index.html'
     model = Proposal
-    template_name = 'apiary/dash/index.html'
+    template_name = 'disturbance/dash/index.html'
 
     def get(self, *args, **kwargs):
         if self.request.user.is_authenticated():
@@ -125,7 +125,7 @@ def first_time(request):
             return redirect(redirect_url)
         context['form'] = form
         context['redirect_url'] = redirect_url
-        return render(request, 'apiary/user_profile.html', context)
+        return render(request, 'disturbance/user_profile.html', context)
     # GET default
     if 'next' in request.GET:
         context['redirect_url'] = request.GET['next']
@@ -133,12 +133,12 @@ def first_time(request):
         context['redirect_url'] = '/'
     context['dev'] = settings.DEV_STATIC
     context['dev_url'] = settings.DEV_STATIC_URL
-    #return render(request, 'apiary/user_profile.html', context)
-    return render(request, 'apiary/dash/index.html', context)
+    #return render(request, 'disturbance/user_profile.html', context)
+    return render(request, 'disturbance/dash/index.html', context)
 
 
 class HelpView(LoginRequiredMixin, TemplateView):
-    template_name = 'apiary/help.html'
+    template_name = 'disturbance/help.html'
 
     def get_context_data(self, **kwargs):
         context = super(HelpView, self).get_context_data(**kwargs)
@@ -150,7 +150,7 @@ class HelpView(LoginRequiredMixin, TemplateView):
                     qs = HelpPage.objects.filter(application_type__name__icontains=application_type, help_type=HelpPage.HELP_TEXT_INTERNAL).order_by('-version')
                     context['help'] = qs.first()
 #                else:
-#                    return TemplateResponse(self.request, 'apiary/not-permitted.html', context)
+#                    return TemplateResponse(self.request, 'disturbance/not-permitted.html', context)
 #                    context['permitted'] = False
             else:
                 qs = HelpPage.objects.filter(application_type__name__icontains=application_type, help_type=HelpPage.HELP_TEXT_EXTERNAL).order_by('-version')
@@ -159,7 +159,7 @@ class HelpView(LoginRequiredMixin, TemplateView):
 
 
 class ManagementCommandsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
-    template_name = 'apiary/mgt-commands.html'
+    template_name = 'disturbance/mgt-commands.html'
 
     def test_func(self):
         return is_internal(self.request)
@@ -211,7 +211,7 @@ def gisdata(request):
 
 
 class LedgerPayView(TemplateView):
-    template_name = 'apiary/dash/index.html'
+    template_name = 'disturbance/dash/index.html'
 
     def get_context_data(self, **kwargs):
         context = super(LedgerPayView, self).get_context_data(**kwargs)

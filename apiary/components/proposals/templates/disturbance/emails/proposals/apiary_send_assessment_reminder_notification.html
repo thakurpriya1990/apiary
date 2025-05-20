@@ -1,0 +1,18 @@
+{%  extends 'disturbance/emails/apiary_base_email.html' %}
+
+{%  block content %}
+	The application {{ proposal.lodgement_number }} is waiting for assessment.
+
+	<p>
+	Title: {{proposal.title}}<br>
+	Activity: {{proposal.activity}}<br>
+	</p>
+
+
+    <p>
+    You can access this application using the following link:
+    </p>
+    <a href="{{url}}">Access application</a>
+
+
+{%  endblock %}

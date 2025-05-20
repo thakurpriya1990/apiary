@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='apiaryreferral',
             name='referral',
-            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_referral', to='apiary.Referral'),
+            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='apiary_referral', to='disturbance.Referral'),
         ),
         migrations.AlterField(
             model_name='proposaltype',

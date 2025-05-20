@@ -1,0 +1,8 @@
+{%  extends 'disturbance/emails/apiary_base_email.html' %}
+
+{%  block content %}
+    <p>Your annual site fee invoice has been issued for your licensed apiary sites:</p>
+    <p><strong>Licence : {{ approval.lodgement_number}}</strong></p>
+    <p>Please find the attached annual site fee invoice.</p>
+    <p>Please click <a href="{{ url_to_pay }}">here</a> to pay.</p>
+{%  endblock %}

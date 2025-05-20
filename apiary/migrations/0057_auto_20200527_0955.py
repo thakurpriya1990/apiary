@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='apiaryapplicantchecklistanswer',
             name='proposal',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='apiary_applicant_checklist', to='apiary.ProposalApiary'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='apiary_applicant_checklist', to='disturbance.ProposalApiary'),
         ),
         migrations.AlterField(
             model_name='proposaltype',

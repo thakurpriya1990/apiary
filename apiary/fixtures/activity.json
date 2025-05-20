@@ -1,7 +1,7 @@
 [
 {
     "pk": 1,
-    "model": "apiary.activity",
+    "model": "disturbance.activity",
     "fields": {
         "name": "Public Utilities",
         "application_type": 1
@@ -9,7 +9,7 @@
 },
 {
     "pk": 2,
-    "model": "apiary.activity",
+    "model": "disturbance.activity",
     "fields": {
         "name": "Native Forest Silviculture and Timber Harvesting",
         "application_type": 1
@@ -17,7 +17,7 @@
 },
 {
     "pk": 3,
-    "model": "apiary.activity",
+    "model": "disturbance.activity",
     "fields": {
         "name": "Plantations",
         "application_type": 1
@@ -25,7 +25,7 @@
 },
 {
     "pk": 4,
-    "model": "apiary.activity",
+    "model": "disturbance.activity",
     "fields": {
         "name": "Other Wood",
         "application_type": 1
@@ -33,7 +33,7 @@
 },
 {
     "pk": 5,
-    "model": "apiary.activity",
+    "model": "disturbance.activity",
     "fields": {
         "name": "BRM Operations",
         "application_type": 1
@@ -41,7 +41,7 @@
 },
 {
     "pk": 6,
-    "model": "apiary.activity",
+    "model": "disturbance.activity",
     "fields": {
         "name": "Management of Roads and Tracks",
         "application_type": 1
@@ -49,7 +49,7 @@
 },
 {
     "pk": 7,
-    "model": "apiary.activity",
+    "model": "disturbance.activity",
     "fields": {
         "name": "Approved Mining Operations",
         "application_type": 1
@@ -57,7 +57,7 @@
 },
 {
     "pk": 8,
-    "model": "apiary.activity",
+    "model": "disturbance.activity",
     "fields": {
         "name": "Fire",
         "application_type": 1
@@ -65,7 +65,7 @@
 },
 {
     "pk": 9,
-    "model": "apiary.activity",
+    "model": "disturbance.activity",
     "fields": {
         "name": "Nature Conservation",
         "application_type": 1
@@ -73,7 +73,7 @@
 },
 {
     "pk": 10,
-    "model": "apiary.activity",
+    "model": "disturbance.activity",
     "fields": {
         "name": "Recreation",
         "application_type": 1
@@ -81,7 +81,7 @@
 },
 {
     "pk": 11,
-    "model": "apiary.activity",
+    "model": "disturbance.activity",
     "fields": {
         "name": "Marine Operations",
         "application_type": 1
@@ -89,7 +89,7 @@
 },
 {
     "pk": 12,
-    "model": "apiary.activity",
+    "model": "disturbance.activity",
     "fields": {
         "name": "Other",
         "application_type": 1,
@@ -99,7 +99,7 @@
 
 {
     "pk": 1,
-    "model": "apiary.subactivitylevel1",
+    "model": "disturbance.subactivitylevel1",
     "fields": {
         "name": "Establishment",
         "activity": 1
@@ -107,7 +107,7 @@
 },
 {
     "pk": 2,
-    "model": "apiary.subactivitylevel1",
+    "model": "disturbance.subactivitylevel1",
     "fields": {
         "name": "Maintenance",
         "activity": 1
@@ -116,7 +116,7 @@
 
 {
     "pk": 1,
-    "model": "apiary.subactivitylevel2",
+    "model": "disturbance.subactivitylevel2",
     "fields": {
         "name": "Within Existing corridor",
         "sub_activity_1": 2
@@ -124,7 +124,7 @@
 },
 {
     "pk": 2,
-    "model": "apiary.subactivitylevel2",
+    "model": "disturbance.subactivitylevel2",
     "fields": {
         "name": "Outside of existing corridor",
         "sub_activity_1": 2
@@ -133,7 +133,7 @@
 
 {
     "pk": 1,
-    "model": "apiary.subcategory",
+    "model": "disturbance.subcategory",
     "fields": {
         "name": "All areas except specially protected areas",
         "sub_activity_2": 1
@@ -141,7 +141,7 @@
 },
 {
     "pk": 2,
-    "model": "apiary.subcategory",
+    "model": "disturbance.subcategory",
     "fields": {
         "name": "specially protected areas for conservation",
         "sub_activity_2": 1
@@ -150,7 +150,7 @@
 
 {
     "pk": 3,
-    "model": "apiary.subcategory",
+    "model": "disturbance.subcategory",
     "fields": {
         "name": "Formal reserves (e.g. national park)",
         "sub_activity_2": 2
@@ -158,7 +158,7 @@
 },
 {
     "pk": 4,
-    "model": "apiary.subcategory",
+    "model": "disturbance.subcategory",
     "fields": {
         "name": "specially protected areas for conservation",
         "sub_activity_2": 2
@@ -167,7 +167,7 @@
 
 {
     "pk": 3,
-    "model": "apiary.subactivitylevel2",
+    "model": "disturbance.subactivitylevel2",
     "fields": {
         "name": "null",
         "sub_activity_1": 1
@@ -176,7 +176,7 @@
 
 {
     "pk": 5,
-    "model": "apiary.subcategory",
+    "model": "disturbance.subcategory",
     "fields": {
         "name": "All",
         "sub_activity_2": 1

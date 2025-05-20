@@ -34,7 +34,7 @@ from apiary.components.compliances.models import (
    ComplianceAmendmentRequest,
    ComplianceAmendmentReason
 )
-#from apiary.components.proposals.models import (
+#from disturbance.components.proposals.models import (
  #       Proposal
   #      )
 from apiary.components.compliances.serializers import (

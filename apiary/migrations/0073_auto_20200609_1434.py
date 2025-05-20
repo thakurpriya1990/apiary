@@ -32,6 +32,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='temporarydocument',
             name='temp_document_collection',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='apiary.TemporaryDocumentCollection'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='disturbance.TemporaryDocumentCollection'),
         ),
     ]

@@ -15,7 +15,7 @@ class Command(BaseCommand):
     Excecuted from cron, eg:
         SHELL=/bin/bash
         # Execute every minute. Polls the Disturbance Admin table SystemMaintenance, and checks if the application can be taken down at the time indicated in the Admin table
-        * * * * * root cd /var/www/apiary-dev2 && source venv/bin/activate && python manage_ds.py system_maintenance_check >/dev/null 2>&1
+        * * * * * root cd /var/www/disturbance-dev2 && source venv/bin/activate && python manage_ds.py system_maintenance_check >/dev/null 2>&1
 
     CMD's eg:
         SUPERVISOR_STOP_CMD="supervisorctl stop disturbance-dev"

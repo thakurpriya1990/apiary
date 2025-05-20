@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('description', models.TextField(blank=True, verbose_name='description')),
                 ('uploaded_date', models.DateTimeField(auto_now_add=True)),
                 ('_file', models.FileField(max_length=255, upload_to=b'')),
-                ('proposal', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='supporting_application_documents', to='apiary.ProposalApiary')),
+                ('proposal', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='supporting_application_documents', to='disturbance.ProposalApiary')),
             ],
         ),
     ]

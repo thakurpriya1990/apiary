@@ -10,7 +10,7 @@ from copy import deepcopy
 def search_all(search_list, application_type='Disturbance'):
     """
     To run:
-        from apiary.utils import search_all
+        from disturbance.utils import search_all
         search_all(['BRM', 'JM 1'])
     """
     result = {}
@@ -28,7 +28,7 @@ def search_all(search_list, application_type='Disturbance'):
 def search(dictionary, search_list):
     """
     To run:
-        from apiary.utils import search
+        from disturbance.utils import search
         search(dictionary, ['BRM', 'JM 1'])
     """
     result = []
@@ -202,7 +202,7 @@ def compare_data(dict1, dict2, schema):
     schema - proposal.schema
 
     To run:
-        from apiary.utils import compare
+        from disturbance.utils import compare
         compare_data(dict1, dict2, schema)
 
     eg.
@@ -289,7 +289,7 @@ def search_keys(dictionary, search_list=['help_text', 'label']):
      the schema -- given help_text, finds the equiv. label
 
     To run:
-        from apiary.utils import search_keys
+        from disturbance.utils import search_keys
         search_keys2(dictionary, search_list=['help_text', 'label'])
         search_keys2(dictionary, search_list=['name', 'label'])
     """
@@ -323,7 +323,7 @@ def search_keys_group(dictionary, search_list=['name', 'label', 'group']):
      the schema -- given help_text, finds the equiv. label
 
     To run:
-        from apiary.utils import search_keys
+        from disturbance.utils import search_keys
         search_keys2(dictionary, search_list=['help_text', 'label'])
         search_keys2(dictionary, search_list=['name', 'label'])
     """

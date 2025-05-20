@@ -24,74 +24,74 @@ def get_sender_user():
 
 class OrganisationRequestAcceptNotificationEmail(TemplateEmailBase):
     subject = 'Your organisation request has been accepted.'
-    html_template = 'apiary/emails/organisation_request_accept_notification.html'
-    txt_template = 'apiary/emails/organisation_request_accept_notification.txt'
+    html_template = 'disturbance/emails/organisation_request_accept_notification.html'
+    txt_template = 'disturbance/emails/organisation_request_accept_notification.txt'
 
 class OrganisationAccessGroupRequestAcceptNotificationEmail(TemplateEmailBase):
     subject = 'New organisation request has been submitted.'
-    html_template = 'apiary/emails/org_access_group_request_accept_notification.html'
-    txt_template = 'apiary/emails/org_access_group_request_accept_notification.txt'
+    html_template = 'disturbance/emails/org_access_group_request_accept_notification.html'
+    txt_template = 'disturbance/emails/org_access_group_request_accept_notification.txt'
 
 class OrganisationRequestNotificationEmail(TemplateEmailBase):
     subject = 'An organisation request has been submitted for approval'
-    html_template = 'apiary/emails/organisation_request_notification.html'
-    txt_template = 'apiary/emails/organisation_request_notification.txt'
+    html_template = 'disturbance/emails/organisation_request_notification.html'
+    txt_template = 'disturbance/emails/organisation_request_notification.txt'
 
 
 class OrganisationRequestDeclineNotificationEmail(TemplateEmailBase):
     subject = 'Your organisation request has been declined.'
-    html_template = 'apiary/emails/organisation_request_decline_notification.html'
-    txt_template = 'apiary/emails/organisation_request_decline_notification.txt'
+    html_template = 'disturbance/emails/organisation_request_decline_notification.html'
+    txt_template = 'disturbance/emails/organisation_request_decline_notification.txt'
 
 class OrganisationLinkNotificationEmail(TemplateEmailBase):
     subject = 'You have been linked to an organisation.'
-    html_template = 'apiary/emails/organisation_link_notification.html'
-    txt_template = 'apiary/emails/organisation_link_notification.txt'
+    html_template = 'disturbance/emails/organisation_link_notification.html'
+    txt_template = 'disturbance/emails/organisation_link_notification.txt'
 
 class OrganisationUnlinkNotificationEmail(TemplateEmailBase):
     subject = 'You have been unlinked from an organisation.'
-    html_template = 'apiary/emails/organisation_unlink_notification.html'
-    txt_template = 'apiary/emails/organisation_unlink_notification.txt'
+    html_template = 'disturbance/emails/organisation_unlink_notification.html'
+    txt_template = 'disturbance/emails/organisation_unlink_notification.txt'
 
 class OrganisationContactAdminUserNotificationEmail(TemplateEmailBase):
     subject = 'You have been linked as Company Admin Role.'
-    html_template = 'apiary/emails/organisation_contact_admin_notification.html'
-    txt_template = 'apiary/emails/organisation_contact_admin_notification.txt'
+    html_template = 'disturbance/emails/organisation_contact_admin_notification.html'
+    txt_template = 'disturbance/emails/organisation_contact_admin_notification.txt'
 
 class OrganisationContactUserNotificationEmail(TemplateEmailBase):
     subject = 'You have been linked as Company User Role.'
-    html_template = 'apiary/emails/organisation_contact_user_notification.html'
-    txt_template = 'apiary/emails/organisation_contact_user_notification.txt'
+    html_template = 'disturbance/emails/organisation_contact_user_notification.html'
+    txt_template = 'disturbance/emails/organisation_contact_user_notification.txt'
 
 class OrganisationContactSuspendNotificationEmail(TemplateEmailBase):
     subject = 'You have been suspended as Company User.'
-    html_template = 'apiary/emails/organisation_contact_suspend_notification.html'
-    txt_template = 'apiary/emails/organisation_contact_suspend_notification.txt'
+    html_template = 'disturbance/emails/organisation_contact_suspend_notification.html'
+    txt_template = 'disturbance/emails/organisation_contact_suspend_notification.txt'
 
 class OrganisationContactReinstateNotificationEmail(TemplateEmailBase):
     subject = 'You have been Reinstated as Company User.'
-    html_template = 'apiary/emails/organisation_contact_reinstate_notification.html'
-    txt_template = 'apiary/emails/organisation_contact_reinstate_notification.txt'
+    html_template = 'disturbance/emails/organisation_contact_reinstate_notification.html'
+    txt_template = 'disturbance/emails/organisation_contact_reinstate_notification.txt'
 
 class OrganisationContactDeclineNotificationEmail(TemplateEmailBase):
     subject = 'Your organisation link request has been declined.'
-    html_template = 'apiary/emails/organisation_contact_decline_notification.html'
-    txt_template = 'apiary/emails/organisation_contact_decline_notification.txt'
+    html_template = 'disturbance/emails/organisation_contact_decline_notification.html'
+    txt_template = 'disturbance/emails/organisation_contact_decline_notification.txt'
 
 class OrganisationAddressUpdatedNotificationEmail(TemplateEmailBase):
     subject = 'An organisation''s address has been updated'
-    html_template = 'apiary/emails/organisation_address_updated_notification.html'
-    txt_template = 'apiary/emails/organisation_address_updated_notification.txt'
+    html_template = 'disturbance/emails/organisation_address_updated_notification.html'
+    txt_template = 'disturbance/emails/organisation_address_updated_notification.txt'
 
 class OrganisationIdUploadNotificationEmail(TemplateEmailBase):
     subject = 'An organisation''s identification has been uploaded'
-    html_template = 'apiary/emails/organisation_id_upload_notification.html'
-    txt_template = 'apiary/emails/organisation_id_upload_notification.txt'
+    html_template = 'disturbance/emails/organisation_id_upload_notification.html'
+    txt_template = 'disturbance/emails/organisation_id_upload_notification.txt'
 
 class OrganisationRequestLinkNotificationEmail(TemplateEmailBase):
     subject = 'An organisation request to be linked has been sent for approval'
-    html_template = 'apiary/emails/organisation_request_link_notification.html'
-    txt_template = 'apiary/emails/organisation_request_link_notification.txt'
+    html_template = 'disturbance/emails/organisation_request_link_notification.html'
+    txt_template = 'disturbance/emails/organisation_request_link_notification.txt'
 
 
 @update_settings_handler

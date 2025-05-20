@@ -20,9 +20,9 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('wkb_geometry', django.contrib.gis.db.models.fields.PointField(blank=True, null=True, srid=4326)),
                 ('type', models.CharField(choices=[('draft', 'Draft'), ('processed', 'Processed'), ('approved', 'Approved')], default='draft', max_length=40)),
-                ('apiary_site', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.ApiarySite')),
-                ('approval', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.Approval')),
-                ('proposal_apiary', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='apiary.ProposalApiary')),
+                ('apiary_site', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.ApiarySite')),
+                ('approval', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.Approval')),
+                ('proposal_apiary', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='disturbance.ProposalApiary')),
             ],
         ),
     ]

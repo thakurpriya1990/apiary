@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                 ('input_name', models.CharField(blank=True, max_length=255, null=True)),
                 ('can_delete', models.BooleanField(default=True)),
                 ('visible', models.BooleanField(default=True)),
-                ('proposal', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='public_liability_insurance_documents', to='apiary.ProposalApiaryTemporaryUse')),
+                ('proposal', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='public_liability_insurance_documents', to='disturbance.ProposalApiaryTemporaryUse')),
             ],
         ),
     ]

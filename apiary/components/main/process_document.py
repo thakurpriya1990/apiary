@@ -219,7 +219,7 @@ def save_default_document_obj(instance, temp_document):
 #            input_name=input_name,
 #            name=temp_document.name)[0]
 #    path = private_storage.save(
-#        'apiary/{}/{}/renderer_documents/{}/{}'.format(
+#        'disturbance/{}/{}/renderer_documents/{}/{}'.format(
 #            instance._meta.model_name,
 #            instance.id,
 #            input_name,

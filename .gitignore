@@ -7,7 +7,7 @@ node_modules/
 cronjobs
 mooring/cache/*
 tmp/
-apiary/utils/csv
+disturbance/utils/csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -104,7 +104,7 @@ uwsgi*.ini
 *.djcache
 
 # front-end build static files
-apiary/static/apiary_vue/static/*
+disturbance/static/disturbance_vue/static/*
 
 # npm locks
 #*-lock.json
@@ -114,5 +114,5 @@ apiary/static/apiary_vue/static/*
 # add this file to here
 apiary.txt
 
-apiary/frontend/apiary/tests_output*
-apiary/static/apiary_vue/static/*
+disturbance/frontend/disturbance/tests_output*
+disturbance/static/disturbance_vue/static/*

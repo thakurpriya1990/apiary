@@ -16,8 +16,8 @@ fi
 #git checkout $GIT_BRANCH &&
 #git pull &&
 date_var=$(date +%Y.%m.%d.%H.%M%S)
-BUILD_TAG=dbcawa/apiary:v$date_var
-#cd apiary/frontend/apiary/ &&
+BUILD_TAG=dbcawa/disturbance:v$date_var
+#cd disturbance/frontend/disturbance/ &&
 #npm run build &&
 #cd ../../../ &&
 #source venv/bin/activate &&

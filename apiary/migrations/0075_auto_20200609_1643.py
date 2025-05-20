@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='deedpolldocument',
             name='proposal',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='deed_poll_documents', to='apiary.ProposalApiary'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='deed_poll_documents', to='disturbance.ProposalApiary'),
         ),
     ]

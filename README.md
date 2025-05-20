@@ -1,8 +1,8 @@
 [![Build
-status](https://travis-ci.org/dbca-wa/apiary.svg?branch=master)](https://travis-ci.org/dbca-wa/apiary/builds) [![Coverage Status](https://coveralls.io/repos/github/dbca-wa/apiary/badge.svg?branch=master)](https://coveralls.io/github/dbca-wa/apiary?branch=master)
+status](https://travis-ci.org/dbca-wa/disturbance.svg?branch=master)](https://travis-ci.org/dbca-wa/disturbance/builds) [![Coverage Status](https://coveralls.io/repos/github/dbca-wa/disturbance/badge.svg?branch=master)](https://coveralls.io/github/dbca-wa/disturbance?branch=master)
 # Disturbance
 
-The Disturbance Approval System (DAS) is used for by external approved organisations to submit applications for works that will potentially create a public apiary. It is a database-backed Django application, using REST API with Vue.js as the client side app.
+The Disturbance Approval System (DAS) is used for by external approved organisations to submit applications for works that will potentially create a public disturbance. It is a database-backed Django application, using REST API with Vue.js as the client side app.
 
 
 # Requirements

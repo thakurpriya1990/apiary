@@ -30,7 +30,7 @@ ENV SUPPORT_EMAIL="das@dbca.wa.gov.au"
 ENV SYSTEM_NAME_SHORT="apiary"
 ENV SITE_DOMAIN="localhost"
 ENV APIARY_URL=[u'apiary-uat-internal.dbca.wa.gov.au',u'apiary-uat.dbca.wa.gov.au',u'localhost:8071']
-ENV SYSTEM_NAME="Apiary Assessment System"
+ENV SYSTEM_NAME="Disturbance Assessment System"
 ENV APIARY_SYSTEM_NAME="Apiary System"
 ENV PAYMENT_OFFICERS_GROUP="Apiary Payments Officers"
 
@@ -105,10 +105,10 @@ ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
 echo $TZ > /etc/timezone && \
 touch /app/.env
 COPY .git ./.git
-COPY apiary ./apiary
-RUN mkdir -p /app/apiary/static/apiary_vue/static
-RUN cd /app/apiary/frontend/apiary; npm install
-RUN cd /app/apiary/frontend/apiary; npm run build
+COPY disturbance ./disturbance
+RUN mkdir -p /app/disturbance/static/disturbance_vue/static
+RUN cd /app/disturbance/frontend/disturbance; npm install
+RUN cd /app/disturbance/frontend/disturbance; npm run build
 RUN python manage_ds.py collectstatic --noinput && \
 mkdir /app/tmp/ && \
 chmod 777 /app/tmp/

@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='annualrentalfee',
             name='approval',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='annual_rental_fees', to='apiary.Approval'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='annual_rental_fees', to='disturbance.Approval'),
         ),
         migrations.AlterField(
             model_name='annualrentalfee',
@@ -50,11 +50,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='annualrentalfeeinvoice',
             name='annual_rental_fee',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='annual_rental_fee_invoices', to='apiary.AnnualRentalFee'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='annual_rental_fee_invoices', to='disturbance.AnnualRentalFee'),
         ),
         migrations.AddField(
             model_name='annualrentalfee',
             name='annual_rental_fee_period',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='annual_rental_fees', to='apiary.AnnualRentalFeePeriod'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='annual_rental_fees', to='disturbance.AnnualRentalFeePeriod'),
         ),
     ]

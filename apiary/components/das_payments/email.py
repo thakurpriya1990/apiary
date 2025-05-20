@@ -26,14 +26,14 @@ def get_sender_user():
 
 class ApplicationFeeInvoiceApiarySendNotificationEmail(TemplateEmailBase):
     subject = 'Your application fee invoice.'
-    html_template = 'apiary/emails/payments/apiary/send_application_fee_notification.html'
-    txt_template = 'apiary/emails/payments/apiary/send_application_fee_notification.txt'
+    html_template = 'disturbance/emails/payments/apiary/send_application_fee_notification.html'
+    txt_template = 'disturbance/emails/payments/apiary/send_application_fee_notification.txt'
 
 # not required
 #class ApplicationFeeConfirmationApiarySendNotificationEmail(TemplateEmailBase):
 #    subject = 'Your application fee confirmation.'
-#    html_template = 'apiary/emails/payments/apiary/send_application_fee_confirmation_notification.html'
-#    txt_template = 'apiary/emails/payments/apiary/send_application_fee_confirmation_notification.txt'
+#    html_template = 'disturbance/emails/payments/apiary/send_application_fee_confirmation_notification.html'
+#    txt_template = 'disturbance/emails/payments/apiary/send_application_fee_confirmation_notification.txt'
 
 
 def send_application_fee_invoice_apiary_email_notification(request, proposal, invoice, recipients, is_test=False):
