@@ -1,0 +1,56 @@
+{
+"type":"FeatureCollection",
+"totalFeatures":1,
+"features":[
+    {
+        "type":"Feature",
+        "id":"apiary_sites.fid--7f48d93a_172b6856cda_-2e20",
+        "geometry":
+        {
+            "type":"MultiPoint",
+            "coordinates":[[116.1990231,-33.42998933]]
+        },
+        "geometry_name":"wkb_geometry",
+        "properties":
+        {
+           "ogc_fid":0,
+           "permit_no":4614,
+           "surname":"Not to be reissued",
+           "first_name":null,
+           "address":null,
+           "telephone":null,
+           "mobile":null,
+           "district":"Wellington",
+           "reg_brand":null,
+           "near_road":"ABC Rd",
+           "status":"Not to be re-issued",
+           "md5_rowhash":"11c760a79bf72d16180b3835513c382d"
+        }
+    },
+    {
+        "type":"Feature",
+        "id":"apiary_sites.fid--7f48d93a_172b6856cda_-2e21",
+        "geometry":
+        {
+            "type":"MultiPoint",
+            "coordinates":[[117.199,-33.42]]
+        },
+        "geometry_name":"wkb_geometry",
+        "properties":
+        {
+           "ogc_fid":0,
+           "permit_no":4615,
+           "surname":"Not to be reissued",
+           "first_name":null,
+           "address":null,
+           "telephone":null,
+           "mobile":null,
+           "district":"Wellington",
+           "reg_brand":null,
+           "near_road":"DEF Rd",
+           "status":"Not to be re-issued",
+           "md5_rowhash":"11c760a79bf72d16180b3835513c382d"
+        }
+    }
+]}
+

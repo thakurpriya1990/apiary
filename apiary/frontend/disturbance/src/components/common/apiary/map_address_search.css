@@ -1,0 +1,16 @@
+.awesomplete > ul {
+    background-color: white;
+    padding: 0.5em;
+    list-style-type: none;
+    border-radius: 5px;
+}
+.awesomplete > ul > li {
+    cursor: pointer;
+    padding: 0.2em;
+}
+.awesomplete > ul > li:hover {
+    background-color: lightblue;
+}
+.visually-hidden {
+    display: none;
+}

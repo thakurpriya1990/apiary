@@ -7,7 +7,7 @@
 	           "type=bind,source=/data/data/containerhome/,target=/home/container/"
 	          ],	
 	"appPort": [ "7007:8080","9061:9061","9062:9062","9063:9063","9064:9064","9065:9065","9066:9066","9067:9067","9068:9068","9069:9069" ],
-	"runArgs": ["--env-file","${localEnv:HOME}/vscode-env/apiary.env",
+	"runArgs": ["--env-file","${localEnv:HOME}/vscode-env/disturbance.env",
 		   "--hostname","disturbance-dev"
 		   ],
 	"forwardPorts": [9061,9062,9063,9064,9065,9066,9067,9068,9069],

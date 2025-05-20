@@ -351,6 +351,10 @@ class Document(models.Model):
                                    verbose_name='description', help_text='')
     uploaded_date = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        app_label = 'disturbance'
+        abstract = True
+
     @property
     def path(self):
         # return self.file.path

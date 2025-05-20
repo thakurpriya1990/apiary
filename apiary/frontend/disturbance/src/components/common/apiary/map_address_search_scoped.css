@@ -1,0 +1,19 @@
+.search-box {
+    z-index: 1000;
+    position: absolute;
+    top: 10px;
+    left: 50px;
+}
+.search-input {
+    z-index: 1000;
+    width: 300px;
+    padding: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    border: 2px solid lightgray;
+}
+.search-input:focus {
+    outline: none;
+    border: 2px solid darkgray;
+}

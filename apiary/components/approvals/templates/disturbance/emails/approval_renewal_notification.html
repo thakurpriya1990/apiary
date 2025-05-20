@@ -1,0 +1,23 @@
+{%  extends 'disturbance/emails/base_email.html' %}
+
+{%  block content %}
+    <!-- <p>Your Approval is due for renewal:</p>
+    <p><strong>Approval : {{ approval.lodgement_number}}</strong></p>
+    <p><strong>Proposal : {{ proposal.lodgement_number}}</strong></p>
+    <p>Please find the attached renewal notice.</p> -->
+    
+    <p>This is a reminder that your approval:</p>
+    {% if approval.title %}
+    	<p><b>{{ approval.lodgement_number }} - {{ approval.title}}</b></p>
+    {% else %}
+    	<p><b>{{ approval.lodgement_number }}</b></p>
+    {% endif %}
+    <ul>
+    	<li> Is due to expire on <u><b>{{ approval.expiry_date }}</b></u></li>
+    	<li>If the work is completed and this approval does not need to be renewed, please ignore this renewal notification.</li>
+    	<li> If the work is ongoing or hasn’t started yet you will need to renew the approval by submitting a renewal proposal prior to the expiry date</li>
+    	<li>Please note that if you have outstanding compliances these are required to be submitted before the approval can be renewed.</li>
+    </ul>
+    <p>Please find the attached renewal notice.</p>
+    
+{%  endblock %}
