@@ -219,10 +219,6 @@ export default {
               processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
           },
           responsive: true,
-          /*ajax: {
-              "url": 'api/empty_list',
-              "dataSrc": ''
-          },*/
           data: vm.results,
           columns: [
               {data: "number"},
