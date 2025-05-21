@@ -217,8 +217,8 @@ def get_qs_vacant_site(search_text=''):
             'apiary_site', 
             'proposal_apiary', 
             'proposal_apiary__proposal', 
-            'proposal_apiary__proposal__proxy_applicant', 
-            'proposal_apiary__transferee', 
+            #'proposal_apiary__proposal__proxy_applicant', 
+            #'proposal_apiary__transferee', 
             'proposal_apiary__target_approval_organisation', 
             'proposal_apiary__target_approval', 
             'proposal_apiary__originating_approval', 
@@ -240,8 +240,7 @@ def get_qs_vacant_site(search_text=''):
             'apiary_site__latest_approval_link', 
             'apiary_site__approval_link_for_vacant',
             'approval__applicant',
-            'approval__applicant__organisation',
-            'approval__proxy_applicant',
+            #'approval__proxy_applicant', TODO fix for segregation (?)
             # 'approval__lodgement_number',
             ).filter(id__in=apiary_site_approval_ids)
 

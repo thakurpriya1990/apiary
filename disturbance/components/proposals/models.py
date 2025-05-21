@@ -149,12 +149,30 @@ class TaggedProposalAssessorGroupActivities(TaggedItemBase):
     class Meta:
         app_label = 'disturbance'
 
+class ProposalAssessorGroupMember(models.Model):
+
+    emailuser = models.ForeignKey(
+        EmailUser, 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    proposalassessorgroup = models.ForeignKey(
+        'disturbance.ProposalAssessorGroup', 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        db_table = "disturbance_proposalassessorgroup_members"
+        unique_together=('proposalassessorgroup','emailuser')
+
 class ProposalAssessorGroup(models.Model):
     name = models.CharField(max_length=255)
     #members = models.ManyToManyField(EmailUser,blank=True)
     #regions = TaggableManager(verbose_name="Regions",help_text="A comma-separated list of regions.",through=TaggedProposalAssessorGroupRegions,related_name = "+",blank=True)
     #activities = TaggableManager(verbose_name="Activities",help_text="A comma-separated list of activities.",through=TaggedProposalAssessorGroupActivities,related_name = "+",blank=True)
-    members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=ProposalAssessorGroupMember, through_fields=('proposalassessorgroup','emailuser'))
     region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.CASCADE)
     default = models.BooleanField(default=False)
 
@@ -206,12 +224,30 @@ class TaggedProposalApproverGroupActivities(TaggedItemBase):
     class Meta:
         app_label = 'disturbance'
 
+class ProposalApproverGroupMember(models.Model):
+
+    emailuser = models.ForeignKey(
+        EmailUser, 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    proposalapprovergroup = models.ForeignKey(
+        'disturbance.ProposalApproverGroup', 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        db_table = "disturbance_proposalapprovergroup_members"
+        unique_together=('proposalapprovergroup','emailuser')
+
 class ProposalApproverGroup(models.Model):
     name = models.CharField(max_length=255)
     #members = models.ManyToManyField(EmailUser,blank=True)
     #regions = TaggableManager(verbose_name="Regions",help_text="A comma-separated list of regions.",through=TaggedProposalApproverGroupRegions,related_name = "+",blank=True)
     #activities = TaggableManager(verbose_name="Activities",help_text="A comma-separated list of activities.",through=TaggedProposalApproverGroupActivities,related_name = "+",blank=True)
-    members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=ProposalApproverGroupMember, through_fields=('proposalapprovergroup','emailuser'))
     region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.CASCADE)
     default = models.BooleanField(default=False)
 
@@ -2552,12 +2588,30 @@ class ProposalStandardRequirement(RevisionedMixin):
     class Meta:
         app_label = 'disturbance'
 
+class ApiaryReferralGroupMember(models.Model):
+
+    emailuser = models.ForeignKey(
+        EmailUser, 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    apiaryreferralgroup = models.ForeignKey(
+        'disturbance.ApiaryReferralGroup', 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        db_table = "disturbance_apiaryreferralgroup_members"
+        unique_together=('apiaryreferralgroup','emailuser')
+
 
 #class ReferralRecipientGroup(models.Model):
 class ApiaryReferralGroup(models.Model):
     #site = models.OneToOneField(Site, default='1')
     name = models.CharField(max_length=30, unique=True)
-    members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=ApiaryReferralGroupMember, through_fields=('apiaryreferralgroup','emailuser'))
     region = models.ForeignKey(Region, blank=True, null=True, on_delete=models.PROTECT)
     district = ChainedForeignKey(
         District,
@@ -4836,10 +4890,28 @@ class ApiaryChecklistAnswer(models.Model):
 #        if self.can_delete:
 #            return super(ApiarySiteLocationDocument, self).delete()
 
+class ApiaryAssessorGroupMember(models.Model):
+
+    emailuser = models.ForeignKey(
+        EmailUser, 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    apiaryassessorgroup = models.ForeignKey(
+        'disturbance.ApiaryAssessorGroup', 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        db_table = "disturbance_apiaryassessorgroup_members"
+        unique_together=('apiaryassessorgroup','emailuser')
 
 class ApiaryAssessorGroup(models.Model):
     #site = models.OneToOneField(Site, default='1')
-    members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=ApiaryAssessorGroupMember,
+            through_fields=('apiaryassessorgroup', 'emailuser'))
 
     def __str__(self):
         return 'Apiary Assessors Group'
@@ -4864,10 +4936,28 @@ class ApiaryAssessorGroup(models.Model):
     def members_email(self):
         return [i.email for i in self.members.all()]
 
+class ApiaryApproverGroupMember(models.Model):
+
+    emailuser = models.ForeignKey(
+        EmailUser, 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    apiaryapprovergroup = models.ForeignKey(
+        'disturbance.ApiaryApproverGroup', 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        db_table = "disturbance_apiaryapprovergroup_members"
+        unique_together=('apiaryapprovergroup','emailuser')
 
 class ApiaryApproverGroup(models.Model):
     #site = models.OneToOneField(Site, default='1')
-    members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=ApiaryApproverGroupMember,
+            through_fields=('apiaryapprovergroup', 'emailuser'))
 
     def __str__(self):
         return 'Apiary Approvers Group'

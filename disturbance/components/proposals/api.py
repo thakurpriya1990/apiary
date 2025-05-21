@@ -345,7 +345,6 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
         )
         #qs = self.filter_queryset(self.request, qs, self)
         #qs = self.filter_queryset(qs).order_by('-id')
-        print(self.request.method)
         qs = self.filter_queryset(qs)
         # on the internal organisations dashboard, filter the Proposal/Approval/Compliance datatables by applicant/organisation
         applicant_id = request.GET.get('org_id')
@@ -655,6 +654,10 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         qs_vacant_site_proposal, qs_vacant_site_approval = get_qs_vacant_site(search_text)
         serializer_vacant_proposal = ApiarySiteOnProposalVacantDraftMinimalGeometrySerializer(qs_vacant_site_proposal, many=True)
         serializer_vacant_approval = ApiarySiteOnApprovalMinGeometrySerializer(qs_vacant_site_approval, many=True)
+
+        print(serializer_vacant_approval.data['features'])
+        print(serializer_vacant_proposal.data['features'])
+
         serializer_vacant_approval.data['features'].extend(serializer_vacant_proposal.data['features'])
         return Response(serializer_vacant_approval.data)
 
@@ -1579,14 +1582,9 @@ class ProposalViewSet(viewsets.ModelViewSet):
         qs = self.get_queryset().filter(
             application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE]
         )
-
         activity_qs = qs.filter(activity__isnull=False).values_list('activity', flat=True).distinct()
-        region_qs = qs.filter(region__isnull=False).values_list('region', flat=True).distinct()
-        district_qs = qs.filter(district__isnull=False).values_list('district', flat=True).distinct()
         
         data = dict(
-            regions=region_qs,
-            districts=district_qs,
             activities=activity_qs,
             approval_status_choices = [i[1] for i in Approval.STATUS_CHOICES],
         )
@@ -2609,38 +2607,13 @@ class ReferralViewSet(viewsets.ModelViewSet):
     def filter_list(self, request, *args, **kwargs):
         """ Used by the external dashboard filters """
         template_group = get_template_group(request)
-        region_qs = []
-        application_type_qs = []
-        activity_qs = []
-        if template_group == 'apiary':
-            qs = Referral.objects.filter(apiary_referral__referral_group__members=request.user) \
-                    if is_internal(self.request) else Referral.objects.none()
-            application_type_qs =  ApplicationType.objects.filter(
-                    name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, 
-                        #ApplicationType.TEMPORARY_USE
-                        ]).values_list(
-                        'name', flat=True).distinct()
-            submitter_qs = qs.filter(proposal__submitter__isnull=False).filter(proposal__application_type__name__in=[ApplicationType.APIARY,ApplicationType.SITE_TRANSFER]).order_by(
-                    'proposal__submitter').distinct('proposal__submitter').values_list(
-                            'proposal__submitter__first_name','proposal__submitter__last_name','proposal__submitter__email')
-        else:
-            qs =  self.get_queryset().filter(referral=request.user)
-            region_qs =  qs.filter(proposal__region__isnull=False).values_list('proposal__region__name', flat=True).distinct()
-            #district_qs =  qs.filter(proposal__district__isnull=False).values_list('proposal__district__name', flat=True).distinct()
-            activity_qs =  qs.filter(proposal__activity__isnull=False).order_by('proposal__activity').distinct('proposal__activity').values_list('proposal__activity', flat=True).distinct()
-            submitter_qs = qs.filter(proposal__submitter__isnull=False).order_by('proposal__submitter').distinct('proposal__submitter').values_list(
-                    'proposal__submitter__first_name','proposal__submitter__last_name','proposal__submitter__email')
-
-        #submitter_qs = qs.filter(proposal__submitter__isnull=False).order_by('proposal__submitter').distinct('proposal__submitter').values_list('proposal__submitter__first_name','proposal__submitter__last_name','proposal__submitter__email')
-        submitters = [dict(email=i[2], search_term='{} {} ({})'.format(i[0], i[1], i[2])) for i in submitter_qs]
+        qs = Referral.objects.filter(apiary_referral__referral_group__members=request.user) \
+                if is_internal(self.request) else Referral.objects.none()
+        application_type_qs =  ApplicationType.objects.filter(name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER]).values_list('name', flat=True).distinct()
         processing_status_qs =  qs.filter(proposal__processing_status__isnull=False).order_by('proposal__processing_status').distinct('proposal__processing_status').values_list('proposal__processing_status', flat=True)
         processing_status = [dict(value=i, name='{}'.format(' '.join(i.split('_')).capitalize())) for i in processing_status_qs]
         data = dict(
-            regions=region_qs,
-            #districts=district_qs,
             application_types=application_type_qs,
-            activities=activity_qs,
-            submitters=submitters,
             processing_status_choices=processing_status,
         )
         return Response(data)

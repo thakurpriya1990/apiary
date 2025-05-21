@@ -225,7 +225,7 @@ class Migration(migrations.Migration):
             name='OrganisationAccessGroup',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('members', models.ManyToManyField(to=settings.AUTH_USER_MODEL)),
+                ('members', models.ManyToManyField(through='disturbance.OrganisationAccessGroup', to=settings.AUTH_USER_MODEL)),
                 ('site', models.OneToOneField(default='1', on_delete=django.db.models.deletion.CASCADE, to='sites.Site')),
             ],
             options={
@@ -348,7 +348,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
                 ('default', models.BooleanField(default=False)),
-                ('members', models.ManyToManyField(to=settings.AUTH_USER_MODEL)),
+                ('members', models.ManyToManyField(through='disturbance.ProposalApproverGroupMember',to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
@@ -357,7 +357,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
                 ('default', models.BooleanField(default=False)),
-                ('members', models.ManyToManyField(to=settings.AUTH_USER_MODEL)),
+                ('members', models.ManyToManyField(through='disturbance.ProposalAssessorGroupMember',to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(

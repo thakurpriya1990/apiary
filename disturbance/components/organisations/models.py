@@ -7,6 +7,7 @@ from django.db.models.signals import pre_delete
 from six import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields.jsonb import JSONField
+from ledger_api_client.utils import get_organisation, get_search_organisation, create_organisation
 #from ledger.accounts.models import Organisation as ledger_organisation
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from disturbance.components.main.models import UserAction,CommunicationsLogEntry, LedgerDocument
@@ -48,6 +49,13 @@ class Organisation(models.Model):
 
     class Meta:
         app_label = 'disturbance'
+
+    @property
+    def organisation(self):
+        try:
+            return get_organisation(self.organisation_id)['data']
+        except:
+            raise ValidationError("Organisation does not exist")
 
     def __str__(self):
         return str(self.organisation)
@@ -454,27 +462,27 @@ class Organisation(models.Model):
 
     @property
     def trading_name(self):
-        return self.organisation.trading_name
+        return self.organisation["trading_name"]
 
     @property
     def name(self):
-        return self.organisation.name
+        return self.organisation["organisation_name"]
 
     @property
     def abn(self):
-        return self.organisation.abn
+        return self.organisation["organisation_abn"]
 
     @property
     def address(self):
-        return self.organisation.postal_address
+        return self.organisation["postal_address"]
 
     @property
     def phone_number(self):
-        return self.organisation.phone_number
+        return self.organisation["phone_number"]
 
     @property
     def email(self):
-        return self.organisation.email
+        return self.organisation["email"]
 
     @property
     def first_five(self):
@@ -771,10 +779,27 @@ class OrganisationRequest(models.Model):
     def __str__(self):
         return 'name: {}, id {}'.format(self.name, self.id)
 
+class ApiaryOrganisationAccessGroupMember(models.Model):
+
+    emailuser = models.ForeignKey(
+        EmailUser, 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    apiaryorganisationaccessgroup = models.ForeignKey(
+        'disturbance.ApiaryOrganisationAccessGroup', 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        db_table = "disturbance_apiaryorganisationaccessgroup_members"
+        unique_together=('apiaryorganisationaccessgroup','emailuser')
 
 class ApiaryOrganisationAccessGroup(models.Model):
     site = models.OneToOneField(Site, default='1', on_delete=models.CASCADE) 
-    members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=ApiaryOrganisationAccessGroupMember, through_fields=('apiaryorganisationaccessgroup','emailuser'))
 
     def __str__(self):
         return 'Apiary Organisation Access Group'
@@ -795,10 +820,27 @@ class ApiaryOrganisationAccessGroup(models.Model):
         app_label = 'disturbance'
         verbose_name_plural = "Apiary Organisation access group"
 
+class OrganisationAccessGroupMember(models.Model):
+
+    emailuser = models.ForeignKey(
+        EmailUser, 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    organisationaccessgroup = models.ForeignKey(
+        'disturbance.OrganisationAccessGroup', 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        db_table = "disturbance_organisationaccessgroup_members"
+        unique_together=('organisationaccessgroup','emailuser')
 
 class OrganisationAccessGroup(models.Model):
     site = models.OneToOneField(Site, default='1', on_delete=models.CASCADE) 
-    members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=OrganisationAccessGroupMember, through_fields=('organisationaccessgroup','emailuser'))
 
     def __str__(self):
         return 'Organisation Access Group'

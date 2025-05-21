@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             name='ApiaryOrganisationAccessGroup',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('members', models.ManyToManyField(to=settings.AUTH_USER_MODEL)),
+                ('members', models.ManyToManyField(through='disturbance.ApiaryOrganisationAccessGroup', to=settings.AUTH_USER_MODEL)),
                 ('site', models.OneToOneField(default='1', on_delete=django.db.models.deletion.CASCADE, to='sites.Site')),
             ],
             options={

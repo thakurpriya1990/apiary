@@ -107,17 +107,9 @@ class ComplianceFilterBackend(DatatablesFilterBackend):
         if due_date_to:
             queryset = queryset.filter(due_date__lte=due_date_to)
 
-        getter = request.query_params.get
-        fields = self.get_fields(getter)
-        #import ipdb; ipdb.set_trace()
-        ordering = self.get_ordering(getter, fields)
-        queryset = queryset.order_by(*ordering)
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
         if len(ordering):
-            #for num, item in enumerate(ordering):
-             #   if item == 'status__name':
-              #      ordering[num] = 'status'
-               # elif item == '-status__name':
-                #    ordering[num] = '-status'
             queryset = queryset.order_by(*ordering)
 
         try:

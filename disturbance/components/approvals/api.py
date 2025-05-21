@@ -108,16 +108,9 @@ class ApprovalFilterBackend(DatatablesFilterBackend):
         if expiry_date_to:
             queryset = queryset.filter(expiry_date__lte=expiry_date_to)
 
-        getter = request.query_params.get
-        fields = self.get_fields(getter)
-        ordering = self.get_ordering(getter, fields)
-        queryset = queryset.order_by(*ordering)
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
         if len(ordering):
-            #for num, item in enumerate(ordering):
-             #   if item == 'status__name':
-              #      ordering[num] = 'status'
-               # elif item == '-status__name':
-                #    ordering[num] = '-status'
             queryset = queryset.order_by(*ordering)
 
         try:
@@ -205,18 +198,10 @@ class ApprovalPaginatedViewSet(viewsets.ModelViewSet):
         #qs = Approval.objects.filter(id__in=ids)
         #web_url = request.META.get('HTTP_HOST', None)
         template_group = get_template_group(request)
-        if template_group == 'apiary':
-            #qs = self.get_queryset().filter(application_type__apiary_group_application_type=True)
-            qs = self.get_queryset().filter(
-                    apiary_approval=True
-                    ).filter(id__in=ids)
-        else:
-            if is_das_apiary_admin(self.request):
-                qs = self.get_queryset()
-            else:
-                qs = self.get_queryset().exclude(
-                        apiary_approval=True
-                        ).filter(id__in=ids)
+        #qs = self.get_queryset().filter(application_type__apiary_group_application_type=True)
+        qs = self.get_queryset().filter(
+                apiary_approval=True
+                ).filter(id__in=ids)
 
         #if template_group == 'apiary':
         #    qs = self.get_queryset().filter(
