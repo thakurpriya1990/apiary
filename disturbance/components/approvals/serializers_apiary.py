@@ -95,7 +95,7 @@ class ApiarySiteOnApprovalGeometrySerializer(GeoFeatureModelSerializer):
     site_category = serializers.CharField(source='site_category.name')
     previous_site_holder_or_applicant = serializers.SerializerMethodField()
     is_vacant = serializers.BooleanField(source='apiary_site.is_vacant')
-    stable_coords = serializers.SerializerMethodField()
+    #stable_coords = serializers.SerializerMethodField()
     #licensed_site = serializers.BooleanField(source='apiary_site.licensed_site')
 
     class Meta:
@@ -109,7 +109,7 @@ class ApiarySiteOnApprovalGeometrySerializer(GeoFeatureModelSerializer):
             'site_category',
             'status',
             'is_vacant',
-            'stable_coords',
+            #'stable_coords',
             'previous_site_holder_or_applicant',
             'licensed_site',
             'batch_no',
@@ -124,8 +124,8 @@ class ApiarySiteOnApprovalGeometrySerializer(GeoFeatureModelSerializer):
             'dra_permit',
         )
 
-    def get_stable_coords(self, obj):
-        return obj.wkb_geometry.get_coords()
+    #def get_stable_coords(self, obj):
+    #    return obj.wkb_geometry.get_coords()
 
     def get_previous_site_holder_or_applicant(self, obj):
         try:

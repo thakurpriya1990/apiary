@@ -1426,22 +1426,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
     def internal_serializer_class(self):
-        try:
-            #application_type = Proposal.objects.get(id=self.kwargs.get('pk')).application_type.name
-            application_type = self.get_object().application_type.name
-            if application_type in (ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE):
-                return ApiaryInternalProposalSerializer
-                #return InternalProposalSerializer
-            else:
-                return InternalProposalSerializer
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        return ApiaryInternalProposalSerializer
 
     @action(detail=True,methods=['POST',])
     def get_revision(self, request, *args, **kwargs):
