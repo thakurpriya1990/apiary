@@ -1327,7 +1327,7 @@ export default {
             const res = await Vue.http.get(`/api/proposal/${this.proposalId}/internal_proposal.json/?with_apiary_sites=true`);
             this.proposal = Object.assign({}, res.body);
             //this.original_proposal = helpers.copyObject(res.body);
-            if (this.proposal.applicant) {
+            if (this.proposal.applicant && this.proposal.applicant.address) {
                 this.proposal.applicant.address = this.proposal.applicant.address != null ? this.proposal.applicant.address : {};
             }
             this.hasAmendmentRequest = this.proposal.hasAmendmentRequest;

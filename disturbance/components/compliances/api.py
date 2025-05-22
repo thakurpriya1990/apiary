@@ -119,54 +119,30 @@ class ComplianceFilterBackend(DatatablesFilterBackend):
         setattr(view, '_datatables_total_count', total_count)
         return queryset
 
-
-#class ComplianceRenderer(DatatablesRenderer):
-#    def render(self, data, accepted_media_type=None, renderer_context=None):
-#        #import ipdb; ipdb.set_trace()
-#        if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-#            data['recordsTotal'] = renderer_context['view']._datatables_total_count
-#            #data.pop('recordsTotal')
-#            #data.pop('recordsFiltered')
-#        return super(ComplianceRenderer, self).render(data, accepted_media_type, renderer_context)
-
-
+#TODO filter for apiary compliances only
 class CompliancePaginatedViewSet(viewsets.ModelViewSet):
     filter_backends = (ComplianceFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    #renderer_classes = (ComplianceRenderer,)
     page_size = 10
     queryset = Compliance.objects.none()
     serializer_class = ComplianceSerializer
 
+
     def get_queryset(self):
-        #import ipdb; ipdb.set_trace()
         if is_internal(self.request):
-            #return Compliance.objects.all()
-            return Compliance.objects.all().exclude(processing_status='discarded')
+            return Compliance.objects.filter(
+                apiary_compliance=True
+            ).exclude(processing_status='discarded')
         elif self.request.user.is_authenticated:
             user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
-            compliance_id_list = []
-            # Apiary logic for individual applicants
-            for apiary_compliance in Compliance.objects.filter( 
-                    Q(approval__applicant_id__in = user_orgs) | Q(approval__proxy_applicant = self.request.user
-                        )).exclude(processing_status='discarded'):
-                        compliance_id_list.append(apiary_compliance.id)
-            # DAS logic
-            for das_compliance in Compliance.objects.filter( 
-                    Q(proposal__applicant_id__in = user_orgs) | Q(proposal__submitter = self.request.user
-                        ) ).exclude(processing_status='discarded'):
-                        compliance_id_list.append(das_compliance.id)
-            # Return all records
-            queryset =  Compliance.objects.filter(id__in=compliance_id_list)
+            queryset = Compliance.objectsfilter(
+                apiary_compliance=True
+            ).filter( 
+                Q(approval__applicant_id__in = user_orgs) | Q(approval__proxy_applicant = self.request.user)
+            ).exclude(processing_status='discarded')
             return queryset
         return Compliance.objects.none()
 
-#    def list(self, request, *args, **kwargs):
-#        response = super(ProposalPaginatedViewSet, self).list(request, args, kwargs)
-#
-#        # Add extra data to response.data
-#        #response.data['regions'] = self.get_queryset().filter(region__isnull=False).values_list('region__name', flat=True).distinct()
-#        return response
 
     @action(detail=False,methods=['GET',])
     def compliances_external(self, request, *args, **kwargs):
@@ -177,35 +153,12 @@ class CompliancePaginatedViewSet(viewsets.ModelViewSet):
         To test:
             http://localhost:8000/api/compliance_paginated/compliances_external/?format=datatables&draw=1&length=2
         """
-
-        web_url = request.META.get('HTTP_HOST', None)
-        template_group = None
-        if web_url in settings.APIARY_URL:
-           template_group = 'apiary'
-        else:
-           template_group = 'das'
-        #import ipdb; ipdb.set_trace()
-        if template_group == 'apiary':
-            #qs = self.get_queryset().filter(application_type__apiary_group_application_type=True).exclude(processing_status='discarded')
-            qs = self.get_queryset().filter(
-                    apiary_compliance=True
-                    )
-        else:
-            qs = self.get_queryset().exclude(
-                    apiary_compliance=True
-                    )
-        #qs = self.get_queryset().exclude(processing_status='future')
-        #qs = ProposalFilterBackend().filter_queryset(self.request, qs, self)
+        qs = self.get_queryset()
         qs = self.filter_queryset(qs)
-        #qs = qs.order_by('lodgement_number', '-issue_date').distinct('lodgement_number')
 
-        # on the internal organisations dashboard, filter the Proposal/Approval/Compliance datatables by applicant/organisation
         applicant_id = request.GET.get('org_id')
         if applicant_id:
-            if template_group == 'apiary':
-                qs = qs.filter(approval__applicant_id=applicant_id)
-            else:
-                qs = qs.filter(proposal__applicant_id=applicant_id)
+            qs = qs.filter(approval__applicant_id=applicant_id)
 
         self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)

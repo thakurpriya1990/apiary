@@ -1649,7 +1649,10 @@ class ApiaryInternalProposalSerializer(BaseProposalSerializer):
     applicant_email = serializers.SerializerMethodField()
 
     proposal_apiary = ProposalApiarySerializer()
-    apiary_temporary_use = ProposalApiaryTemporaryUseSerializer(many=False, read_only=True)
+    
+    #TODO do this somewhere else
+    # apiary_temporary_use = ProposalApiaryTemporaryUseSerializer(many=False, read_only=True)
+    
     #apiary_site_transfer = ProposalApiarySiteTransferSerializer()
 
     applicant_checklist = serializers.SerializerMethodField()
@@ -1717,7 +1720,7 @@ class ApiaryInternalProposalSerializer(BaseProposalSerializer):
                 'applicant',
                 'applicant_type',
                 'proposal_apiary',
-                'apiary_temporary_use',
+                #'apiary_temporary_use',
                 #'apiary_site_transfer',
                 'applicant_address',
 
