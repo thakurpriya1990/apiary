@@ -1631,7 +1631,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
                             if apiary_site.get('checked') and 'coordinates_moved' in apiary_site:
                                 relation = self.proposal_apiary.get_relation(my_site)
-                                prev_coordinates = relation.wkb_geometry_processed.get_coords()
+                                prev_coordinates = {'lng': relation.wkb_geometry_processed.wkb_geometry.x, 'lat': relation.wkb_geometry_processed.wkb_geometry.y}
 
                                 # Update coordinate (Assessor and Approver can move the proposed site location)
                                 geom_str = GEOSGeometry('POINT(' + str(apiary_site['coordinates_moved']['lng']) + ' ' + str(apiary_site['coordinates_moved']['lat']) + ')', srid=4326)
@@ -3692,7 +3692,7 @@ class ProposalApiary(RevisionedMixin):
 
             # Apiary Site can be moved by assessor and/or approver
             if 'coordinates_moved' in my_site:
-                prev_coordinates = apiary_site_on_proposal.wkb_geometry_processed.get_coords()
+                prev_coordinates = {'lng': apiary_site_on_proposal.wkb_geometry.x, 'lat': apiary_site_on_proposal.wkb_geometry.y}
                 geom_str = GEOSGeometry('POINT(' + str(my_site['coordinates_moved']['lng']) + ' ' + str(my_site['coordinates_moved']['lat']) + ')', srid=4326)
                 from disturbance.components.proposals.serializers_apiary import ApiarySiteOnProposalProcessedGeometrySaveSerializer
                 serializer = ApiarySiteOnProposalProcessedGeometrySaveSerializer(apiary_site_on_proposal, data={'wkb_geometry_processed': geom_str})

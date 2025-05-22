@@ -118,10 +118,10 @@ class VersionSerializer(serializers.ModelSerializer):
                         payload.pop("site_guid", None)
                         wkb_geometry = record.field_dict.get('wkb_geometry')
                         if wkb_geometry:
-                            payload['coords'] = wkb_geometry.get_coords()
+                            payload['coords'] = {'lng': wkb_geometry.x, 'lat': wkb_geometry.y}
                         wkb_geometry_pending = record.field_dict.get('wkb_geometry_pending')
                         if wkb_geometry_pending:
-                            payload['pending_coords'] = wkb_geometry_pending.get_coords()
+                            payload['pending_coords'] = {'lng': wkb_geometry_pending.x, 'lat': wkb_geometry_pending.y}
                         apiary_sites.append({record.object._meta.model_name: payload})
                     else:
                         #print("record.object._meta.model_name")
@@ -335,8 +335,8 @@ class ApiarySiteOnProposalDraftGeometrySerializer(GeoFeatureModelSerializer):
         )
 
     def get_stable_coords(self, obj):
-        return obj.wkb_geometry_draft.get_coords()
-
+        return {'lng': obj.wkb_geometry_draft.x, 'lat': obj.wkb_geometry_draft.y}
+    
     def get_previous_site_holder_or_applicant(self, obj):
         try:
             relevant_applicant_name = obj.proposal_apiary.proposal.relevant_applicant_name
@@ -447,7 +447,7 @@ class ApiarySiteOnProposalVacantDraftMinimalGeometrySerializer(GeoFeatureModelSe
     site_category = serializers.CharField(source='site_category_draft.name')
     previous_site_holder_or_applicant = serializers.SerializerMethodField()
     is_vacant = serializers.BooleanField(source='apiary_site.is_vacant')
-    #stable_coords = serializers.SerializerMethodField()
+    stable_coords = serializers.SerializerMethodField()
     application_fee_paid = serializers.SerializerMethodField()
 
     class Meta:
@@ -464,7 +464,7 @@ class ApiarySiteOnProposalVacantDraftMinimalGeometrySerializer(GeoFeatureModelSe
             'for_renewal',
             'previous_site_holder_or_applicant',
             'making_payment',
-            #'stable_coords',
+            'stable_coords',
             'application_fee_paid',
             'apiary_site_status_when_submitted',
             'apiary_site_is_vacant_when_submitted',
@@ -473,8 +473,8 @@ class ApiarySiteOnProposalVacantDraftMinimalGeometrySerializer(GeoFeatureModelSe
     def get_application_fee_paid(self, obj):
         return False
 
-    #def get_stable_coords(self, obj):
-    #    return obj.wkb_geometry_draft.get_coords()
+    def get_stable_coords(self, obj):
+        return {'lng': obj.wkb_geometry_draft.x, 'lat': obj.wkb_geometry_draft.y}
 
     def get_previous_site_holder_or_applicant(self, obj):
         try:
@@ -591,7 +591,7 @@ class ApiarySiteOnProposalProcessedGeometrySerializer(GeoFeatureModelSerializer)
         )
 
     def get_stable_coords(self, obj):
-        return obj.wkb_geometry_processed.get_coords()
+        {'lng': obj.wkb_geometry_processed.x, 'lat': obj.wkb_geometry_processed.y}
 
     def get_status(self, apiary_site_on_proposal):
         # if apiary_site_on_proposal.apiary_site.is_vacant:
@@ -714,7 +714,7 @@ class ApiarySiteOnProposalVacantProcessedMinimalGeometrySerializer(GeoFeatureMod
     site_category = serializers.SerializerMethodField()
     previous_site_holder_or_applicant = serializers.SerializerMethodField()
     is_vacant = serializers.BooleanField(source='apiary_site.is_vacant')
-    #stable_coords = serializers.SerializerMethodField()
+    stable_coords = serializers.SerializerMethodField()
 
     class Meta:
         model = ApiarySiteOnProposal
@@ -730,18 +730,18 @@ class ApiarySiteOnProposalVacantProcessedMinimalGeometrySerializer(GeoFeatureMod
             'for_renewal',
             'making_payment',
             'previous_site_holder_or_applicant',
-            #'stable_coords',
+            'stable_coords',
             'application_fee_paid',
             'apiary_site_status_when_submitted',
             'apiary_site_is_vacant_when_submitted',
         )
 
-    #def get_stable_coords(self, obj):
-    #    return obj.wkb_geometry_processed.get_coords()
+    def get_stable_coords(self, obj):
+       return {'lng': obj.wkb_geometry_processed.x, 'lat': obj.wkb_geometry_processed.y}
 
     def get_status(self, apiary_site_on_proposal):
-        # if apiary_site_on_proposal.apiary_site.is_vacant:
-        #     return SITE_STATUS_VACANT
+        if apiary_site_on_proposal.apiary_site.is_vacant:
+            return settings.SITE_STATUS_VACANT
         return apiary_site_on_proposal.site_status
 
     def get_site_category(self, apiary_site_on_proposal):
