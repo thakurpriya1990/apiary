@@ -23,25 +23,14 @@ def belongs_to(user, group_name):
     else:
         return False
 
-def is_model_backend(request):
-    # Return True if user logged in via single sign-on (i.e. an internal)
-    return 'ModelBackend' in request.session.get('_auth_user_backend')
-
-def is_email_auth_backend(request):
-    # Return True if user logged in via social_auth (i.e. an external user signing in with a login-token)
-    return 'EmailAuth' in request.session.get('_auth_user_backend')
-
 def is_disturbance_admin(request):
-  #  #logger.info('settings.ADMIN_GROUP: {}'.format(settings.ADMIN_GROUP))
-    return request.user.is_authenticated and is_model_backend(request) and in_dbca_domain(request) and (belongs_to(request.user, settings.ADMIN_GROUP))
+    return request.user.is_authenticated and in_dbca_domain(request) and (belongs_to(request.user, settings.ADMIN_GROUP))
 
 def is_apiary_admin(request):
-  #  #logger.info('settings.ADMIN_GROUP: {}'.format(settings.ADMIN_GROUP))
-    return request.user.is_authenticated and is_model_backend(request) and in_dbca_domain(request) and (belongs_to(request.user, settings.APIARY_ADMIN_GROUP))
+    return request.user.is_authenticated and in_dbca_domain(request) and (belongs_to(request.user, settings.APIARY_ADMIN_GROUP))
 
 def is_das_apiary_admin(request):
-  #  #logger.info('settings.ADMIN_GROUP: {}'.format(settings.ADMIN_GROUP))
-    return request.user.is_authenticated and is_model_backend(request) and in_dbca_domain(request) and (belongs_to(request.user, settings.DAS_APIARY_ADMIN_GROUP))
+    return request.user.is_authenticated and in_dbca_domain(request) and (belongs_to(request.user, settings.DAS_APIARY_ADMIN_GROUP))
 
 def user_in_dbca_domain(user):
     domain = user.email.split('@')[1]
@@ -71,12 +60,10 @@ def is_approved_external_user(request):
     return False
 
 def is_departmentUser(request):
-    return request.user.is_authenticated and ( (is_model_backend(request) and in_dbca_domain(request)) or is_approved_external_user(request) )
-
-def is_customer(request):
-    return request.user.is_authenticated and is_email_auth_backend(request)
+    return request.user.is_authenticated and ( in_dbca_domain(request) or is_approved_external_user(request) )
 
 def is_internal(request):
+    #TODO change this to check auth groups
     return is_departmentUser(request)
 
 def get_all_officers():
@@ -108,7 +95,7 @@ def is_authorised_to_modify(request, instance):
         # the user must be an assessor for this type of application
         authorised &= instance.can_process()
         # print('7. Can process', instance.can_process())
-    elif is_customer(request):
+    else:
         # the status of the application must be DRAFT for customer to modify
         authorised &= instance.processing_status == 'draft'
         # print('8. Processing status draft', instance.processing_status == 'draft')
@@ -140,7 +127,7 @@ def is_authorised_to_modify_draft(request, instance):
         applicant = instance.applicant.organisation.organisation_set.all()[0]
     applicantIsIndividual = isinstance(applicant, EmailUser)
     if instance.processing_status=='draft':
-        if is_customer(request):
+        if request.user.is_authenticated:
             # the status of the application must be DRAFT for customer to modify
             if applicantIsIndividual:
                 # it is an individual so the applicant and submitter must be the same

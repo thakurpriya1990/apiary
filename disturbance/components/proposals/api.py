@@ -128,7 +128,7 @@ from disturbance.components.proposals.serializers_apiary import (
 from disturbance.components.approvals.models import Approval, ApiarySiteOnApproval
 from disturbance.components.approvals.serializers import ApprovalLogEntrySerializer
 from disturbance.components.compliances.models import Compliance
-from disturbance.helpers import is_customer, is_internal, is_authorised_to_modify_draft
+from disturbance.helpers import is_internal, is_authorised_to_modify_draft
 from django.core.files.base import ContentFile
 from rest_framework.pagination import PageNumberPagination
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
@@ -273,7 +273,7 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return Proposal.objects.exclude(processing_status='hidden')
-        elif is_customer(self.request):
+        elif user.is_authenticated:
             user_orgs = [org.id for org in user.disturbance_organisations.all()]
             qs = Proposal.objects.exclude(processing_status='hidden').filter(Q(applicant_id__in=user_orgs) | Q(submitter=user) | Q(proxy_applicant=user))
             return qs
@@ -365,7 +365,7 @@ class OnSiteInformationViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return OnSiteInformation.objects.filter(datetime_deleted=None)
-        elif is_customer(self.request):
+        elif user.is_authenticated:
             user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
             qs = OnSiteInformation.objects.filter(datetime_deleted=None).filter(Q(apiary_site_on_approval_id__approval_id__applicant_id__in=user_orgs)|Q(apiary_site_on_approval_id__approval_id__current_proposal_id__submitter_id=user.id))
             return qs
@@ -477,6 +477,17 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
                 return True
         return False
 
+    def get_queryset(self):
+        if is_internal(self.request):
+            return ApiarySite.objects.all()
+        elif self.request.user.is_authenticated:
+            user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
+            approval_queryset =  Approval.objects.filter(Q(applicant_id__in = user_orgs)|Q(proxy_applicant_id=self.request.user.id)).exclude(status='hidden')
+            apiary_sites = ApiarySite.objects.filter(approval_set__in=approval_queryset).distinct()
+            return apiary_sites
+        else:
+            return ApiarySite.objects.none()
+
     @action(detail=True,methods=['GET',])
     @basic_exception_handler
     def relevant_applicant_name(self, request, pk=None):
@@ -489,14 +500,6 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         relevant_applicant = apiary_site.get_relevant_applicant_name()
         return Response({'relevant_applicant': relevant_applicant})
 
-    def get_queryset(self):
-        user = self.request.user
-        # Only internal user is supposed to access here
-        if is_internal(self.request):
-            return ApiarySite.objects.all()
-        else:
-            return ApiarySite.objects.none()
-        
     @action(detail=True,methods=['POST',])
     @basic_exception_handler
     def contact_licence_holder(self, request, pk=None):
@@ -729,7 +732,6 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
                     apiary_site_on_approval.available = new_availability
                     apiary_site_on_approval.save()
                 serializer = ApiarySiteOnApprovalGeometrySerializer(apiary_site_on_approval)
-                print(serializer.data['properties']['available'])
                 return Response(serializer.data)
 
 
@@ -762,7 +764,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return ProposalApiary.objects.all()
-        elif is_customer(self.request):
+        elif user.is_authenticated:
             user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
             qs = ProposalApiary.objects.filter(Q(proposal_id__applicant_id__in=user_orgs)|Q(proposal_id__submitter_id=user.id))
             return qs
@@ -1151,7 +1153,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
                 Q(region__isnull=False) |
                 Q(application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE])
             )
-        elif is_customer(self.request):
+        elif user.is_authenticated:
             user_orgs = [org.id for org in user.disturbance_organisations.all()]
             queryset = Proposal.objects.filter(region__isnull=False).filter(
                 Q(applicant_id__in=user_orgs) |
@@ -2398,7 +2400,7 @@ class ProposalRequirementViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return ProposalRequirement.objects.exclude(is_deleted=True)
-        elif is_customer(self.request):
+        elif user.is_authenticated:
             user_orgs = [org.id for org in user.disturbance_organisations.all()]
             qs = ProposalRequirement.objects.exclude(is_deleted=True).filter(Q(proposal_id__applicant_id__in=user_orgs)|Q(proposal_id__submitter_id=user.id))
             return qs
@@ -2508,7 +2510,7 @@ class AmendmentRequestViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return AmendmentRequest.objects.all()
-        elif is_customer(self.request):
+        elif user.is_authenticated:
             user_orgs = [org.id for org in user.disturbance_organisations.all()]
             qs = AmendmentRequest.objects.filter(Q(proposal_id__applicant_id__in=user_orgs)|Q(proposal_id__submitter_id=user.id))
             return qs

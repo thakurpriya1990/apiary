@@ -30,8 +30,8 @@ class UserAddressSerializer(serializers.ModelSerializer):
         ) 
 
 class UserOrganisationSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source='organisation.name')
-    abn = serializers.CharField(source='organisation.abn')
+    name = serializers.CharField(source='organisation.organisation_name')
+    abn = serializers.CharField(source='organisation.organisation_abn')
     is_consultant = serializers.SerializerMethodField(read_only=True)
     is_admin = serializers.SerializerMethodField(read_only=True)
     current_apiary_approval = serializers.SerializerMethodField(read_only=True) # includes current & suspended

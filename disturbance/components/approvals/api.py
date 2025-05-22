@@ -49,7 +49,7 @@ from disturbance.components.proposals.serializers_apiary import (
         ProposalApiaryTemporaryUseSerializer,
         ApiaryProposalRequirementSerializer,
         )
-from disturbance.helpers import is_customer, is_internal, is_das_apiary_admin
+from disturbance.helpers import is_internal
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.renderers import DatatablesRenderer
@@ -141,7 +141,7 @@ class ApprovalPaginatedViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if is_internal(self.request):
             return Approval.objects.all().exclude(status='hidden')
-        elif is_customer(self.request):
+        elif self.request.user.is_authenticated:
             user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
             queryset =  Approval.objects.filter(Q(applicant_id__in = user_orgs)|Q(proxy_applicant_id=self.request.user.id)).exclude(status='hidden')
             #queryset =  Approval.objects.filter(applicant_id__in = user_orgs)
@@ -242,7 +242,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if is_internal(self.request):
             return Approval.objects.all()
-        elif is_customer(self.request):
+        elif self.request.user.is_authenticated:
             user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
             #queryset =  Approval.objects.filter(applicant_id__in = user_orgs)
             queryset =  Approval.objects.filter(Q(applicant_id__in = user_orgs)|Q(proxy_applicant_id=self.request.user.id))
@@ -332,7 +332,8 @@ class ApprovalViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         approval = self.get_object()
         serializer = self.get_serializer(approval, context={'request': request})
-        return Response(serializer.data)
+        res = Response(serializer.data)
+        return res
 
     @action(detail=True,methods=['GET',])
     def approval_wrapper(self, request, *args, **kwargs):
@@ -342,7 +343,8 @@ class ApprovalViewSet(viewsets.ModelViewSet):
         serializer_class = ApprovalWrapperSerializer #self.internal_serializer_class()
         #serializer = serializer_class(instance,context={'request':request})
         serializer = serializer_class(instance)
-        return Response(serializer.data)
+        res = Response(serializer.data)
+        return res
 
     @action(detail=True,methods=['GET',])
     @basic_exception_handler

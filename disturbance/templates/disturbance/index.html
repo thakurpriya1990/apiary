@@ -31,14 +31,7 @@
                             Access to {{DISPLAYED_SYSTEM_NAME}}
                         </h3>
                         {% bootstrap_messages %}
-                        <form method="post" action="{% url "social:complete" backend="email" %}">
-                            {% csrf_token %}
-                            {% bootstrap_form form %}
-                            <div id="submit-container">
-                                {% bootstrap_button 'Submit' button_class='btn-primary' %}
-                            </div>
-                        </form>
-                        <p>Submit your email to login or start the new-user registration process.</p>
+                        <a class="btn btn-primary" href="{{ BASE_URL }}ssologin">Login</a>
                         <hr>
                         <h4>
                             {{DISPLAYED_SYSTEM_NAME}} Password-less Logins

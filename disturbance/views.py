@@ -16,7 +16,7 @@ from rest_framework.renderers import JSONRenderer
 from disturbance.components.main.decorators import timeit
 from disturbance.components.main.serializers import WaCoastSerializer, WaCoastOptimisedSerializer
 from disturbance.components.main.utils import get_feature_in_wa_coastline_smoothed, get_feature_in_wa_coastline_original
-from disturbance.helpers import is_internal, is_disturbance_admin, is_apiary_admin, is_das_apiary_admin, is_customer
+from disturbance.helpers import is_internal, is_disturbance_admin, is_apiary_admin, is_das_apiary_admin
 from disturbance.forms import *
 from disturbance.components.proposals.models import Referral, Proposal, HelpPage
 from disturbance.components.compliances.models import Compliance
@@ -252,7 +252,7 @@ def validate_invoice_details(request):
 def is_authorised_to_access_proposal_document(request,document_id):
     if is_internal(request):
         return True
-    elif is_customer(request):
+    else:
         user = request.user
         user_orgs = [org.id for org in user.disturbance_organisations.all()]
         return Proposal.objects.filter(id=document_id).filter(
@@ -262,7 +262,7 @@ def is_authorised_to_access_proposal_document(request,document_id):
 def is_authorised_to_access_approval_document(request,document_id):
     if is_internal(request):
         return True
-    elif is_customer(request):
+    elif user.is_authenticated:
         user = request.user
         user_orgs = [org.id for org in user.disturbance_organisations.all()]
         return Approval.objects.filter(id=document_id).filter(
@@ -272,7 +272,7 @@ def is_authorised_to_access_approval_document(request,document_id):
 def is_authorised_to_access_organisation_document(request,document_id):
     if is_internal(request):
         return True
-    elif is_customer(request):
+    elif user.is_authenticated:
         user = request.user
         org_contacts = OrganisationContact.objects.filter(is_admin=True).filter(email=user.email)
         user_admin_orgs = [org.organisation.id for org in org_contacts]
@@ -294,7 +294,7 @@ def is_authorised_to_access_document(request):
     
     if is_internal(request):
         return True
-    elif is_customer(request):
+    elif request.user.is_authenticated:
         p_document_id = get_file_path_id("proposals",request.path)
         if p_document_id:
             return is_authorised_to_access_proposal_document(request,p_document_id)

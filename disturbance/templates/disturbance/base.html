@@ -124,14 +124,11 @@
                                                     {% if request.user.is_superuser %}
                                                         <li><a href="{% url 'mgt-commands' %}">Management Commands</a></li>
                                                     {% endif %}
-                                                    <li><a href="{% url 'manage-account' %}">Manage Account</a></li>
+                                                    <li><a href="/ledger-ui/accounts">Manage Account</a></li>
                                                     {% for org in request.user.disturbance_organisations.all %}
                                                         {% if request.user.is_superuser or org.id|is_org_admin:request.user %}
-                                                            <li><a href="/external/organisations/manage/{{org.id}}">Manage {{org.organisation.name}}</a></li>
-                                    {% comment %} --> DAS does not have Org Consultants
-                                                        {% elif org.id|is_org_consultant:request.user %}
-                                                            <li><a href="/external/organisations/manage/{{org.id}}">Manage {{ org.organisation.name}}</a></li>
-                                    {% endcomment %}
+                                                            <li><a href="/external/organisations/manage/{{org.id}}">Manage {{org.organisation.organisation_name}}</a></li>
+                                                            <!--<li><a href="/ledger-ui/organisation/{{org.organisation_id}}">Manage {{org.organisation.organisation_name}}</a></li> TODO ledgerui-->
                                                         {% endif %}
                                                     {% endfor %}
 

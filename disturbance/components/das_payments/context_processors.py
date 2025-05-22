@@ -8,12 +8,10 @@ def disturbance_url(request):
 
     is_officer = False
     is_admin = False
-    is_customer = False
 
     if request.user.is_authenticated:
          is_admin = helpers.is_disturbance_admin(request)
          is_apiary_admin = helpers.is_disturbance_admin(request)
-         is_customer = helpers.is_customer(request)
 
     return {
         'APIARY_SEARCH': '/external/payment',
@@ -26,7 +24,6 @@ def disturbance_url(request):
         'IS_OFFICER': is_officer,
         'IS_ADMIN': is_admin,
         'IS_APIARY_ADMIN': is_apiary_admin,
-        'IS_CUSTOMER': is_customer,
         'PUBLIC_URL': settings.PUBLIC_URL
     }
 

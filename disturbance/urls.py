@@ -111,7 +111,7 @@ api_patterns = [
 # Django searches matching url from the top of the list, and once found a matching url, it never goes through the urls below it.
 urlpatterns = [
     #url(r'^admin/', disturbance_admin_site.urls),
-    url(r'^ledger/admin/', admin.site.urls, name='ledger_admin'),
+    url(r'^admin/', admin.site.urls, name='admin'),
     url(r'^chaining/', include('smart_selects.urls')),
     url(r'', include(api_patterns)),
     url(r'^$', views.DisturbanceRoutingView.as_view(), name='home'),

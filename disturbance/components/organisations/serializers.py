@@ -93,9 +93,10 @@ class OrganisationSerializer(serializers.ModelSerializer):
                     'abn',
                     'address',
                     'email',
-                    'phone_number',
+                    'organisation_id',
                     'pins',
                     'delegates',
+                    'organisation',
                 )
 
     def get_pins(self,obj):

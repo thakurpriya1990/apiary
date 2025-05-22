@@ -46,7 +46,7 @@ from disturbance.components.compliances.serializers import (
     CompAmendmentRequestDisplaySerializer
 )
 from disturbance.components.main.utils import handle_validation_error
-from disturbance.helpers import is_customer, is_internal
+from disturbance.helpers import is_internal
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from disturbance.components.proposals.api import ProposalFilterBackend #, ProposalRenderer
 from rest_framework_datatables.filters import DatatablesFilterBackend
@@ -143,7 +143,7 @@ class CompliancePaginatedViewSet(viewsets.ModelViewSet):
         if is_internal(self.request):
             #return Compliance.objects.all()
             return Compliance.objects.all().exclude(processing_status='discarded')
-        elif is_customer(self.request):
+        elif self.request.user.is_authenticated:
             user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
             compliance_id_list = []
             # Apiary logic for individual applicants
@@ -223,7 +223,7 @@ class ComplianceViewSet(viewsets.ModelViewSet):
         if is_internal(self.request):
             #return Compliance.objects.all()
             return Compliance.objects.all().exclude(processing_status='discarded')
-        elif is_customer(self.request):
+        elif self.request.user.is_authenticated:
             user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
             compliance_id_list = []
             # Apiary logic for individual applicants
@@ -241,29 +241,8 @@ class ComplianceViewSet(viewsets.ModelViewSet):
             return queryset
         return Compliance.objects.none()
 
-    #def get_queryset(self):
-    #    #import ipdb; ipdb.set_trace()
-    #    if is_internal(self.request):
-    #        return Compliance.objects.all().exclude(processing_status='discarded')
-    #    elif is_customer(self.request):
-    #        user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
-    #        queryset =  Compliance.objects.filter( Q(proposal__applicant_id__in = user_orgs) | Q(proposal__submitter = self.request.user) ).exclude(processing_status='discarded')
-    #        return queryset
-    #    return Compliance.objects.none()
-
-    #TODO: review this - seems like a workaround at the moment
     def get_serializer_class(self):
-        try:
-            compliance = self.get_object()
-            return ComplianceSerializer
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        return ComplianceSerializer
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -557,7 +536,7 @@ class ComplianceAmendmentRequestViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return ComplianceAmendmentRequest.objects.all()
-        elif is_customer(self.request):
+        elif user.is_authenticated:
             user_orgs = [org.id for org in user.disturbance_organisations.all()]
             qs = ComplianceAmendmentRequest.objects.filter(Q(compliance_id__proposal_id__applicant_id__in=user_orgs)|Q(compliance_id__proposal_id__submitter_id=user.id))
             return qs

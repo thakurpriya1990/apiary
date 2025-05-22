@@ -19,7 +19,7 @@ from disturbance.components.main.serializers import RegionSerializer, DistrictSe
 from django.core.exceptions import ValidationError
 
 from disturbance.components.main.utils import handle_validation_error
-from disturbance.helpers import is_internal, is_customer
+from disturbance.helpers import is_internal
 from disturbance.settings import PAYMENT_SYSTEM_PREFIX
 
 
@@ -141,7 +141,7 @@ class MapLayerViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return MapLayer.objects.filter(option_for_internal=True)
-        elif is_customer(self.request):
+        elif user.is_authenticated:
             return MapLayer.objects.filter(option_for_external=True)
         return MapLayer.objects.none()
 

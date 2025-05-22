@@ -37,7 +37,7 @@ from disturbance.components.users.serializers import   (
                                                 UserFilterSerializer,
 
                                             )
-from disturbance.helpers import is_customer, is_internal
+from disturbance.helpers import is_internal
 #from disturbance.components.main.utils import retrieve_department_users
 
 #class DepartmentUserList(views.APIView):
@@ -86,7 +86,7 @@ class UserViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return EmailUser.objects.all()
-        elif is_customer(self.request):
+        elif user.is_authenticated:
             qs = EmailUser.objects.filter(Q(id=user.id))
             return qs
         return EmailUser.objects.none()

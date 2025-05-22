@@ -714,7 +714,7 @@ class ApiarySiteOnProposalVacantProcessedMinimalGeometrySerializer(GeoFeatureMod
     site_category = serializers.SerializerMethodField()
     previous_site_holder_or_applicant = serializers.SerializerMethodField()
     is_vacant = serializers.BooleanField(source='apiary_site.is_vacant')
-    stable_coords = serializers.SerializerMethodField()
+    #stable_coords = serializers.SerializerMethodField()
 
     class Meta:
         model = ApiarySiteOnProposal
@@ -730,14 +730,14 @@ class ApiarySiteOnProposalVacantProcessedMinimalGeometrySerializer(GeoFeatureMod
             'for_renewal',
             'making_payment',
             'previous_site_holder_or_applicant',
-            'stable_coords',
+            #'stable_coords',
             'application_fee_paid',
             'apiary_site_status_when_submitted',
             'apiary_site_is_vacant_when_submitted',
         )
 
-    def get_stable_coords(self, obj):
-        return obj.wkb_geometry_processed.get_coords()
+    #def get_stable_coords(self, obj):
+    #    return obj.wkb_geometry_processed.get_coords()
 
     def get_status(self, apiary_site_on_proposal):
         # if apiary_site_on_proposal.apiary_site.is_vacant:

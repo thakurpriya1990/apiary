@@ -24,7 +24,7 @@ from collections import OrderedDict
 from django.core.cache import cache
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Address as OrganisationAddress
 from datetime import datetime,timedelta, date
-from disturbance.helpers import is_customer, is_internal
+from disturbance.helpers import is_internal
 from disturbance.components.organisations.models import  (   
                                     Organisation,
                                     OrganisationContact,
@@ -77,10 +77,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request) or self.allow_external:
             return Organisation.objects.all()
-        elif is_customer(self.request):
-            #org_contacts = OrganisationContact.objects.filter(is_admin=True).filter(email=user.email) #TODO: is there a better way than email?
-            #user_admin_orgs = [org.organisation.id for org in org_contacts]
-            #return Organisation.objects.filter(id__in=user_admin_orgs)
+        elif user.is_authenticated:
             return user.disturbance_organisations.all()
         return Organisation.objects.none()
 
@@ -90,7 +87,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             instance.update_contacts(request)
             serializer = OrganisationContactSerializer(instance.contacts.exclude(user_status='pending'), many=True)
-            return Response(serializer.data);
+            return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -590,7 +587,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
         if is_internal(self.request):
             qs = OrganisationRequest.objects.all().order_by('-lodgement_date')
             return qs
-        elif is_customer(self.request):
+        elif user.is_authenticated:
             return user.organisationrequest_set.all()
         return OrganisationRequest.objects.none()
 
@@ -924,7 +921,7 @@ class OrganisationContactViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return OrganisationContact.objects.all()
-        elif is_customer(self.request):
+        elif user.is_authenticated:
             user_orgs = [org.id for org in user.disturbance_organisations.all()]
             return OrganisationContact.objects.filter( Q(organisation_id__in = user_orgs) )
         return OrganisationContact.objects.none()
@@ -957,7 +954,7 @@ class MyOrganisationsViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return Organisation.objects.all()
-        elif is_customer(self.request):
+        elif user.is_authenticated:
             return user.disturbance_organisations.all()
         return Organisation.objects.none()
 

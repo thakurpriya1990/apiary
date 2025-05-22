@@ -26,7 +26,6 @@ from disturbance.doctopdf import create_apiary_licence_pdf_contents
 from disturbance.settings import SITE_STATUS_CURRENT, SITE_STATUS_NOT_TO_BE_REISSUED, SITE_STATUS_SUSPENDED, \
     SITE_STATUS_TRANSFERRED
 from disturbance.utils import search_keys, search_multiple_keys
-from disturbance.helpers import is_customer
 from django_countries.fields import CountryField
 
 #TODO: improvable - these three lines are repeated throughout the models and ought to be set in one place
@@ -241,8 +240,6 @@ class Approval(RevisionedMixin):
 
     @property
     def relevant_applicant_name(self):
-        logger.info(f'in relevant_applicant_name')
-        logger.info(f'self: {self}')
         if self.applicant:
             return self.applicant.name
         elif self.proxy_applicant:
@@ -594,7 +591,7 @@ class Approval(RevisionedMixin):
             try:
                 if self.applicant and not request.user.disturbance_organisations.filter(organisation_id = self.relevant_applicant_id):
                     #if not request.user in self.allowed_assessors:
-                    if request.user not in self.allowed_assessors and not is_customer(request):
+                    if request.user not in self.allowed_assessors and not request.user.is_authenticated:
                         raise ValidationError('You do not have access to surrender this approval')
                 if not self.can_reissue and self.can_action:
                     raise ValidationError('You cannot surrender approval if it is not current or suspended')
