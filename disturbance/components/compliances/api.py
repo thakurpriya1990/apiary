@@ -10,7 +10,6 @@ from rest_framework.renderers import JSONRenderer
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from disturbance.components.compliances.models import (
    Compliance,
-   ComplianceAmendmentRequest,
    ComplianceAmendmentReason
 )
 from disturbance.components.compliances.serializers import (

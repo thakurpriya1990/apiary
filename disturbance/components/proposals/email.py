@@ -104,7 +104,6 @@ class ApiaryProposalDeclineSendNotificationEmail(TemplateEmailBase):
     txt_template = 'disturbance/emails/proposals/apiary_send_decline_notification.txt'
 
 class ApiaryProposalApprovalSiteTransferSendNotificationEmail(TemplateEmailBase):
-    #subject = 'Your Application has been approved.'
     subject = 'Your Licence has been issued.'
     html_template = 'disturbance/emails/proposals/apiary_send_approval_site_transfer_notification.html'
     txt_template = 'disturbance/emails/proposals/apiary_send_approval_site_transfer_notification.txt'
@@ -162,7 +161,6 @@ def send_referral_email_notification(referral,request,reminder=False):
     }
 
     msg = email.send(referral.referral.email, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_proposal_referral_email(msg, referral, sender=sender)
     if referral.proposal.applicant:
@@ -178,7 +176,6 @@ def send_referral_recall_email_notification(referral,request):
     }
 
     msg = email.send(referral.referral.email, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_proposal_referral_email(msg, referral, sender=sender)
     if referral.proposal.applicant:
@@ -196,11 +193,11 @@ def send_referral_complete_email_notification(referral,request):
     }
 
     msg = email.send(referral.sent_by.email, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_proposal_referral_email(msg, referral, sender=sender)
     if referral.proposal.applicant:
         _log_org_email(msg, referral.proposal.applicant, referral.referral, sender=sender)
+
 
 def send_apiary_referral_email_notification(referral,recipients,request,reminder=False):
     email = ApiaryReferralSendNotificationEmail()
@@ -213,43 +210,13 @@ def send_apiary_referral_email_notification(referral,recipients,request,reminder
         'comments': referral.text
     }
 
-    #msg = email.send(referral.referral.email, context=context)
-    #recipients = list(ReferralRecipientGroup.objects.get(name=referral.email_group).members.all().values_list('email', flat=True))
     msg = email.send(recipients, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_proposal_referral_email(msg, referral, sender=sender)
-    #if referral.proposal.applicant:
-    #    _log_org_email(msg, referral.proposal.applicant, referral.apiary_referral.referral_group.members_email, sender=sender)
-    #elif referral.proposal.applicant_field == 'proxy_applicant':
-    #    _log_user_email(msg, referral.proposal.proxy_applicant, referral.apiary_referral.referral_group.members_email, sender=sender)
-    #else:
-    #    _log_user_email(msg, referral.proposal.submitter, referral.apiary_referral.referral_group.members_email, sender=sender)
     if referral.proposal.applicant:
         _log_org_email(email_message=msg, organisation=referral.proposal.applicant, customer=None, sender=sender)
     else:
         _log_user_email(email_message=msg, emailuser=referral.proposal.submitter, customer=None, sender=sender)
-
-## BB 20200610 this is not called at present, in line with existing DAS behaviour
-#def send_apiary_referral_recall_email_notification(referral,recipients,request):
-#    email = ReferralRecallNotificationEmail()
-#    url = request.build_absolute_uri(reverse('internal-referral-detail',kwargs={'proposal_pk':referral.proposal.id,'referral_pk':referral.id}))
-#
-#    context = {
-#        'proposal': referral.proposal,
-#        'url': url,
-#    }
-#
-#    #msg = email.send(referral.referral.email, context=context)
-#    msg = email.send(recipients, context=context)
-#    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
-#    _log_proposal_referral_email(msg, referral, sender=sender)
-#    if referral.proposal.applicant:
-#        _log_org_email(msg, referral.proposal.applicant, referral.apiary_referral.referral_group.members_email, sender=sender)
-#    elif referral.proposal.applicant_field == 'proxy_applicant':
-#        _log_user_email(msg, referral.proposal.proxy_applicant, referral.apiary_referral.referral_group.members_email, sender=sender)
-#    else:
-#        _log_user_email(msg, referral.proposal.submitter, referral.apiary_referral.referral_group.members_email, sender=sender)
 
 
 def send_apiary_referral_complete_email_notification(referral,request, completed_by):
@@ -258,24 +225,16 @@ def send_apiary_referral_complete_email_notification(referral,request, completed
     url = request.build_absolute_uri(reverse('internal-proposal-detail',kwargs={'proposal_pk': referral.proposal.id}))
 
     context = {
-        #'completed_by': referral.referral,
         'completed_by': completed_by,
         'proposal': referral.proposal,
         'url': url,
         'referral_comments': referral.referral_text
     }
 
-    #msg = email.send(referral.sent_by.email,attachments=attachments, context=context)
     msg = email.send(referral.sent_by.email, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_proposal_referral_email(msg, referral, sender=sender)
-    #if referral.proposal.applicant:
-    #    _log_org_email(msg, referral.proposal.applicant, referral.apiary_referral.referral_group.members_email, sender=sender)
-    #elif referral.proposal.applicant_field == 'proxy_applicant':
-    #    _log_user_email(msg, referral.proposal.proxy_applicant, referral.apiary_referral.referral_group.members_email, sender=sender)
-    #else:
-    #    _log_user_email(msg, referral.proposal.submitter, referral.apiary_referral.referral_group.members_email, sender=sender)
+
     if referral.proposal.applicant:
         _log_org_email(email_message=msg, organisation=referral.proposal.applicant, customer=None, sender=sender)
     else:
@@ -286,7 +245,7 @@ def send_amendment_email_notification(amendment_request, request, proposal):
         email = ApiaryAmendmentRequestSendNotificationEmail()
     else:
         email = AmendmentRequestSendNotificationEmail()
-    #reason = amendment_request.get_reason_display()
+
     reason = amendment_request.reason.reason
     url = request.build_absolute_uri(reverse('external-proposal-detail',kwargs={'proposal_pk': proposal.id}))
 
@@ -297,7 +256,6 @@ def send_amendment_email_notification(amendment_request, request, proposal):
     attachments = []
     if amendment_request.amendment_request_documents:
         for doc in amendment_request.amendment_request_documents.all():
-            #file_name = doc._file.name
             file_name = doc.name
             attachment = (file_name, doc._file.file.read())
             attachments.append(attachment)
@@ -317,7 +275,6 @@ def send_amendment_email_notification(amendment_request, request, proposal):
                 all_ccs = [cc_list]
 
     msg = email.send(proposal.submitter.email, cc=all_ccs, context=context,  attachments=attachments)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_proposal_email(msg, proposal, sender=sender)
     if proposal.applicant:
@@ -330,7 +287,6 @@ def send_submit_email_notification(request, proposal):
         email = SubmitSendNotificationEmail()
     url = request.build_absolute_uri(reverse('internal-proposal-detail',kwargs={'proposal_pk': proposal.id}))
     if "-internal" not in url:
-        # add it. This email is for internal staff (assessors)
         url = '-internal.{}'.format(settings.SITE_DOMAIN).join(url.split('.' + settings.SITE_DOMAIN))
 
     context = {
@@ -339,10 +295,8 @@ def send_submit_email_notification(request, proposal):
     }
 
     msg = email.send(proposal.assessor_recipients, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_proposal_email(msg, proposal, sender=sender)
-    # Don't log organisation if application submitted on behalf of an individual
     if proposal.applicant:
         _log_org_email(msg, proposal.applicant, proposal.submitter, sender=sender)
     return msg
@@ -365,15 +319,12 @@ def send_external_submit_email_notification(request, proposal):
     }
 
     all_ccs = []
-    #if proposal.applicant and proposal.applicant.email:
-    #if proposal.applicant and proposal.applicant.email != proposal.submitter.email:
     if proposal.applicant and proposal.applicant.email != proposal.submitter.email and proposal.applicant.email:
         cc_list = proposal.applicant.email
         if cc_list:
             all_ccs = [cc_list]
 
     msg = email.send(proposal.submitter.email, cc= all_ccs, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_proposal_email(msg, proposal, sender=sender)
     # Don't log organisation if application submitted on behalf of an individual
@@ -395,7 +346,6 @@ def send_approver_decline_email_notification(reason, request, proposal):
     }
 
     msg = email.send(proposal.approver_recipients, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_proposal_email(msg, proposal, sender=sender)
     if proposal.applicant:
@@ -416,7 +366,6 @@ def send_approver_approve_email_notification(request, proposal):
     }
 
     msg = email.send(proposal.approver_recipients, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_proposal_email(msg, proposal, sender=sender)
     if proposal.applicant:
@@ -437,14 +386,11 @@ def send_proposal_decline_email_notification(proposal,request,proposal_decline):
     all_ccs = []
     if cc_list:
         all_ccs = cc_list.split(',')
-    #if proposal.applicant:
-    #if proposal.applicant and proposal.applicant.email != proposal.submitter.email:
+
     if proposal.applicant and proposal.applicant.email != proposal.submitter.email and proposal.applicant.email:
-     #   if proposal.applicant.email:
             all_ccs.append(proposal.applicant.email)
 
     msg = email.send(proposal.submitter.email, bcc=all_ccs, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_proposal_email(msg, proposal, sender=sender)
     if proposal.applicant:
@@ -464,7 +410,6 @@ def send_proposal_approver_sendback_email_notification(request, proposal):
     }
 
     msg = email.send(proposal.assessor_recipients, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_proposal_email(msg, proposal, sender=sender)
     if proposal.applicant:
@@ -472,7 +417,6 @@ def send_proposal_approver_sendback_email_notification(request, proposal):
 
 
 def send_proposal_approval_email_notification(proposal,request):
-    #import ipdb; ipdb.set_trace()
     if proposal.apiary_group_application_type:
         email = ApiaryProposalApprovalSendNotificationEmail()
     else:
@@ -488,10 +432,8 @@ def send_proposal_approval_email_notification(proposal,request):
     all_ccs = []
     if cc_list:
         all_ccs = cc_list.split(',')
-    #if proposal.applicant:
     if proposal.applicant and proposal.applicant.email != proposal.submitter.email and proposal.applicant.email:
-     #   if proposal.applicant.email:
-            all_ccs.append(proposal.applicant.email)
+        all_ccs.append(proposal.applicant.email)
 
     licence_document= proposal.approval.licence_document._file
     if licence_document is not None:
@@ -502,7 +444,6 @@ def send_proposal_approval_email_notification(proposal,request):
         attachment = []
 
     msg = email.send(proposal.submitter.email, bcc= all_ccs, attachments=attachment, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_proposal_email(msg, proposal, sender=sender)
     if proposal.applicant:
@@ -521,10 +462,8 @@ def send_site_transfer_approval_email_notification(proposal, request, approval):
     all_ccs = []
     if cc_list:
         all_ccs = cc_list.split(',')
-    #if proposal.applicant:
     if proposal.applicant and proposal.applicant.email != proposal.submitter.email and proposal.applicant.email:
-     #   if proposal.applicant.email:
-            all_ccs.append(proposal.applicant.email)
+        all_ccs.append(proposal.applicant.email)
 
     licence_document= approval.licence_document._file
     if licence_document is not None:
@@ -534,9 +473,7 @@ def send_site_transfer_approval_email_notification(proposal, request, approval):
     else:
         attachment = []
 
-    #msg = email.send(proposal.submitter.email, bcc= all_ccs, attachments=attachment, context=context)
     msg = email.send(approval.relevant_applicant_email, bcc= all_ccs, attachments=attachment, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_proposal_email(msg, proposal, sender=sender)
     if proposal.applicant:
@@ -547,7 +484,6 @@ def send_assessment_reminder_email_notification(proposal):
         email = ApiaryAssessmentReminderSendNotificationEmail()
     else:
         email = AssessmentReminderSendNotificationEmail()
-    #url = request.build_absolute_uri(reverse('internal-proposal-detail',kwargs={'proposal_pk': proposal.id}))
     url=settings.SITE_URL if settings.SITE_URL else ''
     url+=reverse('internal-proposal-detail',kwargs={'proposal_pk': proposal.id})
     if "-internal" not in url:
@@ -560,13 +496,7 @@ def send_assessment_reminder_email_notification(proposal):
     }
 
     msg = email.send(proposal.assessor_recipients, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
-    # try:
-    #     sender_user = EmailUser.objects.get(email__icontains=sender)
-    # except:
-    #     EmailUser.objects.create(email=sender, password='')
-    #     sender_user = EmailUser.objects.get(email__icontains=sender)
     _log_proposal_email(msg, proposal, sender=sender)
     if proposal.applicant:
         _log_org_email(msg, proposal.applicant, proposal.submitter, sender=sender)
@@ -575,7 +505,6 @@ def send_assessment_reminder_email_notification(proposal):
 def _log_proposal_referral_email(email_message, referral, sender=None):
     from disturbance.components.proposals.models import ProposalLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
-        # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
         fromm = smart_bytes(sender) if sender else smart_bytes(email_message.from_email)
@@ -621,8 +550,6 @@ def _log_proposal_referral_email(email_message, referral, sender=None):
 def _log_proposal_email(email_message, proposal, sender=None):
     from disturbance.components.proposals.models import ProposalLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
-        #import ipdb; ipdb.set_trace()
-        # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
         fromm = smart_bytes(sender) if sender else smart_bytes(email_message.from_email)
@@ -669,7 +596,6 @@ def _log_proposal_email(email_message, proposal, sender=None):
 def _log_org_email(email_message, organisation, customer ,sender=None):
     from disturbance.components.organisations.models import OrganisationLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
-        # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
         fromm = smart_bytes(sender) if sender else smart_bytes(email_message.from_email)
@@ -715,7 +641,6 @@ def _log_org_email(email_message, organisation, customer ,sender=None):
 def _log_user_email(email_message, emailuser, customer ,sender=None):
     from ledger_api_client.ledger_models import EmailUserRO as EmailUserLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
-        # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
         fromm = smart_bytes(sender) if sender else smart_bytes(email_message.from_email)
@@ -757,99 +682,3 @@ def _log_user_email(email_message, emailuser, customer ,sender=None):
     email_entry = EmailUserLogEntry.objects.create(**kwargs)
 
     return email_entry
-
-
-#def _log_org_email(email_message, organisation, customer ,sender=None):
-#    from disturbance.components.organisations.models import OrganisationLogEntry
-#    if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
-#        # TODO this will log the plain text body, should we log the html instead
-#        text = email_message.body
-#        subject = email_message.subject
-#        fromm = smart_bytes(sender) if sender else smart_bytes(email_message.from_email)
-#        # the to email is normally a list
-#        if isinstance(email_message.to, list):
-#            to = ','.join(email_message.to)
-#        else:
-#            to = smart_bytes(email_message.to)
-#        # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
-#        all_ccs = []
-#        if email_message.cc:
-#            all_ccs += list(email_message.cc)
-#        if email_message.bcc:
-#            all_ccs += list(email_message.bcc)
-#        all_ccs = ','.join(all_ccs)
-#
-#    else:
-#        text = smart_bytes(email_message)
-#        subject = ''
-#        to = customer
-#        fromm = smart_bytes(sender) if sender else SYSTEM_NAME
-#        all_ccs = ''
-#
-#    customer = customer
-#
-#    staff = sender
-#
-#    kwargs = {
-#        'subject': subject,
-#        'text': text,
-#        'organisation': organisation,
-#        'customer': customer,
-#        'staff': staff,
-#        'to': to,
-#        'fromm': fromm,
-#        'cc': all_ccs
-#    }
-#
-#    email_entry = OrganisationLogEntry.objects.create(**kwargs)
-#
-#    return email_entry
-#
-#def _log_user_email(email_message, emailuser, referral_group_email_list, sender=None):
-#    from ledger_api_client.ledger_models import EmailUserRO as EmailUserLogEntry
-#    if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
-#        # TODO this will log the plain text body, should we log the html instead
-#        text = email_message.body
-#        subject = email_message.subject
-#        fromm = smart_bytes(sender) if sender else smart_bytes(email_message.from_email)
-#        # the to email is normally a list
-#        if isinstance(email_message.to, list):
-#            to = ','.join(email_message.to)
-#        else:
-#            to = smart_bytes(email_message.to)
-#        # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
-#        all_ccs = []
-#        if email_message.cc:
-#            all_ccs += list(email_message.cc)
-#        if email_message.bcc:
-#            all_ccs += list(email_message.bcc)
-#        all_ccs = ','.join(all_ccs)
-#
-#    else:
-#        text = smart_bytes(email_message)
-#        subject = ''
-#        to = customer
-#        fromm = smart_bytes(sender) if sender else SYSTEM_NAME
-#        all_ccs = ''
-#
-#    for customer in referral_group_email_list:
-#        customer_email_user = EmailUser.objects.get(email=customer)
-#
-#        staff = sender
-#
-#        kwargs = {
-#            'subject': subject,
-#            'text': text,
-#            #'emailuser': emailuser,
-#            'emailuser': customer_email_user,
-#            'customer': customer_email_user,
-#            'staff': staff,
-#            'to': to,
-#            'fromm': fromm,
-#            'cc': all_ccs
-#        }
-#
-#        email_entry = EmailUserLogEntry.objects.create(**kwargs)
-#    # TODO - fix return statement
-#    return email_entry
-#

@@ -2,12 +2,10 @@ import logging
 
 from django.core.mail import EmailMultiAlternatives, EmailMessage
 from django.utils.encoding import smart_bytes
-from django.urls import reverse
 from django.conf import settings
 
 from disturbance.components.emails.emails import TemplateEmailBase
 from disturbance.components.das_payments.invoice_pdf import create_invoice_pdf_bytes
-from disturbance.components.das_payments.confirmation_pdf import create_confirmation_pdf_bytes
 from disturbance.context_processors import apiary_url
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
@@ -29,21 +27,12 @@ class ApplicationFeeInvoiceApiarySendNotificationEmail(TemplateEmailBase):
     html_template = 'disturbance/emails/payments/apiary/send_application_fee_notification.html'
     txt_template = 'disturbance/emails/payments/apiary/send_application_fee_notification.txt'
 
-# not required
-#class ApplicationFeeConfirmationApiarySendNotificationEmail(TemplateEmailBase):
-#    subject = 'Your application fee confirmation.'
-#    html_template = 'disturbance/emails/payments/apiary/send_application_fee_confirmation_notification.html'
-#    txt_template = 'disturbance/emails/payments/apiary/send_application_fee_confirmation_notification.txt'
-
-
 def send_application_fee_invoice_apiary_email_notification(request, proposal, invoice, recipients, is_test=False):
     email = ApplicationFeeInvoiceApiarySendNotificationEmail()
-    #url = request.build_absolute_uri(reverse('external-proposal-detail',kwargs={'proposal_pk': proposal.id}))
 
     url_var = apiary_url(request)
     context = {
         'lodgement_number': proposal.lodgement_number,
-        #'url': url,
     }
 
     filename = 'invoice#{}.pdf'.format(invoice.reference)
@@ -54,50 +43,16 @@ def send_application_fee_invoice_apiary_email_notification(request, proposal, in
     if is_test:
         return
 
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_proposal_email(msg, proposal, sender=sender)
-#    try:
-#        _log_org_email(msg, proposal.applicant, proposal.submitter, sender=sender)
-#    except:
-#        _log_org_email(msg, proposal.submitter, proposal.submitter, sender=sender)
     if proposal.applicant:
         _log_org_email(msg, proposal.applicant, proposal.submitter, sender=sender)
     else:
         _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
 
-# not required
-#def send_application_fee_confirmation_apiary_email_notification(request, application_fee, invoice, recipients, is_test=False):
-#    email = ApplicationFeeConfirmationApiarySendNotificationEmail()
-#    #url = request.build_absolute_uri(reverse('external-proposal-detail',kwargs={'proposal_pk': proposal.id}))
-#
-#    proposal = application_fee.proposal
-#    context = {
-#        'lodgement_number': proposal.lodgement_number,
-#        #'url': url,
-#    }
-#
-#    filename = 'confirmation.pdf'
-#    doc = create_confirmation_pdf_bytes(filename, invoice, application_fee)
-#    #doc = create_invoice_pdf_bytes(filename, invoice, proposal)
-#    attachment = (filename, doc, 'application/pdf')
-#
-#    msg = email.send(recipients, attachments=[attachment], context=context)
-#    if is_test:
-#        return
-#
-#    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
-#    _log_proposal_email(msg, proposal, sender=sender)
-#    if proposal.applicant:
-#        _log_org_email(msg, proposal.applicant, proposal.submitter, sender=sender)
-#    else:
-#        _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
-
-
 def _log_proposal_email(email_message, proposal, sender=None):
     from disturbance.components.proposals.models import ProposalLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
-        # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
         fromm = smart_bytes(sender) if sender else smart_bytes(email_message.from_email)
@@ -144,7 +99,6 @@ def _log_proposal_email(email_message, proposal, sender=None):
 def _log_org_email(email_message, organisation, customer ,sender=None):
     from disturbance.components.organisations.models import OrganisationLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
-        # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
         fromm = smart_bytes(sender) if sender else smart_bytes(email_message.from_email)
@@ -160,7 +114,6 @@ def _log_org_email(email_message, organisation, customer ,sender=None):
         if email_message.bcc:
             all_ccs += list(email_message.bcc)
         all_ccs = ','.join(all_ccs)
-
     else:
         text = smart_bytes(email_message)
         subject = ''
@@ -191,7 +144,6 @@ def _log_org_email(email_message, organisation, customer ,sender=None):
 def _log_user_email(email_message, emailuser, customer ,sender=None):
     from ledger_api_client.ledger_models import EmailUserRO as EmailUserLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
-        # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
         fromm = smart_bytes(sender) if sender else smart_bytes(email_message.from_email)
