@@ -462,7 +462,7 @@ class Organisation(models.Model):
 
     @property
     def trading_name(self):
-        return self.organisation["trading_name"]
+        return self.organisation["organisation_trading_name"]
 
     @property
     def name(self):
@@ -476,13 +476,13 @@ class Organisation(models.Model):
     def address(self):
         return self.organisation["postal_address"]
 
-    @property
-    def phone_number(self):
-        return self.organisation["phone_number"]
+    #@property
+    #def phone_number(self):
+    #    return self.organisation["phone_number"]
 
     @property
     def email(self):
-        return self.organisation["email"]
+        return self.organisation["organisation_email"]
 
     @property
     def first_five(self):
@@ -614,8 +614,9 @@ class OrganisationLogEntry(CommunicationsLogEntry):
 
     def save(self, **kwargs):
         # save the request id if the reference not provided
+        print(self.__dict__)
         if not self.reference:
-            self.reference = self.organisation.id
+            self.reference = self.organisation_id
         super(OrganisationLogEntry, self).save(**kwargs)
 
     class Meta:

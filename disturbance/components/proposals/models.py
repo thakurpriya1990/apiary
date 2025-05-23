@@ -1159,10 +1159,27 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         return email_list_string
 
     def can_assess(self,user):
-        if self.processing_status == 'with_assessor' or self.processing_status == 'with_referral' or self.processing_status == 'with_assessor_requirements':
-            return self.__assessor_group() in user.apiaryassessorgroup_set.all()
+        """
+        Superusers can always assess/approve if at the appropriate status
+        Otherwise they can assess/approve if the user is assigned and an assessor/approver 
+        or they are an assessor/approver and no one is assigned 
+        """
+        if self.processing_status in ['with_assessor', 'with_referral', 'with_assessor_requirements']:
+            return (
+                (
+                    (self.assigned_officer == user or self.assigned_officer == None) 
+                    and user in self.allowed_assessors
+                ) 
+                or user.is_superuser
+            )
         elif self.processing_status == 'with_approver':
-            return self.__approver_group() in user.apiaryapprovergroup_set.all()
+            return (
+                (
+                    (self.assigned_approver == user or self.assigned_approver == None) 
+                    and user in self.allowed_approvers
+                ) 
+                or user.is_superuser
+            )
         else:
             return False
 
@@ -4321,7 +4338,7 @@ class ApiaryApproverGroupMember(models.Model):
         db_table = "disturbance_apiaryapprovergroup_members"
         unique_together=('apiaryapprovergroup','emailuser')
 
-
+#TODO consider replacing with System Group
 class ApiaryApproverGroup(models.Model):
     members = models.ManyToManyField(EmailUser, through=ApiaryApproverGroupMember,
             through_fields=('apiaryapprovergroup', 'emailuser'))
@@ -4347,7 +4364,7 @@ class ApiaryApproverGroup(models.Model):
     def members_email(self):
         return [i.email for i in self.members.all()]
     
-
+#TODO consider replacing with System Group
 class ApiaryReferral(RevisionedMixin):
 
     referral = models.OneToOneField(Referral, related_name='apiary_referral', null=True, on_delete=models.CASCADE)

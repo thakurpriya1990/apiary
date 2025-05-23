@@ -80,8 +80,8 @@ def send_amendment_email_notification(amendment_request, request, compliance):
     }
 
     all_ccs = []
-    if compliance.proposal.applicant.email:
-        cc_list = compliance.proposal.applicant.email
+    if compliance.proposal.relevant_applicant.email:
+        cc_list = compliance.proposal.relevant_applicant.email
         if cc_list:
             all_ccs = [cc_list]
 
@@ -89,7 +89,8 @@ def send_amendment_email_notification(amendment_request, request, compliance):
     #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()  
     _log_compliance_email(msg, compliance, sender=sender)
-    _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender)
+    if compliance.proposal.applicant:
+        _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender)
 
 def send_apiary_amendment_email_notification(amendment_request, request, compliance):
     email = ComplianceAmendmentRequestSendNotificationEmail()

@@ -108,6 +108,23 @@ class Compliance(RevisionedMixin):
     def allowed_assessors(self):
         if self.proposal:
             return self.proposal.compliance_assessors
+        
+    def can_assess(self,user):
+        """
+        Superusers can always assess if at the appropriate status
+        Otherwise they can assess if the user is assigned and an assessor 
+        or they are an assessor and no one is assigned 
+        """
+        if self.processing_status == 'with_assessor':
+            return (
+                (
+                    (self.assigned_to == user or self.assigned_to == None) 
+                    and user in self.allowed_assessors
+                ) 
+                or user.is_superuser
+            )
+        else:
+            return False
 
     @property
     def can_user_view(self):
@@ -382,7 +399,8 @@ class ComplianceAmendmentRequest(CompRequest):
             # Create a log entry for the proposal
             compliance.log_user_action(ComplianceUserAction.ACTION_ID_REQUEST_AMENDMENTS,request)
             # Create a log entry for the organisation
-            compliance.proposal.applicant.log_user_action(ComplianceUserAction.ACTION_ID_REQUEST_AMENDMENTS,request)
+            if compliance.proposal.applicant:
+                compliance.proposal.applicant.log_user_action(ComplianceUserAction.ACTION_ID_REQUEST_AMENDMENTS,request)
             send_amendment_email_notification(self,request, compliance)
 
 

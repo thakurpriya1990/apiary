@@ -242,18 +242,7 @@ export default {
 
     check_assessor: function(){
         let vm = this;
-        //vm.members = vm.compliance.allowed_assessors
-        if (vm.members) {
-            var assessor = vm.members.filter(function(elem){
-                        return(elem.id==vm.profile.id);
-                    });
-                    if (assessor.length > 0)
-                        return true;
-                    else
-                        return false;
-        } else {
-            return false;
-        }
+        return vm.compliance.can_assess
      },
   },
   mounted: function () {
