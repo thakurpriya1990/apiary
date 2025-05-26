@@ -15,8 +15,8 @@ from ledger.settings_base import TIME_ZONE
 from disturbance.components.approvals.email import send_annual_rental_fee_awaiting_payment_confirmation
 from disturbance.components.approvals.models import Approval, ApiarySiteOnApproval
 from disturbance.components.approvals.serializers import ApprovalLogEntrySerializer
-from disturbance.components.das_payments.models import AnnualRentalFee, AnnualRentalFeePeriod, AnnualRentalFeeApiarySite
-from disturbance.components.das_payments.utils import generate_line_items_for_annual_rental_fee
+from disturbance.components.ap_payments.models import AnnualRentalFee, AnnualRentalFeePeriod, AnnualRentalFeeApiarySite
+from disturbance.components.ap_payments.utils import generate_line_items_for_annual_rental_fee
 from disturbance.components.proposals.models import ApiaryAnnualRentalFeeRunDate, ApiaryAnnualRentalFeePeriodStartDate, \
     ApiarySite
 from disturbance.settings import SITE_STATUS_CURRENT, SITE_STATUS_SUSPENDED, PAYMENT_SYSTEM_ID, PAYMENT_SYSTEM_PREFIX

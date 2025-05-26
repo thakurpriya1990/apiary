@@ -10,8 +10,8 @@ from disturbance.components.approvals.models import (
 )
 from disturbance.components.approvals.serializers_apiary import ApiarySiteOnApprovalLicenceDocSerializer, \
     ApiarySiteOnApprovalGeometrySerializer
-from disturbance.components.das_payments.models import AnnualRentalFeePeriod, AnnualRentalFee
-from disturbance.components.das_payments.serializers import AnnualRentalFeeSerializer, AnnualRentalFeePeriodSerializer
+from disturbance.components.ap_payments.models import AnnualRentalFeePeriod, AnnualRentalFee
+from disturbance.components.ap_payments.serializers import AnnualRentalFeeSerializer, AnnualRentalFeePeriodSerializer
 from disturbance.components.organisations.models import (
                                 Organisation
                             )

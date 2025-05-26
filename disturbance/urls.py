@@ -7,7 +7,7 @@ from disturbance import views
 from disturbance.components.main.views import deed_poll_url, GeocodingAddressSearchTokenView
 from disturbance.components.proposals import views as proposal_views
 from disturbance.components.organisations import views as organisation_views
-from disturbance.components.das_payments import views as payment_views
+from disturbance.components.ap_payments import views as payment_views
 from disturbance.components.proposals.views import ExternalProposalTemporaryUseSubmitSuccessView
 
 from disturbance.components.users import api as users_api
@@ -24,7 +24,6 @@ from django_media_serv.urls import urlpatterns as media_serv_patterns
 # API patterns
 from disturbance.management.default_data_manager import DefaultDataManager
 from disturbance.utils import are_migrations_running
-from disturbance.views import LedgerPayView
 
 router = routers.DefaultRouter()
 router.include_root_view = settings.SHOW_ROOT_API
@@ -49,12 +48,10 @@ router.register(r'amendment_request',proposal_api.AmendmentRequestViewSet,"amend
 router.register(r'compliance_amendment_request',compliances_api.ComplianceAmendmentRequestViewSet,"compliance_amendment_request")
 router.register(r'regions', main_api.RegionViewSet,"regions")
 router.register(r'activity_matrix', main_api.ActivityMatrixViewSet,"activity_matrix")
-#router.register(r'tenure', main_api.TenureViewSet)
 router.register(r'application_types', main_api.ApplicationTypeViewSet,"application_types")
 router.register(r'apiary_referral_groups', proposal_api.ApiaryReferralGroupViewSet,"apiary_referral_groups")
 router.register(r'apiary_referrals',proposal_api.ApiaryReferralViewSet,"apiary_referrals")
 router.register(r'apiary_site_fees',proposal_api.ApiarySiteFeeViewSet,"apiary_site_fees")
-#router.register(r'payment',payment_api.PaymentViewSet)
 router.register(r'proposal_type_sections', proposal_api.ProposalTypeSectionViewSet,"proposal_type_sections")
 
 router.register(
@@ -79,7 +76,6 @@ router.register(r'map_layers', main_api.MapLayerViewSet,"map_layers")
 api_patterns = [
     url(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),
     url(r'^api/countries$', users_api.GetCountries.as_view(), name='get-countries'),
-    #url(r'^api/department_users$', users_api.DepartmentUserList.as_view(), name='department-users-list'),
     url(r'^api/proposal_type$', proposal_api.GetProposalType.as_view(), name='get-proposal-type'),
     url(r'^api/organisation_access_group_members',org_api.OrganisationAccessGroupMembers.as_view(),name='organisation-access-group-members'),
     url(r'^api/apiary_organisation_access_group_members',org_api.ApiaryOrganisationAccessGroupMembers.as_view(),name='apiary-organisation-access-group-members'),
@@ -89,7 +85,6 @@ api_patterns = [
     url(r'^api/search_keywords',proposal_api.SearchKeywordsView.as_view(),name='search_keywords'),
     url(r'^api/search_reference',proposal_api.SearchReferenceView.as_view(),name='search_reference'),
     url(r'^api/search_sections',proposal_api.SearchSectionsView.as_view(),name='search_sections'),
-    #url(r'^api/reports/payment_settlements$', main_api.PaymentSettlementReportView.as_view(),name='payment-settlements-report'),
     url(r'^api/deed_poll_url', deed_poll_url, name='deed_poll_url'),
     url(r'^api/history/compare/serialized/(?P<app_label>[\w-]+)/(?P<component_name>[\w-]+)/(?P<model_name>[\w-]+)/(?P<serializer_name>[\w-]+)/(?P<pk>\d+)/(?P<newer_version>\d+)/(?P<older_version>\d+)/$',
             history_api.GetCompareSerializedVersionsView.as_view(), name='get-compare-serialized-versions'),
@@ -110,7 +105,6 @@ api_patterns = [
 # You have to be careful about the order of the urls below.
 # Django searches matching url from the top of the list, and once found a matching url, it never goes through the urls below it.
 urlpatterns = [
-    #url(r'^admin/', disturbance_admin_site.urls),
     url(r'^admin/', admin.site.urls, name='admin'),
     url(r'^chaining/', include('smart_selects.urls')),
     url(r'', include(api_patterns)),
@@ -123,19 +117,16 @@ urlpatterns = [
     url(r'^external/', views.ExternalView.as_view(), name='external'),
     url(r'^firsttime/$', views.first_time, name='first_time'),
     url(r'^gisdata/$', views.gisdata, name='gisdata'),
-    # url(r'^ledgerpay/$', views.ledgerpay, name='ledgerpay'),
-    # url(r'^ledgerpay/$', LedgerPayView.as_view(), name='ledgerpay'),
     url(r'^account/$', views.ExternalView.as_view(), name='manage-account'),
     url(r'^help/(?P<application_type>[^/]+)/(?P<help_type>[^/]+)/$', views.HelpView.as_view(), name='help'),
     url(r'^mgt-commands/$', views.ManagementCommandsView.as_view(), name='mgt-commands'),
-    #url(r'^external/organisations/manage/$', views.ExternalView.as_view(), name='manage-org'),
+
     #following url is used to include url path when sending Proposal amendment request to user.
     url(r'^proposal/$', proposal_views.ProposalView.as_view(), name='proposal'),
     url(r'^preview/licence-pdf/(?P<proposal_pk>\d+)',proposal_views.PreviewLicencePDFView.as_view(), name='preview_licence_pdf'),
     url(r'^ledgerpay/(?P<payment_item>.+)', views.LedgerPayView.as_view(), name='ledgerpay-view'),
     url(r'^validate_invoice_details/$', views.validate_invoice_details, name='validate-invoice-details'),
     url(r'^invoice_payment/(?P<invoice_reference>\d+)/$', payment_views.InvoicePaymentView.as_view(), name='invoice_payment'),
-
     url(r'^application_fee/(?P<proposal_pk>\d+)/$', payment_views.ApplicationFeeView.as_view(), name='application_fee'),
     url(r'^annual_rental_fee/(?P<annual_rental_fee_id>\d+)/$', payment_views.AnnualRentalFeeView.as_view(), name='annual_rental_fee'),
     url(r'^success/fee/$', payment_views.ApplicationFeeSuccessView.as_view(), name='fee_success'),
@@ -148,11 +139,9 @@ urlpatterns = [
 
     # following url is defined so that to include url path when sending Proposal amendment request to user.
     url(r'^external/proposal/(?P<proposal_pk>\d+)/$', views.ExternalProposalView.as_view(), name='external-proposal-detail'),
-    url(r'^internal/proposal/(?P<proposal_pk>\d+)/$', views.InternalProposalView.as_view(), name='internal-proposal-detail'),
     url(r'^external/compliance/(?P<compliance_pk>\d+)/$', views.ExternalComplianceView.as_view(), name='external-compliance-detail'),
     url(r'^internal/compliance/(?P<compliance_pk>\d+)/$', views.InternalComplianceView.as_view(), name='internal-compliance-detail'),
 
-    #url(r'^organisations/(?P<pk>\d+)/confirm-delegate-access/(?P<uid>[0-9A-Za-z]+)-(?P<token>.+)/$', views.ConfirmDelegateAccess.as_view(), name='organisation_confirm_delegate_access'),
     # reversion history-compare
     url(r'^history/proposal/latest/(?P<pk>\d+)/(?P<count>\d+)/$', proposal_views.ProposalHistoryLatestCompareView.as_view(), name='proposal_history_latest'),
     url(r'^history/proposal/(?P<pk>\d+)/$', proposal_views.ProposalHistoryCompareView.as_view(), name='proposal_history'),
@@ -166,12 +155,10 @@ urlpatterns = [
     url(r'^template_group$', views.TemplateGroupView.as_view(), name='template-group'),
     url(r'^private-media/', views.getPrivateFile, name='view_private_file'),
 
-                  # Reports
+    # Reports
     url(r'^api/oracle_job$', main_api.OracleJob.as_view(), name='get-oracle'),
     url(r'^api/reports/booking_settlements$', main_api.BookingSettlementReportView.as_view(),
         name='booking-settlements-report'),
-
-                  # url(r'^external/proposal/(?P<proposal_pk>\d+)/submit_temp_use_success/$', success_view, name='external-proposal-temporary-use-submit-success'),
 ] + ledger_patterns #+ media_serv_patterns
 
 if not are_migrations_running():

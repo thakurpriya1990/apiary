@@ -1,7 +1,7 @@
 from ledger_api_client.ledger_models import Invoice
 from rest_framework import serializers
 
-from disturbance.components.das_payments.models import AnnualRentalFee, AnnualRentalFeePeriod
+from disturbance.components.ap_payments.models import AnnualRentalFee, AnnualRentalFeePeriod
 
 
 class AnnualRentalFeePeriodSerializer(serializers.ModelSerializer):

@@ -61,7 +61,6 @@
 </template>
 
 <script>
-//import $ from 'jquery'
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 import {helpers,api_endpoints} from "@/utils/hooks.js"
@@ -127,21 +126,17 @@ export default {
         sendData:function(){
             let vm = this;
             vm.errors = false;
-            //vm.$parent.loading.push('processing contact');
             if (vm.contact.id){
                 let contact = vm.contact;
-                //vm.$http.put(api_endpoints.organisation_contacts(contact.id),JSON.stringify(contact),{
                 vm.$http.put(helpers.add_endpoint_json(api_endpoints.organisation_contacts,contact.id),JSON.stringify(contact),{
                         emulateJSON:true,
                     }).then((response)=>{
-                        //vm.$parent.loading.splice('processing contact',1);
                         vm.$parent.refreshDatatable();
                         vm.close();
                     },(error)=>{
                         console.log(error);
                         vm.errors = true;
                         vm.errorString = helpers.apiVueResourceError(error);
-                        //vm.$parent.loading.splice('processing contact',1);
                     });
             } else {
                 let contact = JSON.parse(JSON.stringify(vm.contact));
@@ -150,14 +145,12 @@ export default {
                 vm.$http.post(api_endpoints.organisation_contacts,JSON.stringify(contact),{
                         emulateJSON:true,
                     }).then((response)=>{
-                        //vm.$parent.loading.splice('processing contact',1);
                         vm.close();
                         vm.$parent.addedContact();
                     },(error)=>{
                         console.log(error);
                         vm.errors = true;
                         vm.errorString = helpers.apiVueResourceError(error);
-                        //vm.$parent.loading.splice('processing contact',1);
                     });
                 
             }
@@ -211,7 +204,6 @@ export default {
        let vm =this;
        vm.form = document.forms.addContactForm;
        vm.addFormValidations();
-       //console.log(validate);
    }
 }
 </script>

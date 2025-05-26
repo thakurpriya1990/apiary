@@ -5,7 +5,7 @@ from django.utils.encoding import smart_bytes
 from django.conf import settings
 
 from disturbance.components.emails.emails import TemplateEmailBase
-from disturbance.components.das_payments.invoice_pdf import create_invoice_pdf_bytes
+from disturbance.components.ap_payments.invoice_pdf import create_invoice_pdf_bytes
 from disturbance.context_processors import apiary_url
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 

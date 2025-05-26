@@ -1,11 +1,10 @@
 import logging
 from datetime import datetime
 
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from django.urls import reverse
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 from django.conf import settings
@@ -17,7 +16,6 @@ from disturbance.components.main.decorators import timeit
 from disturbance.components.main.serializers import WaCoastSerializer, WaCoastOptimisedSerializer
 from disturbance.components.main.utils import get_feature_in_wa_coastline_smoothed, get_feature_in_wa_coastline_original
 from disturbance.helpers import is_internal, is_disturbance_admin, is_apiary_admin, is_das_apiary_admin
-from disturbance.forms import *
 from disturbance.components.proposals.models import Referral, Proposal, HelpPage
 from disturbance.components.compliances.models import Compliance
 from disturbance.components.proposals.mixins import ReferralOwnerMixin
@@ -84,7 +82,6 @@ class DisturbanceRoutingView(TemplateView):
             if is_internal(self.request):
                 return redirect('internal')
             return redirect('external')
-        kwargs['form'] = LoginForm
         return super(DisturbanceRoutingView, self).get(*args, **kwargs)
 
 class DisturbanceContactView(TemplateView):
@@ -93,21 +90,7 @@ class DisturbanceContactView(TemplateView):
 class DisturbanceFurtherInformationView(TemplateView):
     template_name = 'disturbance/further_info.html'
 
-class InternalProposalView(DetailView):
-    #template_name = 'disturbance/index.html'
-    model = Proposal
-    template_name = 'disturbance/dash/index.html'
-
-    def get(self, *args, **kwargs):
-        if self.request.user.is_authenticated:
-            if is_internal(self.request):
-                #return redirect('internal-proposal-detail')
-                return super(InternalProposalView, self).get(*args, **kwargs)
-            return redirect('external-proposal-detail')
-        kwargs['form'] = LoginForm
-        return super(DisturbanceRoutingDetailView, self).get(*args, **kwargs)
-
-
+#TODO replace and then remove
 @login_required(login_url='home')
 def first_time(request):
     context = {}
@@ -137,6 +120,7 @@ def first_time(request):
     return render(request, 'disturbance/dash/index.html', context)
 
 
+#TODO potentially remove
 class HelpView(LoginRequiredMixin, TemplateView):
     template_name = 'disturbance/help.html'
 
@@ -149,9 +133,6 @@ class HelpView(LoginRequiredMixin, TemplateView):
                 if is_internal(self.request):
                     qs = HelpPage.objects.filter(application_type__name__icontains=application_type, help_type=HelpPage.HELP_TEXT_INTERNAL).order_by('-version')
                     context['help'] = qs.first()
-#                else:
-#                    return TemplateResponse(self.request, 'disturbance/not-permitted.html', context)
-#                    context['permitted'] = False
             else:
                 qs = HelpPage.objects.filter(application_type__name__icontains=application_type, help_type=HelpPage.HELP_TEXT_EXTERNAL).order_by('-version')
                 context['help'] = qs.first()

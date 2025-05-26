@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, B
 from rest_framework.pagination import PageNumberPagination
 from django.urls import reverse
 
-from disturbance.components.das_payments import reports
+from disturbance.components.ap_payments import reports
 from disturbance.components.main.models import Region, District, Tenure, ApplicationType, ActivityMatrix, MapLayer
 from disturbance.components.main.serializers import RegionSerializer, DistrictSerializer, TenureSerializer, \
     ApplicationTypeSerializer, ActivityMatrixSerializer, BookingSettlementReportSerializer, OracleSerializer, \

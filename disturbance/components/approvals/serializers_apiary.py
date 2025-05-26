@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from disturbance.components.approvals.models import ApiarySiteOnApproval
-from disturbance.components.das_payments.utils import round_amount_according_to_env
+from disturbance.components.ap_payments.utils import round_amount_according_to_env
 from disturbance.components.main.utils import get_category, get_tenure, get_region_district, get_status_for_export
 from disturbance.components.organisations.models import Organisation
 

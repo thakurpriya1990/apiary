@@ -8,12 +8,6 @@ from disturbance.components.main.models import ApiaryGlobalSettings
 
 
 def create_apiary_licence_pdf_contents(approval, proposal, copied_to_permit, approver, site_transfer_preview=None):
-    # print ("Letter File")
-    # confirmation_doc = None
-    # if booking.annual_booking_period_group.letter:
-    #     print (booking.annual_booking_period_group.letter.path)
-    #     confirmation_doc = booking.annual_booking_period_group.letter.path
-    # confirmation_doc = settings.BASE_DIR+"/mooring/templates/doc/AnnualAdmissionStickerLetter.docx"
 
     licence_template = ApiaryGlobalSettings.objects.get(key=ApiaryGlobalSettings.KEY_APIARY_LICENCE_TEMPLATE_FILE)
 
@@ -21,26 +15,11 @@ def create_apiary_licence_pdf_contents(approval, proposal, copied_to_permit, app
         path_to_template = licence_template._file.path
     else:
         # Use default template file
-        #path_to_template = os.path.join(settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'apiary_authority_template.docx')
         path_to_template = os.path.join(settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'apiary_authority_permit_template_v3.docx')
 
     doc = DocxTemplate(path_to_template)
-    # address = ''
-    # if len(booking.details.get('postal_address_line_2', '')) > 0:
-    #     address = '{}, {}'.format(booking.details.get('postal_address_line_1', ''),
-    #                               booking.details.get('postal_address_line_2', ''))
-    # else:
-    #     address = '{}'.format(booking.details.get('postal_address_line_1', ''))
-    # bookingdate = booking.created + timedelta(hours=8)
-    # todaydate = datetime.utcnow() + timedelta(hours=8)
-    # stickercreated = ''
-    # if booking.sticker_created:
-    #     sc = booking.sticker_created + timedelta(hours=8)
-    #     stickercreated = sc.strftime('%d %B %Y')
     from disturbance.components.approvals.serializers import ApprovalSerializerForLicenceDoc
 
-    #dbca_logo = InlineImage(doc, image_descriptor='img/apiary_permit_dbca_logo.jpg', width=Mm(20), height=Mm(10))
-    #path_to_image = os.path.join(settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'img', 'apiary_permit_dbca_logo.jpg')
     path_to_image = os.path.join(settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'img', 'dbca-logo.jpg')
     serializer_context = {
             'approver': approver,

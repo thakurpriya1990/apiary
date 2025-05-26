@@ -3388,10 +3388,10 @@ class ProposalApiary(RevisionedMixin):
             else:
                 # could this be refactored into a separate method?
                 from disturbance.management.commands.send_annual_rental_fee_invoice import get_annual_rental_fee_period
-                from disturbance.components.das_payments.models import AnnualRentalFeePeriod
-                from disturbance.components.das_payments.utils import generate_line_items_for_annual_rental_fee
+                from disturbance.components.ap_payments.models import AnnualRentalFeePeriod
+                from disturbance.components.ap_payments.utils import generate_line_items_for_annual_rental_fee
                 from disturbance.management.commands.send_annual_rental_fee_invoice import make_serializable
-                from disturbance.components.das_payments.models import AnnualRentalFee, AnnualRentalFeeApiarySite
+                from disturbance.components.ap_payments.models import AnnualRentalFee, AnnualRentalFeeApiarySite
                 from disturbance.components.approvals.email import send_annual_rental_fee_awaiting_payment_confirmation
                 self._update_apiary_sites(approval, sites_received, request)
 

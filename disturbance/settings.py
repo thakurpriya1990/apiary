@@ -34,7 +34,7 @@ INSTALLED_APPS += [
     'disturbance.components.proposals',
     'disturbance.components.approvals',
     'disturbance.components.compliances',
-    'disturbance.components.das_payments',
+    'disturbance.components.ap_payments',
     'disturbance.components.history',
     'taggit',
     'rest_framework',
@@ -87,15 +87,11 @@ MIDDLEWARE = (
 )
 
 MIDDLEWARE_CLASSES += [
-    'disturbance.middleware.BookingTimerMiddleware',
     'disturbance.middleware.FirstTimeNagScreenMiddleware',
     'disturbance.middleware.RevisionOverrideMiddleware',
-    'disturbance.middleware.DomainDetectMiddleware',
     'disturbance.middleware.CacheControlMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    # 'corsheaders.middleware.CorsMiddleware',
 ]
-# CORS_ORIGIN_ALLOW_ALL = True
 
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance', 'templates'))
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance','components','organisations', 'templates'))
@@ -205,10 +201,7 @@ SITE_STATUS_DISCARDED = 'discarded'
 BASE_EMAIL_TEXT = ''
 BASE_EMAIL_HTML = ''
 
-# This is either 'das'/'apiary'
-# default: 'das'
-# This value is determined at the middleware, DomainDetectMiddleware by where the request comes from
-HTTP_HOST_FOR_TEST = 'localhost:8071'
+HTTP_HOST_FOR_TEST = 'localhost:9061'
 
 # Additional logging for commercialoperator
 LOGGING['loggers']['disturbance'] = {
