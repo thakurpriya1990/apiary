@@ -394,7 +394,7 @@ def checkout(
         'system': settings.PAYMENT_SYSTEM_ID,
         'fallback_url': request.build_absolute_uri('/'),
         'return_url': request.build_absolute_uri(reverse(return_url_ns)),         
-        'return_preload_url': settings.DISTURBANCE_EXTERNAL_URL + reverse(return_preload_url_ns,kwargs={"lodgement_number": proposal.lodgement_number}),
+        'return_preload_url': request.build_absolute_uri(reverse(return_preload_url_ns)),
         'force_redirect': True,
         'proxy': proxy,
         'invoice_text': invoice_text,
@@ -404,7 +404,11 @@ def checkout(
 
     create_checkout_session(request, checkout_params)
 
-    response = HttpResponse(reverse('ledgergw-payment-details'))
+    response = HttpResponse(
+        "<script> window.location='" + reverse('ledgergw-payment-details') + "';</script> <a href='" + reverse(
+            'ledgergw-payment-details'
+            ) + "'> Redirecting please wait: " + reverse('ledgergw-payment-details') + "</a>"
+        )
 
     return response
 

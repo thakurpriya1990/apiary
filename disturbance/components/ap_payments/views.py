@@ -463,13 +463,7 @@ class ApplicationFeeSuccessView(TemplateView):
                 recipient = proposal.submitter.email
             submitter = proposal.submitter
 
-            if self.request.user.is_authenticated:
-                basket = Basket.objects.filter(status='Submitted', owner=request.user).order_by('-id')[:1]
-            else:
-                basket = Basket.objects.filter(status='Submitted', owner=booking.proposal.submitter).order_by('-id')[:1]
-
-            order = Order.objects.get(basket=basket[0])
-            invoice = Invoice.objects.get(order_number=order.number)
+            invoice = Invoice.objects.filter(reference=proposal.lodgement_number).order_by('id').last()
             invoice_ref = invoice.reference
             fee_inv, created = ApplicationFeeInvoice.objects.get_or_create(application_fee=application_fee, invoice_reference=invoice_ref)
 
