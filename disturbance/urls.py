@@ -130,6 +130,7 @@ urlpatterns = [
     url(r'^application_fee/(?P<proposal_pk>\d+)/$', payment_views.ApplicationFeeView.as_view(), name='application_fee'),
     url(r'^annual_rental_fee/(?P<annual_rental_fee_id>\d+)/$', payment_views.AnnualRentalFeeView.as_view(), name='annual_rental_fee'),
     url(r'^success/fee/$', payment_views.ApplicationFeeSuccessView.as_view(), name='fee_success'),
+    url(r'^success_preload/fee/(?P<lodgement_number>.+)/', payment_views.ApplicationFeeSuccessViewPreload.as_view(), name='fee_success_preload'),
     url(r'^success/site_transfer_fee/$', payment_views.SiteTransferApplicationFeeSuccessView.as_view(), name='site_transfer_fee_success'),
     url(r'^success/annual_rental_fee/$', payment_views.AnnualRentalFeeSuccessView.as_view(), name='annual_rental_fee_success'),
     url(r'^success/invoice_payment/$', payment_views.InvoicePaymentSuccessView.as_view(), name='invoice_payment_success'),

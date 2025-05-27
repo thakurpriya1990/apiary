@@ -47,6 +47,7 @@ from ledger_api_client.ledger_models import Basket
 from ledger_api_client.order import Order
 from disturbance.helpers import is_internal, is_in_organisation_contacts
 from disturbance.context_processors import apiary_url
+from rest_framework.views import APIView
 
 import logging
 logger = logging.getLogger('apiary')
@@ -176,7 +177,7 @@ class ApplicationFeeView(TemplateView):
                         proposal,
                         lines,
                         return_url_ns='fee_success',
-                        return_preload_url_ns='fee_success',
+                        return_preload_url_ns='fee_success_preload',
                         invoice_text='Application Fee'
                     )
 
@@ -435,32 +436,49 @@ class AnnualRentalFeeSuccessView(TemplateView):
         return can_access_invoice, to_email_addresses
 
 
+class ApplicationFeeSuccessViewPreload(APIView):
+
+    def get(self, request, lodgement_number, format=None):
+        print("ApplicationFeeSuccessViewPreload")
+        invoice_ref = request.GET.get('invoice')
+
+        try:
+            proposal = Proposal.objects.get(lodgement_number=lodgement_number)
+        except Exception as e:
+            print(e)
+            return redirect('home')
+
+        application_fee = get_session_application_invoice(request.session)        
+        if not proposal == application_fee.proposal:
+            print("proposal does not match session application fee")
+            return redirect('home')
+
+
 class ApplicationFeeSuccessView(TemplateView):
     template_name = 'disturbance/payment/success_fee.html'
 
     def get(self, request, *args, **kwargs):
+        print("ApplicationFeeSuccessView")
         proposal = None
         submitter = None
         invoice = None
+        recipient = None
         try:
             # Retrieve db processes stored when calculating the fee, and delete the session
             db_operations = request.session['db_processes']
             del request.session['db_processes']
 
+            #get application invoice from session
             application_fee = get_session_application_invoice(request.session)
             proposal = application_fee.proposal
-            try:
-                if proposal.applicant:
-                    recipient = proposal.applicant.email
-                    #submitter = proposal.applicant
-                elif proposal.proxy_applicant:
-                    recipient = proposal.proxy_applicant.email
-                    #submitter = proposal.proxy_applicant
-                else:
-                    recipient = proposal.submitter.email
-                    #submitter = proposal.submitter
-            except:
+
+            if proposal.applicant:
+                recipient = proposal.applicant.email
+            elif proposal.proxy_applicant:
+                recipient = proposal.proxy_applicant.email
+            elif proposal.submitter:
                 recipient = proposal.submitter.email
+
             submitter = proposal.submitter
 
             invoice = Invoice.objects.filter(reference=proposal.lodgement_number).order_by('id').last()
@@ -468,27 +486,11 @@ class ApplicationFeeSuccessView(TemplateView):
             fee_inv, created = ApplicationFeeInvoice.objects.get_or_create(application_fee=application_fee, invoice_reference=invoice_ref)
 
             if application_fee.payment_type == ApplicationFee.PAYMENT_TYPE_TEMPORARY:
-                try:
-                    inv = Invoice.objects.get(reference=invoice_ref)
-                    order = Order.objects.get(number=inv.order_number)
-                    #order.user = submitter
-                    order.user = request.user
-                    order.save()
-                except Invoice.DoesNotExist:
-                    logger.error('{} tried paying an application fee with an incorrect invoice'.format('User {} with id {}'.format(proposal.submitter.get_full_name(), proposal.submitter.id) if proposal.submitter else 'An anonymous user'))
-                    return redirect('external-proposal-detail', args=(proposal.id,))
-                if inv.system not in ['0517']:
-                    logger.error('{} tried paying an application fee with an invoice from another system with reference number {}'.format('User {} with id {}'.format(proposal.submitter.get_full_name(), proposal.submitter.id) if proposal.submitter else 'An anonymous user',inv.reference))
-                    return redirect('external-proposal-detail', args=(proposal.id,))
-
                 if fee_inv:
-                    #application_fee.payment_type = 1  # internet booking
                     application_fee.payment_type = ApplicationFee.PAYMENT_TYPE_INTERNET
                     application_fee.expiry_time = None
-                    update_payments(invoice_ref)
 
                     if proposal and (invoice.payment_status == 'paid' or invoice.payment_status == 'over_paid'):
-                        # proposal.fee_invoice_reference = invoice_ref
                         if isinstance(proposal.fee_invoice_references, list):
                             proposal.fee_invoice_references.append(invoice_ref)
                         else:
@@ -505,7 +507,7 @@ class ApplicationFeeSuccessView(TemplateView):
                     delete_session_application_invoice(request.session)
 
                     send_application_fee_invoice_apiary_email_notification(request, proposal, invoice, recipients=[recipient])
-                    #send_application_fee_confirmation_apiary_email_notification(request, application_fee, invoice, recipients=[recipient])
+
                     context = {
                         'proposal': proposal,
                         'submitter': submitter,
@@ -514,21 +516,16 @@ class ApplicationFeeSuccessView(TemplateView):
                     return render(request, self.template_name, context)
 
         except Exception as e:
+            print(e)
             if ('das_last_app_invoice' in request.session) and ApplicationFee.objects.filter(id=request.session['das_last_app_invoice']).exists():
                 application_fee = ApplicationFee.objects.get(id=request.session['das_last_app_invoice'])
                 proposal = application_fee.proposal
 
-                try:
-                    if proposal.applicant:
-                        recipient = proposal.applicant.email
-                        #submitter = proposal.applicant
-                    elif proposal.proxy_applicant:
-                        recipient = proposal.proxy_applicant.email
-                        #submitter = proposal.proxy_applicant
-                    else:
-                        recipient = proposal.submitter.email
-                        #submitter = proposal.submitter
-                except:
+                if proposal.applicant:
+                    recipient = proposal.applicant.email
+                elif proposal.proxy_applicant:
+                    recipient = proposal.proxy_applicant.email
+                elif proposal.submitter:
                     recipient = proposal.submitter.email
                 submitter = proposal.submitter
 

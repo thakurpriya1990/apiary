@@ -45,6 +45,7 @@ INSTALLED_APPS += [
     # 'corsheaders',
     'smart_selects',
     'ledger_api_client',
+    'webtemplate_dbca',
 ]
 
 ADD_REVERSION_ADMIN=True
@@ -247,3 +248,20 @@ print(json.dumps(LOGGING, indent=4))
 
 KMI_SERVER_URL = env('KMI_SERVER_URL', 'https://kmi.dbca.wa.gov.au')
 DEV_APP_BUILD_URL = env('DEV_APP_BUILD_URL')  # URL of the Dev app.js served by webpack & express
+
+TEMPLATE_TITLE = "Apiary System"
+TEMPLATE_HEADER_LOGO = "/static/disturbance/img/dbca-logo.png"
+TEMPLATE_GROUP = "parkswildlifev2"
+
+LEDGER_TEMPLATE = "bootstrap5"
+
+# Use git commit hash for purging cache in browser for deployment changes
+GIT_COMMIT_HASH = os.popen(
+    f"cd {BASE_DIR}; git log -1 --format=%H"
+).read()  
+GIT_COMMIT_DATE = os.popen(
+    f"cd {BASE_DIR}; git log -1 --format=%cd"
+).read()  
+if len(GIT_COMMIT_HASH) == 0:
+    GIT_COMMIT_HASH = os.popen("cat /app/git_hash").read()
+APPLICATION_VERSION = env("APPLICATION_VERSION", "1.0.0") + "-" + GIT_COMMIT_HASH[:7]
