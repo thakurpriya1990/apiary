@@ -394,7 +394,7 @@ def checkout(
         'system': settings.PAYMENT_SYSTEM_ID,
         'fallback_url': request.build_absolute_uri('/'),
         'return_url': request.build_absolute_uri(reverse(return_url_ns)),         
-        'return_preload_url': request.build_absolute_uri(reverse(return_preload_url_ns,kwargs={"lodgement_number": proposal.lodgement_number})),
+        'return_preload_url': settings.APIARY_EXTERNAL_URL + reverse(return_preload_url_ns,kwargs={"lodgement_number": proposal.lodgement_number}),
         'force_redirect': True,
         'proxy': proxy,
         'invoice_text': invoice_text,
@@ -550,22 +550,14 @@ def generate_line_items_for_annual_rental_fee(approval, today_now, period, apiar
     return line_items, apiary_sites_charged, invoice_period
 
 
-#TODO change for segregation
 def checkout_existing_invoice(request, invoice, return_url_ns='public_booking_success'):
-    #basket_params = {
-    #    # 'products': invoice.order.basket.lines.all(),
-    #    'products': lines,
-    #    'vouchers': vouchers,
-    #    'system': settings.PAYMENT_SYSTEM_ID,
-    #    'custom_basket': True,
-    #}
 
     basket, basket_hash = use_existing_basket_from_invoice(invoice.reference)
     checkout_params = {
         'system': settings.PAYMENT_SYSTEM_ID,
         'fallback_url': request.build_absolute_uri('/'),
         'return_url': request.build_absolute_uri(reverse(return_url_ns)),
-        'return_preload_url': request.build_absolute_uri(reverse(return_url_ns)),
+        'return_preload_url': settings.APIARY_EXTERNAL_URL + reverse(return_url_ns),
         'force_redirect': True,
         'invoice_text': invoice.text,
     }

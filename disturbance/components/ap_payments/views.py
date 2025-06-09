@@ -39,8 +39,9 @@ from disturbance.components.ap_payments.utils import (
 )
 
 from disturbance.components.ap_payments.models import ApplicationFee, ApplicationFeeInvoice, AnnualRentalFee
-from ledger_api_client.utils import update_payments
+from ledger_api_client.utils import update_payments, get_invoice_properties
 from decimal import Decimal
+import requests
 
 from ledger_api_client.ledger_models import Invoice
 from ledger_api_client.ledger_models import Basket
@@ -48,6 +49,10 @@ from ledger_api_client.order import Order
 from disturbance.helpers import is_internal, is_in_organisation_contacts
 from disturbance.context_processors import apiary_url
 from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+from django.conf import settings
 
 import logging
 logger = logging.getLogger('apiary')
@@ -441,85 +446,73 @@ class ApplicationFeeSuccessViewPreload(APIView):
     def get(self, request, lodgement_number, format=None):
         print("ApplicationFeeSuccessViewPreload")
         invoice_ref = request.GET.get('invoice')
+        print("\n\n\nINVOICE REF",invoice_ref)
 
         try:
             proposal = Proposal.objects.get(lodgement_number=lodgement_number)
+            print("proposal:",proposal)
         except Exception as e:
             print(e)
             return redirect('home')
 
-        application_fee = get_session_application_invoice(request.session)        
-        if not proposal == application_fee.proposal:
-            print("proposal does not match session application fee")
+        application_fee = ApplicationFee.objects.filter(proposal=proposal).order_by('id').last()
+        print("af application fee",application_fee)
+        if not application_fee:
+            print("application fee for proposal does not exist")
             return redirect('home')
+        
+        invoice = Invoice.objects.filter(reference=invoice_ref).order_by('id').last()
+        print("invoice",invoice)
+        fee_inv, created = ApplicationFeeInvoice.objects.get_or_create(application_fee=application_fee, invoice_reference=invoice_ref)
+        print(created)
 
+        return Response(status=status.HTTP_200_OK)
 
 class ApplicationFeeSuccessView(TemplateView):
     template_name = 'disturbance/payment/success_fee.html'
 
     def get(self, request, *args, **kwargs):
         print("ApplicationFeeSuccessView")
-        proposal = None
+        fee_inv = None
         submitter = None
         invoice = None
-        recipient = None
-        try:
-            # Retrieve db processes stored when calculating the fee, and delete the session
-            db_operations = request.session['db_processes']
-            del request.session['db_processes']
+        invoice_ref = None
+        
+        #get application invoice from session
+        application_fee = get_session_application_invoice(request.session)
+        print(application_fee)
+        proposal = application_fee.proposal
+        print(proposal)
+        submitter = proposal.submitter
 
-            #get application invoice from session
-            application_fee = get_session_application_invoice(request.session)
-            proposal = application_fee.proposal
+        # Retrieve db processes stored when calculating the fee, and delete the session
+        db_operations = request.session['db_processes']
+        print(db_operations)
+        del request.session['db_processes']
 
-            if proposal.applicant:
-                recipient = proposal.applicant.email
-            elif proposal.proxy_applicant:
-                recipient = proposal.proxy_applicant.email
-            elif proposal.submitter:
-                recipient = proposal.submitter.email
+        fee_inv = ApplicationFeeInvoice.objects.filter(application_fee=application_fee).order_by('id').last()
+        print("fee_inv",fee_inv)
+        if fee_inv and fee_inv.invoice_reference:
+            invoice_ref = fee_inv.invoice_reference
+            invoice = Invoice.objects.filter(reference=invoice_ref).order_by('id').last()
 
-            submitter = proposal.submitter
+        if invoice and application_fee.payment_type == ApplicationFee.PAYMENT_TYPE_TEMPORARY:
+            if fee_inv:
+                application_fee.payment_type = ApplicationFee.PAYMENT_TYPE_INTERNET
+                application_fee.expiry_time = None
 
-            invoice = Invoice.objects.filter(reference=proposal.lodgement_number).order_by('id').last()
-            invoice_ref = invoice.reference
-            fee_inv, created = ApplicationFeeInvoice.objects.get_or_create(application_fee=application_fee, invoice_reference=invoice_ref)
-
-            if application_fee.payment_type == ApplicationFee.PAYMENT_TYPE_TEMPORARY:
-                if fee_inv:
-                    application_fee.payment_type = ApplicationFee.PAYMENT_TYPE_INTERNET
-                    application_fee.expiry_time = None
-
-                    if proposal and (invoice.payment_status == 'paid' or invoice.payment_status == 'over_paid'):
-                        if isinstance(proposal.fee_invoice_references, list):
-                            proposal.fee_invoice_references.append(invoice_ref)
-                        else:
-                            proposal.fee_invoice_references = [invoice_ref,]
-                        proposal.save()
-                        proposal_submit_apiary(proposal, request)
-                        self.adjust_db_operations(db_operations)
+                invoice_properties = get_invoice_properties(invoice.id)
+                if proposal and (invoice_properties['data']['invoice']['payment_amount'] == 'paid' or invoice_properties['data']['invoice']['payment_amount']):
+                    if isinstance(proposal.fee_invoice_references, list):
+                        proposal.fee_invoice_references.append(invoice_ref)
                     else:
-                        logger.error('Invoice payment status is {}'.format(invoice.payment_status))
-                        raise
-
-                    application_fee.save()
-                    request.session['das_last_app_invoice'] = application_fee.id
-                    delete_session_application_invoice(request.session)
-
-                    send_application_fee_invoice_apiary_email_notification(request, proposal, invoice, recipients=[recipient])
-
-                    context = {
-                        'proposal': proposal,
-                        'submitter': submitter,
-                        'fee_invoice': invoice
-                    }
-                    return render(request, self.template_name, context)
-
-        except Exception as e:
-            print(e)
-            if ('das_last_app_invoice' in request.session) and ApplicationFee.objects.filter(id=request.session['das_last_app_invoice']).exists():
-                application_fee = ApplicationFee.objects.get(id=request.session['das_last_app_invoice'])
-                proposal = application_fee.proposal
+                        proposal.fee_invoice_references = [invoice_ref,]
+                    proposal.save()
+                    proposal_submit_apiary(proposal, request)
+                    self.adjust_db_operations(db_operations)
+                else:
+                    logger.error('Invoice payment status is {}'.format(invoice.payment_status))
+                    raise
 
                 if proposal.applicant:
                     recipient = proposal.applicant.email
@@ -527,19 +520,19 @@ class ApplicationFeeSuccessView(TemplateView):
                     recipient = proposal.proxy_applicant.email
                 elif proposal.submitter:
                     recipient = proposal.submitter.email
-                submitter = proposal.submitter
 
-                if ApplicationFeeInvoice.objects.filter(application_fee=application_fee).count() > 0:
-                    afi = ApplicationFeeInvoice.objects.filter(application_fee=application_fee)
-                    fee_invoice = afi[0]
-            else:
-                return redirect('home')
+                application_fee.save()
+                request.session['das_last_app_invoice'] = application_fee.id
+                delete_session_application_invoice(request.session)
+
+                send_application_fee_invoice_apiary_email_notification(request, proposal, invoice, recipients=[recipient])
 
         context = {
             'proposal': proposal,
             'submitter': submitter,
-            'fee_invoice': fee_invoice
+            'fee_invoice': fee_inv
         }
+        print("SUCCESS CONTEXT",context)
         return render(request, self.template_name, context)
 
     def adjust_db_operations(self, db_operations):
@@ -594,6 +587,7 @@ class InvoicePDFView(View):
     def get(self, request, *args, **kwargs):
         invoice = get_object_or_404(Invoice, reference=self.kwargs['reference'])
         url_var = apiary_url(request)
+        api_key = settings.LEDGER_API_KEY     
 
         try:
             # Assume the invoice has been issued for the application(proposal)
@@ -601,22 +595,28 @@ class InvoicePDFView(View):
             proposal = Proposal.objects.get(fee_invoice_references__contains=[invoice.reference])
 
             if proposal.relevant_applicant_type == 'organisation':
-                organisation = proposal.applicant.organisation.organisation_set.all()[0]
+                organisation = proposal.applicant
                 if self.check_owner(organisation):
                     response = HttpResponse(content_type='application/pdf')
-                    response.write(create_invoice_pdf_bytes('invoice.pdf', invoice, url_var, proposal))
+                    url = settings.LEDGER_API_URL+'/ledgergw/invoice-pdf/'+api_key+'/' + invoice.reference
+                    invoice_pdf = requests.get(url=url)
+                    response.write(invoice_pdf)
                     return response
                 raise PermissionDenied
             else:
                 response = HttpResponse(content_type='application/pdf')
-                response.write(create_invoice_pdf_bytes('invoice.pdf', invoice, url_var, proposal))
+                url = settings.LEDGER_API_URL+'/ledgergw/invoice-pdf/'+api_key+'/' + invoice.reference
+                invoice_pdf = requests.get(url=url)
+                response.write(invoice_pdf)
                 return response
         except Proposal.DoesNotExist:
             # The invoice might be issued for the annual site fee
             annual_rental_fee = AnnualRentalFee.objects.get(invoice_reference=invoice.reference)
             approval = annual_rental_fee.approval
             response = HttpResponse(content_type='application/pdf')
-            response.write(create_invoice_pdf_bytes('invoice.pdf', invoice, url_var, None))
+            url = settings.LEDGER_API_URL+'/ledgergw/invoice-pdf/'+api_key+'/' + invoice.reference
+            invoice_pdf = requests.get(url=url)
+            response.write(invoice_pdf)
             return response
         except:
             raise

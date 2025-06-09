@@ -265,3 +265,5 @@ GIT_COMMIT_DATE = os.popen(
 if len(GIT_COMMIT_HASH) == 0:
     GIT_COMMIT_HASH = os.popen("cat /app/git_hash").read()
 APPLICATION_VERSION = env("APPLICATION_VERSION", "1.0.0") + "-" + GIT_COMMIT_HASH[:7]
+
+APIARY_EXTERNAL_URL = env('APIARY_EXTERNAL_URL', 'External url not configured')

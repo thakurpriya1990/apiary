@@ -3,7 +3,7 @@ import logging
 from django.core.mail import EmailMultiAlternatives, EmailMessage
 from django.utils.encoding import smart_bytes
 from django.conf import settings
-
+import requests
 from disturbance.components.emails.emails import TemplateEmailBase
 from disturbance.components.ap_payments.invoice_pdf import create_invoice_pdf_bytes
 from disturbance.context_processors import apiary_url
@@ -36,8 +36,11 @@ def send_application_fee_invoice_apiary_email_notification(request, proposal, in
     }
 
     filename = 'invoice#{}.pdf'.format(invoice.reference)
-    doc = create_invoice_pdf_bytes(filename, invoice, url_var, proposal)
-    attachment = (filename, doc, 'application/pdf')
+
+    api_key = settings.LEDGER_API_KEY
+    url = settings.LEDGER_API_URL+'/ledgergw/invoice-pdf/'+api_key+'/' + invoice.reference
+    invoice_pdf = requests.get(url=url)
+    attachment = (filename, invoice_pdf, 'application/pdf')
 
     msg = email.send(recipients, attachments=[attachment], context=context)
     if is_test:
@@ -58,6 +61,7 @@ def _log_proposal_email(email_message, proposal, sender=None):
         fromm = smart_bytes(sender) if sender else smart_bytes(email_message.from_email)
         # the to email is normally a list
         if isinstance(email_message.to, list):
+            print(email_message.to)
             to = ','.join(email_message.to)
         else:
             to = smart_bytes(email_message.to)

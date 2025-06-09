@@ -90,6 +90,18 @@ class DisturbanceContactView(TemplateView):
 class DisturbanceFurtherInformationView(TemplateView):
     template_name = 'disturbance/further_info.html'
 
+class InternalProposalView(DetailView):
+    #template_name = 'disturbance/index.html'
+    model = Proposal
+    template_name = 'disturbance/dash/index.html'
+
+    def get(self, *args, **kwargs):
+        if self.request.user.is_authenticated():
+            if is_internal(self.request):
+                #return redirect('internal-proposal-detail')
+                return super(InternalProposalView, self).get(*args, **kwargs)
+            return redirect('external-proposal-detail')
+
 #TODO replace and then remove
 @login_required(login_url='home')
 def first_time(request):

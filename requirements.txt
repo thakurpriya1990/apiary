@@ -15,7 +15,6 @@ django-countries~=7.6.1
 django-cron~=0.6.0
 django-dynamic-fixture~=4.0.1
 openpyxl~=3.1.5
-#datapackage==0.8.1
 py4j~=0.10.9.9
 djangorestframework~=3.14.0
 djangorestframework-gis~=1.1
@@ -38,7 +37,7 @@ python-docx~=1.1.2
 docxtpl~=0.20.0
 phonenumbers~=9.0.5
 django-treebeard~=4.7.1
-git+https://github.com/digi604/django-smart-selects.git@js-unlinting-fixes
+django-smart-selects~=1.7.2
 django-multiselectfield~=0.1.13
 psycopg2~=2.9.10
 deepdiff~=8.5.0
