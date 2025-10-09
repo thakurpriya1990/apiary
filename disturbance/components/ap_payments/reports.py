@@ -2,10 +2,10 @@ import csv
 import pytz
 from six.moves import StringIO
 from django.utils import timezone
-from ledger.payments.models import CashTransaction, BpointTransaction, BpayTransaction,Invoice
+#from ledger.payments.models import CashTransaction, BpointTransaction, BpayTransaction,Invoice
 
 # TODO: AnnualRentalFee, ApplicationFeeInvoice in the Apiary case
-from disturbance.components.das_payments.models import ApplicationFeeInvoice, AnnualRentalFee
+from disturbance.components.ap_payments.models import ApplicationFeeInvoice, AnnualRentalFee
 
 
 def booking_bpoint_settlement_report(_date):

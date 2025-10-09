@@ -1,5 +1,5 @@
 from django.conf import settings
-from ledger.accounts.models import EmailUser,OrganisationAddress
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Address as OrganisationAddress
 from disturbance.components.organisations.models import (   
                                 Organisation,
                                 OrganisationContact,
@@ -8,7 +8,6 @@ from disturbance.components.organisations.models import (
                                 OrganisationAction,
                                 OrganisationRequestLogEntry,
                                 OrganisationLogEntry,
-                                ledger_organisation,
                             )
 from disturbance.components.organisations.utils import (
                                 can_manage_org,
@@ -23,26 +22,26 @@ from rest_framework import serializers
 import rest_framework_gis.serializers as gis_serializers
 
 
-class LedgerOrganisationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ledger_organisation
-        fields = '__all__'
+#class LedgerOrganisationSerializer(serializers.ModelSerializer):
+#    class Meta:
+#        model = ledger_organisation
+#        fields = '__all__'
 
-class LedgerOrganisationFilterSerializer(serializers.ModelSerializer):
-    #address = serializers.SerializerMethodField(read_only=True)
-    email = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = ledger_organisation
-        fields = (
-            'id',
-            'name',
-            'email',
-            #'address',
-        )
-
-    def get_email(self, obj):
-        return ''
+#class LedgerOrganisationFilterSerializer(serializers.ModelSerializer):
+#    #address = serializers.SerializerMethodField(read_only=True)
+#    email = serializers.SerializerMethodField(read_only=True)
+#
+#    class Meta:
+#        model = ledger_organisation
+#        fields = (
+#            'id',
+#            'name',
+#            'email',
+#            #'address',
+#        )
+#
+#    def get_email(self, obj):
+#        return ''
 
 class OrganisationCheckSerializer(serializers.Serializer):
     abn = serializers.CharField()
@@ -94,9 +93,10 @@ class OrganisationSerializer(serializers.ModelSerializer):
                     'abn',
                     'address',
                     'email',
-                    'phone_number',
+                    'organisation_id',
                     'pins',
                     'delegates',
+                    'organisation',
                 )
 
     def get_pins(self,obj):
@@ -173,10 +173,10 @@ class MyOrganisationsSerializer(serializers.ModelSerializer):
         # Check if the request user is among the first five delegates in the organisation
         return can_admin_org(obj, user)
 
-class DetailsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ledger_organisation
-        fields = ('id','name', 'email')
+#class DetailsSerializer(serializers.ModelSerializer):
+#    class Meta:
+#        model = ledger_organisation
+#        fields = ('id','name', 'email')
 
 class OrganisationContactSerializer(serializers.ModelSerializer):
     user_status= serializers.SerializerMethodField()

@@ -262,7 +262,6 @@ export default {
             updatingDetails: false,
             updatingAddress: false,
             updatingContact: false,
-            empty_list: '/api/empty_list',
             logsTable: null,
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             activate_tables: false,

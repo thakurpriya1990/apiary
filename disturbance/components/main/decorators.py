@@ -10,6 +10,7 @@ from rest_framework import serializers
 # from rest_framework.request import Request
 # from rest_framework.request import Request
 from rest_framework.request import Request
+from functools import wraps
 import logging
 
 #logger = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ logger = logging.getLogger()
 
 
 def basic_exception_handler(func):
+    @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -53,6 +55,7 @@ def update_settings_handler(func):
 
 
 def timeit(method):
+    @wraps(method)
     def timed(*args, **kw):
         ts = time.time()
         result = method(*args, **kw)

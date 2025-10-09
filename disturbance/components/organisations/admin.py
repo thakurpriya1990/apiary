@@ -1,5 +1,5 @@
 from django.contrib import admin
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from disturbance.components.organisations import models
 from django.contrib.admin import actions
 # Register your models here.
@@ -11,7 +11,7 @@ from django.contrib.admin import actions
 
 @admin.register(models.Organisation)
 class OrganisationAdmin(admin.ModelAdmin):
-    list_display = ['organisation','admin_pin_one', 'admin_pin_two', 'user_pin_one', 'user_pin_two']
+    list_display = ['admin_pin_one', 'admin_pin_two', 'user_pin_one', 'user_pin_two']
 
 
 @admin.register(models.OrganisationRequest)

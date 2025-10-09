@@ -3,16 +3,15 @@ from wsgiref.util import FileWrapper
 
 from django.conf import settings
 from django.http.response import HttpResponse
-from ledger.payments.utils import oracle_parser
 from rest_framework import viewsets, serializers, status, generics, views
-from rest_framework.decorators import detail_route, list_route, renderer_classes, parser_classes
+from rest_framework.decorators import action, renderer_classes, parser_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, BasePermission
 from rest_framework.pagination import PageNumberPagination
 from django.urls import reverse
 
-from disturbance.components.das_payments import reports
+from disturbance.components.ap_payments import reports
 from disturbance.components.main.models import Region, District, Tenure, ApplicationType, ActivityMatrix, MapLayer
 from disturbance.components.main.serializers import RegionSerializer, DistrictSerializer, TenureSerializer, \
     ApplicationTypeSerializer, ActivityMatrixSerializer, BookingSettlementReportSerializer, OracleSerializer, \
@@ -20,7 +19,7 @@ from disturbance.components.main.serializers import RegionSerializer, DistrictSe
 from django.core.exceptions import ValidationError
 
 from disturbance.components.main.utils import handle_validation_error
-from disturbance.helpers import is_internal, is_customer
+from disturbance.helpers import is_internal
 from disturbance.settings import PAYMENT_SYSTEM_PREFIX
 
 
@@ -35,7 +34,7 @@ class RegionViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return Region.objects.all().order_by('id')
         return Region.objects.none()
 
@@ -47,7 +46,7 @@ class ActivityMatrixViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             # specific to Disturbance application, so only exposing one record (most recent)
             return [ActivityMatrix.objects.filter(name='Disturbance').order_by('-version').first()]
         return ActivityMatrix.objects.none()
@@ -69,11 +68,11 @@ class ApplicationTypeViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             return ApplicationType.objects.order_by('order').filter(visible=True)
         return ApplicationType.objects.none()
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def searchable_application_types(self, request, *args, **kwargs):
         queryset = ApplicationType.objects.order_by('order').filter(visible=True, searchable=True)
         serializer = self.get_serializer(queryset, many=True)
@@ -109,13 +108,6 @@ class BookingSettlementReportView(views.APIView):
             traceback.print_exc()
 
 
-def oracle_integration(date, override):
-    system = PAYMENT_SYSTEM_PREFIX
-    #oracle_codes = oracle_parser(date, system, 'Commercial Operator Licensing', override=override)
-    # oracle_codes = oracle_parser(date, system, 'WildlifeCompliance', override=override)
-    oracle_codes = oracle_parser(date, system, 'Apiary Licensing System', override=override)
-
-
 class OracleJob(views.APIView):
     renderer_classes = [JSONRenderer]
 
@@ -127,7 +119,7 @@ class OracleJob(views.APIView):
             }
             serializer = OracleSerializer(data=data)
             serializer.is_valid(raise_exception=True)
-            oracle_integration(serializer.validated_data['date'].strftime('%Y-%m-%d'),serializer.validated_data['override'])
+            #oracle_integration(serializer.validated_data['date'].strftime('%Y-%m-%d'),serializer.validated_data['override'])
             data = {'successful':True}
             return Response(data)
         except serializers.ValidationError:
@@ -149,7 +141,7 @@ class MapLayerViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return MapLayer.objects.filter(option_for_internal=True)
-        elif is_customer(self.request):
+        elif user.is_authenticated:
             return MapLayer.objects.filter(option_for_external=True)
         return MapLayer.objects.none()
 

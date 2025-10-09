@@ -5,7 +5,7 @@ from datetime import datetime
 
 from django.db.models import Q
 
-from ledger.settings_base import TIME_ZONE
+import disturbance.settings
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from disturbance.components.approvals.serializers_apiary import ApiarySiteOnApprovalGeometrySerializer
@@ -59,11 +59,10 @@ from disturbance.components.approvals.models import (
 )
 
 from rest_framework import serializers
-from ledger.accounts.models import Address
 from reversion.models import Version
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Address
 from copy import deepcopy
 
 from disturbance.settings import SITE_STATUS_DRAFT
@@ -119,10 +118,10 @@ class VersionSerializer(serializers.ModelSerializer):
                         payload.pop("site_guid", None)
                         wkb_geometry = record.field_dict.get('wkb_geometry')
                         if wkb_geometry:
-                            payload['coords'] = wkb_geometry.get_coords()
+                            payload['coords'] = {'lng': wkb_geometry.x, 'lat': wkb_geometry.y}
                         wkb_geometry_pending = record.field_dict.get('wkb_geometry_pending')
                         if wkb_geometry_pending:
-                            payload['pending_coords'] = wkb_geometry_pending.get_coords()
+                            payload['pending_coords'] = {'lng': wkb_geometry_pending.x, 'lat': wkb_geometry_pending.y}
                         apiary_sites.append({record.object._meta.model_name: payload})
                     else:
                         #print("record.object._meta.model_name")
@@ -336,8 +335,8 @@ class ApiarySiteOnProposalDraftGeometrySerializer(GeoFeatureModelSerializer):
         )
 
     def get_stable_coords(self, obj):
-        return obj.wkb_geometry_draft.get_coords()
-
+        return {'lng': obj.wkb_geometry_draft.x, 'lat': obj.wkb_geometry_draft.y}
+    
     def get_previous_site_holder_or_applicant(self, obj):
         try:
             relevant_applicant_name = obj.proposal_apiary.proposal.relevant_applicant_name
@@ -475,7 +474,7 @@ class ApiarySiteOnProposalVacantDraftMinimalGeometrySerializer(GeoFeatureModelSe
         return False
 
     def get_stable_coords(self, obj):
-        return obj.wkb_geometry_draft.get_coords()
+        return {'lng': obj.wkb_geometry_draft.x, 'lat': obj.wkb_geometry_draft.y}
 
     def get_previous_site_holder_or_applicant(self, obj):
         try:
@@ -592,7 +591,7 @@ class ApiarySiteOnProposalProcessedGeometrySerializer(GeoFeatureModelSerializer)
         )
 
     def get_stable_coords(self, obj):
-        return obj.wkb_geometry_processed.get_coords()
+        {'lng': obj.wkb_geometry_processed.x, 'lat': obj.wkb_geometry_processed.y}
 
     def get_status(self, apiary_site_on_proposal):
         # if apiary_site_on_proposal.apiary_site.is_vacant:
@@ -738,11 +737,11 @@ class ApiarySiteOnProposalVacantProcessedMinimalGeometrySerializer(GeoFeatureMod
         )
 
     def get_stable_coords(self, obj):
-        return obj.wkb_geometry_processed.get_coords()
+       return {'lng': obj.wkb_geometry_processed.x, 'lat': obj.wkb_geometry_processed.y}
 
     def get_status(self, apiary_site_on_proposal):
-        # if apiary_site_on_proposal.apiary_site.is_vacant:
-        #     return SITE_STATUS_VACANT
+        if apiary_site_on_proposal.apiary_site.is_vacant:
+            return settings.SITE_STATUS_VACANT
         return apiary_site_on_proposal.site_status
 
     def get_site_category(self, apiary_site_on_proposal):
@@ -1115,7 +1114,7 @@ class ProposalApiarySerializer(serializers.ModelSerializer):
         return lodgement_number
 
     def get_site_remainders(self, proposal_apiary):
-        today_local = datetime.now(pytz.timezone(TIME_ZONE)).date()
+        today_local = datetime.now(pytz.timezone(settings.TIME_ZONE)).date()
 
         ret_list = []
         for category in SiteCategory.CATEGORY_CHOICES:
@@ -1650,7 +1649,10 @@ class ApiaryInternalProposalSerializer(BaseProposalSerializer):
     applicant_email = serializers.SerializerMethodField()
 
     proposal_apiary = ProposalApiarySerializer()
-    apiary_temporary_use = ProposalApiaryTemporaryUseSerializer(many=False, read_only=True)
+    
+    #TODO do this somewhere else
+    # apiary_temporary_use = ProposalApiaryTemporaryUseSerializer(many=False, read_only=True)
+    
     #apiary_site_transfer = ProposalApiarySiteTransferSerializer()
 
     applicant_checklist = serializers.SerializerMethodField()
@@ -1718,7 +1720,7 @@ class ApiaryInternalProposalSerializer(BaseProposalSerializer):
                 'applicant',
                 'applicant_type',
                 'proposal_apiary',
-                'apiary_temporary_use',
+                #'apiary_temporary_use',
                 #'apiary_site_transfer',
                 'applicant_address',
 

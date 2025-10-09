@@ -1,7 +1,7 @@
 from ledger.accounts.models import Organisation as ledger_organisation
 from ledger.accounts.models import OrganisationAddress
-from ledger.accounts.models import EmailUser
-from ledger.payments.models import Invoice
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from ledger_api_client.ledger_models import Invoice
 from django.conf import settings
 from disturbance.components.organisations.models import Organisation, OrganisationContact, UserDelegation
 from disturbance.components.main.models import ApplicationType
@@ -755,7 +755,7 @@ def create_invoice(proposal, payment_method='other'):
         """
         from ledger.checkout.utils import createCustomBasket
         from ledger.payments.invoice.utils import CreateInvoiceBasket
-        from ledger.accounts.models import EmailUser
+        from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
         now = timezone.now().date()
         line_items = [

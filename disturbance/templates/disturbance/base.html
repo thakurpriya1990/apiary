@@ -36,9 +36,7 @@
 
         </meta>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {% if DOMAIN_DETECTED == 'apiary' %}
-            <link rel="shortcut icon" type="image/ico" href="/static/favicon.ico"/>
-        {% endif %}
+        <link rel="shortcut icon" type="image/ico" href="/static/favicon.ico"/>
         <script language="javascript">
             env = {
                 "kmi_server_url": "{{ KMI_SERVER_URL }}"
@@ -46,7 +44,6 @@
         </script>
     </head>
     <body>
-        {% if DEBUG %}<div style="position: absolute; color: dodgerblue; font-size: 0.5em;">{{ DOMAIN_DETECTED }}</div>{% endif %}
         <header class="topmast">
             {% block header %}
                 {% include 'disturbance/header.html' %}
@@ -66,7 +63,7 @@
                                 </button>
 
                                 {% if not empty_menu %}
-                                    <a class="navbar-brand" href="{% url 'ds_home' %}"><div style="inline"><img src="{% static 'disturbance/img/dpaw_small.png' %}">{% if is_internal_login %}{% if TEMPLATE_GROUP == 'apiary' %}Applications{% else %}Proposals{% endif %}{% else %}Home {% endif %}</div></a>
+                                    <a class="navbar-brand" href="{% url 'home' %}"><div style="inline"><img src="{% static 'disturbance/img/dpaw_small.png' %}">{% if is_internal_login %}{% if TEMPLATE_GROUP == 'apiary' %}Applications{% else %}Proposals{% endif %}{% else %}Home {% endif %}</div></a>
                                 {% endif %}
 
                             </div>
@@ -122,22 +119,16 @@
                                                 <ul class="dropdown-menu">
                                                     {% if is_disturbance_admin_user or is_apiary_admin_user or request.user.is_superuser %}
                                                         <li><a href="{% url 'admin:index' %}">Admin</a></li>
-							{% if DOMAIN_DETECTED != 'apiary' %}
-                                                            <li><a href="/internal/schema">Manage Application Schema</a></li>
-                                                        {% endif %}
                                                         <li role="separator" class="divider"></li>
                                                     {% endif %}
                                                     {% if request.user.is_superuser %}
                                                         <li><a href="{% url 'mgt-commands' %}">Management Commands</a></li>
                                                     {% endif %}
-                                                    <li><a href="{% url 'manage-account' %}">Manage Account</a></li>
+                                                    <li><a href="/ledger-ui/accounts">Manage Account</a></li>
                                                     {% for org in request.user.disturbance_organisations.all %}
                                                         {% if request.user.is_superuser or org.id|is_org_admin:request.user %}
-                                                            <li><a href="/external/organisations/manage/{{org.id}}">Manage {{org.organisation.name}}</a></li>
-                                    {% comment %} --> DAS does not have Org Consultants
-                                                        {% elif org.id|is_org_consultant:request.user %}
-                                                            <li><a href="/external/organisations/manage/{{org.id}}">Manage {{ org.organisation.name}}</a></li>
-                                    {% endcomment %}
+                                                            <li><a href="/external/organisations/manage/{{org.id}}">Manage {{org.organisation.organisation_name}}</a></li>
+                                                            <!--<li><a href="/ledger-ui/organisation/{{org.organisation_id}}">Manage {{org.organisation.organisation_name}}</a></li> TODO ledgerui-->
                                                         {% endif %}
                                                     {% endfor %}
 
@@ -145,7 +136,7 @@
                                                         <li><a href="/internal/reports">Reports</a></li>
                                                     {% endif %}
 
-                                                    <li><a href="{% url 'accounts:logout' %}?next=/">Logout</a></li>
+                                                    <li><a href="{% url 'logout' %}?next=/">Logout</a></li>
                                                 </ul>
                                             </li>
                                         {% endif %}

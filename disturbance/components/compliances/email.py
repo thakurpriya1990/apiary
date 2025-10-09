@@ -1,12 +1,12 @@
 import logging
 
 from django.core.mail import EmailMultiAlternatives, EmailMessage
-from django.utils.encoding import smart_text
-from django.core.urlresolvers import reverse
+from django.utils.encoding import smart_bytes
+from django.urls import reverse
 from django.conf import settings
 
 from disturbance.components.emails.emails import TemplateEmailBase
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +68,6 @@ class ComplianceInternalDueNotificationEmail(TemplateEmailBase):
 
 def send_amendment_email_notification(amendment_request, request, compliance):
     email = ComplianceAmendmentRequestSendNotificationEmail()
-    #reason = amendment_request.get_reason_display()
     reason = amendment_request.reason.reason
     url = request.build_absolute_uri(reverse('external-compliance-detail',kwargs={'compliance_pk': compliance.id}))
     url = ''.join(url.split('-internal'))
@@ -80,20 +79,19 @@ def send_amendment_email_notification(amendment_request, request, compliance):
     }
 
     all_ccs = []
-    if compliance.proposal.applicant.email:
-        cc_list = compliance.proposal.applicant.email
+    if compliance.proposal.relevant_applicant.email:
+        cc_list = compliance.proposal.relevant_applicant.email
         if cc_list:
             all_ccs = [cc_list]
 
     msg = email.send(compliance.submitter.email, cc=all_ccs, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()  
     _log_compliance_email(msg, compliance, sender=sender)
-    _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender)
+    if compliance.proposal.applicant:
+        _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender)
 
 def send_apiary_amendment_email_notification(amendment_request, request, compliance):
     email = ComplianceAmendmentRequestSendNotificationEmail()
-    #reason = amendment_request.get_reason_display()
     reason = amendment_request.reason.reason
     url = request.build_absolute_uri(reverse('external-compliance-detail',kwargs={'compliance_pk': compliance.id}))
     url = ''.join(url.split('-internal'))
@@ -111,7 +109,6 @@ def send_apiary_amendment_email_notification(amendment_request, request, complia
             all_ccs = [cc_list]
 
     msg = email.send(compliance.submitter.email, cc=all_ccs, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()  
     _log_compliance_email(msg, compliance, sender=sender)
     if compliance.approval.applicant:
@@ -121,7 +118,6 @@ def send_apiary_amendment_email_notification(amendment_request, request, complia
 def send_reminder_email_notification(compliance):
     """ Used by the management command, therefore have no request object - therefore explicitly defining base_url """
     email = ComplianceReminderNotificationEmail()
-    #url = request.build_absolute_uri(reverse('external-compliance-detail',kwargs={'compliance_pk': compliance.id}))
     url=settings.SITE_URL if settings.SITE_URL else ''
     url+=reverse('external-compliance-detail',kwargs={'compliance_pk': compliance.id})
     context = {
@@ -129,7 +125,7 @@ def send_reminder_email_notification(compliance):
         'url': url
     }
     all_ccs = []
-    if compliance.proposal.applicant.email:
+    if compliance.proposal.applicant and compliance.proposal.applicant.email:
         cc_list = compliance.proposal.applicant.email
         if cc_list:
             all_ccs = [cc_list]
@@ -142,12 +138,12 @@ def send_reminder_email_notification(compliance):
     except:
         sender_user = EmailUser.objects.create(email=sender, password='')
     _log_compliance_email(msg, compliance, sender=sender_user)
-    _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender_user)
+    if compliance.proposal.applicant:
+        _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender_user)
 
 def send_apiary_reminder_email_notification(compliance):
     """ Used by the management command, therefore have no request object - therefore explicitly defining base_url """
     email = ComplianceReminderNotificationEmail()
-    #url = request.build_absolute_uri(reverse('external-compliance-detail',kwargs={'compliance_pk': compliance.id}))
     url=settings.SITE_URL if settings.SITE_URL else ''
     url+=reverse('external-compliance-detail',kwargs={'compliance_pk': compliance.id})
     context = {
@@ -173,7 +169,6 @@ def send_apiary_reminder_email_notification(compliance):
 
 def send_internal_reminder_email_notification(compliance):
     email = ComplianceInternalReminderNotificationEmail()
-    #url = request.build_absolute_uri(reverse('external-compliance-detail',kwargs={'compliance_pk': compliance.id}))
     url=settings.SITE_URL
     url+=reverse('internal-compliance-detail',kwargs={'compliance_pk': compliance.id})
     if "-internal" not in url:
@@ -192,11 +187,11 @@ def send_internal_reminder_email_notification(compliance):
     except:
         sender_user = EmailUser.objects.create(email=sender, password='')
     _log_compliance_email(msg, compliance, sender=sender_user)
-    _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender_user)
+    if compliance.proposal.applicant:
+        _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender_user)
 
 def send_apiary_internal_reminder_email_notification(compliance):
     email = ComplianceInternalReminderNotificationEmail()
-    #url = request.build_absolute_uri(reverse('external-compliance-detail',kwargs={'compliance_pk': compliance.id}))
     url=settings.SITE_URL
     url+=reverse('internal-compliance-detail',kwargs={'compliance_pk': compliance.id})
     if "-internal" not in url:
@@ -220,7 +215,6 @@ def send_apiary_internal_reminder_email_notification(compliance):
 
 def send_due_email_notification(compliance):
     email = ComplianceDueNotificationEmail()
-    #url = request.build_absolute_uri(reverse('external-compliance-detail',kwargs={'compliance_pk': compliance.id}))
     url=settings.SITE_URL
     url+=reverse('external-compliance-detail',kwargs={'compliance_pk': compliance.id})
     context = {
@@ -228,7 +222,7 @@ def send_due_email_notification(compliance):
         'url': url
     }
     all_ccs = []
-    if compliance.proposal.applicant.email:
+    if compliance.proposal.applicant and compliance.proposal.applicant.email:
         cc_list = compliance.proposal.applicant.email
         if cc_list:
             all_ccs = [cc_list]
@@ -241,11 +235,11 @@ def send_due_email_notification(compliance):
     except:
         sender_user = EmailUser.objects.create(email=sender, password='')
     _log_compliance_email(msg, compliance, sender=sender_user)
-    _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender_user)
+    if compliance.proposal.applicant:
+        _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender_user)
 
 def send_apiary_due_email_notification(compliance):
     email = ComplianceDueNotificationEmail()
-    #url = request.build_absolute_uri(reverse('external-compliance-detail',kwargs={'compliance_pk': compliance.id}))
     url=settings.SITE_URL
     url+=reverse('external-compliance-detail',kwargs={'compliance_pk': compliance.id})
     context = {
@@ -271,7 +265,6 @@ def send_apiary_due_email_notification(compliance):
 
 def send_internal_due_email_notification(compliance):
     email = ComplianceInternalDueNotificationEmail()
-    #url = request.build_absolute_uri(reverse('external-compliance-detail',kwargs={'compliance_pk': compliance.id}))
     url=settings.SITE_URL
     url+=reverse('internal-compliance-detail',kwargs={'compliance_pk': compliance.id})
     if "-internal" not in url:
@@ -290,11 +283,11 @@ def send_internal_due_email_notification(compliance):
     except:
         sender_user = EmailUser.objects.create(email=sender, password='')
     _log_compliance_email(msg, compliance, sender=sender_user)
-    _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender_user)
+    if compliance.proposal.applicant:
+        _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender_user)
 
 def send_apiary_internal_due_email_notification(compliance):
     email = ComplianceInternalDueNotificationEmail()
-    #url = request.build_absolute_uri(reverse('external-compliance-detail',kwargs={'compliance_pk': compliance.id}))
     url=settings.SITE_URL
     url+=reverse('internal-compliance-detail',kwargs={'compliance_pk': compliance.id})
     if "-internal" not in url:
@@ -324,15 +317,15 @@ def send_compliance_accept_email_notification(compliance,request):
         'compliance': compliance
     }    
     all_ccs = []
-    if compliance.proposal.applicant.email:
+    if compliance.proposal.relevant_applicant.email:
         cc_list = compliance.proposal.applicant.email
         if cc_list:
             all_ccs = [cc_list]
     msg = email.send(compliance.submitter.email, cc=all_ccs, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_compliance_email(msg, compliance, sender=sender)
-    _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender)
+    if compliance.proposal.applicant:
+        _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender)
 
 def send_apiary_compliance_accept_email_notification(compliance,request):
     email = ComplianceAcceptNotificationEmail()
@@ -346,7 +339,6 @@ def send_apiary_compliance_accept_email_notification(compliance,request):
         if cc_list:
             all_ccs = [cc_list]
     msg = email.send(compliance.submitter.email, cc=all_ccs, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender= get_sender_user()
     _log_compliance_email(msg, compliance, sender=sender)
     if compliance.approval.applicant:
@@ -363,16 +355,16 @@ def send_external_submit_email_notification(request, compliance):
         'url': url
     }
     all_ccs = []
-    if compliance.proposal.applicant.email:
+    if compliance.proposal.relevant_applicant.email:
         cc_list = compliance.proposal.applicant.email
         if cc_list:
             all_ccs = [cc_list]
 
     msg = email.send(compliance.submitter.email, cc=all_ccs, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_compliance_email(msg, compliance, sender=sender)
-    _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender)
+    if compliance.proposal.applicant:
+        _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender)
 
 def send_apiary_external_submit_email_notification(request, compliance):
     email = ComplianceExternalSubmitSendNotificationEmail()
@@ -390,7 +382,6 @@ def send_apiary_external_submit_email_notification(request, compliance):
             all_ccs = [cc_list]
 
     msg = email.send(compliance.submitter.email, cc=all_ccs, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_compliance_email(msg, compliance, sender=sender)
     if compliance.approval.applicant:
@@ -409,10 +400,9 @@ def send_submit_email_notification(request, compliance):
     }
 
     msg = email.send(compliance.proposal.assessor_recipients, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_compliance_email(msg, compliance, sender=sender)
-    if compliance.proposal:
+    if compliance.proposal.applicant:
         _log_org_email(msg, compliance.proposal.applicant, compliance.submitter, sender=sender)
 
 def send_apiary_submit_email_notification(request, compliance):
@@ -428,7 +418,6 @@ def send_apiary_submit_email_notification(request, compliance):
     }
 
     msg = email.send(compliance.approval.current_proposal.assessor_recipients, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
     _log_compliance_email(msg, compliance, sender=sender)
     if compliance.approval.applicant:
@@ -437,15 +426,14 @@ def send_apiary_submit_email_notification(request, compliance):
 def _log_compliance_email(email_message, compliance, sender=None):
     from disturbance.components.compliances.models import ComplianceLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
-        # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
-        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
+        fromm = smart_bytes(sender) if sender else smart_bytes(email_message.from_email)
         # the to email is normally a list
         if isinstance(email_message.to, list):
             to = ','.join(email_message.to)
         else:
-            to = smart_text(email_message.to)
+            to = smart_bytes(email_message.to)
         # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
         all_ccs = []
         if email_message.cc:
@@ -455,10 +443,10 @@ def _log_compliance_email(email_message, compliance, sender=None):
         all_ccs = ','.join(all_ccs)
 
     else:
-        text = smart_text(email_message)
+        text = smart_bytes(email_message)
         subject = ''
         to = compliance.submitter.email
-        fromm = smart_text(sender) if sender else SYSTEM_NAME
+        fromm = smart_bytes(sender) if sender else SYSTEM_NAME
         all_ccs = ''
 
     customer = compliance.submitter
@@ -484,15 +472,14 @@ def _log_compliance_email(email_message, compliance, sender=None):
 def _log_org_email(email_message, organisation, customer ,sender=None):
     from disturbance.components.organisations.models import OrganisationLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
-        # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
-        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
+        fromm = smart_bytes(sender) if sender else smart_bytes(email_message.from_email)
         # the to email is normally a list
         if isinstance(email_message.to, list):
             to = ','.join(email_message.to)
         else:
-            to = smart_text(email_message.to)
+            to = smart_bytes(email_message.to)
         # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
         all_ccs = []
         if email_message.cc:
@@ -502,10 +489,10 @@ def _log_org_email(email_message, organisation, customer ,sender=None):
         all_ccs = ','.join(all_ccs)
 
     else:
-        text = smart_text(email_message)
+        text = smart_bytes(email_message)
         subject = ''
         to = customer.email
-        fromm = smart_text(sender) if sender else SYSTEM_NAME
+        fromm = smart_bytes(sender) if sender else SYSTEM_NAME
         all_ccs = ''
 
     customer = customer

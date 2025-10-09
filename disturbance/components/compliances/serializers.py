@@ -1,5 +1,5 @@
 from django.conf import settings
-from ledger.accounts.models import EmailUser,Address
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser,Address
 from disturbance.components.compliances.models import (
     Compliance, ComplianceUserAction, ComplianceLogEntry, ComplianceAmendmentRequest, ComplianceAmendmentReason
 )
@@ -15,7 +15,7 @@ class ComplianceSerializer(serializers.ModelSerializer):
     regions = serializers.CharField(source='proposal.region')
     activity = serializers.CharField(source='proposal.activity')
     title = serializers.CharField(source='proposal.title')
-    holder = serializers.CharField(source='proposal.applicant.name')
+    holder = serializers.CharField(source='proposal.applicant.name', allow_null=True)
     processing_status = serializers.CharField(source='get_processing_status_display')
     customer_status = serializers.CharField(source='get_customer_status_display')
     submitter = serializers.SerializerMethodField(read_only=True)
@@ -29,7 +29,7 @@ class ComplianceSerializer(serializers.ModelSerializer):
     approval_lodgement_number = serializers.SerializerMethodField()
     proposal_lodgement_number = serializers.SerializerMethodField()
     district = serializers.CharField(source='proposal.district')
-
+    can_assess = serializers.SerializerMethodField()
 
     class Meta:
         model = Compliance
@@ -58,7 +58,7 @@ class ComplianceSerializer(serializers.ModelSerializer):
             'approval_lodgement_number',
             'proposal_lodgement_number',
             'district',
-
+            'can_assess',
         )
 
     def get_documents(self,obj):
@@ -79,6 +79,12 @@ class ComplianceSerializer(serializers.ModelSerializer):
         if obj.submitter:
             return obj.submitter.get_full_name()
         return None
+    
+    def get_can_assess(self,obj):
+        request = self.context['request']
+        if request:
+            return obj.can_assess(request.user)
+        return False
 
 class SaveComplianceSerializer(serializers.ModelSerializer):
     class Meta:

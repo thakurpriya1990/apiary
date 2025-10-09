@@ -9,12 +9,12 @@ from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields.jsonb import JSONField
 from django.utils import timezone
 from django.contrib.gis.db.models.fields import PointField
-from django.contrib.gis.db.models.manager import GeoManager
-from ledger.accounts.models import EmailUser, RevisionedMixin
+from django.db.models import Manager as GeoManager
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from disturbance.components.approvals.pdf import create_approval_document
 from disturbance.components.organisations.models import Organisation
 from disturbance.components.proposals.models import Proposal, ProposalUserAction, ApiarySite, ApiarySiteOnProposal
-from disturbance.components.main.models import CommunicationsLogEntry, UserAction, Document
+from disturbance.components.main.models import CommunicationsLogEntry, UserAction, Document, RevisionedMixin
 from disturbance.components.approvals.email import (
     send_approval_expire_email_notification,
     send_approval_cancel_email_notification,
@@ -26,7 +26,6 @@ from disturbance.doctopdf import create_apiary_licence_pdf_contents
 from disturbance.settings import SITE_STATUS_CURRENT, SITE_STATUS_NOT_TO_BE_REISSUED, SITE_STATUS_SUSPENDED, \
     SITE_STATUS_TRANSFERRED
 from disturbance.utils import search_keys, search_multiple_keys
-from disturbance.helpers import is_customer
 from django_countries.fields import CountryField
 
 #TODO: improvable - these three lines are repeated throughout the models and ought to be set in one place
@@ -52,7 +51,7 @@ def update_approval_comms_log_filename(instance, filename):
 
 
 class ApprovalDocument(Document):
-    approval = models.ForeignKey('Approval',related_name='documents')
+    approval = models.ForeignKey('Approval',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_approval_doc_filename, storage=private_storage)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
 
@@ -66,7 +65,7 @@ class ApprovalDocument(Document):
 
 
 class RenewalDocument(Document):
-    approval = models.ForeignKey('Approval',related_name='renewal_documents')
+    approval = models.ForeignKey('Approval',related_name='renewal_documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_approval_doc_filename, storage=private_storage)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
 
@@ -80,15 +79,15 @@ class RenewalDocument(Document):
 
 
 class ApiarySiteOnApproval(models.Model):
-    apiary_site = models.ForeignKey('ApiarySite',)
-    approval = models.ForeignKey('Approval',)
+    apiary_site = models.ForeignKey('ApiarySite', on_delete=models.CASCADE)
+    approval = models.ForeignKey('Approval', on_delete=models.CASCADE)
     available = models.BooleanField(default=False)
     site_status = models.CharField(default=SITE_STATUS_CURRENT, max_length=20, db_index=True)
     # site_available = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     wkb_geometry = PointField(srid=4326, blank=True, null=True)  # store approved coordinates
-    site_category = models.ForeignKey('SiteCategory', null=True, blank=True,)
+    site_category = models.ForeignKey('SiteCategory', null=True, blank=True, on_delete=models.CASCADE)
     licensed_site = models.BooleanField(default=False)
     issuance_details = JSONField(blank=True, null=True)
 
@@ -136,12 +135,12 @@ class Approval(RevisionedMixin):
     status = models.CharField(max_length=40, choices=STATUS_CHOICES,
                                        default=STATUS_CHOICES[0][0])
     # NB: licence_document not used for Apiary applications
-    licence_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='licence_document')
-    cover_letter_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='cover_letter_document')
-    replaced_by = models.ForeignKey('self', blank=True, null=True)
+    licence_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='licence_document', on_delete=models.CASCADE)
+    cover_letter_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='cover_letter_document', on_delete=models.CASCADE)
+    replaced_by = models.ForeignKey('self', blank=True, null=True, on_delete=models.CASCADE)
     #current_proposal = models.ForeignKey(Proposal,related_name = '+')
-    current_proposal = models.ForeignKey(Proposal,related_name='approvals')
-    renewal_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='renewal_document')
+    current_proposal = models.ForeignKey(Proposal,related_name='approvals', on_delete=models.CASCADE)
+    renewal_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='renewal_document', on_delete=models.CASCADE)
     # apiary_renewal_document = models.ForeignKey(RenewalDocument, blank=True, null=True, related_name='apiary_renewal_document')
     renewal_sent = models.BooleanField(default=False)
     issue_date = models.DateTimeField()
@@ -241,8 +240,6 @@ class Approval(RevisionedMixin):
 
     @property
     def relevant_applicant_name(self):
-        logger.info(f'in relevant_applicant_name')
-        logger.info(f'self: {self}')
         if self.applicant:
             return self.applicant.name
         elif self.proxy_applicant:
@@ -594,7 +591,7 @@ class Approval(RevisionedMixin):
             try:
                 if self.applicant and not request.user.disturbance_organisations.filter(organisation_id = self.relevant_applicant_id):
                     #if not request.user in self.allowed_assessors:
-                    if request.user not in self.allowed_assessors and not is_customer(request):
+                    if request.user not in self.allowed_assessors and not request.user.is_authenticated:
                         raise ValidationError('You do not have access to surrender this approval')
                 if not self.can_reissue and self.can_action:
                     raise ValidationError('You cannot surrender approval if it is not current or suspended')
@@ -635,7 +632,7 @@ class PreviewTempApproval(Approval):
         #unique_together= ('lodgement_number', 'issue_date')
 
 class ApprovalLogEntry(CommunicationsLogEntry):
-    approval = models.ForeignKey(Approval, related_name='comms_logs')
+    approval = models.ForeignKey(Approval, related_name='comms_logs', on_delete=models.CASCADE)
 
     class Meta:
         app_label = 'disturbance'
@@ -647,7 +644,7 @@ class ApprovalLogEntry(CommunicationsLogEntry):
         super(ApprovalLogEntry, self).save(**kwargs)
 
 class ApprovalLogDocument(Document):
-    log_entry = models.ForeignKey('ApprovalLogEntry',related_name='documents', null=True,)
+    log_entry = models.ForeignKey('ApprovalLogEntry',related_name='documents', null=True, on_delete=models.CASCADE)
     #approval = models.ForeignKey(Approval, related_name='comms_logs1')
     _file = models.FileField(upload_to=update_approval_comms_log_filename, null=True, storage=private_storage)
     #_file = models.FileField(upload_to=update_approval_doc_filename)
@@ -683,7 +680,7 @@ class ApprovalUserAction(UserAction):
             what=str(action)
         )
 
-    approval= models.ForeignKey(Approval, related_name='action_logs')
+    approval= models.ForeignKey(Approval, related_name='action_logs', on_delete=models.CASCADE)
 
 class MigratedApiaryLicence(models.Model):
 # Records imported from CSV

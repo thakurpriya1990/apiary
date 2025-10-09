@@ -11,7 +11,7 @@ from django.core.cache import cache
 from django.db import connection, transaction
 from django.db.models.query_utils import Q
 from rest_framework import serializers
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 from disturbance.components.main.decorators import timeit
 from disturbance.settings import SITE_STATUS_DRAFT, SITE_STATUS_APPROVED, SITE_STATUS_TRANSFERRED, RESTRICTED_RADIUS, \
@@ -82,12 +82,7 @@ def convert_utc_time_to_local(utc_time_str_with_z):
 
 
 def get_template_group(request):
-    web_url = request.META.get('HTTP_HOST', None)
-    template_group = None
-    if web_url in settings.APIARY_URL:
-       template_group = 'apiary'
-    else:
-       template_group = 'das'
+    template_group = 'apiary'
     return template_group
 
 
@@ -150,7 +145,7 @@ def get_feature_in_wa_coastline(wkb_geometry, smoothed):
 def get_feature_in_wa_coastline_kmi(wkb_geometry):
     try:
         URL = 'https://kmi.dpaw.wa.gov.au/geoserver/public/wms'
-        coords = wkb_geometry.get_coords()
+        coords = {'lng': wkb_geometry.x, 'lat': wkb_geometry.y}
         PARAMS = _get_params('public:wa_coast_pub', coords)
         res = requests.get(url=URL, params=PARAMS)
         geo_json = res.json()
@@ -165,7 +160,7 @@ def get_feature_in_wa_coastline_kmi(wkb_geometry):
 def get_tenure(wkb_geometry):
     try:
         URL = 'https://kmi.dpaw.wa.gov.au/geoserver/public/wms'
-        coords = wkb_geometry.get_coords()
+        coords = {'lng': wkb_geometry.x, 'lat': wkb_geometry.y}
         PARAMS = _get_params('public:dpaw_lands_and_waters', coords)
         res = requests.get(url=URL, params=PARAMS)
         geo_json = res.json()
@@ -222,8 +217,8 @@ def get_qs_vacant_site(search_text=''):
             'apiary_site', 
             'proposal_apiary', 
             'proposal_apiary__proposal', 
-            'proposal_apiary__proposal__proxy_applicant', 
-            'proposal_apiary__transferee', 
+            #'proposal_apiary__proposal__proxy_applicant', 
+            #'proposal_apiary__transferee', 
             'proposal_apiary__target_approval_organisation', 
             'proposal_apiary__target_approval', 
             'proposal_apiary__originating_approval', 
@@ -245,8 +240,7 @@ def get_qs_vacant_site(search_text=''):
             'apiary_site__latest_approval_link', 
             'apiary_site__approval_link_for_vacant',
             'approval__applicant',
-            'approval__applicant__organisation',
-            'approval__proxy_applicant',
+            #'approval__proxy_applicant', TODO fix for segregation (?)
             # 'approval__lodgement_number',
             ).filter(id__in=apiary_site_approval_ids)
 

@@ -1,23 +1,21 @@
 import logging
 from datetime import datetime
 
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from django.urls import reverse
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 from django.conf import settings
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
-from ledger.payments.invoice.models import Invoice
+from ledger_api_client.ledger_models import Invoice
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.renderers import JSONRenderer
 from disturbance.components.main.decorators import timeit
 from disturbance.components.main.serializers import WaCoastSerializer, WaCoastOptimisedSerializer
 from disturbance.components.main.utils import get_feature_in_wa_coastline_smoothed, get_feature_in_wa_coastline_original
-from disturbance.helpers import is_internal, is_disturbance_admin, is_apiary_admin, is_das_apiary_admin, is_customer
-from disturbance.forms import *
+from disturbance.helpers import is_internal, is_disturbance_admin, is_apiary_admin, is_das_apiary_admin
 from disturbance.components.proposals.models import Referral, Proposal, HelpPage
 from disturbance.components.compliances.models import Compliance
 from disturbance.components.proposals.mixins import ReferralOwnerMixin
@@ -80,11 +78,10 @@ class DisturbanceRoutingView(TemplateView):
     template_name = 'disturbance/index.html'
 
     def get(self, *args, **kwargs):
-        if self.request.user.is_authenticated():
+        if self.request.user.is_authenticated:
             if is_internal(self.request):
                 return redirect('internal')
             return redirect('external')
-        kwargs['form'] = LoginForm
         return super(DisturbanceRoutingView, self).get(*args, **kwargs)
 
 class DisturbanceContactView(TemplateView):
@@ -104,11 +101,9 @@ class InternalProposalView(DetailView):
                 #return redirect('internal-proposal-detail')
                 return super(InternalProposalView, self).get(*args, **kwargs)
             return redirect('external-proposal-detail')
-        kwargs['form'] = LoginForm
-        return super(DisturbanceRoutingDetailView, self).get(*args, **kwargs)
 
-
-@login_required(login_url='ds_home')
+#TODO replace and then remove
+@login_required(login_url='home')
 def first_time(request):
     context = {}
     if request.method == 'POST':
@@ -137,21 +132,19 @@ def first_time(request):
     return render(request, 'disturbance/dash/index.html', context)
 
 
+#TODO potentially remove
 class HelpView(LoginRequiredMixin, TemplateView):
     template_name = 'disturbance/help.html'
 
     def get_context_data(self, **kwargs):
         context = super(HelpView, self).get_context_data(**kwargs)
 
-        if self.request.user.is_authenticated():
+        if self.request.user.is_authenticated:
             application_type = kwargs.get('application_type', None) 
             if kwargs.get('help_type', None)=='assessor':
                 if is_internal(self.request):
                     qs = HelpPage.objects.filter(application_type__name__icontains=application_type, help_type=HelpPage.HELP_TEXT_INTERNAL).order_by('-version')
                     context['help'] = qs.first()
-#                else:
-#                    return TemplateResponse(self.request, 'disturbance/not-permitted.html', context)
-#                    context['permitted'] = False
             else:
                 qs = HelpPage.objects.filter(application_type__name__icontains=application_type, help_type=HelpPage.HELP_TEXT_EXTERNAL).order_by('-version')
                 context['help'] = qs.first()
@@ -179,7 +172,7 @@ class TemplateGroupView(views.APIView):
 
     def get(self, request, format=None):
         return Response({
-            'template_group': settings.DOMAIN_DETECTED,
+            'template_group': 'apiary',
             'is_das_admin': True if is_disturbance_admin(request) else False,
             'is_apiary_admin': True if is_apiary_admin(request) else False,
             'is_das_apiary_admin': True if is_das_apiary_admin(request) else False,
@@ -252,7 +245,7 @@ def validate_invoice_details(request):
 def is_authorised_to_access_proposal_document(request,document_id):
     if is_internal(request):
         return True
-    elif is_customer(request):
+    else:
         user = request.user
         user_orgs = [org.id for org in user.disturbance_organisations.all()]
         return Proposal.objects.filter(id=document_id).filter(
@@ -262,7 +255,7 @@ def is_authorised_to_access_proposal_document(request,document_id):
 def is_authorised_to_access_approval_document(request,document_id):
     if is_internal(request):
         return True
-    elif is_customer(request):
+    elif user.is_authenticated:
         user = request.user
         user_orgs = [org.id for org in user.disturbance_organisations.all()]
         return Approval.objects.filter(id=document_id).filter(
@@ -272,7 +265,7 @@ def is_authorised_to_access_approval_document(request,document_id):
 def is_authorised_to_access_organisation_document(request,document_id):
     if is_internal(request):
         return True
-    elif is_customer(request):
+    elif user.is_authenticated:
         user = request.user
         org_contacts = OrganisationContact.objects.filter(is_admin=True).filter(email=user.email)
         user_admin_orgs = [org.organisation.id for org in org_contacts]
@@ -294,7 +287,7 @@ def is_authorised_to_access_document(request):
     
     if is_internal(request):
         return True
-    elif is_customer(request):
+    elif request.user.is_authenticated:
         p_document_id = get_file_path_id("proposals",request.path)
         if p_document_id:
             return is_authorised_to_access_proposal_document(request,p_document_id)

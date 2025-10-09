@@ -1,121 +1,23 @@
-import os
 import datetime
 import pytz
-from ledger.settings_base import TIME_ZONE
-
 from django.contrib import admin
-from ledger.accounts.models import EmailUser
-
-import disturbance
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from disturbance.components.main.utils import custom_strftime
-from disturbance.components.proposals import models
-from disturbance.components.proposals import forms
-from disturbance.components.main.models import ActivityMatrix, SystemMaintenance, ApplicationType, GlobalSettings, \
-    ApiaryGlobalSettings
-#from disturbance.components.main.models import Activity, SubActivityLevel1, SubActivityLevel2, SubCategory
+from disturbance.components.proposals import models, forms
+from disturbance.components.main.models import SystemMaintenance, ApplicationType, ApiaryGlobalSettings
 from reversion.admin import VersionAdmin
 from django.conf.urls import url
-from django.template.response import TemplateResponse
-from django.http import HttpResponse, HttpResponseRedirect
-
-from disturbance.components.proposals.models import SiteCategory, ApiarySiteFee, ApiarySiteFeeType, \
-    ApiaryAnnualRentalFee, \
-    ApiaryAnnualRentalFeeRunDate, ApiaryAnnualRentalFeePeriodStartDate
+from django.http import HttpResponseRedirect
 from disturbance.utils import create_helppage_object
 from disturbance.helpers import is_apiary_admin, is_disturbance_admin, is_das_apiary_admin
-# Register your models here.
-from django.utils.html import format_html
-from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
-from django.template.response import TemplateResponse
-
-
-from disturbance.components.proposals.utils import generate_schema
 
 
 @admin.register(models.ProposalType)
 class ProposalTypeAdmin(admin.ModelAdmin):
-    list_display = ['name','description', 'version', 'proposal_type_actions', ]
+    list_display = ['name','description', 'version']
     ordering = ('name', '-version')
     list_filter = ('name',)
-    readonly_fields = (
-        'proposal_type_actions', 
-    )
-    #exclude=("site",)
 
-    def get_urls(self):
-        urls = super().get_urls()
-        custom_urls = [
-            url(
-                r'^(?P<proposal_type_id>.+)/process_generate_schema/$',
-                self.admin_site.admin_view(self.process_generate_schema),
-                name='generate-schema',
-            ),
-        ]
-        return custom_urls + urls
-
-    def proposal_type_actions(self, obj):
-        # if obj.name=='Disturbance':
-        if not obj.apiary_group_proposal_type and obj.latest:
-            return format_html(
-                '<a class="button" href="{}">Generate Schema</a>&nbsp;',
-                reverse('admin:generate-schema', args=[obj.pk]),
-            )
-        return ''
-    proposal_type_actions.short_description = 'Proposal Type Actions'
-    proposal_type_actions.allow_tags = True
-
-    def process_generate_schema(self, request, proposal_type_id, *args, **kwargs):
-        return self.process_action(
-            request=request,
-            proposal_type_id=proposal_type_id,
-            action_form=forms.GenerateSchemaForm,
-            action_title='GenerateSchema',
-        )
-
-    def process_action(
-        self,
-        request,
-        proposal_type_id,
-        action_form,
-        action_title
-   ):
-        proposal_type = self.get_object(request, proposal_type_id)
-        new_schema=generate_schema(proposal_type, request)
-        if request.method != 'POST':
-            form = action_form()
-        else:
-            form = action_form(request.POST)            
-            if form.is_valid():
-                try:
-                    #form.save(proposal_type)
-                    proposal_type.schema=new_schema
-                    proposal_type.save()
-                except:
-                    # If save() raised, the form will a have a non
-                    # field error containing an informative message.
-                    pass
-                else:
-                    self.message_user(request, 'Success')
-                    url = reverse(
-                        'admin:disturbance_proposaltype_change',
-                       args=[proposal_type.pk],
-                        current_app=self.admin_site.name,
-                    )
-                    return HttpResponseRedirect(url)
-        
-        context = self.admin_site.each_context(request)
-        context['opts'] = self.model._meta
-        context['form'] = form
-        context['proposal_type'] = proposal_type
-        context['title'] = action_title
-        context['new_schema']=new_schema
-        return TemplateResponse(
-            request,
-            'disturbance/admin/proposaltype_action.html',
-            context,
-        )
-    
 
 class ProposalDocumentInline(admin.TabularInline):
     model = models.ProposalDocument
@@ -127,14 +29,13 @@ class AmendmentReasonAdmin(admin.ModelAdmin):
     list_display = ['reason']
 
 
-@admin.register(ApiaryAnnualRentalFeePeriodStartDate)
+@admin.register(models.ApiaryAnnualRentalFeePeriodStartDate)
 class ApiaryAnnualRentalFeePeriodStartDateAdmin(admin.ModelAdmin):
     list_display = ['name', 'start_month_date', 'end_month_date']
     readonly_fields = ['name',]
     fields = ('name', 'period_start_date',)
 
     def start_month_date(self, obj):
-        # return obj.period_start_date.strftime('%d of %b')
         return custom_strftime('{S} of %b', obj.period_start_date)
 
     def has_add_permission(self, request, obj=None):
@@ -145,7 +46,6 @@ class ApiaryAnnualRentalFeePeriodStartDateAdmin(admin.ModelAdmin):
 
     def end_month_date(self, obj):
         period_end_date = datetime.date(year=obj.period_start_date.year + 1, month=obj.period_start_date.month, day=obj.period_start_date.day) - datetime.timedelta(days=1)
-        # return period_end_date.strftime('%d of %b')
         return custom_strftime('{S} of %b', period_end_date)
 
     def get_actions(self, request):
@@ -154,33 +54,34 @@ class ApiaryAnnualRentalFeePeriodStartDateAdmin(admin.ModelAdmin):
             del actions['delete_selected']
         return actions
 
-
+#TODO show apiary only (?)
 @admin.register(models.Proposal)
 class ProposalAdmin(VersionAdmin):
     inlines =[ProposalDocumentInline,]
+    list_display = ['lodgement_number', 'application_type', 'proposal_type', 'processing_status']
+    search_fields = ['lodgement_number', 'application_type__name', 'proposal_type', 'processing_status']
     raw_id_fields = ('applicant','proxy_applicant','submitter','previous_application', 'assigned_officer', 'assigned_approver')
 
-
+#TODO check if need for apiary
 @admin.register(models.ProposalAssessorGroup)
 class ProposalAssessorGroupAdmin(admin.ModelAdmin):
     list_display = ['name','default']
     filter_horizontal = ('members',)
     form = forms.ProposalAssessorGroupAdminForm
     readonly_fields = ['default']
-    #readonly_fields = ['regions', 'activities']
 
     def has_delete_permission(self, request, obj=None):
         if obj and obj.default:
             return False
         return super(ProposalAssessorGroupAdmin, self).has_delete_permission(request, obj)
 
+#TODO check if need for apiary
 @admin.register(models.ProposalApproverGroup)
 class ProposalApproverGroupAdmin(admin.ModelAdmin):
     list_display = ['name','default']
     filter_horizontal = ('members',)
     form = forms.ProposalApproverGroupAdminForm
     readonly_fields = ['default']
-    #readonly_fields = ['default', 'regions', 'activities']
 
     def has_delete_permission(self, request, obj=None):
         if obj and obj.default:
@@ -207,7 +108,6 @@ class ApiaryAssessorGroupAdmin(admin.ModelAdmin):
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "members":
-            #kwargs["queryset"] = EmailUser.objects.filter(email__icontains='@dbca.wa.gov.au')
             kwargs["queryset"] = EmailUser.objects.filter(is_staff=True)
         return super(ApiaryAssessorGroupAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
@@ -226,7 +126,6 @@ class ApiaryApproverGroupAdmin(admin.ModelAdmin):
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "members":
-            #kwargs["queryset"] = EmailUser.objects.filter(email__icontains='@dbca.wa.gov.au')
             kwargs["queryset"] = EmailUser.objects.filter(is_staff=True)
         return super(ApiaryApproverGroupAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
@@ -236,16 +135,12 @@ class ApiaryApproverGroupAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False 
 
-
+#TODO show apiary only
 @admin.register(models.ProposalStandardRequirement)
 class ProposalStandardRequirementAdmin(admin.ModelAdmin):
     list_display = ['code','text','system','obsolete']
-    #readonly_fields=('system',)
-    #list_filter=('system',)
 
     def get_queryset(self, request):
-        #import ipdb;ipdb.set_trace()
-        # filter based on membership of Apiary Admin or Disturbance Admin
         qs = super(ProposalStandardRequirementAdmin, self).get_queryset(request)
         if request.user.is_superuser or is_das_apiary_admin(request):
             return qs
@@ -272,7 +167,7 @@ class ProposalStandardRequirementAdmin(admin.ModelAdmin):
                 kwargs["choices"] = (('disturbance', 'Disturbance'),)
         return super(ProposalStandardRequirementAdmin, self).formfield_for_choice_field(db_field, request, **kwargs)
 
-
+#TODO is this needed?
 @admin.register(models.HelpPage)
 class HelpPageAdmin(admin.ModelAdmin):
     list_display = ['application_type','help_type', 'description', 'version']
@@ -280,7 +175,6 @@ class HelpPageAdmin(admin.ModelAdmin):
     change_list_template = "disturbance/help_page_changelist.html"
     ordering = ('application_type', 'help_type', '-version')
     list_filter = ('application_type', 'help_type')
-
 
     def get_urls(self):
         urls = super(HelpPageAdmin, self).get_urls()
@@ -309,12 +203,6 @@ class HelpPageAdmin(admin.ModelAdmin):
         return HttpResponseRedirect("../")
 
 
-@admin.register(ActivityMatrix)
-class ActivityMatrixAdmin(admin.ModelAdmin):
-    list_display = ['name', 'description', 'version']
-    ordering = ('name', '-version')
-
-
 @admin.register(SystemMaintenance)
 class SystemMaintenanceAdmin(admin.ModelAdmin):
     list_display = ['name', 'description', 'start_date', 'end_date', 'duration']
@@ -322,17 +210,11 @@ class SystemMaintenanceAdmin(admin.ModelAdmin):
     readonly_fields = ('duration',)
     form = forms.SystemMaintenanceAdminForm
 
-
+#TODO show apiary only
 @admin.register(ApplicationType)
 class ApplicationTypeAdmin(admin.ModelAdmin):
     list_display = ['name', 'order', 'visible', 'domain_used',]
     ordering = ('order',)
-
-
-@admin.register(GlobalSettings)
-class GlobalSettingsAdmin(admin.ModelAdmin):
-    list_display = ['key', 'value']
-    ordering = ('key',)
 
 
 @admin.register(ApiaryGlobalSettings)
@@ -367,21 +249,19 @@ class ApiaryGlobalSettingsAdmin(admin.ModelAdmin):
     list_display = ['key', 'value', '_file',]
     ordering = ('key',)
 
-
-@admin.register(ApiaryAnnualRentalFee)
+#TODO determine where this is used
+@admin.register(models.ApiaryAnnualRentalFee)
 class ApiaryAnnualRentalFeeAdmin(admin.ModelAdmin):
     list_display = ['id', 'amount_south_west', 'amount_remote', 'date_from',]
 
-
-@admin.register(ApiaryAnnualRentalFeeRunDate)
+#TODO determine where this is used
+@admin.register(models.ApiaryAnnualRentalFeeRunDate)
 class ApiaryAnnualRentalFeeRunDateAdmin(admin.ModelAdmin):
-    # list_display = ['id', 'name', 'date_run_cron', 'run_month', 'run_date',]
     list_display = ['name', 'run_month_date', 'enabled', 'enabled_for_new_site', 'period_to_be_charged_for']
     readonly_fields = ['name',]
     fields = ('name', 'date_run_cron', 'enabled', 'enabled_for_new_site')
 
     def run_month_date(self, obj):
-        # return obj.date_run_cron.strftime('%d of %b')
         return custom_strftime('{S} of %b', obj.date_run_cron)
 
     def has_add_permission(self, request, obj=None):
@@ -393,7 +273,7 @@ class ApiaryAnnualRentalFeeRunDateAdmin(admin.ModelAdmin):
     def period_to_be_charged_for(self, obj):
         from disturbance.management.commands.send_annual_rental_fee_invoice import get_annual_rental_fee_period
 
-        today_now_local = datetime.datetime.now(pytz.timezone(TIME_ZONE))
+        today_now_local = datetime.datetime.now(pytz.timezone(settings.TIME_ZONE))
         today_date_local = today_now_local.date()
         period_start_date, period_end_date = get_annual_rental_fee_period(today_date_local)
         return '{} --- {}'.format(period_start_date.strftime('%Y/%m/%d'), period_end_date.strftime('%Y/%m/%d'))
@@ -406,67 +286,45 @@ class ApiaryAnnualRentalFeeRunDateAdmin(admin.ModelAdmin):
 
     run_month_date.short_description = 'Date on which start billing for the next annual site fee'
 
-# @admin.register(ApiaryAnnualRentalFeePeriodStartDate)
-# class ApiaryAnnualRentalFeePeriodStartDateAdmin(admin.ModelAdmin):
-#     pass
-
-# class SiteApplicationFeeInline(admin.TabularInline):
-#     model = SiteApplicationFee
-#     extra = 0
-#     can_delete = True
-
 
 class ApiarySiteFeeInline(admin.TabularInline):
-    model = ApiarySiteFee
+    model = models.ApiarySiteFee
     extra = 0
     can_delete = True
     fields = ('apiary_site_fee_type', 'amount', 'date_of_enforcement',)
 
 
-@admin.register(ApiarySiteFeeType)
+@admin.register(models.ApiarySiteFeeType)
 class ApiarySiteFeeTypeAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'description',]
 
 
-# @admin.register(SiteApplicationFee)
-# class SiteApplicationFeeAdmin(admin.ModelAdmin):
-#     pass
-
-
 class SiteCategoryAdmin(admin.ModelAdmin):
-
     inlines = [ApiarySiteFeeInline,]
+admin.site.register(models.SiteCategory, SiteCategoryAdmin)
 
-
-admin.site.register(disturbance.components.proposals.models.SiteCategory, SiteCategoryAdmin)
 
 @admin.register(models.ApiaryChecklistQuestion)
 class ApiaryChecklistQuestionAdmin(admin.ModelAdmin):
-    #list_display = ['text', 'answer_type', 'order']
+    list_display = ['text', 'checklist_type', 'checklist_role',]
     ordering = ('order',)
 
-
+#TODO is this needed for apiary?
 @admin.register(models.QuestionOption)
 class QuestionOptionAdmin(admin.ModelAdmin):
     list_display = ['label',]
     fields = ('label',)
 
+#TODO is this needed for apiary?
 @admin.register(models.MasterlistQuestion)
 class MasterlistQuestionAdmin(admin.ModelAdmin):
     list_display = ['question',]
     filter_horizontal = ('option',)
     form = forms.MasterlistQuestionAdminForm
     
-
-@admin.register(models.ProposalTypeSection)
-class ProposalTypeSectionAdmin(admin.ModelAdmin):
-    list_display = ['proposal_type', 'index', 'section_label',]
-    fields = ('section_label','index', 'proposal_type')
-   
-@admin.register(models.SectionQuestion)
-class SectionQuestionAdmin(admin.ModelAdmin):
-    list_display = ['section', 'question','order', 'parent_question','parent_answer']
-    #list_display = ['section', 'question','parent_question',]
-    form = forms.SectionQuestionAdminForm
-
-    
+#TODO fix for segregation (?) - only if needed for apiary
+#@admin.register(models.SectionQuestion)
+#class SectionQuestionAdmin(admin.ModelAdmin):
+#    list_display = ['section', 'question','order', 'parent_question','parent_answer']
+#    #list_display = ['section', 'question','parent_question',]
+#    form = forms.SectionQuestionAdminForm

@@ -2,14 +2,13 @@ import logging
 from io import BytesIO
 from django.core.mail import EmailMultiAlternatives, EmailMessage
 from django.urls import reverse
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_bytes
 from django.conf import settings
 
-from disturbance.components.das_payments.awaiting_payment_invoice_pdf import \
-    create_annual_rental_fee_awaiting_payment_confirmation
-from disturbance.components.das_payments.invoice_pdf import create_annual_rental_fee_invoice
+from disturbance.components.ap_payments.awaiting_payment_invoice_pdf import create_annual_rental_fee_awaiting_payment_confirmation
+from disturbance.components.ap_payments.invoice_pdf import create_annual_rental_fee_invoice
 from disturbance.components.emails.emails import TemplateEmailBase
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 from disturbance.components.main.email import _extract_email_headers
 from disturbance.components.main.models import Region, District
@@ -108,7 +107,6 @@ class ApprovalAnnualRentalFeeInvoiceEmail(TemplateEmailBase):
 
 
 class ApprovalAnnualRentalFeeAwaitingPaymentConfirmationEmail(TemplateEmailBase):
-    #subject = 'Annual site fee awaiting payment confirmation for your licence has been issued.'
     subject = 'Annual site fee invoice for your licensed apiary sites.'
     html_template = 'disturbance/emails/approval_annual_rental_fee_awaiting_payment_confirmation.html'
     txt_template = 'disturbance/emails/approval_annual_rental_fee_awaiting_payment_confirmation.txt'
@@ -167,7 +165,6 @@ def send_contact_licence_holder_email(apiary_site_on_approval, comments, sender)
         bcc=bcc,
     )
 
-    # sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = settings.DEFAULT_FROM_EMAIL
     email_data = _extract_email_headers(msg, sender=sender)
     return email_data
@@ -188,15 +185,11 @@ def send_on_site_notification_email(request_data, sender, update=False):
                 no_region_district_name = region.name + ' Region'
                 district = District.objects.get(name=no_region_district_name)
             except:
-                #logger.error('Error sending onsite-notification email - District not found: {rd}')
-                #raise Exception(f'District not found: {rd}')
                 logger.warning('Warning sending onsite-notification email - District not found: {rd} - sending notification Apiary Admin Group')
         
         try:
             recipients = ApiaryReferralGroup.objects.get(district=district).members_email
         except:
-            #logger.error('Error sending onsite-notification email - Cannot find Apiary Referral Group for District {district.name}')
-            #raise Exception(f'Cannot find Apiary Referral Group for District {district.name}')
             logger.warning('Warning sending onsite-notification email - Cannot find Apiary Referral Group for District {rd}. Sending notification to {settings.APIARY_SUPPORT_EMAIL}')
             recipients = [settings.APIARY_SUPPORT_EMAIL]
 
@@ -244,8 +237,6 @@ def send_on_site_notification_email(request_data, sender, update=False):
         'licence_url': SITE_URL + f'{reverse("external")}approval/{approval.id}'
     }
 
-    # sender = request.user if request else settings.DEFAULT_FROM_EMAIL
-    #sender = settings.DEFAULT_FROM_EMAIL
     cc = [approval.relevant_applicant.email] if hasattr(approval.relevant_applicant, 'email') else []
     cc = list(filter(None, cc))  # Remove None from the list
 
@@ -272,8 +263,6 @@ def send_annual_rental_fee_awaiting_payment_confirmation(approval, annual_rental
     }
 
     attachments = []
-    # contents = get_value_of_annual_rental_fee_awaiting_payment_confirmation(annual_rental_fee)
-    # attachments.append(('awaiting_payment_confirmation.pdf', contents, 'application/pdf'))
     contents = get_value_of_annual_rental_fee_invoice(approval, invoice)
     attachments.append(('invoice#{}.pdf'.format(invoice.reference), contents, 'application/pdf'))
 
@@ -289,7 +278,6 @@ def send_annual_rental_fee_awaiting_payment_confirmation(approval, annual_rental
         bcc=bcc,
     )
 
-    # sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = settings.DEFAULT_FROM_EMAIL
     email_data = _extract_email_headers(msg, sender=sender)
     return email_data
@@ -318,7 +306,6 @@ def send_annual_rental_fee_invoice(approval, invoice, to_email_addresses):
         bcc=bcc,
     )
 
-    # sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     sender = settings.DEFAULT_FROM_EMAIL
     email_data = _extract_email_headers(msg, sender=sender)
     return email_data
@@ -336,21 +323,13 @@ def send_approval_expire_email_notification(approval):
         'proposal': proposal
     } 
     all_ccs = []
-    #if proposal.applicant.email:
-     #   cc_list = proposal.applicant.email
     if proposal.applicant and proposal.applicant.email != proposal.submitter.email:
         cc_list = proposal.relevant_applicant_email
         if cc_list:
             all_ccs = [cc_list]
 
     msg = email.send(proposal.submitter.email,cc=all_ccs, context=context)
-    #sender = settings.DEFAULT_FROM_EMAIL
     sender = get_sender_user()
-    # try:
-    #   sender_user = EmailUser.objects.get(email__icontains=sender)
-    # except:
-    #     EmailUser.objects.create(email=sender, password='')
-    #     sender_user = EmailUser.objects.get(email__icontains=sender)
 
     _log_approval_email(msg, approval, sender=sender)
     if proposal.applicant:
@@ -371,11 +350,7 @@ def send_approval_cancel_email_notification(approval, future_cancel=False):
     }
 
     all_ccs = []
-    #if proposal.applicant.email:
-     #   cc_list = proposal.applicant.email
-    #if proposal.relevant_applicant_email:
     if proposal.applicant and proposal.applicant.email != proposal.submitter.email:
-    #if proposal.relevant_applicant_email and proposal.relevant_applicant_email != proposal.submitter.email:
         cc_list = proposal.relevant_applicant_email
 
         if cc_list:
@@ -410,10 +385,6 @@ def send_approval_suspend_email_notification(approval, future_suspend=False):
     }
 
     all_ccs = []
-    #if proposal.applicant.email:
-     #   cc_list = proposal.applicant.email
-    #if proposal.relevant_applicant_email:
-    #if proposal.relevant_applicant_email and proposal.relevant_applicant_email != proposal.submitter.email:
     if proposal.applicant and proposal.applicant.email != proposal.submitter.email:
         cc_list = proposal.relevant_applicant_email
         if cc_list:
@@ -446,10 +417,6 @@ def send_approval_surrender_email_notification(approval, future_surrender=False)
         'future_surrender': future_surrender           
     }
     all_ccs = []
-    #if proposal.applicant and proposal.applicant.email:
-     #   cc_list = proposal.applicant.email
-    #if proposal.relevant_applicant_email:
-    #if proposal.relevant_applicant_email and proposal.relevant_applicant_email != proposal.submitter.email:
     if proposal.applicant and proposal.applicant.email != proposal.submitter.email:
         cc_list = proposal.relevant_applicant_email
         if cc_list:
@@ -468,7 +435,6 @@ def send_approval_surrender_email_notification(approval, future_surrender=False)
 
 #approval renewal notice
 def send_approval_renewal_email_notification(approval):
-    #import ipdb; ipdb.set_trace()
     if approval.apiary_approval:
         email = ApiaryApprovalRenewalNotificationEmail()
     else:
@@ -481,10 +447,7 @@ def send_approval_renewal_email_notification(approval):
                     
     }
     all_ccs = []
-    #if proposal.applicant.email:
-     #   cc_list = proposal.applicant.email
-    #if proposal.relevant_applicant_email:
-    #if proposal.relevant_applicant_email and proposal.relevant_applicant_email != proposal.submitter.email:
+
     if proposal.applicant and proposal.applicant.email != proposal.submitter.email:
         cc_list = proposal.relevant_applicant_email
         if cc_list:
@@ -497,14 +460,10 @@ def send_approval_renewal_email_notification(approval):
         EmailUser.objects.create(email=sender, password='')
         sender_user = EmailUser.objects.get(email__icontains=sender)
     #attach renewal notice
-    #renewal_document= approval.renewal_document._file
-    # if approval.apiary_renewal_document is not None:
     if approval.apiary_approval:
-        # file_name = approval.apiary_renewal_document.name
         file_name = approval.relevant_renewal_document.name
         attachment = (file_name, approval.relevant_renewal_document._file.file.read(), 'application/pdf')
         attachment = [attachment]
-    #renewal_document= approval.renewal_document._file
     elif approval.renewal_document is not None:
         file_name = approval.renewal_document.name
         attachment = (file_name, approval.renewal_document._file.file.read(), 'application/pdf')
@@ -530,17 +489,12 @@ def send_approval_reinstate_email_notification(approval, request):
                 
     }    
     all_ccs = []
-    #if proposal.applicant.email:
-     #   cc_list = proposal.applicant.email
-    #if proposal.relevant_applicant_email:
-    #if proposal.relevant_applicant_email and proposal.relevant_applicant_email != proposal.submitter.email:
     if proposal.applicant and proposal.applicant.email != proposal.submitter.email:
         cc_list = proposal.relevant_applicant_email
         if cc_list:
             all_ccs = [cc_list]
 
     msg = email.send(proposal.submitter.email,cc=all_ccs, context=context)
-    #sender = request.user if request else settings.DEFAULT_FROM_EMAIL 
     sender = get_sender_user()   
     _log_approval_email(msg, approval, sender=sender)
     if proposal.applicant:
@@ -550,15 +504,14 @@ def send_approval_reinstate_email_notification(approval, request):
 def _log_approval_email(email_message, approval, sender=None):
     from disturbance.components.approvals.models import ApprovalLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
-        # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
-        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
+        fromm = smart_bytes(sender) if sender else smart_bytes(email_message.from_email)
         # the to email is normally a list
         if isinstance(email_message.to, list):
             to = ','.join(list(filter(None, email_message.to)))
         else:
-            to = smart_text(email_message.to)
+            to = smart_bytes(email_message.to)
         # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
         all_ccs = []
         if email_message.cc:
@@ -568,10 +521,10 @@ def _log_approval_email(email_message, approval, sender=None):
         all_ccs = ','.join(list(filter(None, all_ccs)))
 
     else:
-        text = smart_text(email_message)
+        text = smart_bytes(email_message)
         subject = ''
         to = approval.current_proposal.submitter.email
-        fromm = smart_text(sender) if sender else SYSTEM_NAME
+        fromm = smart_bytes(sender) if sender else SYSTEM_NAME
         all_ccs = ''
 
     customer = approval.current_proposal.submitter
@@ -597,15 +550,14 @@ def _log_approval_email(email_message, approval, sender=None):
 def _log_org_email(email_message, organisation, customer ,sender=None):
     from disturbance.components.organisations.models import OrganisationLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
-        # TODO this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
-        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
+        fromm = smart_bytes(sender) if sender else smart_bytes(email_message.from_email)
         # the to email is normally a list
         if isinstance(email_message.to, list):
             to = ','.join(list(filter(None, email_message.to)))
         else:
-            to = smart_text(email_message.to)
+            to = smart_bytes(email_message.to)
         # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
         all_ccs = []
         if email_message.cc:
@@ -615,10 +567,10 @@ def _log_org_email(email_message, organisation, customer ,sender=None):
         all_ccs = ','.join(list(filter(None, all_ccs)))
 
     else:
-        text = smart_text(email_message)
+        text = smart_bytes(email_message)
         subject = ''
         to = customer
-        fromm = smart_text(sender) if sender else SYSTEM_NAME
+        fromm = smart_bytes(sender) if sender else SYSTEM_NAME
         all_ccs = ''
 
     customer = customer

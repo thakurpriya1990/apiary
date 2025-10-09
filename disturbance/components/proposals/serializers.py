@@ -1,6 +1,6 @@
 import logging
 
-from ledger.payments.models import Invoice
+from ledger_api_client.ledger_models import Invoice
 import collections
 from disturbance.components.proposals.models import (
                                     ProposalType,
@@ -89,7 +89,7 @@ class DTProposalSerializer(BaseProposalSerializer):
 
 class ListProposalSerializer(BaseProposalSerializer):
     submitter = EmailUserSerializer()
-    applicant = serializers.CharField(source='applicant.organisation.name')
+    applicant = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
     review_status = serializers.SerializerMethodField(read_only=True)
     customer_status = serializers.SerializerMethodField(read_only=True)
@@ -179,6 +179,9 @@ class ListProposalSerializer(BaseProposalSerializer):
                 'apiary_group_application_type',
                 'template_group',
                 )
+
+    def get_applicant(self, obj):
+        return obj.applicant.name if obj.applicant else ""
 
     def get_fee_invoice_references(self, obj):
         invoice_references = []

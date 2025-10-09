@@ -1,11 +1,11 @@
 from django.conf import settings
-from ledger.accounts.models import EmailUser,Address, Document
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser,Address, Document
 from disturbance.components.organisations.models import (   
                                     Organisation,
                                 )
 from disturbance.components.organisations.utils import can_admin_org, is_consultant
 from rest_framework import serializers
-from ledger.accounts.utils import in_dbca_domain
+from disturbance.helpers import user_in_dbca_domain
 from disturbance.components.approvals.models import Approval
 from disturbance.components.proposals.models import Proposal
 from disturbance.components.main.models import ApplicationType
@@ -30,8 +30,8 @@ class UserAddressSerializer(serializers.ModelSerializer):
         ) 
 
 class UserOrganisationSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source='organisation.name')
-    abn = serializers.CharField(source='organisation.abn')
+    name = serializers.CharField(source='organisation.organisation_name')
+    abn = serializers.CharField(source='organisation.organisation_abn')
     is_consultant = serializers.SerializerMethodField(read_only=True)
     is_admin = serializers.SerializerMethodField(read_only=True)
     current_apiary_approval = serializers.SerializerMethodField(read_only=True) # includes current & suspended
@@ -203,7 +203,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_is_department_user(self, obj):
         if obj.email:
-            return in_dbca_domain(obj)
+            return user_in_dbca_domain(obj)
         else:
             return False
 

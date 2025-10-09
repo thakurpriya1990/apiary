@@ -1,4 +1,4 @@
-from ledger.accounts.models import EmailUser,Address
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser,Address
 from django.utils import timezone
 from disturbance import settings
 from disturbance.components.approvals.models import (
@@ -10,8 +10,8 @@ from disturbance.components.approvals.models import (
 )
 from disturbance.components.approvals.serializers_apiary import ApiarySiteOnApprovalLicenceDocSerializer, \
     ApiarySiteOnApprovalGeometrySerializer
-from disturbance.components.das_payments.models import AnnualRentalFeePeriod, AnnualRentalFee
-from disturbance.components.das_payments.serializers import AnnualRentalFeeSerializer, AnnualRentalFeePeriodSerializer
+from disturbance.components.ap_payments.models import AnnualRentalFeePeriod, AnnualRentalFee
+from disturbance.components.ap_payments.serializers import AnnualRentalFeeSerializer, AnnualRentalFeePeriodSerializer
 from disturbance.components.organisations.models import (
                                 Organisation
                             )
@@ -287,7 +287,7 @@ class ApprovalSerializer(serializers.ModelSerializer):
     renewal_document = serializers.SerializerMethodField(read_only=True)
     status = serializers.CharField(source='get_status_display')
     allowed_assessors = EmailUserSerializer(many=True)
-    region = serializers.CharField(source='current_proposal.region.name')
+    region = serializers.CharField(source='current_proposal.region.name', allow_null=True)
     district = serializers.CharField(source='current_proposal.district.name', allow_null=True)
     #tenure = serializers.CharField(source='current_proposal.tenure.name')
     #activity = serializers.CharField(source='current_proposal.activity')

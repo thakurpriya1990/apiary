@@ -4,12 +4,13 @@ from django.db import models, transaction
 from django.contrib.sites.models import Site
 from django.dispatch import receiver
 from django.db.models.signals import pre_delete
-from django.utils.encoding import python_2_unicode_compatible
+from six import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields.jsonb import JSONField
-from ledger.accounts.models import Organisation as ledger_organisation
-from ledger.accounts.models import EmailUser, RevisionedMixin, Document
-from disturbance.components.main.models import UserAction,CommunicationsLogEntry
+from ledger_api_client.utils import get_organisation, get_search_organisation, create_organisation
+#from ledger.accounts.models import Organisation as ledger_organisation
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from disturbance.components.main.models import UserAction,CommunicationsLogEntry, LedgerDocument
 from disturbance.components.organisations.utils import random_generator
 from disturbance.components.organisations.emails import (
                         send_organisation_request_accept_email_notification,
@@ -33,7 +34,10 @@ private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/"
 
 @python_2_unicode_compatible
 class Organisation(models.Model):
-    organisation = models.ForeignKey(ledger_organisation)
+    #organisation = models.ForeignKey(ledger_organisation)
+    organisation_id = models.IntegerField(
+        unique=True, verbose_name="Ledger Organisation ID"
+    )
     # TODO: business logic related to delegate changes.
     delegates = models.ManyToManyField(EmailUser, blank=True, through='UserDelegation', related_name='disturbance_organisations')
     #pin_one = models.CharField(max_length=50,blank=True)
@@ -45,6 +49,13 @@ class Organisation(models.Model):
 
     class Meta:
         app_label = 'disturbance'
+
+    @property
+    def organisation(self):
+        try:
+            return get_organisation(self.organisation_id)['data']
+        except:
+            raise ValidationError("Organisation does not exist")
 
     def __str__(self):
         return str(self.organisation)
@@ -170,26 +181,33 @@ class Organisation(models.Model):
             self, request, recipients)
 
     @staticmethod
-    def existance(abn):
+    def existence(abn, name=None):
         exists = True
         org = None
-        l_org = None
-        try:
+        organisation_response = get_search_organisation(name, abn)
+        response_status = organisation_response.get("status", None)
+
+        if response_status == status.HTTP_200_OK:
+            ledger_org = organisation_response.get("data", {})[0]
             try:
-                l_org = ledger_organisation.objects.get(abn=abn)
-            except ledger_organisation.DoesNotExist:
+                org = Organisation.objects.get(
+                    organisation_id=ledger_org["organisation_id"]
+                )
+            except Organisation.DoesNotExist:
                 exists = False
-            if l_org:
-                try:
-                    org = Organisation.objects.get(organisation=l_org)
-                except Organisation.DoesNotExist:
-                    exists = False
-            if exists:
-                return {'exists': exists, 'id': org.id,'first_five':org.first_five_admin_names}
-            return {'exists': exists }
-            
-        except:
-            raise
+        else:
+            exists = False
+
+        if exists:
+            if not org.has_no_admins:
+                return {
+                    "exists": exists,
+                    "id": org.id,
+                    "first_five": org.first_five,
+                }
+            else:
+                return {"exists": not org.has_no_admins}
+        return {"exists": exists}
 
     def accept_user(self, user,request):
         with transaction.atomic():
@@ -444,27 +462,27 @@ class Organisation(models.Model):
 
     @property
     def trading_name(self):
-        return self.organisation.trading_name
+        return self.organisation["organisation_trading_name"]
 
     @property
     def name(self):
-        return self.organisation.name
+        return self.organisation["organisation_name"]
 
     @property
     def abn(self):
-        return self.organisation.abn
+        return self.organisation["organisation_abn"]
 
     @property
     def address(self):
-        return self.organisation.postal_address
+        return self.organisation["postal_address"]
 
-    @property
-    def phone_number(self):
-        return self.organisation.phone_number
+    #@property
+    #def phone_number(self):
+    #    return self.organisation["phone_number"]
 
     @property
     def email(self):
-        return self.organisation.email
+        return self.organisation["organisation_email"]
 
     @property
     def first_five(self):
@@ -494,7 +512,7 @@ class OrganisationContact(models.Model):
     user_status = models.CharField('Status', max_length=40, choices=USER_STATUS_CHOICES,default=USER_STATUS_CHOICES[0][0])
     user_role = models.CharField('Role', max_length=40, choices=USER_ROLE_CHOICES,default='organisation_user')
     is_admin = models.BooleanField(default= False)
-    organisation = models.ForeignKey(Organisation, related_name='contacts')
+    organisation = models.ForeignKey(Organisation, related_name='contacts', on_delete=models.CASCADE)
     email = models.EmailField(blank=False)
     first_name = models.CharField(max_length=128, blank=False, verbose_name='Given name(s)')
     last_name = models.CharField(max_length=128, blank=False)
@@ -528,8 +546,8 @@ class OrganisationContact(models.Model):
 
 
 class OrganisationContactDeclinedDetails(models.Model):
-    request = models.ForeignKey(OrganisationContact)
-    officer = models.ForeignKey(EmailUser, null=False)
+    request = models.ForeignKey(OrganisationContact, on_delete=models.CASCADE)
+    officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
     # reason = models.TextField(blank=True)
 
     class Meta:
@@ -537,8 +555,8 @@ class OrganisationContactDeclinedDetails(models.Model):
 
 
 class UserDelegation(models.Model):
-    organisation = models.ForeignKey(Organisation)
-    user = models.ForeignKey(EmailUser)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    user = models.ForeignKey(EmailUser, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = (('organisation','user'),)
@@ -574,7 +592,7 @@ class OrganisationAction(UserAction):
             what=str(action)
         )
 
-    organisation = models.ForeignKey(Organisation,related_name='action_logs')
+    organisation = models.ForeignKey(Organisation,related_name='action_logs', on_delete=models.CASCADE)
 
     class Meta:
         app_label = 'disturbance'
@@ -583,8 +601,8 @@ def update_organisation_comms_log_filename(instance, filename):
     return 'organisations/{}/communications/{}/{}'.format(instance.log_entry.organisation.id,instance.id,filename)
 
 
-class OrganisationLogDocument(Document):
-    log_entry = models.ForeignKey('OrganisationLogEntry',related_name='documents')
+class OrganisationLogDocument(LedgerDocument):
+    log_entry = models.ForeignKey('OrganisationLogEntry',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_organisation_comms_log_filename, storage=private_storage)
 
     class Meta:
@@ -592,12 +610,13 @@ class OrganisationLogDocument(Document):
 
     
 class OrganisationLogEntry(CommunicationsLogEntry):
-    organisation = models.ForeignKey(Organisation, related_name='comms_logs')
+    organisation = models.ForeignKey(Organisation, related_name='comms_logs', on_delete=models.CASCADE)
 
     def save(self, **kwargs):
         # save the request id if the reference not provided
+        print(self.__dict__)
         if not self.reference:
-            self.reference = self.organisation.id
+            self.reference = self.organisation_id
         super(OrganisationLogEntry, self).save(**kwargs)
 
     class Meta:
@@ -620,8 +639,8 @@ class OrganisationRequest(models.Model):
     )
     name = models.CharField(max_length=128, unique=True)
     abn = models.CharField(max_length=50, null=True, blank=True, verbose_name='ABN')
-    requester = models.ForeignKey(EmailUser)
-    assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='org_request_assignee')
+    requester = models.ForeignKey(EmailUser, on_delete=models.CASCADE)
+    assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='org_request_assignee', on_delete=models.CASCADE)
     identification = models.FileField(upload_to='organisation/requests/%Y/%m/%d', null=True, blank=True, storage=private_storage)
     status = models.CharField(max_length=100,choices=STATUS_CHOICES, default="with_assessor")
     lodgement_date = models.DateTimeField(auto_now_add=True)
@@ -639,41 +658,80 @@ class OrganisationRequest(models.Model):
             # Continue with remaining logic
             self.__accept(request)
 
-    def __accept(self,request):
-        # Check if orgsanisation exists in ledger
-        ledger_org = None
-        try:
-            ledger_org = ledger_organisation.objects.get(abn=self.abn) 
-        except ledger_organisation.DoesNotExist:
-            ledger_org = ledger_organisation.objects.create(name=self.name,abn=self.abn)
-        # Create Organisation in disturbance
-        org, created = Organisation.objects.get_or_create(organisation=ledger_org)
-        # Link requester to organisation
-        delegate = UserDelegation.objects.create(user=self.requester,organisation=org)
-        # log who approved the request
-        org.log_user_action(OrganisationAction.ACTION_REQUEST_APPROVED.format(self.id),request)
-        # log who created the link
-        org.log_user_action(OrganisationAction.ACTION_LINK.format('{} {}({})'.format(delegate.user.first_name,delegate.user.last_name,delegate.user.email)),request)
-        if self.role == 'consultant':
-            role = 'consultant'
-        else:
-            role = 'organisation_admin'
-        # Create contact person
-        OrganisationContact.objects.create(
-            organisation = org,
-            first_name = self.requester.first_name,
-            last_name = self.requester.last_name,
-            mobile_number = self.requester.mobile_number,
-            phone_number = self.requester.phone_number,
-            fax_number = self.requester.fax_number,
-            email = self.requester.email,
-            user_role=role,
-            user_status='active',
-            is_admin=True
-        
-        )
-        # send email to requester
-        send_organisation_request_accept_email_notification(self, org, request)
+    def __accept(self, request):
+        #TODO fix for segregation
+        return
+        if is_internal(request):
+            from apiary.components.applications.models import ActivityPermissionGroup
+
+            # Check if orgsanisation exists in ledger
+            ledger_org = None
+
+            organisation_response = get_search_organisation(self.name, self.abn)
+            response_status = organisation_response.get("status", None)
+
+            if response_status == status.HTTP_404_NOT_FOUND:
+                raise NotImplementedError(
+                    "Organisation does not exist in the ledger."
+                )
+
+            if response_status != status.HTTP_200_OK:
+                raise ValidationError(
+                    "Failed to retrieve organisation details from the ledger."
+                )
+
+            ledger_org = organisation_response.get("data", {})[0]
+
+            # Create Organisation in wildlifecompliance
+            org, created = Organisation.objects.get_or_create(
+                organisation_id=ledger_org["organisation_id"])
+            # org.generate_pins()
+            # Link requester to organisation
+            delegate, created = UserDelegation.objects.get_or_create(
+                user=self.requester, organisation=org)
+            
+            # log who approved the request
+            # org.log_user_action(OrganisationAction.ACTION_REQUEST_APPROVED.format(self.id),request)
+            # log who created the link
+            org.log_user_action(
+                OrganisationAction.ACTION_LINK.format(
+                    '{} {}({})'.format(
+                        get_first_name(delegate.user),
+                        get_last_name(delegate.user),
+                        delegate.user.email)),
+                request)
+
+            if self.role == OrganisationRequest.ORG_REQUEST_ROLE_CONSULTANT:
+                role = OrganisationContact.ORG_CONTACT_ROLE_CONSULTANT
+            else:
+                role = OrganisationContact.ORG_CONTACT_ROLE_ADMIN
+            # Create contact person
+
+            OrganisationContact.objects.get_or_create(
+                organisation=org,
+                first_name=get_first_name(self.requester),
+                last_name=get_last_name(self.requester),
+                mobile_number=self.requester.mobile_number,
+                phone_number=self.requester.phone_number,
+                fax_number=self.requester.fax_number,
+                email=self.requester.email,
+                user_role=role,
+                user_status=OrganisationContact.ORG_CONTACT_STATUS_ACTIVE,
+                is_admin=True
+            )
+
+            # send email to requester
+            send_organisation_request_accept_email_notification(self, org, request)
+            # Notify other Organisation Access Group members of acceptance.
+            groups = ActivityPermissionGroup.objects.filter(
+                permissions__codename='organisation_access_request'
+            )
+            for group in groups:
+                recipients = [member.email for member in group.members.exclude(
+                            email=request.user.email)]
+                if recipients:
+                    send_organisation_request_accept_admin_email_notification(
+                        self, request, recipients)
 
     def send_org_access_group_request_notification(self,request):
         # user submits a new organisation request
@@ -722,10 +780,27 @@ class OrganisationRequest(models.Model):
     def __str__(self):
         return 'name: {}, id {}'.format(self.name, self.id)
 
+class ApiaryOrganisationAccessGroupMember(models.Model):
+
+    emailuser = models.ForeignKey(
+        EmailUser, 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    apiaryorganisationaccessgroup = models.ForeignKey(
+        'disturbance.ApiaryOrganisationAccessGroup', 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        db_table = "disturbance_apiaryorganisationaccessgroup_members"
+        unique_together=('apiaryorganisationaccessgroup','emailuser')
 
 class ApiaryOrganisationAccessGroup(models.Model):
-    site = models.OneToOneField(Site, default='1') 
-    members = models.ManyToManyField(EmailUser)
+    site = models.OneToOneField(Site, default='1', on_delete=models.CASCADE) 
+    members = models.ManyToManyField(EmailUser, through=ApiaryOrganisationAccessGroupMember, through_fields=('apiaryorganisationaccessgroup','emailuser'))
 
     def __str__(self):
         return 'Apiary Organisation Access Group'
@@ -746,10 +821,27 @@ class ApiaryOrganisationAccessGroup(models.Model):
         app_label = 'disturbance'
         verbose_name_plural = "Apiary Organisation access group"
 
+class OrganisationAccessGroupMember(models.Model):
+
+    emailuser = models.ForeignKey(
+        EmailUser, 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    organisationaccessgroup = models.ForeignKey(
+        'disturbance.OrganisationAccessGroup', 
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        db_table = "disturbance_organisationaccessgroup_members"
+        unique_together=('organisationaccessgroup','emailuser')
 
 class OrganisationAccessGroup(models.Model):
-    site = models.OneToOneField(Site, default='1') 
-    members = models.ManyToManyField(EmailUser)
+    site = models.OneToOneField(Site, default='1', on_delete=models.CASCADE) 
+    members = models.ManyToManyField(EmailUser, through=OrganisationAccessGroupMember, through_fields=('organisationaccessgroup','emailuser'))
 
     def __str__(self):
         return 'Organisation Access Group'
@@ -787,15 +879,15 @@ class OrganisationRequestUserAction(UserAction):
             what=str(action)
         )
 
-    request = models.ForeignKey(OrganisationRequest,related_name='action_logs')
+    request = models.ForeignKey(OrganisationRequest,related_name='action_logs', on_delete=models.CASCADE)
 
     class Meta:
         app_label = 'disturbance'
 
 
 class OrganisationRequestDeclinedDetails(models.Model):
-    request = models.ForeignKey(OrganisationRequest)
-    officer = models.ForeignKey(EmailUser, null=False)
+    request = models.ForeignKey(OrganisationRequest, on_delete=models.CASCADE)
+    officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
     reason = models.TextField(blank=True)
 
     class Meta:
@@ -805,15 +897,15 @@ def update_organisation_request_comms_log_filename(instance, filename):
     return 'organisation_requests/{}/communications/{}/{}'.format(instance.log_entry.request.id,instance.id,filename)
 
 
-class OrganisationRequestLogDocument(Document):
-    log_entry = models.ForeignKey('OrganisationRequestLogEntry',related_name='documents')
+class OrganisationRequestLogDocument(LedgerDocument):
+    log_entry = models.ForeignKey('OrganisationRequestLogEntry',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_organisation_request_comms_log_filename, storage=private_storage)
 
     class Meta:
         app_label = 'disturbance'
 
 class OrganisationRequestLogEntry(CommunicationsLogEntry):
-    request = models.ForeignKey(OrganisationRequest, related_name='comms_logs')
+    request = models.ForeignKey(OrganisationRequest, related_name='comms_logs', on_delete=models.CASCADE)
 
     def save(self, **kwargs):
         # save the request id if the reference not provided

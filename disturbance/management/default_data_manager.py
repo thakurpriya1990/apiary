@@ -7,7 +7,7 @@ import pytz
 from django.contrib.auth.models import Group
 from django.contrib.gis.geos import GEOSGeometry, fromfile
 from django.core.exceptions import MultipleObjectsReturned
-from ledger.settings_base import TIME_ZONE
+import disturbance.settings
 
 from disturbance import settings
 from disturbance.components.main.models import ApplicationType, GlobalSettings, ApiaryGlobalSettings, RegionDbca, \
@@ -138,7 +138,7 @@ class DefaultDataManager(object):
                 logger.error('{}, Name: {}'.format(e, item[0]))
 
         # Store default ApiarySiteFee
-        today_local = datetime.datetime.now(pytz.timezone(TIME_ZONE)).date()
+        today_local = datetime.datetime.now(pytz.timezone(settings.TIME_ZONE)).date()
         for type_choice in ApiarySiteFeeType.FEE_TYPE_CHOICES:
             fee_type = ApiarySiteFeeType.objects.get(name=type_choice[0])
             for cat_choice in SiteCategory.CATEGORY_CHOICES:

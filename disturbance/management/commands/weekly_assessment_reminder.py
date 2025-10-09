@@ -5,7 +5,7 @@ from django.conf import settings
 from disturbance.components.proposals.models import Proposal
 from disturbance.components.main.models import GlobalSettings
 from disturbance.components.proposals.email import send_assessment_reminder_email_notification
-from ledger.accounts.models import EmailUser
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 import datetime
 
 import itertools

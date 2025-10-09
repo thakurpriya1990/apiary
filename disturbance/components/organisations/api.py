@@ -14,7 +14,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from rest_framework import viewsets, serializers, status, generics, views
-from rest_framework.decorators import detail_route, list_route,renderer_classes
+from rest_framework.decorators import action,renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, BasePermission
@@ -22,10 +22,9 @@ from rest_framework.pagination import PageNumberPagination
 from datetime import datetime, timedelta
 from collections import OrderedDict
 from django.core.cache import cache
-from ledger.accounts.models import EmailUser,OrganisationAddress
-from ledger.address.models import Country
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Address as OrganisationAddress
 from datetime import datetime,timedelta, date
-from disturbance.helpers import is_customer, is_internal
+from disturbance.helpers import is_internal
 from disturbance.components.organisations.models import  (   
                                     Organisation,
                                     OrganisationContact,
@@ -36,13 +35,12 @@ from disturbance.components.organisations.models import  (
                                     ApiaryOrganisationAccessGroup,
                                     OrganisationRequestLogEntry,
                                     OrganisationAction,
-                                    ledger_organisation,
                                 )
 
 from disturbance.components.organisations.serializers import (   
                                         OrganisationSerializer,
                                         OrganisationAddressSerializer,
-                                        DetailsSerializer,
+                                        #DetailsSerializer,
                                         OrganisationRequestSerializer,
                                         OrganisationContactSerializer,
                                         OrganisationRequestDTSerializer,
@@ -57,7 +55,6 @@ from disturbance.components.organisations.serializers import (
                                         OrgUserAcceptSerializer,
                                         MyOrganisationsSerializer,
                                         OrganisationCheckExistSerializer,
-                                        LedgerOrganisationFilterSerializer,
                                         OrganisationLogEntrySerializer,
                                     )
 from disturbance.components.proposals.serializers import (
@@ -80,20 +77,17 @@ class OrganisationViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request) or self.allow_external:
             return Organisation.objects.all()
-        elif is_customer(self.request):
-            #org_contacts = OrganisationContact.objects.filter(is_admin=True).filter(email=user.email) #TODO: is there a better way than email?
-            #user_admin_orgs = [org.organisation.id for org in org_contacts]
-            #return Organisation.objects.filter(id__in=user_admin_orgs)
+        elif user.is_authenticated:
             return user.disturbance_organisations.all()
         return Organisation.objects.none()
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def contacts(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
             instance.update_contacts(request)
             serializer = OrganisationContactSerializer(instance.contacts.exclude(user_status='pending'), many=True)
-            return Response(serializer.data);
+            return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -104,7 +98,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def contacts_linked(self, request, *args, **kwargs):
         try:
             qs = self.get_queryset()
@@ -120,7 +114,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def contacts_exclude(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -137,7 +131,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def validate_pins(self, request, *args, **kwargs):
         try:
             self.allow_external = True
@@ -166,7 +160,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    # @detail_route(methods=['POST',])
+    # @action(detail=True,methods=['POST',])
     # def unlink_user(self, request, *args, **kwargs):
     #     try:
     #         instance = self.get_object()
@@ -192,7 +186,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
     #         print(traceback.print_exc())
     #         raise serializers.ValidationError(str(e)) 
 
-    @detail_route(methods=['POST', ])
+    @action(detail=True,methods=['POST', ])
     def accept_user(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -214,7 +208,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST', ])
+    @action(detail=True,methods=['POST', ])
     def accept_declined_user(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -237,7 +231,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def decline_user(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -260,7 +254,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def unlink_user(self, request, *args, **kwargs):
         try:
             self.allow_external = True
@@ -286,7 +280,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
 
 
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def make_admin_user(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -308,7 +302,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def make_user(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -329,7 +323,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def make_consultant(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -352,7 +346,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def suspend_user(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -375,7 +369,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def reinstate_user(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -398,7 +392,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def relink_user(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -421,7 +415,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def action_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -438,7 +432,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def proposals(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -455,7 +449,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def comms_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -472,7 +466,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     @renderer_classes((JSONRenderer,))
     def add_comms_log(self, request, *args, **kwargs):
         try:
@@ -510,7 +504,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
 
     
 
-    @list_route(methods=['POST',])
+    @action(detail=False,methods=['POST',])
     def existance(self, request, *args, **kwargs):
         try:
             serializer = OrganisationCheckSerializer(data=request.data)
@@ -531,8 +525,10 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def update_details(self, request, *args, **kwargs):
+        #TODO fix for segregation
+        return
         try:
             org = self.get_object()
             instance = org.organisation
@@ -552,7 +548,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def update_address(self, request, *args, **kwargs):
         try:
             org = self.get_object()
@@ -591,12 +587,12 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
         if is_internal(self.request):
             qs = OrganisationRequest.objects.all().order_by('-lodgement_date')
             return qs
-        elif is_customer(self.request):
+        elif user.is_authenticated:
             return user.organisationrequest_set.all()
         return OrganisationRequest.objects.none()
 
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def datatable_list(self, request, *args, **kwargs):
         try:
             template_group = get_template_group(request)
@@ -613,7 +609,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @list_route(methods=['GET',])
+    @action(detail=False,methods=['GET',])
     def user_list(self, request, *args, **kwargs):
         try:
             qs = self.get_queryset().filter(requester = request.user, status='with_assessor')
@@ -630,7 +626,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
-    @list_route(methods=['GET', ])
+    @action(detail=False,methods=['GET', ])
     def get_pending_requests(self, request, *args, **kwargs):
         try:
             qs = self.get_queryset().filter(requester=request.user, status='with_assessor')
@@ -646,7 +642,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @list_route(methods=['GET', ])
+    @action(detail=False,methods=['GET', ])
     def get_amendment_requested_requests(self, request, *args, **kwargs):
         try:
             qs = self.get_queryset().filter(requester=request.user, status='amendment_requested')
@@ -663,7 +659,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def assign_request_user(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -680,7 +676,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def unassign(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -697,7 +693,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def accept(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -714,7 +710,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def amendment_request(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -731,7 +727,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def decline(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -749,7 +745,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     def assign_to(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -774,7 +770,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def action_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -791,7 +787,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['GET',])
+    @action(detail=True,methods=['GET',])
     def comms_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -808,7 +804,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @detail_route(methods=['POST',])
+    @action(detail=True,methods=['POST',])
     @renderer_classes((JSONRenderer,))
     def add_comms_log(self, request, *args, **kwargs):
         try:
@@ -925,7 +921,7 @@ class OrganisationContactViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return OrganisationContact.objects.all()
-        elif is_customer(self.request):
+        elif user.is_authenticated:
             user_orgs = [org.id for org in user.disturbance_organisations.all()]
             return OrganisationContact.objects.filter( Q(organisation_id__in = user_orgs) )
         return OrganisationContact.objects.none()
@@ -958,7 +954,7 @@ class MyOrganisationsViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return Organisation.objects.all()
-        elif is_customer(self.request):
+        elif user.is_authenticated:
             return user.disturbance_organisations.all()
         return Organisation.objects.none()
 

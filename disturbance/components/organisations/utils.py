@@ -4,7 +4,7 @@ import random
 
 def can_manage_org(organisation,user):
     from disturbance.components.organisations.models import Organisation, OrganisationAccessGroup,UserDelegation
-    from ledger.accounts.models import EmailUser
+    from ledger_api_client.ledger_models import EmailUserRO as EmailUser
     try:
         UserDelegation.objects.get(organisation=organisation,user=user)
         return can_admin_org(organisation, user)
@@ -40,7 +40,7 @@ def is_last_admin(organisation, user):
 
 def can_admin_org(organisation,user):
     from disturbance.components.organisations.models import Organisation, OrganisationAccessGroup,UserDelegation,OrganisationContact
-    from ledger.accounts.models import EmailUser
+    from ledger_api_client.ledger_models import EmailUserRO as EmailUser
     try:
         org_contact=OrganisationContact.objects.get(organisation_id=organisation,email=user.email)
         # if org_contact.can_edit
@@ -79,7 +79,7 @@ def can_approve(organisation, user):
 
 def is_consultant(organisation,user):
     from disturbance.components.organisations.models import Organisation, OrganisationAccessGroup,UserDelegation,OrganisationContact
-    from ledger.accounts.models import EmailUser
+    from ledger_api_client.ledger_models import EmailUserRO as EmailUser
     try:
         org_contact=OrganisationContact.objects.get(organisation_id=organisation,email=user.email)
         # if org_contact.can_edit
@@ -133,18 +133,3 @@ def add_admin_user():
                     print(org_contact)
             except OrganisationContact.DoesNotExist:
                 pass    
-
-#This script is to make Walter as admin user for DBCA in production:
-def make_walter_admin_user():
-    from disturbance.components.organisations.models import Organisation
-    from disturbance.components.organisations.models import OrganisationContact
-    try:
-        contact_email='walter.genuit@dbca.wa.gov.au'
-        org_contact=OrganisationContact.objects.get(organisation_id=2, email=contact_email)
-        print(org_contact)
-        if org_contact:
-            org_contact.user_role ='organisation_admin'
-            org_contact.is_admin = True
-            org_contact.save()
-    except:
-        pass

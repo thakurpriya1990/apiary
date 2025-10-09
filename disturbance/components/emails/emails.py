@@ -4,12 +4,12 @@ import mimetypes
 import six
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template import loader, Template
 from django.utils.html import strip_tags
 from confy import env
 
-from ledger.accounts.models import Document
+from disturbance.components.main.models import Document
 
 logger = logging.getLogger('log')
 

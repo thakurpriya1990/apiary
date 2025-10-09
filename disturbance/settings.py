@@ -1,14 +1,14 @@
 from django.core.exceptions import ImproperlyConfigured
 
 import os, hashlib
-import confy
+from confy import env
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-confy.read_environment_file(BASE_DIR+"/.env")
+#confy.read_environment_file(BASE_DIR+"/.env")
 os.environ.setdefault("BASE_DIR", BASE_DIR)
 
-from ledger.settings_base import *
+from ledger_api_client.settings_base import *
 
-
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 ROOT_URLCONF = 'disturbance.urls'
 SITE_ID = 1
 DEPT_DOMAINS = env('DEPT_DOMAINS', ['dpaw.wa.gov.au', 'dbca.wa.gov.au'])
@@ -24,6 +24,7 @@ APIARY_MIGRATED_LICENCES_APPROVER = env('APIARY_MIGRATED_LICENCES_APPROVER', 'ja
 SHOW_ROOT_API = env('SHOW_ROOT_API', False)
 
 INSTALLED_APPS += [
+    'reversion',
     'reversion_compare',
     'bootstrap3',
     'disturbance',
@@ -33,7 +34,7 @@ INSTALLED_APPS += [
     'disturbance.components.proposals',
     'disturbance.components.approvals',
     'disturbance.components.compliances',
-    'disturbance.components.das_payments',
+    'disturbance.components.ap_payments',
     'disturbance.components.history',
     'taggit',
     'rest_framework',
@@ -43,6 +44,8 @@ INSTALLED_APPS += [
     'ckeditor',
     # 'corsheaders',
     'smart_selects',
+    'ledger_api_client',
+    'webtemplate_dbca',
 ]
 
 ADD_REVERSION_ADMIN=True
@@ -78,16 +81,18 @@ REST_FRAMEWORK = {
 USE_DJANGO_JQUERY= True
 # JQUERY_URL = True
 
+MIDDLEWARE = (
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+)
+
 MIDDLEWARE_CLASSES += [
-    'disturbance.middleware.BookingTimerMiddleware',
     'disturbance.middleware.FirstTimeNagScreenMiddleware',
     'disturbance.middleware.RevisionOverrideMiddleware',
-    'disturbance.middleware.DomainDetectMiddleware',
     'disturbance.middleware.CacheControlMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    # 'corsheaders.middleware.CorsMiddleware',
 ]
-# CORS_ORIGIN_ALLOW_ALL = True
 
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance', 'templates'))
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance','components','organisations', 'templates'))
@@ -197,11 +202,7 @@ SITE_STATUS_DISCARDED = 'discarded'
 BASE_EMAIL_TEXT = ''
 BASE_EMAIL_HTML = ''
 
-# This is either 'das'/'apiary'
-# default: 'das'
-# This value is determined at the middleware, DomainDetectMiddleware by where the request comes from
-DOMAIN_DETECTED = 'das'
-HTTP_HOST_FOR_TEST = 'localhost:8071'
+HTTP_HOST_FOR_TEST = 'localhost:9061'
 
 # Additional logging for commercialoperator
 LOGGING['loggers']['disturbance'] = {
@@ -247,3 +248,22 @@ print(json.dumps(LOGGING, indent=4))
 
 KMI_SERVER_URL = env('KMI_SERVER_URL', 'https://kmi.dbca.wa.gov.au')
 DEV_APP_BUILD_URL = env('DEV_APP_BUILD_URL')  # URL of the Dev app.js served by webpack & express
+
+TEMPLATE_TITLE = "Apiary System"
+TEMPLATE_HEADER_LOGO = "/static/disturbance/img/dbca-logo.png"
+TEMPLATE_GROUP = "parkswildlifev2"
+
+LEDGER_TEMPLATE = "bootstrap5"
+
+# Use git commit hash for purging cache in browser for deployment changes
+GIT_COMMIT_HASH = os.popen(
+    f"cd {BASE_DIR}; git log -1 --format=%H"
+).read()  
+GIT_COMMIT_DATE = os.popen(
+    f"cd {BASE_DIR}; git log -1 --format=%cd"
+).read()  
+if len(GIT_COMMIT_HASH) == 0:
+    GIT_COMMIT_HASH = os.popen("cat /app/git_hash").read()
+APPLICATION_VERSION = env("APPLICATION_VERSION", "1.0.0") + "-" + GIT_COMMIT_HASH[:7]
+
+APIARY_EXTERNAL_URL = env('APIARY_EXTERNAL_URL', 'External url not configured')
