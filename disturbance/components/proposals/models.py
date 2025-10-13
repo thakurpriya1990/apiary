@@ -155,12 +155,14 @@ class ProposalAssessorGroupMember(models.Model):
     )
 
     class Meta:
+        app_label = 'disturbance'
         db_table = "disturbance_proposalassessorgroup_members"
         unique_together=('proposalassessorgroup','emailuser')
 
 class ProposalAssessorGroup(models.Model):
     name = models.CharField(max_length=255)
     members = models.ManyToManyField(EmailUser, through=ProposalAssessorGroupMember, through_fields=('proposalassessorgroup','emailuser'))
+    # members = models.ManyToManyField(EmailUser)
     region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.CASCADE)
     default = models.BooleanField(default=False)
 
@@ -225,12 +227,14 @@ class ProposalApproverGroupMember(models.Model):
     )
 
     class Meta:
+        app_label = 'disturbance'
         db_table = "disturbance_proposalapprovergroup_members"
         unique_together=('proposalapprovergroup','emailuser')
 
 class ProposalApproverGroup(models.Model):
     name = models.CharField(max_length=255)
     members = models.ManyToManyField(EmailUser, through=ProposalApproverGroupMember, through_fields=('proposalapprovergroup','emailuser'))
+    # members = models.ManyToManyField(EmailUser)
     region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.CASCADE)
     default = models.BooleanField(default=False)
 
@@ -2221,6 +2225,7 @@ class ApiaryReferralGroupMember(models.Model):
     )
 
     class Meta:
+        app_label = 'disturbance'
         db_table = "disturbance_apiaryreferralgroup_members"
         unique_together=('apiaryreferralgroup','emailuser')
 
@@ -2228,6 +2233,7 @@ class ApiaryReferralGroupMember(models.Model):
 class ApiaryReferralGroup(models.Model):
     name = models.CharField(max_length=30, unique=True)
     members = models.ManyToManyField(EmailUser, through=ApiaryReferralGroupMember, through_fields=('apiaryreferralgroup','emailuser'))
+    # members = models.ManyToManyField(EmailUser)
     region = models.ForeignKey(Region, blank=True, null=True, on_delete=models.PROTECT)
     district = ChainedForeignKey(
         District,
@@ -4290,12 +4296,14 @@ class ApiaryAssessorGroupMember(models.Model):
     )
 
     class Meta:
+        app_label = 'disturbance'
         db_table = "disturbance_apiaryassessorgroup_members"
         unique_together=('apiaryassessorgroup','emailuser')
 
+
 class ApiaryAssessorGroup(models.Model):
-    members = models.ManyToManyField(EmailUser, through=ApiaryAssessorGroupMember,
-            through_fields=('apiaryassessorgroup', 'emailuser'))
+    members = models.ManyToManyField(EmailUser, through=ApiaryAssessorGroupMember, through_fields=('apiaryassessorgroup', 'emailuser'))
+    # members = models.ManyToManyField(EmailUser)
 
     def __str__(self):
         return 'Apiary Assessors Group'
@@ -4335,13 +4343,14 @@ class ApiaryApproverGroupMember(models.Model):
     )
 
     class Meta:
+        app_label = 'disturbance'
         db_table = "disturbance_apiaryapprovergroup_members"
         unique_together=('apiaryapprovergroup','emailuser')
 
 #TODO consider replacing with System Group
 class ApiaryApproverGroup(models.Model):
-    members = models.ManyToManyField(EmailUser, through=ApiaryApproverGroupMember,
-            through_fields=('apiaryapprovergroup', 'emailuser'))
+    members = models.ManyToManyField(EmailUser, through=ApiaryApproverGroupMember, through_fields=('apiaryapprovergroup', 'emailuser'))
+    # members = models.ManyToManyField(EmailUser)
 
     def __str__(self):
         return 'Apiary Approvers Group'

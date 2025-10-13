@@ -225,7 +225,8 @@ class Migration(migrations.Migration):
             name='OrganisationAccessGroup',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('members', models.ManyToManyField(through='disturbance.OrganisationAccessGroup', to=settings.AUTH_USER_MODEL)),
+                # ('members', models.ManyToManyField(through='disturbance.OrganisationAccessGroup', to=settings.AUTH_USER_MODEL)),
+                ('members', models.ManyToManyField(to=settings.AUTH_USER_MODEL)),
                 ('site', models.OneToOneField(default='1', on_delete=django.db.models.deletion.CASCADE, to='sites.Site')),
             ],
             options={
@@ -256,7 +257,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='Document',
+            name='LedgerDocument',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(blank=True, max_length=100, verbose_name='name')),
@@ -267,10 +268,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='OrganisationLogDocument',
             fields=[
-                ('ledgerdocument_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='disturbance.Document')),
+                ('document_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='disturbance.LedgerDocument')),
                 ('_file', models.FileField(upload_to=disturbance.components.organisations.models.update_organisation_comms_log_filename)),
             ],
-            bases=('disturbance.document',),
+            bases=('disturbance.ledgerdocument',),
         ),
         migrations.CreateModel(
             name='OrganisationRequest',
@@ -297,10 +298,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='OrganisationRequestLogDocument',
             fields=[
-                ('ledgerdocument_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='disturbance.Document')),
+                ('document_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='disturbance.LedgerDocument')),
                 ('_file', models.FileField(upload_to=disturbance.components.organisations.models.update_organisation_request_comms_log_filename)),
             ],
-            bases=('disturbance.document',),
+            bases=('disturbance.ledgerdocument',),
         ),
         migrations.CreateModel(
             name='OrganisationRequestUserAction',
@@ -348,7 +349,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
                 ('default', models.BooleanField(default=False)),
-                ('members', models.ManyToManyField(through='disturbance.ProposalApproverGroupMember',to=settings.AUTH_USER_MODEL)),
+                # ('members', models.ManyToManyField(through='disturbance.ProposalApproverGroupMember',to=settings.AUTH_USER_MODEL)),
+                ('members', models.ManyToManyField(to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
@@ -357,7 +359,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
                 ('default', models.BooleanField(default=False)),
-                ('members', models.ManyToManyField(through='disturbance.ProposalAssessorGroupMember',to=settings.AUTH_USER_MODEL)),
+                # ('members', models.ManyToManyField(through='disturbance.ProposalAssessorGroupMember',to=settings.AUTH_USER_MODEL)),
+                ('members', models.ManyToManyField(to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
