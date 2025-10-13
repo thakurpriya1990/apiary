@@ -780,28 +780,29 @@ class OrganisationRequest(models.Model):
     def __str__(self):
         return 'name: {}, id {}'.format(self.name, self.id)
 
-# class ApiaryOrganisationAccessGroupMember(models.Model):
+class ApiaryOrganisationAccessGroupMember(models.Model):
 
-#     emailuser = models.ForeignKey(
-#         EmailUser, 
-#         null=False,
-#         on_delete=models.CASCADE
-#     )
+    emailuser = models.ForeignKey(
+        EmailUser, 
+        null=False,
+        on_delete=models.CASCADE
+    )
 
-#     apiaryorganisationaccessgroup = models.ForeignKey(
-#         'disturbance.ApiaryOrganisationAccessGroup', 
-#         null=False,
-#         on_delete=models.CASCADE
-#     )
+    apiaryorganisationaccessgroup = models.ForeignKey(
+        'disturbance.ApiaryOrganisationAccessGroup', 
+        null=False,
+        on_delete=models.CASCADE
+    )
 
-#     class Meta:
-#         db_table = "disturbance_apiaryorganisationaccessgroup_members"
-#         unique_together=('apiaryorganisationaccessgroup','emailuser')
+    class Meta:
+        app_label = 'disturbance'
+        db_table = "disturbance_apiaryorganisationaccessgroup_members"
+        unique_together=('apiaryorganisationaccessgroup','emailuser')
 
 class ApiaryOrganisationAccessGroup(models.Model):
     site = models.OneToOneField(Site, default='1', on_delete=models.CASCADE) 
-    # members = models.ManyToManyField(EmailUser, through=ApiaryOrganisationAccessGroupMember, through_fields=('apiaryorganisationaccessgroup','emailuser'))
-    members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=ApiaryOrganisationAccessGroupMember, through_fields=('apiaryorganisationaccessgroup','emailuser'))
+    # members = models.ManyToManyField(EmailUser)
 
     def __str__(self):
         return 'Apiary Organisation Access Group'
@@ -822,28 +823,29 @@ class ApiaryOrganisationAccessGroup(models.Model):
         app_label = 'disturbance'
         verbose_name_plural = "Apiary Organisation access group"
 
-# class OrganisationAccessGroupMember(models.Model):
+class OrganisationAccessGroupMember(models.Model):
 
-#     emailuser = models.ForeignKey(
-#         EmailUser, 
-#         null=False,
-#         on_delete=models.CASCADE
-#     )
+    emailuser = models.ForeignKey(
+        EmailUser, 
+        null=False,
+        on_delete=models.CASCADE
+    )
 
-#     organisationaccessgroup = models.ForeignKey(
-#         'disturbance.OrganisationAccessGroup', 
-#         null=False,
-#         on_delete=models.CASCADE
-#     )
+    organisationaccessgroup = models.ForeignKey(
+        'disturbance.OrganisationAccessGroup', 
+        null=False,
+        on_delete=models.CASCADE
+    )
 
-#     class Meta:
-#         db_table = "disturbance_organisationaccessgroup_members"
-#         unique_together=('organisationaccessgroup','emailuser')
+    class Meta:
+        app_label = 'disturbance'
+        db_table = "disturbance_organisationaccessgroup_members"
+        unique_together=('organisationaccessgroup','emailuser')
 
 class OrganisationAccessGroup(models.Model):
     site = models.OneToOneField(Site, default='1', on_delete=models.CASCADE) 
-    # members = models.ManyToManyField(EmailUser, through=OrganisationAccessGroupMember, through_fields=('organisationaccessgroup','emailuser'))
-    members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=OrganisationAccessGroupMember, through_fields=('organisationaccessgroup','emailuser'))
+    # members = models.ManyToManyField(EmailUser)
 
     def __str__(self):
         return 'Organisation Access Group'
