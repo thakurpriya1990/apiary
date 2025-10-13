@@ -11,7 +11,7 @@ GRANT ALL ON SCHEMA public TO apiary_dev;
 
 ## Step 2: Dump data from the ledger_prod
 ```
-pg_dump -U ledger_prod -W --exclude-table='django_cron*' -t 'disturbance_*' -t 'django_*' -t 'taggit_*' -t 'auth_group' -t 'auth_permission' ledger_prod -h <host> > apiary_ledger_tables_YYYYMMDD.sql
+pg_dump -U ledger_prod -W --exclude-table='django_cron*' -t 'disturbance_*' -t 'django_*' -t 'taggit_*' -t 'auth_group' -t 'auth_permission' -t 'accounts_document' ledger_prod -h <host> > apiary_ledger_tables_YYYYMMDD.sql
 ```
 Enter password for the ledger_prod database
 
@@ -29,9 +29,6 @@ psql "host=127.0.0.1 port=5432 dbname=apiary_dev user=apiary_dev password=<passw
 
 
 ## Step 4: Fix and Apply migrations
-### 0. Path the django migrations for M2M relations
-TODO: include patch instructions
-
 ### 1. Create copy of table: django_migrations
 ```
 CREATE TABLE django_migrations_temp AS SELECT * from django_migrations;
@@ -52,12 +49,10 @@ insert into django_migrations (id,app,name,applied) select * from  django_migrat
 ```
 delete from django_migrations where app = 'django_cron';
 ```
-<!-- ### 6. Drop the django_cron table
+### 6. Apply other migrations
 ```
-drop table django_cron_cronjoblog;
-``` -->
-
-
-### Unpatch step0
-
-
+./manage_ds.py migrate admin
+./manage_ds.py migrate django_cron
+./manage_ds.py migrate disturbance
+./manage_ds.py migrate
+```
