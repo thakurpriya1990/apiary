@@ -19,7 +19,7 @@ Enter password for the ledger_prod database
 ## Step 3: Import dumped data and reversion schema into newly created database
 ```
 psql -U apiary_dev apiary_dev -W -h <host> < /tmp/apiary_ledger_tables_YYYYMMDD.sql
-psql -U apiary_dev apiary_dev -W -h localhost < /tmp/reversion_schema_apiary_ledger_tables.sql
+psql -U apiary_dev apiary_dev -W -h <host> < /tmp/reversion_schema_apiary_ledger_tables.sql
 ```
 Enter password for the apiary_dev database
 
