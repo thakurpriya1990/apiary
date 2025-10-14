@@ -9,24 +9,19 @@ GRANT ALL ON ALL TABLES IN SCHEMA public TO apiary_dev;
 GRANT ALL ON SCHEMA public TO apiary_dev;
 ```
 
-## Step 2: Dump data from the ledger_prod
+## Step 2: Dump data and reversion schema from the ledger_prod
 ```
-pg_dump -U ledger_prod -W --exclude-table='django_cron*' -t 'disturbance_*' -t 'django_*' -t 'taggit_*' -t 'auth_group' -t 'auth_permission' -t 'accounts_document' ledger_prod -h <host> > apiary_ledger_tables_YYYYMMDD.sql
+pg_dump -U ledger_prod -W --exclude-table='django_cron*' -t 'disturbance_*' -t 'django_*' -t 'taggit_*' -t 'auth_group' -t 'auth_permission' -t 'accounts_document' ledger_prod -h <host> > /tmp/apiary_ledger_tables_YYYYMMDD.sql
+pg_dump --schema-only -U ledger_prod -W -t 'reversion_*' -h <host> > /tmp/reversion_schema_apiary_ledger_tables.sql
 ```
 Enter password for the ledger_prod database
 
-pg_dump --schema-only -U ledger_prod -W -t 'reversion_*' -h <host> > /tmp/reversion_schema_apiary_ledger_tables.sql
-
-
-## Step 3: Import dumped data into newly created database
+## Step 3: Import dumped data and reversion schema into newly created database
 ```
-psql -U apiary_dev apiary_dev -W -h <host> < apiary_ledger_tables_YYYYMMDD.sql
+psql -U apiary_dev apiary_dev -W -h <host> < /tmp/apiary_ledger_tables_YYYYMMDD.sql
+psql -U apiary_dev apiary_dev -W -h localhost < /tmp/reversion_schema_apiary_ledger_tables.sql
 ```
 Enter password for the apiary_dev database
-
-psql "host=127.0.0.1 port=5432 dbname=apiary_dev user=apiary_dev password=<password>" < /tmp/reversion_schema_apiary_ledger_tables.sql
-
-
 
 ## Step 4: Fix and Apply migrations
 ### 1. Create copy of table: django_migrations
