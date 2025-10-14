@@ -55,7 +55,7 @@ from rest_framework import status
 from django.conf import settings
 
 import logging
-logger = logging.getLogger('apiary')
+logger = logging.getLogger(__name__)
 
 
 class AnnualRentalFeeView(TemplateView):

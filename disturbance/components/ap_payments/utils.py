@@ -24,7 +24,7 @@ import logging
 
 from disturbance.settings import DEBUG, PRODUCTION_EMAIL, ANNUAL_RENTAL_FEE_GST_EXEMPT
 
-logger = logging.getLogger('apiary')
+logger = logging.getLogger(__name__)
 
 
 def get_session_application_invoice(session):
