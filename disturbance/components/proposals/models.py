@@ -444,6 +444,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     fee_invoice_references = ArrayField(models.CharField(max_length=50, null=True, blank=True, default=''), null=True, default=fee_invoice_references_default)
     migrated = models.BooleanField(default=False)
     reissued = models.BooleanField(default=False)
+    #prefill_requested = models.BooleanField(default=False)
 
 
     class Meta:
