@@ -60,7 +60,14 @@ class ProposalAdmin(VersionAdmin):
     inlines =[ProposalDocumentInline,]
     list_display = ['lodgement_number', 'application_type', 'proposal_type', 'processing_status']
     search_fields = ['lodgement_number', 'application_type__name', 'proposal_type', 'processing_status']
-    raw_id_fields = ('applicant','proxy_applicant','submitter','previous_application', 'assigned_officer', 'assigned_approver')
+    #raw_id_fields = ('applicant','proxy_applicant','submitter','previous_application', 'assigned_officer', 'assigned_approver')
+    raw_id_fields = ('applicant','proxy_applicant','submitter','previous_application', 'assigned_officer', 'assigned_approver', 'approval')
+    readonly_fields = ['approval_level_document']
+
+@admin.register(models.ApiarySite)
+class ApiarySite(admin.ModelAdmin):
+    list_display = ['id', 'site_guid','is_vacant']
+    readonly_fields = ['site_guid','is_vacant','latest_proposal_link','latest_approval_link','proposal_link_for_vacant','approval_link_for_vacant', 'coordinates']
 
 #TODO check if need for apiary
 @admin.register(models.ProposalAssessorGroup)
