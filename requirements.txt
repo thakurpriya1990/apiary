@@ -1,4 +1,4 @@
-Django~=3.2.25
+Django~=5.2.4
 django-extensions~=3.2.3
 git+https://github.com/dbca-wa/ledger_api_client.git
 git+https://github.com/dbca-wa/dpaw-utils.git@0.4.2#egg=dpaw-utils
