@@ -12,7 +12,7 @@
             "python": "${workspaceFolder}/venv/bin/python",
             "args": [
                 "runserver",
-                "0.0.0.0:9071"
+                "0.0.0.0:9061"
             ],
             "django": true,
             "autoStartBrowser": false,
