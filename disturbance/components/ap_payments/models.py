@@ -141,7 +141,7 @@ class AnnualRentalFee(Payment):
     invoice_period_start_date = models.DateField(null=True, blank=True)
     invoice_period_end_date = models.DateField(null=True, blank=True)
     invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
-    lines = JSONField(default=[''],)
+    lines = JSONField(default=lambda: [''])
 
     def __str__(self):
         return 'Approval {} : Invoice {}'.format(self.approval, self.invoice_reference)
