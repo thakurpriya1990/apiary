@@ -6,7 +6,7 @@ from disturbance.components.main.utils import custom_strftime
 from disturbance.components.proposals import models, forms
 from disturbance.components.main.models import SystemMaintenance, ApplicationType, ApiaryGlobalSettings
 from reversion.admin import VersionAdmin
-from django.conf.urls import url
+from django.urls import re_path
 from django.http import HttpResponseRedirect
 from disturbance.utils import create_helppage_object
 from disturbance.helpers import is_apiary_admin, is_disturbance_admin, is_das_apiary_admin
@@ -179,10 +179,10 @@ class HelpPageAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super(HelpPageAdmin, self).get_urls()
         my_urls = [
-            url('create_disturbance_help/', self.admin_site.admin_view(self.create_disturbance_help)),
-            url('create_apiary_help/', self.admin_site.admin_view(self.create_apiary_help)),
-            url('create_disturbance_help_assessor/', self.admin_site.admin_view(self.create_disturbance_help_assessor)),
-            url('create_apiary_help_assessor/', self.admin_site.admin_view(self.create_apiary_help_assessor)),
+            re_path('create_disturbance_help/', self.admin_site.admin_view(self.create_disturbance_help)),
+            re_path('create_apiary_help/', self.admin_site.admin_view(self.create_apiary_help)),
+            re_path('create_disturbance_help_assessor/', self.admin_site.admin_view(self.create_disturbance_help_assessor)),
+            re_path('create_apiary_help_assessor/', self.admin_site.admin_view(self.create_apiary_help_assessor)),
         ]
         return my_urls + urls
 
