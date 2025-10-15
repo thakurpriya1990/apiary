@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from datetime import datetime, timedelta
 
-from django.contrib.postgres.fields import JSONField
+from django.db.models import JSONField
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models, transaction
 from six import python_2_unicode_compatible

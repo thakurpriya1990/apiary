@@ -6,7 +6,7 @@ from django.db.models import Q, Max
 from django.dispatch import receiver
 from django.db.models.signals import pre_delete
 from django.core.exceptions import ValidationError
-from django.contrib.postgres.fields.jsonb import JSONField
+from django.db.models import JSONField
 from django.utils import timezone
 from django.contrib.gis.db.models.fields import PointField
 from django.db.models import Manager as GeoManager
