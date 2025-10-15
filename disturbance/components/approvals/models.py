@@ -101,7 +101,7 @@ class ApiarySiteOnApproval(models.Model):
     roadtrack = models.CharField(max_length=40, blank=True, null=True)
     zone = models.CharField(max_length=40, blank=True, null=True)
     catchment = models.CharField(max_length=40, blank=True, null=True)
-    dra_permit = models.NullBooleanField()
+    dra_permit = models.BooleanField(null=True, blank=True)
 
     objects = GeoManager()
 
