@@ -795,12 +795,14 @@ class ApiaryOrganisationAccessGroupMember(models.Model):
     )
 
     class Meta:
+        app_label = 'disturbance'
         db_table = "disturbance_apiaryorganisationaccessgroup_members"
         unique_together=('apiaryorganisationaccessgroup','emailuser')
 
 class ApiaryOrganisationAccessGroup(models.Model):
     site = models.OneToOneField(Site, default='1', on_delete=models.CASCADE) 
     members = models.ManyToManyField(EmailUser, through=ApiaryOrganisationAccessGroupMember, through_fields=('apiaryorganisationaccessgroup','emailuser'))
+    # members = models.ManyToManyField(EmailUser)
 
     def __str__(self):
         return 'Apiary Organisation Access Group'
@@ -836,12 +838,14 @@ class OrganisationAccessGroupMember(models.Model):
     )
 
     class Meta:
+        app_label = 'disturbance'
         db_table = "disturbance_organisationaccessgroup_members"
         unique_together=('organisationaccessgroup','emailuser')
 
 class OrganisationAccessGroup(models.Model):
     site = models.OneToOneField(Site, default='1', on_delete=models.CASCADE) 
     members = models.ManyToManyField(EmailUser, through=OrganisationAccessGroupMember, through_fields=('organisationaccessgroup','emailuser'))
+    # members = models.ManyToManyField(EmailUser)
 
     def __str__(self):
         return 'Organisation Access Group'
