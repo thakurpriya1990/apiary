@@ -4262,7 +4262,7 @@ class ApiaryChecklistQuestion(RevisionedMixin):
 
 class ApiaryChecklistAnswer(models.Model):
     question=models.ForeignKey(ApiaryChecklistQuestion, related_name='answers', on_delete=models.CASCADE)
-    answer = models.NullBooleanField()
+    answer = models.BooleanField(null=True, blank=True)
     proposal = models.ForeignKey(ProposalApiary, related_name="apiary_checklist", on_delete=models.CASCADE)
     apiary_referral = models.ForeignKey('ApiaryReferral', related_name="apiary_checklist_referral", blank=True, null=True, on_delete=models.CASCADE)
     text_answer = models.TextField(blank=True, null=True)
