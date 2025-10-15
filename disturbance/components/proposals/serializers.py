@@ -259,6 +259,7 @@ class ProposalSerializer(BaseProposalSerializer):
     apiary_group_application_type = serializers.SerializerMethodField()
     # region_name=serializers.CharField(source='region.name', read_only=True)
     # district_name=serializers.CharField(source='district.name', read_only=True)
+    is_internal_user = serializers.SerializerMethodField()
 
     class Meta:
         model = Proposal
@@ -270,6 +271,8 @@ class ProposalSerializer(BaseProposalSerializer):
             'region_name',
             'district_name',
             # 'apiary_temporary_use_set',
+            'is_internal_user',
+
         )
 
     def get_readonly(self,obj):
@@ -287,6 +290,13 @@ class ProposalSerializer(BaseProposalSerializer):
 
     def get_apiary_group_application_type(self, obj):
         return obj.apiary_group_application_type
+    
+    def get_is_internal_user(self, obj):
+        try:
+            request = self.context.get('request')
+            return is_internal(request)
+        except:
+            return False
 
 
 class SaveProposalSerializer(BaseProposalSerializer):
