@@ -68,7 +68,7 @@ WSGI_APPLICATION = 'disturbance.wsgi.application'
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
+        #'rest_framework.renderers.BrowsableAPIRenderer',
         'rest_framework_datatables.renderers.DatatablesRenderer',
     ),
     #'DEFAULT_FILTER_BACKENDS': (
@@ -244,7 +244,7 @@ LOGGING['loggers']['apiary'] = {
 # LOGGING['loggers']['']['propagate'] = False
 
 import json
-print(json.dumps(LOGGING, indent=4))
+#print(json.dumps(LOGGING, indent=4))
 
 KMI_SERVER_URL = env('KMI_SERVER_URL', 'https://kmi.dbca.wa.gov.au')
 DEV_APP_BUILD_URL = env('DEV_APP_BUILD_URL')  # URL of the Dev app.js served by webpack & express
