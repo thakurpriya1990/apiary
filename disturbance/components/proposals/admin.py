@@ -73,6 +73,7 @@ class ApiarySite(admin.ModelAdmin):
 class ProposalAssessorGroupMembershipInline(admin.TabularInline):
     model = models.ProposalAssessorGroupMember
     extra = 1
+    raw_id_fields = ('emailuser',)
 
 
 @admin.register(models.ProposalAssessorGroup)
@@ -92,6 +93,7 @@ class ProposalAssessorGroupAdmin(admin.ModelAdmin):
 class ProposalApproverGroupMembershipInline(admin.TabularInline):
     model = models.ProposalApproverGroupMember
     extra = 1
+    raw_id_fields = ('emailuser',)
 
 #TODO check if need for apiary
 @admin.register(models.ProposalApproverGroup)
@@ -111,6 +113,7 @@ class ProposalApproverGroupAdmin(admin.ModelAdmin):
 class ApiaryReferralGroupMembershipInline(admin.TabularInline):
     model = models.ApiaryReferralGroupMember
     extra = 1
+    raw_id_fields = ('emailuser',)
 
 
 @admin.register(models.ApiaryReferralGroup)
@@ -130,6 +133,7 @@ class ApiaryReferralGroupAdmin(admin.ModelAdmin):
 class ApiaryAssessorGroupMembershipInline(admin.TabularInline):
     model = models.ApiaryAssessorGroupMember
     extra = 1
+    raw_id_fields = ('emailuser',)
 
 @admin.register(models.ApiaryAssessorGroup)
 class ApiaryAssessorGroupAdmin(admin.ModelAdmin):
@@ -152,6 +156,7 @@ class ApiaryAssessorGroupAdmin(admin.ModelAdmin):
 class ApiaryApproverGroupMembershipInline(admin.TabularInline):
     model = models.ApiaryApproverGroupMember
     extra = 1
+    raw_id_fields = ('emailuser',)
 
 @admin.register(models.ApiaryApproverGroup)
 class ApiaryApproverGroupAdmin(admin.ModelAdmin):
