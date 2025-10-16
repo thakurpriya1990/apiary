@@ -51,13 +51,3 @@ delete from django_migrations where app = 'django_cron';
 ./manage_ds.py migrate disturbance
 ./manage_ds.py migrate
 ```
-### 7.  Fake migrations
-```
-./manage_ds.py migrate disturbance 0295_proposal_prefill_requested --fake
-./manage_ds.py migrate disturbance 
-(To apply 0296 migration)
-./manage_ds.py migrate disturbance 0297_apiarysite_exempt_from_radius_restriction --fake
-```
-
-
-
