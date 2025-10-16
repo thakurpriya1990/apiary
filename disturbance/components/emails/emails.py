@@ -11,7 +11,7 @@ from confy import env
 
 from disturbance.components.main.models import Document
 
-logger = logging.getLogger('log')
+logger = logging.getLogger(__name__)
 
 
 def _render(template, context):

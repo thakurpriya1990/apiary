@@ -78,3 +78,14 @@ admin.site.register(SystemGroup, CustomSystemGroupAdmin)
 # Remove any model admins that are not required for the application
 admin.site.unregister(Group)
 admin.site.unregister(Site)
+
+# Import admin modules from each component to ensure they are registered with the admin site.
+# After consolidating the application configuration into a single 'disturbance' app in INSTALLED_APPS,
+# Django's admin autodiscover mechanism no longer automatically scans sub-component directories.
+# This file now serves as the central entry point for all admin registrations within the 'disturbance' application.
+from disturbance.components.main import admin
+from disturbance.components.proposals import admin
+from disturbance.components.organisations import admin
+from disturbance.components.users import admin
+from disturbance.components.approvals import admin
+from disturbance.components.compliances import admin

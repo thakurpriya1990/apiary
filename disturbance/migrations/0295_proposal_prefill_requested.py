@@ -10,9 +10,31 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='proposal',
-            name='prefill_requested',
-            field=models.BooleanField(default=False),
-        ),
+        # migrations.AddField(
+        #     model_name='proposal',
+        #     name='prefill_requested',
+        #     field=models.BooleanField(default=False),
+        # ),
+
+        # This operation is wrapped in SeparateDatabaseAndState to align Django's model state
+        # with a pre-existing database schema during an application split.
+        # It updates the migration history without attempting to alter the database table,
+        # effectively achieving the same result as a '--fake' migration but in a declarative way.
+        migrations.SeparateDatabaseAndState(
+            # State Operations:
+            # This part tells Django that from this point forward, the Proposal model
+            # should be considered to have a 'prefill_requested' field.
+            state_operations=[
+                migrations.AddField(
+                    model_name='proposal',
+                    name='prefill_requested',
+                    field=models.BooleanField(default=False),
+                ),
+            ],
+
+            # Database Operations:
+            # An empty list here means that no SQL commands (like ALTER TABLE ... ADD COLUMN)
+            # will be executed against the database for this migration.
+            database_operations=[],
+        )
     ]
