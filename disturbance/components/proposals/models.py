@@ -3991,11 +3991,11 @@ class ApiarySite(models.Model):
     def __str__(self):
         return '{}'.format(self.id,)
 
-    def save(self, **kwargs):
+    def save(self, *args, **kwargs):
         if not self.id:
             max = ApiarySite.objects.aggregate(id_max=Max('id'))['id_max']
             self.id = int(max) + 1 if max is not None else 1
-        super().save(kwargs)
+        super().save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):
         super(ApiarySite, self).delete(using, keep_parents)
