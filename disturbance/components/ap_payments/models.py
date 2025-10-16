@@ -134,6 +134,10 @@ class AnnualRentalFeePeriod(RevisionedMixin):
         unique_together = ('period_start_date', 'period_end_date',)
 
 
+def get_default_lines():
+    return ['']
+
+
 class AnnualRentalFee(Payment):
     approval = models.ForeignKey(Approval, on_delete=models.PROTECT, blank=True, null=True, related_name='annual_rental_fees')
     created_by = models.ForeignKey(EmailUser, on_delete=models.PROTECT, blank=True, null=True, related_name='created_by_annual_rental_fees')
@@ -141,7 +145,7 @@ class AnnualRentalFee(Payment):
     invoice_period_start_date = models.DateField(null=True, blank=True)
     invoice_period_end_date = models.DateField(null=True, blank=True)
     invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
-    lines = JSONField(default=lambda: [''])
+    lines = JSONField(default=get_default_lines)
 
     def __str__(self):
         return 'Approval {} : Invoice {}'.format(self.approval, self.invoice_reference)
