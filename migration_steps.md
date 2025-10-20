@@ -40,14 +40,9 @@ python manage_ds.py migrate ledger_api_client
 ```
 insert into django_migrations (id,app,name,applied) select * from  django_migrations_temp  where id > 11;
 ```
-### 5. Delete django cron migrations so they can be created from initial migration
-```
-delete from django_migrations where app = 'django_cron';
-```
-### 6. Apply other migrations
+### 5. Apply other migrations
 ```
 ./manage_ds.py migrate admin
-./manage_ds.py migrate django_cron
 ./manage_ds.py migrate disturbance
 ./manage_ds.py migrate
 ```
