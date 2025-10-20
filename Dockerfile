@@ -1,6 +1,6 @@
 # Prepare the base environment.
 # Based on the Dockerfile: https://github.com/dbca-wa/commercialoperator/blob/cols_fe_py3/Dockerfile
-FROM ubuntu:20.04 as builder_base_cols
+FROM ubuntu:24.04 as builder_base_cols
 MAINTAINER asi@dbca.wa.gov.au
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBUG=True
