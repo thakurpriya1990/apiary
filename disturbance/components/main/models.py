@@ -8,7 +8,7 @@ from django.db.models.signals import pre_delete
 from six import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from django.contrib.postgres.fields.jsonb import JSONField
+from django.db.models import JSONField
 from datetime import date
 
 from disturbance.components.main.utils import overwrite_regions_polygons, overwrite_districts_polygons

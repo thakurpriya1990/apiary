@@ -20,7 +20,7 @@ from django.dispatch import receiver
 from django.db.models.signals import pre_delete
 from six import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
-from django.contrib.postgres.fields.jsonb import JSONField
+from django.db.models import JSONField
 from django.utils import timezone
 
 from dirtyfields import DirtyFieldsMixin
@@ -3991,11 +3991,11 @@ class ApiarySite(models.Model):
     def __str__(self):
         return '{}'.format(self.id,)
 
-    def save(self, **kwargs):
+    def save(self, *args, **kwargs):
         if not self.id:
             max = ApiarySite.objects.aggregate(id_max=Max('id'))['id_max']
             self.id = int(max) + 1 if max is not None else 1
-        super().save(kwargs)
+        super().save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):
         super(ApiarySite, self).delete(using, keep_parents)
@@ -4288,7 +4288,7 @@ class ApiaryChecklistQuestion(RevisionedMixin):
 
 class ApiaryChecklistAnswer(models.Model):
     question=models.ForeignKey(ApiaryChecklistQuestion, related_name='answers', on_delete=models.CASCADE)
-    answer = models.NullBooleanField()
+    answer = models.BooleanField(null=True, blank=True)
     proposal = models.ForeignKey(ProposalApiary, related_name="apiary_checklist", on_delete=models.CASCADE)
     apiary_referral = models.ForeignKey('ApiaryReferral', related_name="apiary_checklist_referral", blank=True, null=True, on_delete=models.CASCADE)
     text_answer = models.TextField(blank=True, null=True)
@@ -4681,7 +4681,7 @@ class MasterlistQuestion(models.Model):
     help_text_assessor_url=models.BooleanField(default=False)
     help_text=RichTextField(null=True, blank=True)
     help_text_assessor=RichTextField(null=True, blank=True)
-    property_cache = JSONField(null=True, blank=True, default={})
+    property_cache = JSONField(null=True, blank=True, default=dict)
 
     class Meta:
         app_label = 'disturbance'
@@ -4949,7 +4949,7 @@ class SectionQuestion(models.Model):
 
     tag= MultiSelectField(choices=TAG_CHOICES, max_length=400,max_choices=10, null=True, blank=True)
     order = models.PositiveIntegerField(default=1)
-    property_cache = JSONField(null=True, blank=True, default={})
+    property_cache = JSONField(null=True, blank=True, default=dict)
 
     class Meta:
         app_label = 'disturbance'

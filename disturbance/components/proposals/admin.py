@@ -6,7 +6,7 @@ from disturbance.components.main.utils import custom_strftime
 from disturbance.components.proposals import models, forms
 from disturbance.components.main.models import SystemMaintenance, ApplicationType, ApiaryGlobalSettings
 from reversion.admin import VersionAdmin
-from django.conf.urls import url
+from django.urls import re_path
 from django.http import HttpResponseRedirect
 from disturbance.utils import create_helppage_object
 from disturbance.helpers import is_apiary_admin, is_disturbance_admin, is_das_apiary_admin
@@ -69,49 +69,78 @@ class ApiarySite(admin.ModelAdmin):
     list_display = ['id', 'site_guid','is_vacant']
     readonly_fields = ['site_guid','is_vacant','latest_proposal_link','latest_approval_link','proposal_link_for_vacant','approval_link_for_vacant', 'coordinates']
 
-#TODO check if need for apiary
+
+class ProposalAssessorGroupMembershipInline(admin.TabularInline):
+    model = models.ProposalAssessorGroupMember
+    extra = 1
+    raw_id_fields = ('emailuser',)
+
+
 @admin.register(models.ProposalAssessorGroup)
 class ProposalAssessorGroupAdmin(admin.ModelAdmin):
     list_display = ['name','default']
-    filter_horizontal = ('members',)
+    # filter_horizontal = ('members',)
     form = forms.ProposalAssessorGroupAdminForm
     readonly_fields = ['default']
+    inlines = [ProposalAssessorGroupMembershipInline,]
 
     def has_delete_permission(self, request, obj=None):
         if obj and obj.default:
             return False
         return super(ProposalAssessorGroupAdmin, self).has_delete_permission(request, obj)
 
+
+class ProposalApproverGroupMembershipInline(admin.TabularInline):
+    model = models.ProposalApproverGroupMember
+    extra = 1
+    raw_id_fields = ('emailuser',)
+
 #TODO check if need for apiary
 @admin.register(models.ProposalApproverGroup)
 class ProposalApproverGroupAdmin(admin.ModelAdmin):
     list_display = ['name','default']
-    filter_horizontal = ('members',)
+    # filter_horizontal = ('members',)
     form = forms.ProposalApproverGroupAdminForm
     readonly_fields = ['default']
+    inlines = [ProposalApproverGroupMembershipInline,]
 
     def has_delete_permission(self, request, obj=None):
         if obj and obj.default:
             return False
         return super(ProposalApproverGroupAdmin, self).has_delete_permission(request, obj)
 
+
+class ApiaryReferralGroupMembershipInline(admin.TabularInline):
+    model = models.ApiaryReferralGroupMember
+    extra = 1
+    raw_id_fields = ('emailuser',)
+
+
 @admin.register(models.ApiaryReferralGroup)
 class ApiaryReferralGroupAdmin(admin.ModelAdmin):
-    filter_horizontal = ('members',)
+    # filter_horizontal = ('members',)
     list_display = ['name']
     exclude = ('site',)
     actions = None
+    inlines = [ApiaryReferralGroupMembershipInline,]
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "members":
             kwargs["queryset"] = EmailUser.objects.filter(is_staff=True)
         return super(ApiaryReferralGroupAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
+
+class ApiaryAssessorGroupMembershipInline(admin.TabularInline):
+    model = models.ApiaryAssessorGroupMember
+    extra = 1
+    raw_id_fields = ('emailuser',)
+
 @admin.register(models.ApiaryAssessorGroup)
 class ApiaryAssessorGroupAdmin(admin.ModelAdmin):
-    filter_horizontal = ('members',)
+    # filter_horizontal = ('members',)
     exclude = ('site',)
     actions = None
+    inlines = [ApiaryAssessorGroupMembershipInline,]
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "members":
@@ -124,12 +153,17 @@ class ApiaryAssessorGroupAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False 
 
+class ApiaryApproverGroupMembershipInline(admin.TabularInline):
+    model = models.ApiaryApproverGroupMember
+    extra = 1
+    raw_id_fields = ('emailuser',)
 
 @admin.register(models.ApiaryApproverGroup)
 class ApiaryApproverGroupAdmin(admin.ModelAdmin):
-    filter_horizontal = ('members',)
+    # filter_horizontal = ('members',)
     exclude = ('site',)
     actions = None
+    inlines = [ApiaryApproverGroupMembershipInline,]
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "members":
@@ -186,10 +220,10 @@ class HelpPageAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super(HelpPageAdmin, self).get_urls()
         my_urls = [
-            url('create_disturbance_help/', self.admin_site.admin_view(self.create_disturbance_help)),
-            url('create_apiary_help/', self.admin_site.admin_view(self.create_apiary_help)),
-            url('create_disturbance_help_assessor/', self.admin_site.admin_view(self.create_disturbance_help_assessor)),
-            url('create_apiary_help_assessor/', self.admin_site.admin_view(self.create_apiary_help_assessor)),
+            re_path('create_disturbance_help/', self.admin_site.admin_view(self.create_disturbance_help)),
+            re_path('create_apiary_help/', self.admin_site.admin_view(self.create_apiary_help)),
+            re_path('create_disturbance_help_assessor/', self.admin_site.admin_view(self.create_disturbance_help_assessor)),
+            re_path('create_apiary_help_assessor/', self.admin_site.admin_view(self.create_apiary_help_assessor)),
         ]
         return my_urls + urls
 

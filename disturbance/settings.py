@@ -28,21 +28,12 @@ INSTALLED_APPS += [
     'reversion_compare',
     'bootstrap3',
     'disturbance',
-    # 'disturbance.components.main',
-    # 'disturbance.components.organisations',
-    # 'disturbance.components.users',
-    # 'disturbance.components.proposals',
-    # 'disturbance.components.approvals',
-    # 'disturbance.components.compliances',
-    # 'disturbance.components.ap_payments',
-    # 'disturbance.components.history',
     'taggit',
     'rest_framework',
     'rest_framework_datatables',
     'rest_framework_gis',
     'reset_migrations',
     'ckeditor',
-    # 'corsheaders',
     'smart_selects',
     'ledger_api_client',
     'webtemplate_dbca',
@@ -204,44 +195,16 @@ BASE_EMAIL_HTML = ''
 
 HTTP_HOST_FOR_TEST = 'localhost:9061'
 
-# Additional logging for commercialoperator
-LOGGING['loggers']['disturbance'] = {
-            'handlers': [],
-            'level': 'DEBUG',
-            'propagate': True,
-        }
-# Add a formatter
-LOGGING['formatters']['verbose2'] = {
-    "format": "%(levelname)s %(asctime)s %(name)s [Line:%(lineno)s][%(funcName)s] %(message)s"
-}
-
-# Add a handler
-LOGGING['handlers']['file_apiary'] = {
-    'level': 'INFO',
-    'class': 'logging.handlers.RotatingFileHandler',
-    'filename': os.path.join(BASE_DIR, 'logs', 'apiary.log'),
-    'formatter': 'verbose2',
-    'maxBytes': 5242880
-}
-
-# Add a handler
-LOGGING['handlers']['request_stats'] = {
-    'level': 'INFO',
-    'class': 'logging.handlers.RotatingFileHandler',
-    'filename': os.path.join(BASE_DIR, 'logs', 'requests.log'),
-    'formatter': 'verbose',
-    'maxBytes': 5242880
-}
-# Add a handler
+LOGGERS_TO_REMOVE = ['wildlifecompliance', 'wildlifelicensing', 'log', 'disturbance',]
+for logger_name in LOGGERS_TO_REMOVE:
+    if logger_name in LOGGING['loggers']:
+        del LOGGING['loggers'][logger_name]
+LOGGING['formatters']['verbose2'] = {"format": "%(levelname)s %(asctime)s %(name)s [Line:%(lineno)s][%(funcName)s] %(message)s"}
+LOGGING['loggers']['']['level'] = 'DEBUG'
 LOGGING['handlers']['console']['formatter'] = 'verbose2'
+LOGGING['handlers']['console']['level'] = 'DEBUG'
 LOGGING['handlers']['file']['formatter'] = 'verbose2'
-
-# define logger
-LOGGING['loggers']['apiary'] = {
-    'handlers': ['file_apiary'],
-    'level': 'INFO'
-}
-# LOGGING['loggers']['']['propagate'] = False
+LOGGING['handlers']['file']['level'] = 'INFO'
 
 import json
 #print(json.dumps(LOGGING, indent=4))
