@@ -4550,15 +4550,15 @@ class ApiaryReferral(RevisionedMixin):
                         self.referral.proposal,
                         self.referral.proposal.applicant_field
                         )
-                applicant_field.log_user_action(
-                        ProposalUserAction.APIARY_CONCLUDE_REFERRAL.format(
-                            request.user.get_full_name(),
-                            self.referral.id,
-                            self.referral.proposal.lodgement_number,
-                            '{}'.format(self.referral_group.name)
-                            ),
-                        request
-                        )
+                # applicant_field.log_user_action(
+                #         ProposalUserAction.APIARY_CONCLUDE_REFERRAL.format(
+                #             request.user.get_full_name(),
+                #             self.referral.id,
+                #             self.referral.proposal.lodgement_number,
+                #             '{}'.format(self.referral_group.name)
+                #             ),
+                #         request
+                #         )
                 send_apiary_referral_complete_email_notification(self.referral, request, request.user)
             except:
                 raise
