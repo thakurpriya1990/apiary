@@ -3118,13 +3118,13 @@ class ProposalApiary(RevisionedMixin):
                         #TODO Create a log entry for the organisation
                         #self.applicant.log_user_action(ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(referral.id,self.id,'{}({})'.format(user.get_full_name(),user.email)),request)
                         applicant_field=getattr(self.proposal, self.proposal.applicant_field)
-                        applicant_field.log_user_action(
-                                ProposalUserAction.APIARY_ACTION_SEND_REFERRAL_TO.format(
-                                    referral.id,
-                                    self.proposal.lodgement_number,
-                                    '{}'.format(referral_group.name)),
-                                request
-                                )
+                        # applicant_field.log_user_action(
+                        #         ProposalUserAction.APIARY_ACTION_SEND_REFERRAL_TO.format(
+                        #             referral.id,
+                        #             self.proposal.lodgement_number,
+                        #             '{}'.format(referral_group.name)),
+                        #         request
+                        #         )
                         # send email
                         recipients = referral_group.members_list
                         send_apiary_referral_email_notification(referral, recipients, request)
@@ -4449,13 +4449,13 @@ class ApiaryReferral(RevisionedMixin):
                     self.referral.proposal,
                     self.referral.proposal.applicant_field
                     )
-            applicant_field.log_user_action(
-                ProposalUserAction.APIARY_RECALL_REFERRAL.format(
-                    self.referral.id,
-                    self.referral.proposal.lodgement_number
-                    ),
-                request
-                )
+            # applicant_field.log_user_action(
+            #     ProposalUserAction.APIARY_RECALL_REFERRAL.format(
+            #         self.referral.id,
+            #         self.referral.proposal.lodgement_number
+            #         ),
+            #     request
+            #     )
 
     def remind(self,request):
         with transaction.atomic():
@@ -4475,13 +4475,13 @@ class ApiaryReferral(RevisionedMixin):
                     self.referral.proposal,
                     self.referral.proposal.applicant_field
                     )
-            applicant_field.log_user_action(
-                ProposalUserAction.APIARY_ACTION_REMIND_REFERRAL.format(
-                self.referral.id,
-                self.referral.proposal.lodgement_number,'{}'.format(self.referral_group.name)
-                ),
-                request
-                )
+            # applicant_field.log_user_action(
+            #     ProposalUserAction.APIARY_ACTION_REMIND_REFERRAL.format(
+            #     self.referral.id,
+            #     self.referral.proposal.lodgement_number,'{}'.format(self.referral_group.name)
+            #     ),
+            #     request
+            #     )
             # send email
             recipients = self.referral_group.members_list
             send_apiary_referral_email_notification(self.referral,recipients,request,reminder=True)
@@ -4509,15 +4509,15 @@ class ApiaryReferral(RevisionedMixin):
                     self.referral.proposal,
                     self.referral.proposal.applicant_field
                     )
-            applicant_field.log_user_action(
-                    ProposalUserAction.APIARY_ACTION_RESEND_REFERRAL_TO.format(
-                        self.referral.id,
-                        self.referral.proposal.lodgement_number,
-                        '{}'.format(
-                            self.referral_group.name)
-                        ),
-                    request
-                    )
+            # applicant_field.log_user_action(
+            #         ProposalUserAction.APIARY_ACTION_RESEND_REFERRAL_TO.format(
+            #             self.referral.id,
+            #             self.referral.proposal.lodgement_number,
+            #             '{}'.format(
+            #                 self.referral_group.name)
+            #             ),
+            #         request
+            #         )
             # send email
             recipients = self.referral_group.members_list
             send_apiary_referral_email_notification(self.referral,recipients,request)
