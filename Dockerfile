@@ -1,35 +1,25 @@
 # Prepare the base environment.
 # Based on the Dockerfile: https://github.com/dbca-wa/commercialoperator/blob/cols_fe_py3/Dockerfile
-FROM ubuntu:24.04 as builder_base_cols
+FROM ghcr.io/dbca-wa/docker-apps-dev:ubuntu2404_base_latest as builder_base
 MAINTAINER asi@dbca.wa.gov.au
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBUG=True
 ENV TZ=Australia/Perth
-ENV EMAIL_HOST="smtp.corporateict.domain"
+ENV EMAIL_HOST=""
 ENV DEFAULT_FROM_EMAIL='no-reply@dbca.wa.gov.au'
-#ENV NOTIFICATION_EMAIL='jawaid.mushtaq@dbca.wa.gov.au'
-#ENV NON_PROD_EMAIL='brendan.blackford@dbca.wa.gov.au, walter.genuit@dbca.wa.gov.au, katsufumi.shibata@dbca.wa.gov.au, mohammed.ahmed@dbca.wa.gov.au, test_licensing@dpaw.wa.gov.au, jawaid.mushtaq@dbca.wa.gov.au'
-#ENV PRODUCTION_EMAIL=False
-#ENV EMAIL_INSTANCE='DEV'
-#ENV SECRET_KEY="ThisisNotRealKey"
-#ENV SITE_PREFIX='cols'
-#ENV SITE_DOMAIN='dbca.wa.gov.au'
-#ENV OSCAR_SHOP_NAME='Parks & Wildlife'
-#ENV BPAY_ALLOWED=False
-ENV NOTIFICATION_EMAIL='brendan.blackford@dbca.wa.gov.au'
-ENV NON_PROD_EMAIL='brendan.blackford@dbca.wa.gov.au, walter.genuit@dbca.wa.gov.au, katsufumi.shibata@dbca.wa.gov.au,test_licensing@dpaw.wa.gov.au,jawaid.mushtaq@dbca.wa.gov.au,kelly.thomas@dbca.wa.gov.au,matthew.king@dbca.wa.gov.au,ashlee.russell@dbca.wa.gov.au,aaron.farr@dbca.wa.gov.au'
+ENV NOTIFICATION_EMAIL='no-reply@dbca.wa.gov.au'
+ENV NON_PROD_EMAIL='no-reply@dbca.wa.gov.au'
 ENV PRODUCTION_EMAIL=False
 ENV EMAIL_INSTANCE='DEV'
 ENV SECRET_KEY="ThisisNotRealKey"
 ENV SITE_PREFIX='das-apiary'
 ENV SITE_DOMAIN='dbca.wa.gov.au'
-ENV OSCAR_SHOP_NAME='Parks & Wildlife'
 ENV BPAY_ALLOWED=False
-ENV APIARY_SUPPORT_EMAIL="apiary@dbca.wa.gov.au"
+ENV APIARY_SUPPORT_EMAIL="no-reply@dbca.wa.gov.au"
 ENV SUPPORT_EMAIL="das@dbca.wa.gov.au"
 ENV SYSTEM_NAME_SHORT="apiary"
 ENV SITE_DOMAIN="localhost"
-ENV APIARY_URL=[u'apiary-uat-internal.dbca.wa.gov.au',u'apiary-uat.dbca.wa.gov.au',u'localhost:8071']
+ENV APIARY_URL=[]
 ENV SYSTEM_NAME="Disturbance Assessment System"
 ENV APIARY_SYSTEM_NAME="Apiary System"
 ENV PAYMENT_OFFICERS_GROUP="Apiary Payments Officers"
@@ -82,7 +72,7 @@ python3.7 -m pip install --upgrade pip==21.3.1 && \
 apt-get install -yq vim
 
 # Install Python libs from requirements.txt.
-FROM builder_base_cols as python_libs_cols
+FROM builder_base as python_libs_cols
 WORKDIR /app
 COPY requirements.txt ./
 RUN python3.7 -m pip install --no-cache-dir -r requirements.txt \
