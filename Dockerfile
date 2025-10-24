@@ -132,7 +132,6 @@ RUN touch /app/.env
 COPY --chown=oim:oim .git ./.git
 COPY --chown=oim:oim python-cron python-cron
 COPY --chown=oim:oim disturbance ./disturbance
-COPY --chown=oim:oim ledger ./ledger
 RUN mkdir -p /app/disturbance/static/disturbance_vue/static
 RUN ls -al /app/disturbance/frontend/disturbance
 RUN cd /app/disturbance/frontend/disturbance/; npm install
