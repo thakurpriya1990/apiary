@@ -115,7 +115,7 @@ RUN chmod 755 /startup.sh && \
     touch /app/rand_hash
 
 # Install Python libs from requirements.txt.
-FROM builder_base_das as python_libs_das
+FROM builder_base as python_libs_das
 WORKDIR /app
 USER oim
 RUN virtualenv /app/venv
