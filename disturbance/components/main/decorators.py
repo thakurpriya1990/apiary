@@ -13,8 +13,7 @@ from rest_framework.request import Request
 from functools import wraps
 import logging
 
-#logger = logging.getLogger(__name__)
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def basic_exception_handler(func):

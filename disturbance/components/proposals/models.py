@@ -20,7 +20,7 @@ from django.dispatch import receiver
 from django.db.models.signals import pre_delete
 from six import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
-from django.contrib.postgres.fields.jsonb import JSONField
+from django.db.models import JSONField
 from django.utils import timezone
 
 from dirtyfields import DirtyFieldsMixin
@@ -3118,13 +3118,13 @@ class ProposalApiary(RevisionedMixin):
                         #TODO Create a log entry for the organisation
                         #self.applicant.log_user_action(ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(referral.id,self.id,'{}({})'.format(user.get_full_name(),user.email)),request)
                         applicant_field=getattr(self.proposal, self.proposal.applicant_field)
-                        applicant_field.log_user_action(
-                                ProposalUserAction.APIARY_ACTION_SEND_REFERRAL_TO.format(
-                                    referral.id,
-                                    self.proposal.lodgement_number,
-                                    '{}'.format(referral_group.name)),
-                                request
-                                )
+                        # applicant_field.log_user_action(
+                        #         ProposalUserAction.APIARY_ACTION_SEND_REFERRAL_TO.format(
+                        #             referral.id,
+                        #             self.proposal.lodgement_number,
+                        #             '{}'.format(referral_group.name)),
+                        #         request
+                        #         )
                         # send email
                         recipients = referral_group.members_list
                         send_apiary_referral_email_notification(referral, recipients, request)
@@ -3991,11 +3991,11 @@ class ApiarySite(models.Model):
     def __str__(self):
         return '{}'.format(self.id,)
 
-    def save(self, **kwargs):
+    def save(self, *args, **kwargs):
         if not self.id:
             max = ApiarySite.objects.aggregate(id_max=Max('id'))['id_max']
             self.id = int(max) + 1 if max is not None else 1
-        super().save(kwargs)
+        super().save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):
         super(ApiarySite, self).delete(using, keep_parents)
@@ -4288,7 +4288,7 @@ class ApiaryChecklistQuestion(RevisionedMixin):
 
 class ApiaryChecklistAnswer(models.Model):
     question=models.ForeignKey(ApiaryChecklistQuestion, related_name='answers', on_delete=models.CASCADE)
-    answer = models.NullBooleanField()
+    answer = models.BooleanField(null=True, blank=True)
     proposal = models.ForeignKey(ProposalApiary, related_name="apiary_checklist", on_delete=models.CASCADE)
     apiary_referral = models.ForeignKey('ApiaryReferral', related_name="apiary_checklist_referral", blank=True, null=True, on_delete=models.CASCADE)
     text_answer = models.TextField(blank=True, null=True)
@@ -4449,13 +4449,13 @@ class ApiaryReferral(RevisionedMixin):
                     self.referral.proposal,
                     self.referral.proposal.applicant_field
                     )
-            applicant_field.log_user_action(
-                ProposalUserAction.APIARY_RECALL_REFERRAL.format(
-                    self.referral.id,
-                    self.referral.proposal.lodgement_number
-                    ),
-                request
-                )
+            # applicant_field.log_user_action(
+            #     ProposalUserAction.APIARY_RECALL_REFERRAL.format(
+            #         self.referral.id,
+            #         self.referral.proposal.lodgement_number
+            #         ),
+            #     request
+            #     )
 
     def remind(self,request):
         with transaction.atomic():
@@ -4475,13 +4475,13 @@ class ApiaryReferral(RevisionedMixin):
                     self.referral.proposal,
                     self.referral.proposal.applicant_field
                     )
-            applicant_field.log_user_action(
-                ProposalUserAction.APIARY_ACTION_REMIND_REFERRAL.format(
-                self.referral.id,
-                self.referral.proposal.lodgement_number,'{}'.format(self.referral_group.name)
-                ),
-                request
-                )
+            # applicant_field.log_user_action(
+            #     ProposalUserAction.APIARY_ACTION_REMIND_REFERRAL.format(
+            #     self.referral.id,
+            #     self.referral.proposal.lodgement_number,'{}'.format(self.referral_group.name)
+            #     ),
+            #     request
+            #     )
             # send email
             recipients = self.referral_group.members_list
             send_apiary_referral_email_notification(self.referral,recipients,request,reminder=True)
@@ -4509,15 +4509,15 @@ class ApiaryReferral(RevisionedMixin):
                     self.referral.proposal,
                     self.referral.proposal.applicant_field
                     )
-            applicant_field.log_user_action(
-                    ProposalUserAction.APIARY_ACTION_RESEND_REFERRAL_TO.format(
-                        self.referral.id,
-                        self.referral.proposal.lodgement_number,
-                        '{}'.format(
-                            self.referral_group.name)
-                        ),
-                    request
-                    )
+            # applicant_field.log_user_action(
+            #         ProposalUserAction.APIARY_ACTION_RESEND_REFERRAL_TO.format(
+            #             self.referral.id,
+            #             self.referral.proposal.lodgement_number,
+            #             '{}'.format(
+            #                 self.referral_group.name)
+            #             ),
+            #         request
+            #         )
             # send email
             recipients = self.referral_group.members_list
             send_apiary_referral_email_notification(self.referral,recipients,request)
@@ -4550,15 +4550,15 @@ class ApiaryReferral(RevisionedMixin):
                         self.referral.proposal,
                         self.referral.proposal.applicant_field
                         )
-                applicant_field.log_user_action(
-                        ProposalUserAction.APIARY_CONCLUDE_REFERRAL.format(
-                            request.user.get_full_name(),
-                            self.referral.id,
-                            self.referral.proposal.lodgement_number,
-                            '{}'.format(self.referral_group.name)
-                            ),
-                        request
-                        )
+                # applicant_field.log_user_action(
+                #         ProposalUserAction.APIARY_CONCLUDE_REFERRAL.format(
+                #             request.user.get_full_name(),
+                #             self.referral.id,
+                #             self.referral.proposal.lodgement_number,
+                #             '{}'.format(self.referral_group.name)
+                #             ),
+                #         request
+                #         )
                 send_apiary_referral_complete_email_notification(self.referral, request, request.user)
             except:
                 raise
@@ -4681,7 +4681,7 @@ class MasterlistQuestion(models.Model):
     help_text_assessor_url=models.BooleanField(default=False)
     help_text=RichTextField(null=True, blank=True)
     help_text_assessor=RichTextField(null=True, blank=True)
-    property_cache = JSONField(null=True, blank=True, default={})
+    property_cache = JSONField(null=True, blank=True, default=dict)
 
     class Meta:
         app_label = 'disturbance'
@@ -4949,7 +4949,7 @@ class SectionQuestion(models.Model):
 
     tag= MultiSelectField(choices=TAG_CHOICES, max_length=400,max_choices=10, null=True, blank=True)
     order = models.PositiveIntegerField(default=1)
-    property_cache = JSONField(null=True, blank=True, default={})
+    property_cache = JSONField(null=True, blank=True, default=dict)
 
     class Meta:
         app_label = 'disturbance'

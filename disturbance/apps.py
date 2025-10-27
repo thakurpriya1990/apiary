@@ -15,7 +15,6 @@ class DisturbanceConfig(AppConfig):
             from disturbance.components.approvals import models
             from disturbance.components.compliances import models
             from disturbance.components.ap_payments import models
-            # from disturbance.components.history import models
 
             from disturbance.components.organisations import signals
             from disturbance.components.proposals import signals

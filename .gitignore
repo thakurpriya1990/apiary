@@ -115,3 +115,5 @@ disturbance/static/disturbance_vue/*
 apiary.txt
 
 disturbance/frontend/disturbance/tests_output*
+disturbance/static/disturbance_vue/static/*
+session_store

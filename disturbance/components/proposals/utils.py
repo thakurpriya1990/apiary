@@ -947,7 +947,7 @@ def proposal_submit_apiary(proposal, request):
             # Create a log entry for the organisation
             #proposal.applicant.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id),request)
             applicant_field=getattr(proposal, proposal.applicant_field)
-            applicant_field.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.lodgement_number), request)
+            #applicant_field.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.lodgement_number), request)
 
             ret1 = send_submit_email_notification(request, proposal)
             ret2 = send_external_submit_email_notification(request, proposal)

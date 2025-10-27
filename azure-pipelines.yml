@@ -32,15 +32,15 @@ stages:
         tags: | 
               latest
               $(tagDate)
-        containerRegistry: DockerHub
-        repository: dbcawa/disturbance
+        containerRegistry: DockerGitHub
+        repository: ghcr.io/dbca-wa/apiary
     - task: Docker@2
       displayName: Dev Build image and Push
       inputs:
         command: buildAndPush
         dockerfile: '$(Build.SourcesDirectory)/dockerdev/Dockerfile'
         tags: | 
-              disturbance_dev_latest
-              disturbance_dev_$(tagDate)              
-        containerRegistry: DockerHub
-        repository: dbcawa/docker_app_dev   
+              apiary_dev_latest
+              apiary_dev_$(tagDate)              
+        containerRegistry: DockerGitHub
+        repository: ghcr.io/dbca-wa/docker_app_dev 

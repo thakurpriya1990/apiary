@@ -18,11 +18,16 @@ class OrganisationAdmin(admin.ModelAdmin):
 class OrganisationRequestAdmin(admin.ModelAdmin):
     list_display = ['name','requester', 'abn', 'status']
 
+class OrganisationAccessGroupMembershipInline(admin.TabularInline):
+    model = models.OrganisationAccessGroupMember
+    extra = 1
+
 @admin.register(models.OrganisationAccessGroup)
 class OrganisationAccessGroupAdmin(admin.ModelAdmin):
-    filter_horizontal = ('members',)
+    # filter_horizontal = ('members',)
     exclude = ('site',)
     actions = None
+    inlines = [OrganisationAccessGroupMembershipInline,]
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "members":
@@ -36,11 +41,16 @@ class OrganisationAccessGroupAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False 
 
+class ApiaryOrganisationAccessGroupMembershipInline(admin.TabularInline):
+    model = models.ApiaryOrganisationAccessGroupMember
+    extra = 1
+
 @admin.register(models.ApiaryOrganisationAccessGroup)
 class ApiaryOrganisationAccessGroupAdmin(admin.ModelAdmin):
-    filter_horizontal = ('members',)
+    # filter_horizontal = ('members',)
     exclude = ('site',)
     actions = None
+    inlines = [ApiaryOrganisationAccessGroupMembershipInline,]
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "members":
