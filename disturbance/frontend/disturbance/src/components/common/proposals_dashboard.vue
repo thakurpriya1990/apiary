@@ -390,7 +390,7 @@ export default {
                                 links += '<div>'
                                 links +=  `<a href='/payments/invoice-pdf/${item}.pdf' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i> #${item}</a>`;
                                 if (!vm.is_external){
-                                    links +=  `&nbsp;&nbsp;&nbsp;<a href='/ledger/payments/invoice/payment?invoice=${item}' target='_blank'>View Payment</a><br/>`;
+                                    links +=  `&nbsp;&nbsp;&nbsp;<a href='/ledger-toolkit-api/invoice-pdf/${item}' target='_blank'>View Payment</a><br/>`;
                                 }
                                 links += '</div>'
                             }
