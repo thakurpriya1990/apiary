@@ -146,7 +146,6 @@ def _log_org_email(email_message, organisation, customer ,sender=None):
 
 
 def _log_user_email(email_message, emailuser, customer ,sender=None):
-    from ledger_api_client.ledger_models import EmailUserRO as EmailUserLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
         text = email_message.body
         subject = email_message.subject
@@ -186,6 +185,7 @@ def _log_user_email(email_message, emailuser, customer ,sender=None):
         'cc': all_ccs
     }
 
-    email_entry = EmailUserLogEntry.objects.create(**kwargs)
+    # TODO: Implement EmailUserLogEntry model (Ref: ApprovalLogEntry, etc)
+    # email_entry = EmailUserLogEntry.objects.create(**kwargs)
 
     return email_entry
