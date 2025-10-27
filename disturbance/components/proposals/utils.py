@@ -572,49 +572,55 @@ def save_proponent_data_apiary(proposal_obj, request, viewset):
                     for index, feature in enumerate(site_locations_received):
                         feature['proposal_apiary_id'] = proposal_obj.proposal_apiary.id
 
-                    try:
-                         # Update existing
-                        # for the newely addes apiary site, 'id_' has its guid
-                        # for the existing apiary site, 'value_'.'site_guid' has its guid
                         try:
-                            # Try to get this apiary site assuming already saved as 'draft'
-                            a_site = ApiarySite.objects.get(site_guid=feature['id_'])
+                            # Update existing
+                            # for the newely addes apiary site, 'id_' has its guid
+                            # for the existing apiary site, 'value_'.'site_guid' has its guid
+                            try:
+                                # Try to get this apiary site assuming already saved as 'draft'
+                                a_site = ApiarySite.objects.get(site_guid=feature['id_'])
 
-                        except ApiarySite.DoesNotExist:
-                            # Try to get this apiary site assuming it is 'vacant' site (available site)
-                            a_site = ApiarySite.objects.get(site_guid=feature['values_']['site_guid'])
+                            except ApiarySite.DoesNotExist:
+                                # Try to get this apiary site assuming it is 'vacant' site (available site)
+                                a_site = ApiarySite.objects.get(site_guid=feature['values_']['site_guid'])
 
-                            serializer = ApiarySiteSerializer(a_site, data=feature)
-                    except KeyError:  
-                        # when 'site_guid' is not defined above
-                        # Create new apiary site when both of the above queries failed
-                        feature['site_guid'] = feature['id_']
-                        serializer = ApiarySiteSerializer(data=feature)
+                                serializer = ApiarySiteSerializer(a_site, data=feature)
+                        except KeyError:  
+                            # when 'site_guid' is not defined above
+                            # Create new apiary site when both of the above queries failed
+                            feature['site_guid'] = feature['id_']
+                            serializer = ApiarySiteSerializer(data=feature)
 
-                    if serializer:
-                        serializer.is_valid(raise_exception=True)
-                        apiary_site_obj = serializer.save()
-                        
-                        # Save coordinate
-                        geom_str = GEOSGeometry(
-                            'POINT(' +
-                            str(feature['values_']['geometry']['flatCoordinates'][0]) + ' ' +
-                            str(feature['values_']['geometry']['flatCoordinates'][1]) +
-                            ')', srid=4326
-                        )
-                        # Get apiary_site_on_proposal obj
-                        apiary_site_on_proposal, created = ApiarySiteOnProposal.objects.get_or_create(apiary_site=apiary_site_obj, proposal_apiary=proposal_obj.proposal_apiary)
-                        # Save the coordinate as 'draft' coordinate
-                        serializer = ApiarySiteOnProposalDraftGeometrySaveSerializer(apiary_site_on_proposal, data={
-                            'wkb_geometry_draft': geom_str,
-                        })
-                        serializer.is_valid(raise_exception=True)
-                        serializer.save()
+                        if serializer:
+                            serializer.is_valid(raise_exception=True)
+                            apiary_site_obj = serializer.save()
+                            
+                            # Save coordinate
+                            geom_str = GEOSGeometry(
+                                'POINT(' +
+                                str(feature['values_']['geometry']['flatCoordinates'][0]) + ' ' +
+                                str(feature['values_']['geometry']['flatCoordinates'][1]) +
+                                ')', srid=4326
+                            )
+                            # Get apiary_site_on_proposal obj
+                            apiary_site_on_proposal, created = ApiarySiteOnProposal.objects.get_or_create(apiary_site=apiary_site_obj, proposal_apiary=proposal_obj.proposal_apiary)
 
-                        if viewset.action == 'submit':
-                            # When submit, copy the coordinates from draft to the processed
-                            apiary_site_on_proposal.making_payment = True 
-                            apiary_site_on_proposal.save()
+                            if created:
+                                logger.info(f"Created new ApiarySiteOnProposal for ApiarySite id {apiary_site_obj.id} and ProposalApiary id {proposal_obj.proposal_apiary.id}")
+                            else:
+                                logger.info(f"Retrieved existing ApiarySiteOnProposal for ApiarySite id {apiary_site_obj.id} and ProposalApiary id {proposal_obj.proposal_apiary.id}")
+
+                            # Save the coordinate as 'draft' coordinate
+                            serializer = ApiarySiteOnProposalDraftGeometrySaveSerializer(apiary_site_on_proposal, data={
+                                'wkb_geometry_draft': geom_str,
+                            })
+                            serializer.is_valid(raise_exception=True)
+                            serializer.save()
+
+                            if viewset.action == 'submit':
+                                # When submit, copy the coordinates from draft to the processed
+                                apiary_site_on_proposal.making_payment = True 
+                                apiary_site_on_proposal.save()
 
                 if viewset.action == 'submit':
                     proposal_obj.proposal_apiary.validate_apiary_sites(raise_exception=True)
