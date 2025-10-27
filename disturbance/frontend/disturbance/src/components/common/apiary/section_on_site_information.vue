@@ -30,7 +30,7 @@
 <script>
     import Vue from 'vue'
     import datatable from '@vue-utils/datatable.vue'
-    import uuid from 'uuid'
+    import { v4 as uuid } from 'uuid';
     import { api_endpoints, helpers, } from '@/utils/hooks'
     import OnSiteInformationModal from './on_site_information_modal'
 
@@ -118,7 +118,8 @@
                                 } else {
                                     return '';
                                 }
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // 1
@@ -128,7 +129,8 @@
                                 } else {
                                     return '';
                                 }
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // 2
@@ -138,7 +140,8 @@
                                 } else {
                                     return '';
                                 }
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // 3
@@ -148,7 +151,8 @@
                                 } else {
                                     return '';
                                 }
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // 4
@@ -158,6 +162,7 @@
                                 return type=='display' ? result : data;
                             },
                             createdCell: helpers.dtPopoverCellFn,
+                            defaultContent: '',
                         },
                         {
                             // 5
@@ -167,6 +172,7 @@
                                 return type=='display' ? result : data;
                             },
                             createdCell: helpers.dtPopoverCellFn,
+                            defaultContent: '',
                         },
                         {
                             // 6
@@ -176,7 +182,8 @@
                                 } else {
                                     return '';
                                 }
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // 7
@@ -186,6 +193,7 @@
                                 return type=='display' ? result : data;
                             },
                             createdCell: helpers.dtPopoverCellFn,
+                            defaultContent: '',
                         },
                         {
                             // 8
@@ -195,6 +203,7 @@
                                 return type=='display' ? result : data;
                             },
                             createdCell: helpers.dtPopoverCellFn,
+                            defaultContent: '',
                         },
                         {
                             // 9
@@ -212,7 +221,8 @@
                                 } else {
                                     return ''
                                 }
-                            }
+                            },
+                            defaultContent: '',
                         },
                     ],
                 },

@@ -281,7 +281,6 @@ import $ from 'jquery'
 import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
-import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import FormSection from "@/components/forms/section_toggle.vue"
 import { api_endpoints, helpers } from '@/utils/hooks'
 import OnSiteInformation from '@/components/common/apiary/section_on_site_information.vue'

@@ -296,12 +296,13 @@ export default {
                             } else {
                                 return full.first_name + " " + full.last_name;
                             }
-                        }
+                        },
+                        defaultContent: '',
                     },
-                    {data:'phone_number'},
-                    {data:'mobile_number'},
-                    {data:'fax_number'},
-                    {data:'email'},
+                    {data:'phone_number',defaultContent: '',},
+                    {data:'mobile_number',defaultContent: '',},
+                    {data:'fax_number',defaultContent: '',},
+                    {data:'email',defaultContent: '',},
                     {
                         mRender:function (data,type,full) {
                             let links = '';
@@ -312,7 +313,8 @@ export default {
                             }
                             links +=  `<a data-email-edit='${full.email}' data-name-edit='${name}' data-edit-id='${full.id}' class="edit-contact">Edit</a><br/>`;
                             return links;
-                        }
+                        },
+                        defaultContent: '',
                     }
                   ],
                   processing: true

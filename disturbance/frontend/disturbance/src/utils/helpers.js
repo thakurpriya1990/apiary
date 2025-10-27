@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     is_local: function(){
         if(location.host === 'localhost:8071'){
             return true

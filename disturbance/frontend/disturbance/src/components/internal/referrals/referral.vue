@@ -265,7 +265,6 @@ import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import MoreReferrals from '@common-utils/more_referrals.vue'
-import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 var select2 = require('select2');
 require("select2/dist/css/select2.min.css");
 require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");

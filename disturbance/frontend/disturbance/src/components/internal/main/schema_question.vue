@@ -278,26 +278,31 @@ export default {
                     { 
                         data: "id",
                         searchable: false,
+                        defaultContent: '',
                     },
                     { 
                         data: "section",
                         searchable: false,
+                        defaultContent: '',
                     },
                     { 
                         data: "options",
                         searchable: false,
+                        defaultContent: '',
                     },
                     { 
                         data: "proposal_type",
                         searchable: false,
-                        name:'section__proposal_type_id'
+                        name:'section__proposal_type_id',
+                        defaultContent: '',
                     },
                     { 
                         data: "section",
                         searchable: false,
                         mRender:function (data,type,full) {
                             return data.section_label;
-                        }
+                        },
+                        defaultContent: '',
                     },
                     // { 
                     //     data: "section_group",
@@ -336,6 +341,7 @@ export default {
                             return result
                         },
                         'createdCell': helpers.dtPopoverCellFn,
+                        defaultContent: '',
                     },
                     { 
                         data: "order",
@@ -348,7 +354,8 @@ export default {
                             var column = `<a class="edit-row" data-rowid=\"__ROWID__\">Edit</a><br/>`;
                             column += `<a class="delete-row" data-rowid=\"__ROWID__\">Delete</a><br/>`;
                             return column.replace(/__ROWID__/g, full.id);
-                        }
+                        },
+                        defaultContent: '',
                     },
                 ],
                 rowId: function(_data) {

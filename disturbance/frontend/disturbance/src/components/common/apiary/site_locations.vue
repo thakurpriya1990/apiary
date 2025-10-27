@@ -155,7 +155,7 @@
     import GeoJSON from 'ol/format/GeoJSON';
     import TextField from '@/components/forms/text.vue'
     import datatable from '@vue-utils/datatable.vue'
-    import uuid from 'uuid';
+    import { v4 as uuid } from 'uuid';
     import { getStatusForColour, getApiaryFeatureStyle,SiteColours, zoomToCoordinates, checkIfValidlatitudeAndlongitude } from '@/components/common/apiary/site_colours.js'
     import Overlay from 'ol/Overlay';
 
@@ -384,21 +384,24 @@
                                 } else {
                                     return '';
                                 }
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Lat
                             mRender: function (data, type, full) {
                                 let coords = full.getGeometry().getCoordinates()
                                 return Number.parseFloat(coords[1]).toFixed(6)
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Lng
                             mRender: function (data, type, full) {
                                 let coords = full.getGeometry().getCoordinates()
                                 return Number.parseFloat(coords[0]).toFixed(6)
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Category
@@ -410,7 +413,8 @@
                                 } else {
                                     return '---'
                                 }
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Vacant
@@ -422,7 +426,8 @@
                                     return '<i class="fa fa-check" aria-hidden="true"></i>'
                                 }
                                 return ''
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Action
@@ -438,7 +443,8 @@
                                     action_list.push(ret_str_delete)
                                 }
                                 return action_list.join('<br />');
-                            }
+                            },
+                            defaultContent: '',
                         },
                     ],
                 },
