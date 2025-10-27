@@ -256,9 +256,9 @@ export default {
           responsive: true,
           data: vm.results,
           columns: [
-              {data: "number"},
-              {data:"type"},
-              {data: "applicant"},
+              {data: "number",defaultContent: '',},
+              {data:"type",defaultContent: '',},
+              {data: "applicant",defaultContent: '',},
               {//data: "text.value"
                 data: "text",
                 mRender: function (data,type,full) {
@@ -269,7 +269,8 @@ export default {
                   {
                     return data;
                   }
-                }
+                },
+                defaultContent: '',
               },
               {
                 data: "id",
@@ -285,7 +286,8 @@ export default {
                           links +=  `<a href='/internal/approval/${full.id}'>View</a><br/>`;
                         }
                         return links;
-                  }
+                  },
+                  defaultContent: '',
               }
           ],
           processing: true

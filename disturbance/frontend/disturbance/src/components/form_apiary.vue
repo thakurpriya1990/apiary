@@ -215,7 +215,7 @@
     import FormSection from "@/components/forms/section_toggle.vue"
     import SiteLocations from '@/components/common/apiary/site_locations.vue'
     import ApiaryChecklist from '@/components/common/apiary/section_checklist.vue'
-    import uuid from 'uuid'
+    import { v4 as uuid } from 'uuid';
     import DeedPoll from "@/components/common/apiary/section_deed_poll.vue"
     import { api_endpoints, helpers }from '@/utils/hooks'
     export default {

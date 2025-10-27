@@ -37,7 +37,7 @@
 <script>
     import Vue from 'vue'
     import datatable from '@vue-utils/datatable.vue'
-    import uuid from 'uuid'
+    import { v4 as uuid } from 'uuid';
     import ComponentMap from '@/components/common/apiary/component_map.vue'
     import { getDisplayNameFromStatus, getStatusForColour, SiteColours } from '@/components/common/apiary/site_colours.js'
 
@@ -219,7 +219,8 @@
                             visible: vm.show_col_id,
                             mRender: function (data, type, apiary_site) {
                                 return apiary_site.id;
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Checkbox
@@ -235,7 +236,8 @@
                                 } else {
                                     return '<input type="checkbox" class="site_checkbox" data-apiary-site-id="' + apiary_site.id + '"' + disabled_str + '/>'
                                 }
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Site (current): general status. Marker
@@ -257,7 +259,8 @@
                                            '</svg> site: ' + apiary_site.id
                                 }
                                 return '<div data-site="' + apiary_site.id + '">' + sub_str + '</div>'
-                            }
+                            },
+                            defaultContent: '',
                         },
 
 
@@ -275,28 +278,32 @@
                                             '<circle cx="10" cy="10" r="6" stroke="' + strokeColour + '" stroke-width="2" fill="' + fillColour + '" />' +
                                           '</svg> site: ' + apiary_site.id
                                 return '<div data-site="' + apiary_site.id + '">' + sub_str + '</div>'
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Longitude
                             visible: vm.show_col_longitude,
                             mRender: function (data, type, apiary_site){
                                 return 'lng'
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Latitude
                             visible: vm.show_col_latitude,
                             mRender: function (data, type, apiary_site){
                                 return 'lat'
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // District
                             visible: vm.show_col_district,
                             mRender: function (data, type, apiary_site){
                                 return 'dist'
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Licenced Site Checkbox - show column, default unchecked
@@ -312,7 +319,8 @@
                                 } else {
                                     return '<input type="checkbox" class="licensed_site_checkbox" data-apiary-licensed-site-id="' + apiary_site.id + '"' + disabled_str + '/>'
                                 }
-                            }
+                            },
+                            defaultContent: '',
                         },
 
 
@@ -323,7 +331,8 @@
                                 let dynamic_status = getStatusForColour(apiary_site, false)
                                 let display_name = getDisplayNameFromStatus(dynamic_status)
                                 return display_name
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Status (at time of submit): pending/vacant
@@ -335,8 +344,8 @@
                                     status = 'vacant'
                                 }
                                 return getDisplayNameFromStatus(status)
-                            }
-
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Vacant (current): yes/no
@@ -348,7 +357,8 @@
                                     return '<i class="fa fa-check" aria-hidden="true"></i>'
                                 }
                                 return ''
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Vacant (at time of submit): yes/no
@@ -360,7 +370,8 @@
                                     return '<i class="fa fa-check" aria-hidden="true"></i>'
                                 }
                                 return ''
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             visible: vm.show_col_decision,
@@ -376,14 +387,16 @@
                                 } else {
                                     return ''
                                 }
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Previous Site Holder/Applicant
                             visible: vm.show_col_previous_site_holder,
                             mRender: function (data, type, apiary_site){
                                 return apiary_site.properties.previous_site_holder_or_applicant
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Action
@@ -426,7 +439,8 @@
                                     action_list.push(ret);
                                 }
                                 return action_list.join('<br />');
-                            }
+                            },
+                            defaultContent: '',
                         },
                     ],
                 },
