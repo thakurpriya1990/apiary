@@ -26,7 +26,7 @@
 <script>
     import Vue from 'vue'
     import datatable from '@vue-utils/datatable.vue'
-    import uuid from 'uuid'
+    import { v4 as uuid } from 'uuid';
     import { api_endpoints, helpers, } from '@/utils/hooks'
     //import uuid from 'uuid'
    // import Swal from 'sweetalert2'
@@ -85,19 +85,22 @@
                             visible: true,
                             mRender: function (data, type, full) {
                                 return full.lodgement_number;
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // From date
                             mRender: function (data, type, full) {
                                 return full.from_date;
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // To date
                             mRender: function (data, type, full) {
                                 return full.to_date;
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Site(s)
@@ -109,25 +112,29 @@
                                     }
                                 }
                                 return ret_str
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Status (customer status)
                             mRender: function (data, type, full) {
                                 return full.customer_status;
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Occupier name
                             mRender: function (data, type, full) {
                                 return full.temporary_occupier_name;
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Deed poll
                             mRender: function (data, type, full) {
                                 return full.deed_poll_documents;
-                            }
+                            },
+                            defaultContent: '',
                         },
                         {
                             // Action
@@ -141,7 +148,8 @@
                                 } else {
                                     return ''
                                 }
-                            }
+                            },
+                            defaultContent: '',
                         },
                     ],
                 },

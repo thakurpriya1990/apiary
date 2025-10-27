@@ -191,21 +191,25 @@ export default {
                             return full.proposal_lodgement_number+tick;
                         },
                         name: "proposal__id, proposal__lodgement_number",
+                        defaultContent: '',
                     },
                     {
                         data: "region",
                         searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
                         visible: false,
+                        defaultContent: '',
                     },
                     {
                         data: "activity",
                         name: "proposal__activity",
                         //searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
+                        defaultContent: '',
                     },
                     {
                         data: "title",
                         name: "proposal__title",
                         visible: false,
+                        defaultContent: '',
                     },
                     {
                         data: "submitter",
@@ -216,6 +220,7 @@ export default {
                             return ''
                         },
                         name: "proposal__submitter__email",
+                        defaultContent: '',
                     },
                     /*
                     {
@@ -235,10 +240,12 @@ export default {
                     {
                         data: "relevant_applicant_name",
                         name: "proposal__applicant__organisation__name",
+                        defaultContent: '',
                     },
                     {
                         data: "processing_status",
                         name: "proposal__processing_status",
+                        defaultContent: '',
                     },
                     {
                         data: "assigned_officer",
@@ -251,6 +258,8 @@ export default {
                         },
                         visible: false,
                         searchable: false,
+                        defaultContent: '',
+
                     },
                     {
                         data: "proposal_lodgement_date",
@@ -258,6 +267,8 @@ export default {
                             return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
                         },
                         name: "proposal__lodgement_date",
+                        defaultContent: '',
+
                     },
                     {
                         data: '',
@@ -268,16 +279,18 @@ export default {
                         },
                         searchable: false,
                         orderable: false,
-                        name: ''
+                        name: '',
+                        defaultContent: '',
                     },
-                    {data: "can_be_processed", visible: false},
-                    {data: "proposal_lodgement_number", visible: false},
-                    {data: "id", visible: false},
+                    {data: "can_be_processed", visible: false,defaultContent: '',},
+                    {data: "proposal_lodgement_number", visible: false,defaultContent: '',},
+                    {data: "id", visible: false,defaultContent: '',},
                     {
                         data: 'template_group',
                         searchable: false,
                         orderable: false,
                         visible: false,
+                        defaultContent: '',
                     },
 
                 ],

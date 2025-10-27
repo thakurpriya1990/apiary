@@ -233,7 +233,7 @@
     import Vue from 'vue'
     import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
     import ApiaryChecklist from '@/components/common/apiary/section_checklist.vue'
-    import uuid from 'uuid'
+    import { v4 as uuid } from 'uuid';
     import DeedPoll from "@/components/common/apiary/section_deed_poll.vue"
     import { api_endpoints, helpers }from '@/utils/hooks'
 

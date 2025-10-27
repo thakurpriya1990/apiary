@@ -342,6 +342,7 @@ export default {
                     'createdCell': helpers.dtPopoverCellFn,
                     name: "id, lodgement_number",
                     searchable: true,
+                    defaultContent: '',
                 }];
             if (this.dasTemplateGroup) {
                 columnList.push({
@@ -353,12 +354,14 @@ export default {
                     name: 'current_proposal__region__name',
                     //visible: false,
                     searchable: true,
+                    defaultContent: '',
                 },
                 {
                     data: "activity",
                     name: "current_proposal__activity",
                     //visible: false,
                     searchable: true,
+                    defaultContent: '',
                 },
                 {
                     data: "title",
@@ -369,30 +372,35 @@ export default {
                     name: "current_proposal__title",
                     //visible: false,
                     searchable: true,
+                    defaultContent: '',
                 });
             };
             columnList.push({
                     data: "applicant",
                     name: "applicant__organisation__name, proxy_applicant__first_name, proxy_applicant__last_name, proxy_applicant__email",
                     searchable: true,
+                    defaultContent: '',
                 },
                 {
                     data: "status",
                     name: 'status',
+                    defaultContent: '',
                 },
                 {
                     data: "start_date",
                     mRender:function (data,type,full) {
                         return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
                     },
-                    searchable: false
+                    searchable: false,
+                    defaultContent: '',
                 },
                 {
                     data: "expiry_date",
                     mRender:function (data,type,full) {
                         return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
                     },
-                    searchable: true
+                    searchable: true,
+                    defaultContent: '',
                 },
                 {
                     data: "licence_document",
@@ -416,6 +424,7 @@ export default {
                     searchable: false,
                     //visible: false,
                     className: "noexport",
+                    defaultContent: '',
                 },
                 {
                     data: '',
@@ -484,6 +493,7 @@ export default {
                     orderable: false,
                     name: '',
                     className: "noexport",
+                    defaultContent: '',
                 },
                 {
                     data: 'template_group',
@@ -491,6 +501,7 @@ export default {
                     orderable: false,
                     visible: false,
                     className: "noexport",
+                    defaultContent: '',
                 }
                 );
             return columnList;

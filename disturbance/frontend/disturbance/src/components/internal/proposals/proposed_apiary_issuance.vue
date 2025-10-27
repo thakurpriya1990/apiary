@@ -339,7 +339,7 @@
 
 <script>
 //import $ from 'jquery'
-import uuid from 'uuid'
+import { v4 as uuid } from 'uuid';
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 import {helpers,api_endpoints} from "@/utils/hooks.js"
