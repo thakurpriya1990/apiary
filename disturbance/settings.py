@@ -204,6 +204,12 @@ LOGGERS_TO_REMOVE = ['wildlifecompliance', 'wildlifelicensing', 'log', 'disturba
 for logger_name in LOGGERS_TO_REMOVE:
     if logger_name in LOGGING['loggers']:
         del LOGGING['loggers'][logger_name]
+# Prevent dictConfig from disabling existing (module) loggers that aren't
+# present in the LOGGING['loggers'] mapping. Some packages predefine
+# loggers (eg. 'disturbance.*') and removing their entry above would
+# otherwise leave them disabled when dictConfig runs. Ensure existing
+# loggers remain active and propagate to the root handlers.
+LOGGING['disable_existing_loggers'] = False
 LOGGING['formatters']['verbose2'] = {"format": "%(levelname)s %(asctime)s %(name)s [Line:%(lineno)s][%(funcName)s] %(message)s"}
 LOGGING['loggers']['']['level'] = 'DEBUG'
 LOGGING['handlers']['console']['formatter'] = 'verbose2'

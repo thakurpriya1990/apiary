@@ -70,6 +70,12 @@ class ApiarySite(admin.ModelAdmin):
     readonly_fields = ['site_guid','is_vacant','latest_proposal_link','latest_approval_link','proposal_link_for_vacant','approval_link_for_vacant', 'coordinates']
 
 
+@admin.register(models.ApiarySiteOnProposal)
+class ApiarySiteOnProposalAdmin(admin.ModelAdmin):
+    list_display = ['apiary_site', 'proposal_apiary', 'site_status', 'for_renewal', 'making_payment', 'application_fee_paid', 'created_at', 'modified_at',]
+    readonly_fields = ['apiary_site', 'proposal_apiary', 'site_status', 'created_at', 'modified_at',]
+
+
 class ProposalAssessorGroupMembershipInline(admin.TabularInline):
     model = models.ProposalAssessorGroupMember
     extra = 1
