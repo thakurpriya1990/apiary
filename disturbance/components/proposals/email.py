@@ -680,5 +680,4 @@ def _log_user_email(email_message, emailuser, customer ,sender=None):
 
     # TODO: Implement EmailUserLogEntry model (Ref: ApprovalLogEntry, etc)
     # email_entry = EmailUserLogEntry.objects.create(**kwargs)
-
-    return email_entry
+    # return email_entry
