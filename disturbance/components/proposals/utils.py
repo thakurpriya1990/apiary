@@ -540,7 +540,13 @@ def save_proponent_data_apiary(proposal_obj, request, viewset):
                 serializer.save()
 
                 # site_locations_received = proposal_apiary_data['apiary_sites']
-                site_locations_received = json.loads(request.data.get('all_the_features'))
+                all_features = request.data.get('all_the_features')
+                
+                try:
+                    site_locations_received = json.loads(all_features)
+                    logger.info(f"Number of all_the_features in request: {len(site_locations_received)}")
+                except Exception as e:
+                    logger.error(f"Error parsing all_the_features: {str(e)}")
 
                 # Feature object doesn't have a field named 'id' originally unless manually added
                 site_ids_received = []  # Store the apiary site ids already saved in the database
