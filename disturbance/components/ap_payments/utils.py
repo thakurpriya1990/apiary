@@ -393,7 +393,7 @@ def checkout(
     checkout_params = {
         'system': settings.PAYMENT_SYSTEM_ID,
         'fallback_url': request.build_absolute_uri('/'),
-        'return_url': request.build_absolute_uri(reverse(return_url_ns)),         
+        'return_url': request.build_absolute_uri(reverse(return_url_ns,kwargs={"lodgement_number": proposal.lodgement_number})),         
         'return_preload_url': settings.APIARY_EXTERNAL_URL + reverse(return_preload_url_ns,kwargs={"lodgement_number": proposal.lodgement_number}),
         'force_redirect': True,
         'proxy': proxy,
