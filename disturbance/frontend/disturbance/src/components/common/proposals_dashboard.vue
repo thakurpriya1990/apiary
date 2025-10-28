@@ -289,6 +289,7 @@ export default {
                     },
                     orderable: true,
                     searchable: true,
+                    defaultContent: '',
                 },
             ];
             if (this.dasTemplateGroup) {
@@ -302,6 +303,7 @@ export default {
                     //visible: false,
                     name: 'region__name',
                     searchable: true,
+                    defaultContent: '',
                 });
             };
             columnList.push({
@@ -309,6 +311,7 @@ export default {
                     data: "activity",
                     searchable: true,
                     name: 'activity',
+                    defaultContent: '',
                 });
             if (this.dasTemplateGroup) {
                 columnList.push({
@@ -323,6 +326,7 @@ export default {
                     //visible: false,
                     name: 'title',
                     searchable: true,
+                    defaultContent: '',
                 });
             };
             columnList.push({
@@ -337,6 +341,7 @@ export default {
                     //name: vm.submitter_column_name,
                     name: "submitter__email, submitter__first_name, submitter__last_name",
                     searchable: true,
+                    defaultContent: '',
                 },
                 {
                     // 5. Proponent/Applicant
@@ -344,6 +349,7 @@ export default {
                     //name: vm.proponent_applicant_column_name,
                     name: "applicant__organisation__name, proxy_applicant__first_name, proxy_applicant__last_name, proxy_applicant__email",
                     searchable: true,
+                    defaultContent: '',
                 },
                 {
                     // 6. Status
@@ -355,6 +361,7 @@ export default {
                     },
                     searchable: false,
                     name: 'status',
+                    defaultContent: '',
                 },
                 {
                     // 7. Lodged on
@@ -363,6 +370,7 @@ export default {
                         return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
                     },
                     searchable: true,
+                    defaultContent: '',
                 });
             if (!vm.is_external){
                 columnList.push({
@@ -371,6 +379,7 @@ export default {
                     //visible: false,
                     name: "assigned_officer__first_name, assigned_officer__last_name, assigned_officer__email",
                     searchable: true,
+                    defaultContent: '',
                 });
             };
             if (this.apiaryTemplateGroup) {
@@ -401,6 +410,7 @@ export default {
                     orderable: false,
                     //visible: false,
                     searchable: false,
+                    defaultContent: '',
                 });
             };
             columnList.push({
@@ -429,6 +439,7 @@ export default {
                     searchable: false,
                     orderable: false,
                     className: "noexport",
+                    defaultContent: '',
                 });
             console.log(columnList);
             return columnList;

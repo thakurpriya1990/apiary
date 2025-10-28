@@ -155,6 +155,7 @@ export default {
                         data: "id",
                         width: "10%",
                         searchable: false,
+                        defaultContent: '',
                     },
                     { 
                         data: "proposal_type",
@@ -162,17 +163,20 @@ export default {
                         searchable: false,
                         mRender:function (data,type,full) {
                             return data.name_with_version
-                        }
+                        },
+                        defaultContent: '',
                     },
                     { 
                         data: "section_label",
                         width: "50%",
                         searchable: false,
+                        defaultContent: '',
                     },
                     { 
                         data: "index",
                         width: "10%",
                         searchable: false,
+                        defaultContent: '',
                     },
                     { 
                         data: "id",
@@ -182,7 +186,8 @@ export default {
                             var column = `<a class="edit-row" data-rowid=\"__ROWID__\">Edit</a><br/>`;
                             column += `<a class="delete-row" data-rowid=\"__ROWID__\">Delete</a><br/>`;
                             return column.replace(/__ROWID__/g, full.id);
-                        }
+                        },
+                        defaultContent: '',
                     },
                 ],
                 rowId: function(_data) {

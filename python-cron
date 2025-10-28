@@ -1,0 +1,4 @@
+0 2 * * * cd /app && python manage_ds.py cron_tasks > logs/run_cron_tasks.log 2>&1
+10 4 * * * cd /app && python manage_ds.py runcrons > logs/runcrons.log 2>&1
+20 9 * * * cd /app && python manage_ds.py bpoint_ledger_payment_audit_report >> logs/bpoint_ledger_payment_audit_report.log 2>&1
+10 9 * * 0 cd /app && python manage_ds.py appmonitor_check >> logs/appmonitor_check.log 2>&1

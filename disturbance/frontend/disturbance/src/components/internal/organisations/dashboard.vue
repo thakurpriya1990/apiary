@@ -78,7 +78,7 @@ import {
   helpers
 }
 from '@/utils/hooks'
-import uuid from 'uuid'
+import { v4 as uuid } from 'uuid';
 export default {
   name: 'OrganisationAccessDashboard',
   data() {
@@ -113,27 +113,34 @@ export default {
                 columns:[
                     {
                         data:"id",
+                        defaultContent: '',
                     },
                     {
                         data:"name",
+                        defaultContent: '',
                     },
                     {
                         data:"requester",
+                        defaultContent: '',
                     },
                     {
                         data:"role",
+                        defaultContent: '',
                     },
                     {
                         data:"status",
+                        defaultContent: '',
                     },
                     {
                         data:"lodgement_date",
                         mRender:function(data,type,full){
                             return moment(data).format('DD/MM/YYYY')
-                        }
+                        },
+                        defaultContent: '',
                     },
                     {
                         data:"assigned_officer",
+                        defaultContent: '',
                     },
                     {
                         data:"id",
@@ -151,7 +158,8 @@ export default {
                                 //var column = "<a href='/internal/organisations/access/\__ID__\'> Process </a>";
                             }
                             return column.replace(/__ID__/g, data);
-                        }
+                        },
+                        defaultContent: '',
                     },
                 ],
                 initComplete: function(){

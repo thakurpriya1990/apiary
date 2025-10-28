@@ -26,7 +26,7 @@
 
 <script>
     import Vue from 'vue'
-    import uuid from 'uuid'
+    import { v4 as uuid } from 'uuid';
     import { api_endpoints, helpers, } from '@/utils/hooks'
     import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
 

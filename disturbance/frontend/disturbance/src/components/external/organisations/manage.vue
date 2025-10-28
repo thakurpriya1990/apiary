@@ -219,15 +219,18 @@ export default {
                 columns:[
                     {
                         data:"who",
+                        defaultContent: '',
                     },
                     {
                         data:"what",
+                        defaultContent: '',
                     },
                     {
                         data:"when",
                         mRender:function(data,type,full){
                             return moment(data).format(vm.DATE_TIME_FORMAT)
-                        }
+                        },
+                        defaultContent: '',
                     },
                 ]
             },
@@ -250,34 +253,41 @@ export default {
                         data: 'created',
                         render: function (date) {
                             return moment(date).format(vm.DATE_TIME_FORMAT);
-                        }
+                        },
+                        defaultContent: '',
                     },
                     {
                         title: 'Type',
-                        data: 'type'
+                        data: 'type',
+                        defaultContent: '',
                     },
                     {
                         title: 'Reference',
-                        data: 'reference'
+                        data: 'reference',
+                        defaultContent: '',
                     },
                     {
                         title: 'To',
                         data: 'to',
-                        render: vm.commaToNewline
+                        render: vm.commaToNewline,
+                        defaultContent: '',
                     },
                     {
                         title: 'CC',
                         data: 'cc',
-                        render: vm.commaToNewline
+                        render: vm.commaToNewline,
+                        defaultContent: '',
                     },
                     {
                         title: 'From',
                         data: 'fromm',
-                        render: vm.commaToNewline
+                        render: vm.commaToNewline,
+                        defaultContent: '',
                     },
                     {
                         title: 'Subject/Desc.',
-                        data: 'subject'
+                        data: 'subject',
+                        defaultContent: '',
                     },
                     {
                         title: 'Text',
@@ -310,7 +320,8 @@ export default {
                             //TODO why this is not working?
                             // the call to popover is done in the 'draw' event
                             $(cell).popover();
-                        }
+                        },
+                        defaultContent: '',
                     },
                     {
                         title: 'Documents',
@@ -339,7 +350,8 @@ export default {
                                 result += '<a href="' + url + '" target="_blank"><p>' + docName+ '</p></a><br>';
                             });
                             return result;
-                        }
+                        },
+                        defaultContent: '',
                     }
                 ]
             },
@@ -367,12 +379,13 @@ export default {
                             } else {
                                 return full.first_name + " " + full.last_name;
                             }
-                        }
+                        },
+                        defaultContent: '',
                     },
-                    {data:'phone_number'},
-                    {data:'mobile_number'},
-                    {data:'fax_number'},
-                    {data:'email'},
+                    {data:'phone_number',defaultContent: '',},
+                    {data:'mobile_number',defaultContent: '',},
+                    {data:'fax_number',defaultContent: '',},
+                    {data:'email',defaultContent: '',},
                     {
                         mRender:function (data,type,full) {
                             let links = '';
@@ -403,11 +416,12 @@ export default {
                     {
                         mRender:function (data,type,full) {
                             return full.first_name + " " + full.last_name;
-                        }
+                        },
+                        defaultContent: '',
                     },
-                    {data:'user_role'},
-                    {data:'email'},
-                    {data:'user_status'},
+                    {data:'user_role',defaultContent: ''},
+                    {data:'email',defaultContent: ''},
+                    {data:'user_status',defaultContent: ''},
                     {
                         mRender:function (data,type,full) {
                             let links = '';
@@ -432,7 +446,8 @@ export default {
                                 }
                             }        
                             return links;
-                        }
+                        },
+                        defaultContent: '',
                     }
                   ],
                   processing: true,

@@ -3,7 +3,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
 trigger:
-- das_apiary_d849b8a
+- main
 
 
 resources:
@@ -12,7 +12,7 @@ resources:
 variables:
   tag: '$(Build.BuildId)'
   tagDate: $[ format('{0:yyyy}.{0:MM}.{0:dd}.{0:HH}.{0:mm}{0:ss}', pipeline.startTime) ]
-  isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/das_apiary_d849b8a')]
+  isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
   
 stages:
 - stage: Build
@@ -32,15 +32,15 @@ stages:
         tags: | 
               latest
               $(tagDate)
-        containerRegistry: DockerHub
-        repository: dbcawa/disturbance
+        containerRegistry: DockerGitHub
+        repository: ghcr.io/dbca-wa/apiary
     - task: Docker@2
       displayName: Dev Build image and Push
       inputs:
         command: buildAndPush
         dockerfile: '$(Build.SourcesDirectory)/dockerdev/Dockerfile'
         tags: | 
-              disturbance_dev_latest
-              disturbance_dev_$(tagDate)              
-        containerRegistry: DockerHub
-        repository: dbcawa/docker_app_dev   
+              apiary_dev_latest
+              apiary_dev_$(tagDate)              
+        containerRegistry: DockerGitHub
+        repository: ghcr.io/dbca-wa/docker_app_dev 
