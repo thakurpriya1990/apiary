@@ -106,7 +106,6 @@
     import FormSection from "@/components/forms/section_toggle.vue"
     import ContactLicenceHolderModal from "@/components/common/apiary/contact_licence_holder_modal.vue"
     import { v4 as uuid } from 'uuid';
-    import Vue from 'vue'
 
     import 'ol/ol.css';
     import 'ol-layerswitcher/dist/ol-layerswitcher.css'

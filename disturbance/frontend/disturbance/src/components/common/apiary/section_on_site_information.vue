@@ -28,7 +28,6 @@
 </template>
 
 <script>
-    import Vue from 'vue'
     import datatable from '@vue-utils/datatable.vue'
     import { v4 as uuid } from 'uuid';
     import { api_endpoints, helpers, } from '@/utils/hooks'

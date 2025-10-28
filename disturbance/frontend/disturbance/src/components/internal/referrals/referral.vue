@@ -261,7 +261,6 @@
 <script>
 import Proposal from '../../form.vue'
 import NewApply from '../../external/proposal_apply_new.vue'
-import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import MoreReferrals from '@common-utils/more_referrals.vue'

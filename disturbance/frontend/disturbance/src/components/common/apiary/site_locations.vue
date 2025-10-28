@@ -147,7 +147,6 @@
     import Cluster from 'ol/source/Cluster';
     import {Circle as CircleStyle, Fill, Stroke, Style, Icon, Text, RegularShape} from 'ol/style';
     import {FullScreen as FullScreenControl, MousePosition as MousePositionControl} from 'ol/control';
-    import Vue from 'vue/dist/vue';
     import { Feature } from 'ol';
     import { Point, LineString } from 'ol/geom';
     import { getDistance } from 'ol/sphere';

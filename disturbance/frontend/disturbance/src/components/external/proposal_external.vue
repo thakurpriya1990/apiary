@@ -246,7 +246,6 @@ import ProposalDisturbance from '../form.vue'
 import ProposalApiary from '../form_apiary.vue'
 import ApiarySiteTransfer from '../form_apiary_site_transfer.vue'
 import NewApply from './proposal_apply_new.vue'
-import Vue from 'vue'
 import {
   api_endpoints,
   helpers

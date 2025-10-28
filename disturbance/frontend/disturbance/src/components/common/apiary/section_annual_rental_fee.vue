@@ -35,8 +35,8 @@
                             All
                         </option>
                     </template>
-                    <template v-for="annual_rental_fee_period in annual_rental_fee_periods">
-                        <option :value="annual_rental_fee_period.year_name" :key="annual_rental_fee_period.id">
+                    <template v-for="annual_rental_fee_period in annual_rental_fee_periods" :key="annual_rental_fee_period.id">
+                        <option :value="annual_rental_fee_period.year_name">
                             {{ annual_rental_fee_period.year_name }}
                         </option>
                     </template>
