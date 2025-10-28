@@ -35,6 +35,12 @@ export default {
 
     },
     fetchOrganisation: function(id){
+        // Guard clause to prevent API calls with an invalid ID.
+        // If 'id' is null, undefined, 0, or an empty string, reject the promise immediately.
+        if (!id) {
+            return Promise.reject(new Error('An organisation ID is required to fetch data.'));
+        }
+
         return new Promise ((resolve,reject) => {
             Vue.http.get(helpers.add_endpoint_json(api.organisations,id)).then((response) => {
                 resolve(response.body);
