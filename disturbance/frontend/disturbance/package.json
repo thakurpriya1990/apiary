@@ -5,7 +5,7 @@
   "author": "Brian Ndwiga <ndwigabrian@gmail.com>",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "serve": "vue-cli-service serve --port 9062",
     "build": "vue-cli-service build"
   },
   "dependencies": {
