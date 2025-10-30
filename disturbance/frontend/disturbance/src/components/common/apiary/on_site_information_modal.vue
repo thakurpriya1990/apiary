@@ -36,9 +36,7 @@
                                 <option value=""></option>
                                 <!-- option v-for="site in apiary_sites_options" :value="site" :key="site.id" -->
                                 <option v-for="site in apiary_sites_options" :value="site.id" :key="site.id">
-                                    <span>
-                                        Site: {{ site.id }}
-                                    </span>
+                                    Site: {{ site.id }}
                                 </option>
                             </select>
                         </div>

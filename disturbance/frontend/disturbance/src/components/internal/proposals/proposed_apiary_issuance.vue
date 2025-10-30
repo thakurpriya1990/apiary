@@ -8,7 +8,7 @@
                 <div class="row">
                     <form class="form-horizontal" name="approvalForm">
                         <!-- <alert v-if="isApprovalLevelDocument" type="warning"><strong>{{warningString}}</strong></alert> -->
-                        <alert :show.sync="showError" type="danger"><strong>{{errorString}}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
 
                             <div v-if="!siteTransferApplication">
@@ -70,14 +70,12 @@
                                             <label v-else class="control-label pull-left"  for="Name">Proposed Start Date</label>
                                         </div>
                                         <div class="col-sm-9">
-                                            <template>
-                                                <div class="input-group date" ref="start_date" style="width: 70%;">
-                                                    <input type="text" class="form-control" name="start_date" placeholder="DD/MM/YYYY" v-model="approval.start_date">
-                                                    <span class="input-group-addon">
-                                                        <span class="glyphicon glyphicon-calendar"></span>
-                                                    </span>
-                                                </div>
-                                            </template>
+                                            <div class="input-group date" ref="start_date" style="width: 70%;">
+                                                <input type="text" class="form-control" name="start_date" placeholder="DD/MM/YYYY" v-model="approval.start_date">
+                                                <span class="input-group-addon">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="row" v-show="showstartDateError">
@@ -92,14 +90,12 @@
                                             <label v-else class="control-label pull-left"  for="Name">Proposed Expiry Date</label>
                                         </div>
                                         <div class="col-sm-9">
-                                            <template>
-                                                <div class="input-group date" ref="due_date" style="width: 70%;">
-                                                    <input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="approval.expiry_date">
-                                                    <span class="input-group-addon">
-                                                        <span class="glyphicon glyphicon-calendar"></span>
-                                                    </span>
-                                                </div>
-                                            </template>
+                                            <div class="input-group date" ref="due_date" style="width: 70%;">
+                                                <input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="approval.expiry_date">
+                                                <span class="input-group-addon">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="row" v-show="showtoDateError">

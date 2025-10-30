@@ -26,7 +26,7 @@
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Lodged on</strong><br/>
-                                {{ proposal.lodgement_date | formatDate }}
+                                {{ formatDate(proposal.lodgement_date) }}
                                 <input type="hidden" id="lodgement_date" value="">
                             </div>
                         </div>
@@ -78,14 +78,16 @@
                                         </template>
                                     </div>
                                     <table class="table small-table">
-                                        <tr>
-                                            <th>Referral</th>
-                                            <th>Status/Action</th>
-                                        </tr>
+                                        <thead>
+                                            <tr>
+                                                <th>Referral</th>
+                                                <th>Status/Action</th>
+                                            </tr>
+                                        </thead>
                                         <tr v-for="r in proposal.latest_referrals">
                                             <td>
                                                 <small><strong>{{r.referral}}</strong></small><br/>
-                                                <small><strong>{{r.lodged_on | formatDate}}</strong></small>
+                                                <small><strong>{{ formatDate(r.lodged_on) }}</strong></small>
                                             </td>
                                             <td>
                                                 <small><strong>{{r.processing_status}}</strong></small><br/>
@@ -98,9 +100,6 @@
                                             </td>
                                         </tr>
                                     </table>
-                                    <template>
-
-                                    </template>
                                     <MoreReferrals @refreshFromResponse="refreshFromResponse" :proposal="proposal" :canAction="canLimitedAction" :isFinalised="isFinalised" :referral_url="referralListURL"/>
                                 </div>
                                 <div class="col-sm-12">
@@ -227,12 +226,12 @@
             <div v-if="proposal_compare_version!=0" class="panel panel-default sticky-footer">
                 Comparing
                 <span class="label label-default">
-                    {{proposal.lodgement_number}}-{{reversion_history_length}}: {{proposal.lodgement_date | formatDate }}   
+                    {{proposal.lodgement_number}}-{{reversion_history_length}}: {{formatDate(proposal.lodgement_date)}}   
                 </span>&nbsp;
                 with
                 <span class="label label-danger">
                     {{proposal.lodgement_number}}-{{reversion_history_length - proposal_compare_version}}:
-                    {{compare_version_lodgement_date | formatDate}} ({{proposal_compare_version}} Older than current)
+                    {{formatDate(compare_version_lodgement_date)}} ({{proposal_compare_version}} Older than current)
                 </span>
                 
             </div>
@@ -506,12 +505,6 @@ export default {
         MoreReferrals,
         NewApply,
     },
-    filters: {
-        formatDate: function(data){
-            // The only time the lodgement_date field should be empty is when viewing the final draft (just prior to submission)
-            return data ? moment(data).format('MMMM Do YYYY') + ' at ' + moment(data).format('h:mm:ss a'): 'Draft just prior to lodgement.';
-        },
-    },
     props: {
         proposalId: {
             type: Number,
@@ -573,6 +566,10 @@ export default {
         },
     },
     methods: {
+        formatDate: function(data){
+            // The only time the lodgement_date field should be empty is when viewing the final draft (just prior to submission)
+            return data ? moment(data).format('MMMM Do YYYY') + ' at ' + moment(data).format('h:mm:ss a'): 'Draft just prior to lodgement.';
+        },
         updateProposalVersion: async function(proposal_version) {
             /* Changes the currently viewed Proposal and updates the values object on the ProposalDisturbace
             component so data field values change in the DOM. 

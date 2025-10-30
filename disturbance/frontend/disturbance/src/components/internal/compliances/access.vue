@@ -17,15 +17,17 @@
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Lodged on</strong><br/>
-                                {{ compliance.lodgement_date | formatDate}}
+                                {{ formatDate(compliance.lodgement_date) }}
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <table class="table small-table">
-                                    <tr>
-                                        <th>Lodgement</th>
-                                        <th>Date</th>
-                                        <th>Action</th>
-                                    </tr>
+                                    <tbody>
+                                        <tr>
+                                            <th>Lodgement</th>
+                                            <th>Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
@@ -137,10 +139,6 @@ export default {
     }
   },
   watch: {},
-  filters: {
-    formatDate: function(data){
-        return data ? moment(data).format('DD/MM/YYYY'): '';    }
-  },
   beforeRouteEnter: function(to, from, next){
     Vue.http.get(helpers.add_endpoint_json(api_endpoints.compliances,to.params.compliance_id)).then((response) => {
         next(vm => {
@@ -165,6 +163,9 @@ export default {
     },
   },
   methods: {
+    formatDate: function(data){
+        return data ? moment(data).format('DD/MM/YYYY'): '';    
+    },
     commaToNewline(s){
         return s.replace(/[,;]/g, '\n');
     },

@@ -69,19 +69,19 @@
                         <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Issue Date</label>
                             <div class="col-sm-6">
-                                <label for="" class="control-label pull-left">{{approval.issue_date | formatDate}}</label>
+                                <label for="" class="control-label pull-left">{{formatDate(approval.issue_date)}}</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="" class="col-sm-3 control-label" >Start Date</label>
                             <div class="col-sm-6">
-                                <label for="" class="control-label pull-left">{{approval.start_date | formatDate}}</label>
+                                <label for="" class="control-label pull-left">{{formatDate(approval.start_date)}}</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Expiry Date</label>
                             <div class="col-sm-3">
-                                <label for="" class="control-label pull-left">{{approval.expiry_date | formatDate}}</label>
+                                <label for="" class="control-label pull-left">{{formatDate(approval.expiry_date)}}</label>
                             </div>
                         </div>
                         <div class="form-group">
@@ -170,12 +170,7 @@ export default {
             }
         }
     },
-    filters: {
-        formatDate: function(data){
-            return moment(data).format('DD/MM/YYYY');
-        }
-    },
-    created: function() {
+        created: function() {
         if (this.approvalId) {
             this.loadApproval(this.approvalId)
         }
@@ -186,6 +181,9 @@ export default {
         FormSection,
     },
     computed: {
+        formatDate: function(data){
+            return moment(data).format('DD/MM/YYYY');
+        },
         isLoading: function () {
             return this.loading.length > 0;
         },

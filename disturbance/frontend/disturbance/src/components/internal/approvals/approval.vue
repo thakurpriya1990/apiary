@@ -14,15 +14,17 @@
                             
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Issued on</strong><br/>
-                                {{ approval.issue_date | formatDate}}
+                                {{ formatDate(approval.issue_date) }}
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <table class="table small-table">
-                                    <tr>
-                                        <th>Lodgement</th>
-                                        <th>Date</th>
-                                        <th>Action</th>
-                                    </tr>
+                                    <thead>
+                                        <tr>
+                                            <th>Lodgement</th>
+                                            <th>Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
                                 </table>
                             </div>
                         </div>
@@ -141,7 +143,7 @@
                           <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Issue Date</label>
                             <div class="col-sm-6">
-                                <label for="" class="control-label pull-left">{{approval.issue_date | formatDate}}</label>
+                                <label for="" class="control-label pull-left">{{ formatDate(approval.issue_date) }}</label>
                             </div>
                         <!---    <div class="col-sm-6">
                                 <p>{{approval.issue_date | formatDate}}</p>
@@ -150,13 +152,13 @@
                           <div class="form-group">
                             <label for="" class="col-sm-3 control-label" >Start Date</label>
                             <div class="col-sm-6">
-                                <label for="" class="control-label pull-left">{{approval.start_date | formatDate}}</label>
+                                <label for="" class="control-label pull-left">{{ formatDate(approval.start_date) }}</label>
                             </div>
                           </div>
                           <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Expiry Date</label>
                             <div class="col-sm-3">
-                                <label for="" class="control-label pull-left">{{approval.expiry_date | formatDate}}</label>
+                                <label for="" class="control-label pull-left">{{ formatDate(approval.expiry_date) }}</label>
                             </div>
                             
                           </div>
@@ -209,12 +211,7 @@ export default {
     }
   },
   watch: {},
-  filters: {
-    formatDate: function(data){
-        return moment(data).format('DD/MM/YYYY');
-    }
-  },
-    props: {
+  props: {
         approvalId: {
             type: Number,
         },
@@ -253,6 +250,9 @@ export default {
     
   },
   methods: {
+    formatDate: function(data){
+        return moment(data).format('DD/MM/YYYY');
+    },
     commaToNewline(s){
         return s.replace(/[,;]/g, '\n');
     },

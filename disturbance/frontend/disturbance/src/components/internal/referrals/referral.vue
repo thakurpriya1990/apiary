@@ -17,15 +17,17 @@
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Lodged on</strong><br/>
-                                {{ proposal.lodgement_date | formatDate}}
+                                {{ formatDate(proposal.lodgement_date) }}
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <table class="table small-table">
-                                    <tr>
-                                        <th>Lodgement</th>
-                                        <th>Date</th>
-                                        <th>Action</th>
-                                    </tr>
+                                    <thead>
+                                        <tr>
+                                            <th>Lodgement</th>
+                                            <th>Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
                                 </table>
                             </div>
                         </div>
@@ -75,15 +77,17 @@
                                     </template>
                                 </div>
                                 <table class="table small-table">
-                                    <tr>
-                                        <th>Referral</th>
-                                        <th>Status/Action</th>
-                                    </tr>
+                                    <thead>
+                                        <tr>
+                                            <th>Referral</th>
+                                            <th>Status/Action</th>
+                                        </tr>
+                                    </thead>
                                     <!-- <tr v-for="r in proposal.latest_referrals"> -->
                                     <tr v-for="r in referral.latest_referrals">
                                         <td>
                                             <small><strong>{{r.referral}}</strong></small><br/>
-                                            <small><strong>{{r.lodged_on | formatDate}}</strong></small>
+                                            <small><strong>{{ formatDate(r.lodged_on) }}</strong></small>
                                         </td>
                                         <td><small><strong>{{r.processing_status}}</strong></small><br/>
                                         <template v-if="!isFinalised && referral.referral == proposal.current_assessor.id">
@@ -345,11 +349,6 @@ export default {
         MoreReferrals,
         NewApply,
     },
-    filters: {
-        formatDate: function(data){
-            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss'): '';
-        }
-    },
     props:{
             referralId:{
                 type:Number,
@@ -381,6 +380,9 @@ export default {
         }
     },
     methods: {
+        formatDate: function(data){
+            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss'): '';
+        },
         refreshFromResponse:function(response){
             let vm = this;
             vm.proposal = helpers.copyObject(response.body);

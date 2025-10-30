@@ -18,15 +18,17 @@
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Lodged on</strong><br/>
-                                {{ proposal.lodgement_date | formatDate}}
+                                {{ formatDate(proposal.lodgement_date) }}
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <table class="table small-table">
-                                    <tr>
-                                        <th>Lodgement</th>
-                                        <th>Date</th>
-                                        <th>Action</th>
-                                    </tr>
+                                    <thead>
+                                        <tr>
+                                            <th>Lodgement</th>
+                                            <th>Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
                                 </table>
                             </div>
                         </div>
@@ -50,17 +52,15 @@
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Currently assigned to</strong><br/>
                                 <div class="form-group">
-                                    <template>
-                                        <select ref="assigned_officer_referral" :disabled="!canProcess" class="form-control" v-model="apiaryReferral.assigned_officer_id">
-                                            <option :value="null"></option>
-                                            <option v-for="member in apiaryReferral.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
-                                        </select>
-                                        <a 
-                                            v-if="canAssign && apiaryReferral.assigned_officer_id != apiaryReferral.current_officer.id" 
-                                            @click.prevent="assignRequestUser()" 
-                                            class="actionBtn pull-right">Assign to me
-                                        </a>
-                                    </template>
+                                    <select ref="assigned_officer_referral" :disabled="!canProcess" class="form-control" v-model="apiaryReferral.assigned_officer_id">
+                                        <option :value="null"></option>
+                                        <option v-for="member in apiaryReferral.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
+                                    </select>
+                                    <a 
+                                        v-if="canAssign && apiaryReferral.assigned_officer_id != apiaryReferral.current_officer.id" 
+                                        @click.prevent="assignRequestUser()" 
+                                        class="actionBtn pull-right">Assign to me
+                                    </a>
                                 </div>
                             </div>
 
@@ -424,11 +424,6 @@ export default {
         //OriginatingApprovalRequirements,
         //TargetApprovalRequirements,
     },
-    filters: {
-        formatDate: function(data){
-            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss'): '';
-        }
-    },
     props:{
             referralId:{
                 type:Number,
@@ -530,6 +525,9 @@ export default {
         },
     },
     methods: {
+        formatDate: function(data){
+            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss'): '';
+        },
         updateAssignedOfficerSelect: function(){
             let vm = this;
             console.log(vm)

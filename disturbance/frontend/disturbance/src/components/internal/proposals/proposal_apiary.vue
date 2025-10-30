@@ -23,15 +23,17 @@
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Lodged on</strong><br/>
-                                {{ proposal.lodgement_date | formatDate}}
+                                {{ formatDate(proposal.lodgement_date) }}
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <table class="table small-table">
-                                    <tr>
-                                        <th>Lodgement</th>
-                                        <th>Date</th>
-                                        <th>Action</th>
-                                    </tr>
+                                    <thead>
+                                        <tr>
+                                            <th>Lodgement</th>
+                                            <th>Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
                                 </table>
                             </div>
                         </div>
@@ -101,14 +103,16 @@
                                         </template>
                                     </div>
                                     <table class="table small-table">
-                                        <tr>
-                                            <th>Referral</th>
-                                            <th>Status/Action</th>
-                                        </tr>
+                                        <thead>
+                                            <tr>
+                                                <th>Referral</th>
+                                                <th>Status/Action</th>
+                                            </tr>
+                                        </thead>
                                         <tr v-for="r in proposal.latest_referrals">
                                             <td>
                                                 <small><strong>{{r.apiary_referral.referral_group.name}}</strong></small><br/>
-                                                <small><strong>{{r.lodged_on | formatDate}}</strong></small>
+                                                <small><strong>{{ formatDate(r.lodged_on) }}</strong></small>
                                             </td>
                                             <td>
                                                 <small><strong>{{r.processing_status}}</strong></small><br/>
@@ -121,9 +125,6 @@
                                             </td>
                                         </tr>
                                     </table>
-                                    <template>
-
-                                    </template>
                                     <ApiaryReferralsForProposal @refreshFromResponse="refreshFromResponse" :proposal="proposal" :canAction="canLimitedAction" :isFinalised="isFinalised" :referral_url="referralListURL"/>
                                 </div>
                                 <div class="col-sm-12">
@@ -618,11 +619,6 @@ export default {
         FileField,
         ApiarySiteTransfer,
     },
-    filters: {
-        formatDate: function(data){
-            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss'): '';
-        }
-    },
     props: {
         proposalId: {
             type: Number,
@@ -783,6 +779,9 @@ export default {
         },
     },
     methods: {
+        formatDate: function(data){
+            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss'): '';
+        },
         refreshRequirements: function(bool){
               let vm=this;
               vm.requirementsComplete=bool;

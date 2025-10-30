@@ -50,7 +50,7 @@
             <div v-if="!readonly" v-for="n in repeat">
                 <div v-if="isRepeatable || (!isRepeatable && num_documents()==0)">
                     <input :name="name" type="file" class="form-control" :data-que="n" :accept="fileTypes" @change="handleChange" :required="isRequired"/>
-                    <alert :show.sync="showError" type="danger" style="color: red"><strong>{{errorString}}</strong></alert>
+                    <alert v-if="showError" type="danger" style="color: red"><strong>{{errorString}}</strong></alert>
                 </div>
             </div>
 
