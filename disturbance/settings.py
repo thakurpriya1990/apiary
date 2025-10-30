@@ -241,3 +241,16 @@ if len(GIT_COMMIT_HASH) == 0:
 APPLICATION_VERSION = env("APPLICATION_VERSION", "1.0.0") + "-" + GIT_COMMIT_HASH[:7]
 
 APIARY_EXTERNAL_URL = env('APIARY_EXTERNAL_URL', 'External url not configured')
+LEDGER_UI_ACCOUNTS_MANAGEMENT = [
+    {'first_name': {'options' : {'view': True, 'edit': True}}},
+    {'last_name': {'options' : {'view': True, 'edit': True}}},
+    {'residential_address': {'options' : {'view': True, 'edit': True}}},
+    {'postal_address': {'options' : {'view': True, 'edit': True}}},
+    {'phone_number' : {'options' : {'view': True, 'edit': True}}},
+    {'mobile_number' : {'options' : {'view': True, 'edit': True}}},
+    {'dob' : {'options' : {'view': True, 'edit': True}}},
+    {'postal_same_as_residential' : {'options' : {'view': True, 'edit': True}}},
+    {'address_details' : {'options' : {'billing_address': {'show': False}}}},
+]
+LEDGER_UI_SYSTEM_ACCOUNTS_MANAGEMENT['address_details']['options']['billing_address']['show'] = False
+# LEDGER_UI_CARDS_MANAGEMENT = env('LEDGER_UI_CARDS_MANAGEMENT', True)
