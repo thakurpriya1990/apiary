@@ -79,6 +79,7 @@ api_patterns = [
     re_path(r'^api/proposal_type$', proposal_api.GetProposalType.as_view(), name='get-proposal-type'),
     re_path(r'^api/organisation_access_group_members',org_api.OrganisationAccessGroupMembers.as_view(),name='organisation-access-group-members'),
     re_path(r'^api/apiary_organisation_access_group_members',org_api.ApiaryOrganisationAccessGroupMembers.as_view(),name='apiary-organisation-access-group-members'),
+    re_path(r'^api/get_organisation_id/$',org_api.GetOrganisationId.as_view(),name='get-organisation-id'),
     re_path(r'^api/',include(router.urls)),
     re_path(r'^api/amendment_request_reason_choices',proposal_api.AmendmentRequestReasonChoicesView.as_view(),name='amendment_request_reason_choices'),
     re_path(r'^api/compliance_amendment_reason_choices',compliances_api.ComplianceAmendmentReasonChoicesView.as_view(),name='amendment_request_reason_choices'),
@@ -157,6 +158,7 @@ urlpatterns = [
     re_path(r'^history/organisation/(?P<pk>\d+)/$', organisation_views.OrganisationHistoryCompareView.as_view(), name='organisation_history'),
     re_path(r'^template_group$', views.TemplateGroupView.as_view(), name='template-group'),
     re_path(r'^private-media/', views.getPrivateFile, name='view_private_file'),
+    re_path(r'^organisation/$', views.ExternalView.as_view(), name='organisation'),
 
     # Reports
     re_path(r'^api/oracle_job$', main_api.OracleJob.as_view(), name='get-oracle'),

@@ -957,4 +957,21 @@ class MyOrganisationsViewSet(viewsets.ModelViewSet):
         elif user.is_authenticated:
             return user.disturbance_organisations.all()
         return Organisation.objects.none()
+    
+class GetOrganisationId(views.APIView):
+    renderer_classes = [JSONRenderer,]
+
+    def get(self, request, format=None):
+
+        org_id = request.GET.get('org_id', '')
+        user = self.request.user
+        if is_internal(self.request):
+            organisation_qs = Organisation.objects.filter(organisation_id=org_id)
+        elif user.is_authenticated:
+            organisation_qs = user.disturbance_organisations.filter(organisation_id=org_id)
+
+        if organisation_qs.exists():
+            return Response({"id":organisation_qs.last().id})
+        else:
+            serializers.ValidationError("not authorised to access organisation")
 

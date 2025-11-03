@@ -81,4 +81,7 @@ module.exports = {
     history_versions: "/api/history/versions/",
     history_version: "/api/history/version/",
     geocoding_address_search: "https://api.mapbox.com/geocoding/v5/mapbox.places/",
+    get_organisation_id: function (org_id) {
+      return `/api/get_organisation_id/?org_id=${org_id}`
+    },
 }
