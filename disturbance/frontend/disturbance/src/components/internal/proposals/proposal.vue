@@ -342,7 +342,7 @@
                                 <div v-if="proposal.application_type=='Apiary'">
                                     <ProposalApiary v-if="proposal" :proposal="proposal" id="proposalStart" :showSections="sectionShow" ref="proposal_apiary" :is_external="false" :is_internal="true" :hasAssessorMode="hasAssessorMode"></ProposalApiary>
                                 </div>
-                                <div v-else>
+                                <!-- <div v-else>
                                     <ProposalDisturbance 
                                     ref="proposal_disturbance"
                                     :key="'proposal_disturbance' + uuid"
@@ -352,7 +352,7 @@
                                     :proposal="proposal"
                                     />
                                     <NewApply v-if="proposal" :proposal="proposal"></NewApply>
-                                </div>
+                                </div> -->
 
 
                                 <div>
@@ -392,7 +392,7 @@
 var select2 = require('select2');
 require("select2/dist/css/select2.min.css");
 require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
-import ProposalDisturbance from '../../form.vue'
+// import ProposalDisturbance from '../../form.vue'
 import ProposalApiary from '@/components/form_apiary.vue'
 import NewApply from '../../external/proposal_apply_new.vue'
 import ProposedDecline from './proposal_proposed_decline.vue'
@@ -492,7 +492,7 @@ export default {
         }
     },
     components: {
-        ProposalDisturbance,
+        // ProposalDisturbance,
         ProposalApiary,
         datatable,
         ProposedDecline,

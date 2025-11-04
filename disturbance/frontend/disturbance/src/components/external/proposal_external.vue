@@ -183,7 +183,7 @@
                     </div>
                 </div>
             </template>
-            <template v-else>
+            <!-- <template v-else>
                 <ProposalDisturbance v-if="proposal" :proposal="proposal" id="proposalStart" :showSections="sectionShow">
                 <NewApply v-if="proposal" :proposal="proposal" ref="proposal_apply"></NewApply>
                 <div>
@@ -216,7 +216,6 @@
                         </div>
                         <div v-else class="container">
                           <p class="pull-right" style="margin-top:5px;">
-                            <!--button id="sectionHide" @click.prevent="sectionHide" class="btn btn-primary">Show/Hide sections</button-->
                             <input
                             id="sectionHide"
                             v-if="proposal && !proposal.apiary_group_application_type"
@@ -233,7 +232,7 @@
                     </div>
                 </div>
                 </ProposalDisturbance>
-            </template>
+            </template> -->
 
 
         </form>
@@ -242,7 +241,7 @@
     </div>
 </template>
 <script>
-import ProposalDisturbance from '../form.vue'
+// import ProposalDisturbance from '../form.vue'
 import ProposalApiary from '../form_apiary.vue'
 import ApiarySiteTransfer from '../form_apiary_site_transfer.vue'
 import NewApply from './proposal_apply_new.vue'
@@ -299,7 +298,7 @@ export default {
         }
     },
     components: {
-        ProposalDisturbance,
+        // ProposalDisturbance,
         ProposalApiary,
         NewApply,
         ApiarySiteTransfer,

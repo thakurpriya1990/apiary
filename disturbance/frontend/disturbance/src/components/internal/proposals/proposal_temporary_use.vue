@@ -315,7 +315,7 @@
     </div>
 </template>
 <script>
-import ProposalDisturbance from '../../form.vue'
+// import ProposalDisturbance from '../../form.vue'
 //import ProposalApiary from '../../form_apiary.vue'
 import ProposalApiary from '@/components/form_apiary.vue'
 import NewApply from '../../external/proposal_apply_new.vue'
@@ -405,7 +405,7 @@ export default {
         }
     },
     components: {
-        ProposalDisturbance,
+        // ProposalDisturbance,
         ProposalApiary,
         datatable,
         ProposedDecline,
