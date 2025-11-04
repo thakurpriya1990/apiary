@@ -26,7 +26,7 @@
 <script>
     import datatable from '@vue-utils/datatable.vue'
     import { v4 as uuid } from 'uuid';
-    import { api_endpoints, helpers, } from '@/utils/hooks'
+    import { api_endpoints, helpers, constants} from '@/utils/hooks'
     //import uuid from 'uuid'
    // import Swal from 'sweetalert2'
     //import Swal from 'sweetalert2/dist/sweetalert2.js'

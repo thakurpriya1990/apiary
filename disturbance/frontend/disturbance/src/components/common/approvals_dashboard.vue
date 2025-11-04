@@ -130,7 +130,8 @@ import ApprovalSurrender from '../internal/approvals/approval_surrender.vue'
 import ApprovalHistory from './approval_history_modal.vue';
 import {
     api_endpoints,
-    helpers
+    helpers,
+    constants
 }from '@/utils/hooks'
 export default {
     name: 'ApprovalsTableDash',

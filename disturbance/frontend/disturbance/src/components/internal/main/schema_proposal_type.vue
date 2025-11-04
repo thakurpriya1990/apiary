@@ -102,7 +102,8 @@ import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 import {
   api_endpoints,
-  helpers
+  helpers,
+  constants
 }
 from '@/utils/hooks'
 export default {

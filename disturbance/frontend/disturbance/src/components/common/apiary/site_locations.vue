@@ -166,7 +166,7 @@
     import MeasureStyles, { formatLength } from '@/components/common/apiary/measure.js'
     import { getArea, getLength } from 'ol/sphere'
     import Awesomplete from 'awesomplete'
-    import { api_endpoints } from '@/utils/hooks'
+    import { api_endpoints, constants } from '@/utils/hooks'
 
     // create the WMTS tile grid in the google projection
     const projection = getProjection('EPSG:4326');

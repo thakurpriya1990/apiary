@@ -130,7 +130,8 @@ import SchemaOption from './schema_add_option.vue'
 // import SchemaExpander from './schema_add_expander.vue'
 import {
   api_endpoints,
-  helpers
+  helpers,
+  constants
 }
 from '@/utils/hooks'
 export default {

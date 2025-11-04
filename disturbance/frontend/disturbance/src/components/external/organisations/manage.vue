@@ -122,7 +122,7 @@
 </template>
 
 <script>
-import { api_endpoints, helpers } from '@/utils/hooks'
+import { api_endpoints, helpers, constants } from '@/utils/hooks'
 import datatable from '@vue-utils/datatable.vue'
 import utils from '../utils'
 import api from '../api'

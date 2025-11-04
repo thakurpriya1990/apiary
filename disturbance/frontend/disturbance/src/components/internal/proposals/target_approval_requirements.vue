@@ -30,7 +30,8 @@
 <script>
 import {
     api_endpoints,
-    helpers
+    helpers,
+    constants
 }
 from '@/utils/hooks'
 import datatable from '@vue-utils/datatable.vue'

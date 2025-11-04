@@ -30,7 +30,8 @@ import datatable from "@vue-utils/datatable.vue";
 import alert from '@vue-utils/alert.vue';
 import {
     api_endpoints,
-    helpers
+    helpers,
+    constants
 }from '@/utils/hooks'
 export default {
     name: 'ApprovalHistoryModal',

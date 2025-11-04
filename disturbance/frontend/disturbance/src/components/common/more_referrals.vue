@@ -8,7 +8,8 @@
 <script>
 import {
     api_endpoints,
-    helpers
+    helpers,
+    constants
 }from '@/utils/hooks'
 export default {
     name: 'MoreReferrals',

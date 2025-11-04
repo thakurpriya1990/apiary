@@ -182,7 +182,8 @@ import $ from 'jquery'
 import datatable from '@/utils/vue/datatable.vue'
 import {
   api_endpoints,
-  helpers
+  helpers,
+  constants
 }
 from '@/utils/hooks'
 import utils from './utils'

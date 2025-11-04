@@ -99,7 +99,8 @@ require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
 //require("babel-polyfill"); /* only one of 'import' or 'require' is necessary */
 import {
     api_endpoints,
-    helpers
+    helpers,
+    constants
 }from '@/utils/hooks'
 export default {
     name: 'ProposalTableDash',

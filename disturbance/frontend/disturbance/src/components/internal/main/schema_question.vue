@@ -217,7 +217,8 @@ import alert from '@vue-utils/alert.vue'
 import SchemaOption from './schema_add_option.vue'
 import {
   api_endpoints,
-  helpers
+  helpers,
+  constants
 }
 from '@/utils/hooks'
 

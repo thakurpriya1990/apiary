@@ -36,7 +36,8 @@
 import AddCommLog from './add_comm_log.vue'
 import {
     api_endpoints,
-    helpers
+    helpers,
+    constants
 }from '@/utils/hooks'
 export default {
     name: 'CommsLogSection',

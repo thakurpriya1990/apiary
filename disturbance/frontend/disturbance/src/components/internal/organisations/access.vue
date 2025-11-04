@@ -131,7 +131,8 @@ import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import {
   api_endpoints,
-  helpers
+  helpers,
+  constants
 }
 from '@/utils/hooks'
 export default {

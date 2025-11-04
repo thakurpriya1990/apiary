@@ -39,6 +39,10 @@
     import { v4 as uuid } from 'uuid';
     import ComponentMap from '@/components/common/apiary/component_map.vue'
     import { getDisplayNameFromStatus, getStatusForColour, SiteColours } from '@/components/common/apiary/site_colours.js'
+    import {
+        helpers,
+        constants
+    }from '@/utils/hooks'
 
     export default {
         props:{

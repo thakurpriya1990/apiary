@@ -229,7 +229,7 @@
 </template>
 
 <script>
-import { api_endpoints, helpers } from '@/utils/hooks'
+import { api_endpoints, helpers, constants } from '@/utils/hooks'
 import datatable from '@vue-utils/datatable.vue'
 import AddContact from '@common-utils/add_contact.vue'
 import ProposalDashTable from '@common-utils/proposals_dashboard.vue'
