@@ -3,7 +3,6 @@ import LedgerPay from '@/components/ledgerpay'
 import Profile from '@/components/user/profile.vue'
 import external_routes from '@/components/external/routes'
 import internal_routes from '@/components/internal/routes'
-Vue.use(Router)
 
 const router = createRouter({
     history: createWebHistory(),

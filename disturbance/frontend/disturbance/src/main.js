@@ -1,12 +1,11 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
-// import Vue from 'vue'
+import { createApp } from 'vue';
 import App from './App'
 import router from './router'
 import 'bootstrap'
 import helpers from '@/utils/helpers'
-// import hooks from './packages'
-import api_endpoints from './api'
+// import api_endpoints from './api'
 
 import $ from 'jquery';
 import { extendMoment } from 'moment-range';
@@ -27,10 +26,13 @@ import "sweetalert2/dist/sweetalert2.css"
 
 // import 'jquery-validation'
 
+import 'select2';
+import 'select2/dist/css/select2.min.css';
+import 'select2-bootstrap-theme/dist/select2-bootstrap.min.css';
 
 extendMoment(moment);
 
-require( '../node_modules/bootstrap/dist/css/bootstrap.css' );
+// require( '../node_modules/bootstrap/dist/css/bootstrap.css' );
 //require('../node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css')
 require( '../node_modules/font-awesome/css/font-awesome.min.css' )
 require('../node_modules/eonasdan-bootstrap-datetimepicker')
