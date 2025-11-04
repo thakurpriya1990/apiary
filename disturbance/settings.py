@@ -62,6 +62,7 @@ REST_FRAMEWORK = {
         #'rest_framework.renderers.BrowsableAPIRenderer',
         'rest_framework_datatables.renderers.DatatablesRenderer',
     ),
+    "EXCEPTION_HANDLER": "disturbance.exceptions.custom_exception_handler",
     #'DEFAULT_FILTER_BACKENDS': (
     #    'rest_framework_datatables.filters.DatatablesFilterBackend',
     #),
