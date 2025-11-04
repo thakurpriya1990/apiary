@@ -91,7 +91,7 @@
                         [1, 'desc'], [0, 'desc'],
                     ],
                     language: {
-                        processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                        processing: constants.DATATABLE_PROCESSING_HTML,
                     },
                     rowCallback: function (row, obj){
                         return // We disable the expander for now

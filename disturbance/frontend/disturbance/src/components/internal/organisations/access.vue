@@ -154,7 +154,7 @@ export default {
         comms_add_url: helpers.add_endpoint_json(api_endpoints.organisation_requests,vm.$route.params.access_id+'/add_comms_log'),
         actionDtOptions:{
             language: {
-                processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                processing: constants.DATATABLE_PROCESSING_HTML,
             },
             responsive: true,
             deferRender: true, 
@@ -188,7 +188,7 @@ export default {
         actionsTable : null,
         commsDtOptions:{
             language: {
-                processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                processing: constants.DATATABLE_PROCESSING_HTML,
             },
             responsive: true,
             deferRender: true, 

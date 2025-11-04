@@ -133,7 +133,7 @@ export default {
             dtHeadersSchemaProposalType: ["ID", "Licence Proposal Type", "Section Label", "Index", "Action"],
             dtOptionsSchemaProposalType:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 searchDelay: 1000,
                 responsive: true,

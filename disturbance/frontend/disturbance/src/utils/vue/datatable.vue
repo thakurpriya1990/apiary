@@ -175,5 +175,12 @@ module.exports = {
     }
     .dataTables_wrapper .dt-buttons{
     float: right;
-  }
+    }
+    table.dataTable {
+        margin-top: 8px;
+        margin-bottom: 8px !important;
+    }
+    div.dt-processing div {
+        display: none;
+    }
 </style>
