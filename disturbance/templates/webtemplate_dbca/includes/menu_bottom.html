@@ -10,7 +10,7 @@
         {% if org_contact.email == request.user.email %}
             {% if org_contact.user_status == 'active' %}
                 {% if org_contact.is_admin or org_contact.check_consultant %}
-                    <li><a href="/ledger-ui/organisation/{{org.organisation_id}}">Manage {{org.name}} </a></li>
+                    <li><a href="/ledger-ui/organisation/{{org.organisation_id}}/">Manage {{org.name}} </a></li>
                 {% endif %}
             {% endif %}
         {% endif %}

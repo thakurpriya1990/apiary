@@ -197,6 +197,7 @@ SITE_STATUS_VACANT = 'vacant'
 SITE_STATUS_DISCARDED = 'discarded'
 BASE_EMAIL_TEXT = ''
 BASE_EMAIL_HTML = ''
+ORGANISATION_PERMISSION_MODULE = 'disturbance.permission'
 
 HTTP_HOST_FOR_TEST = 'localhost:9061'
 
