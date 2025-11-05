@@ -173,14 +173,14 @@ export default {
                     {
                         data:'user_role',
                         mRender:function (data,type,full) {
-                            return full.user_role.name;
+                            return full.user_role;
                         }
                     },
                     {data:'email'},
                     {
                         data:'user_status',
                         mRender:function (data,type,full) {
-                            return full.user_status.name;
+                            return full.user_status;
                         }
                     },
                     {

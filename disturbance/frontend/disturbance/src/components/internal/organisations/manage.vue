@@ -178,7 +178,7 @@
                                             </form>
                                         </div> -->
                                     </div>
-                                    <form class="form-horizontal" action="index.html" method="post" v-if="org.pins">
+                                    <form class="form-horizontal col-sm-12 row" action="index.html" method="post" v-if="org.pins">
                                          <div class="col-sm-6 row">
                                             <div class="form-group">
                                                 <label for="" class="col-sm-6 control-label"> Organisation User Pin Code 1:</label>
