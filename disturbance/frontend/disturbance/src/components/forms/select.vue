@@ -117,7 +117,8 @@ export default {
             immediately: true,
             handler (value, old_value){
                 this.init();
-            }
+            },
+            deep: true,
         }
     },
     computed:{

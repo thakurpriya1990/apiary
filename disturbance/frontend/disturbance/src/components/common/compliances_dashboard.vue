@@ -548,14 +548,16 @@ export default {
         fetchFilterLists: function(){
             let vm = this;
 
-            vm.$http.get(api_endpoints.filter_list_compliances).then((response) => {
-                vm.proposal_regions = response.body.regions;
-                vm.proposal_activityTitles = response.body.activities;
-                vm.status = vm.level == 'external' ? vm.external_status: vm.internal_status;
-            },(error) => {
-                console.log(error);
-            })
-            //console.log(vm.regions);
+             fetch(api_endpoints.filter_list_compliances).then(
+                async (response) => {
+                    let filter_lists_compliance = await response.json();
+                    vm.proposal_regions = filter_lists_compliance.regions;
+                    vm.proposal_activityTitles = filter_lists_compliance.activities;
+                    vm.status = vm.level == 'external' ? vm.external_status: vm.internal_status;
+                },(error) => {
+                    console.log(error);
+                })
+                //console.log(vm.regions);
         },
 
 
@@ -703,13 +705,13 @@ export default {
         },
         fetchProfile: function(){
             let vm = this;
-            Vue.http.get(api_endpoints.profile).then((response) => {
-                vm.profile = response.body
+            fetch(api_endpoints.profile).then(
+                async (response) => {
+                    vm.profile = await response.json();
 
-            },(error) => {
-                console.log(error);
-
-            })
+                },(error) => {
+                    console.log(error);
+                })
         },
         check_assessor: function(compliance){
             let vm = this;
@@ -731,19 +733,21 @@ export default {
     },
     created: function() {
         let vm = this
-        vm.$http.get('/template_group',{
+        fetch('/template_group',{
             emulateJSON:true
-            }).then(res=>{
-                if (res.body.template_group === 'apiary') {
-                    vm.apiaryTemplateGroup = true;
-                } else {
-                    vm.dasTemplateGroup = true;
-                }
-                vm.templateGroupDetermined = true
-                vm.applySelect2()
-        },err=>{
-        console.log(err);
-        });
+            }).then(
+                async res=>{
+                    let template_group_res = await res.json();
+                    if (template_group_res.template_group === 'apiary') {
+                        vm.apiaryTemplateGroup = true;
+                    } else {
+                        vm.dasTemplateGroup = true;
+                    }
+                    vm.templateGroupDetermined = true
+                    vm.applySelect2()
+            },err=>{
+                console.log(err);
+            });
     },
     mounted: function(){
         //console.log('in mounted')
@@ -771,5 +775,5 @@ export default {
     }
 }
 </script>
-<style scoped>
+<style>
 </style>

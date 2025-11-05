@@ -24,7 +24,7 @@ import "datatables.net-responsive-bs/css/responsive.bootstrap.css"
 
 import "sweetalert2/dist/sweetalert2.css"
 
-// import 'jquery-validation'
+import 'jquery-validation'
 
 import 'select2';
 import 'select2/dist/css/select2.min.css';
