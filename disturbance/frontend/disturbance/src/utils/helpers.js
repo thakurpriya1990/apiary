@@ -120,14 +120,14 @@ export default {
         }
         return result;
     },
-    dtPopoverCellFn: function(cell){
-        $(cell).find('[data-toggle="popover"]')
-            .popover()
-            .on('click', function (e) {
-                e.preventDefault();
-                return true;
-            });
-    }, 
+    // dtPopoverCellFn: function(cell){
+    //     $(cell).find('[data-toggle="popover"]')
+    //         .popover()
+    //         .on('click', function (e) {
+    //             e.preventDefault();
+    //             return true;
+    //         });
+    // }, 
     guid: function(){
       function s4(){
         return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
