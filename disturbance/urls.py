@@ -75,6 +75,7 @@ router.register(r'map_layers', main_api.MapLayerViewSet,"map_layers")
 
 api_patterns = [
     re_path(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),
+    re_path(r'^api/my_user_details/$',users_api.GetMyUserDetails.as_view(), name='get-my-user-details'),
     re_path(r'^api/countries$', users_api.GetCountries.as_view(), name='get-countries'),
     re_path(r'^api/proposal_type$', proposal_api.GetProposalType.as_view(), name='get-proposal-type'),
     re_path(r'^api/organisation_access_group_members',org_api.OrganisationAccessGroupMembers.as_view(),name='organisation-access-group-members'),

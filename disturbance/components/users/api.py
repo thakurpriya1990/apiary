@@ -35,6 +35,7 @@ from disturbance.components.users.serializers import   (
                                                 PersonalSerializer,
                                                 ContactSerializer,
                                                 UserFilterSerializer,
+                                                MyUserDetailsSerializer,
 
                                             )
 from disturbance.helpers import is_internal
@@ -269,3 +270,10 @@ class UserViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+class GetMyUserDetails(views.APIView):
+    renderer_classes = [JSONRenderer, ]
+
+    def get(self, request, format=None):
+        serializer = MyUserDetailsSerializer(request.user, context={'request': request})
+        return Response(serializer.data)
