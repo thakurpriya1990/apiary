@@ -250,28 +250,6 @@ export default {
         },
     },
     methods: {
-        /*
-
-        fetchAccessGroupMembers: function(){
-        let vm = this;
-        //vm.loading.push('Loading Access Group Members');
-        vm.$http.get(api_endpoints.organisation_access_group_members).then((response) => {
-            vm.members = response.body
-            //vm.loading.splice('Loading Access Group Members',1);
-        },(error) => {
-            //vm.loading.splice('Loading Access Group Members',1);
-        })
-        },
-        fetchProfile: function(){
-        let vm = this;
-        Vue.http.get(api_endpoints.profile).then((response) => {
-            vm.profile = response.body
-
-         },(error) => {
-
-        })
-        },
-        */
         fetchAccessGroupMembers: async function(){
             //let vm = this;
             //this.loading.push('Loading Access Group Members');
@@ -279,14 +257,16 @@ export default {
             if (this.apiaryTemplateGroup) {
                 url = api_endpoints.apiary_organisation_access_group_members;
             }
-            const response = await this.$http.get(url)
-            this.members = response.body
+            const response = await fetch(url)
+            if (!response.ok) { return response.json().then(err => { throw err }); }
+            this.members = await response.json();
             //this.loading.splice('Loading Access Group Members',1);
             this.table_id = uuid()
         },
         fetchProfile: async function(){
-            const response = await Vue.http.get(api_endpoints.profile);
-            this.profile = response.body
+            const response = await fetch(api_endpoints.profile);
+            if (!response.ok) { return response.json().then(err => { throw err }); }
+            this.profile = await response.json();
         },
 
         check_assessor: function(){
@@ -304,10 +284,12 @@ export default {
     },
     created: async function() {
         // retrieve template group
-        const res = await this.$http.get('/template_group',{
+        const res = await fetch('/template_group',{
             emulateJSON:true
             })
-        if (res.body.template_group === 'apiary') {
+        if (!res.ok) { return res.json().then(err => { throw err }); }
+        const data = await res.json();
+        if (data.template_group === 'apiary') {
             this.apiaryTemplateGroup = true;
         } else {
             this.dasTemplateGroup = true;

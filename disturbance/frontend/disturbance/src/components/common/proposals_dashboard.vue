@@ -583,20 +583,25 @@ export default {
             let vm = this;
 
             //vm.$http.get('/api/list_proposal/filter_list/').then((response) => {
-            vm.$http.get(api_endpoints.filter_list).then((response) => {
-                vm.proposal_regions = response.body.regions;
-                //vm.proposal_districts = response.body.districts;
+            fetch(api_endpoints.filter_list).then(
+                async (response) => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err });
+                    }
+                    const filterListsProposal = await response.json();
+                    vm.proposal_regions = filterListsProposal.regions;
+                    //vm.proposal_districts = filterListsProposal.districts;
 
-                vm.proposal_activityTitles = response.body.activities;
-                vm.proposal_applicationTypes = response.body.application_types;
-                //vm.proposal_activityTitles.push('Apiary');
+                    vm.proposal_activityTitles = filterListsProposal.activities;
+                    vm.proposal_applicationTypes = filterListsProposal.application_types;
+                    //vm.proposal_activityTitles.push('Apiary');
 
-                vm.proposal_submitters = response.body.submitters;
-                //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
-                vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
-            },(error) => {
-                console.log(error);
-            })
+                    vm.proposal_submitters = filterListsProposal.submitters;
+                    //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
+                    vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
+                },(error) => {
+                    console.log(error);
+                })
             //console.log(vm.regions);
         },
 
@@ -610,20 +615,27 @@ export default {
                 confirmButtonText: 'Discard Proposal',
                 confirmButtonColor:'#d9534f'
             }).then(() => {
-                vm.$http.delete(api_endpoints.discard_proposal(proposal_id))
-                .then((response) => {
-                    swal(
-                        'Discarded',
-                        'Your proposal has been discarded',
-                        'success'
-                    )
-                    vm.$refs.proposal_datatable.vmDataTable.ajax.reload();
-                }, (error) => {
-                    console.log(error);
-                });
-            },(error) => {
+                fetch(api_endpoints.discard_proposal(proposal_id),{
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }).then(async (response) => {
+                        if (!response.ok) {
+                            throw new Error(`Discard Proposal failed: ${response.status}`);
+                        }
+                        swal(
+                            'Discarded',
+                            'Your proposal has been discarded',
+                            'success'
+                        )
+                        vm.$refs.proposal_datatable.vmDataTable.ajax.reload();
+                    }).catch((error) => {
+                        console.log(error);
+                    });
+                },(error) => {
 
-            });
+                });
         },
         addEventListeners: function(){
             let vm = this;
@@ -757,13 +769,17 @@ export default {
 
         fetchProfile: function(){
             let vm = this;
-            Vue.http.get(api_endpoints.profile).then((response) => {
-                vm.profile = response.body
+            fetch(api_endpoints.profile).then(
+                async (response) => {
+                     if (!response.ok) {
+                        return response.json().then(err => { throw err });
+                    }
+                    vm.profile = await response.json();
+                }).catch(error => {
+                    console.log(error);
 
-            },(error) => {
-                console.log(error);
-
-            })
+                }
+            )
         },
 
         check_assessor: function(proposal){
@@ -821,10 +837,14 @@ export default {
     created: function() {
         console.log('in created')
         // retrieve template group
-        this.$http.get('/template_group',{ emulateJSON: true }).then(
-            res=>{
+        fetch('/template_group',{ emulateJSON: true }).then(
+            async res=>{
+                if (!res.ok) {
+                    return res.json().then(err => { throw err });
+                }
                 //this.template_group = res.body.template_group;
-                if (res.body.template_group === 'apiary') {
+                const templateGroupResponse = await res.json();
+                if (templateGroupResponse.template_group === 'apiary') {
                     this.apiaryTemplateGroup = true;
                 } else {
                     this.dasTemplateGroup = true;
@@ -832,14 +852,12 @@ export default {
                 }
                 this.templateGroupDetermined = true;
                 this.setDashboardText();
-                this.is_das_admin = res.body.is_das_admin
-                this.is_apiary_admin = res.body.is_apiary_admin
-                this.is_das_apiary_admin = res.body.is_das_apiary_admin
-            },
-            err=>{
+                this.is_das_admin = templateGroupResponse.is_das_admin
+                this.is_apiary_admin = templateGroupResponse.is_apiary_admin
+                this.is_das_apiary_admin = templateGroupResponse.is_das_apiary_admin
+            }).catch(err=>{
                 console.log(err);
-            }
-        );
+            });
     },
 }
 </script>

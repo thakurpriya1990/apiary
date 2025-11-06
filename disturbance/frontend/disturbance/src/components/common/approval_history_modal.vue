@@ -24,7 +24,6 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import modal from "@vue-utils/bootstrap-modal.vue";
 import datatable from "@vue-utils/datatable.vue";
 import alert from '@vue-utils/alert.vue';
@@ -146,17 +145,18 @@ export default {
     },
     created: function() {
         // retrieve template group
-        this.$http.get('/template_group',{
+        fetch('/template_group',{
             emulateJSON:true
-            }).then(res=>{
+            }).then(async res=>{
                 //this.template_group = res.body.template_group;
-                if (res.body.template_group === 'apiary') {
+                const template_group_res = await res.json();
+                if (template_group_res.template_group === 'apiary') {
                     this.apiaryTemplateGroup = true;
                 } else {
                     this.dasTemplateGroup = true;
                 }
-        },err=>{
-        console.log(err);
+        }).catch(err=>{
+                console.log(err);
         });
     },
 

@@ -602,15 +602,17 @@ export default {
         fetchFilterLists: function(){
             let vm = this;
 
-            vm.$http.get(api_endpoints.filter_list_approvals).then((response) => {
-                vm.proposal_regions = response.body.regions;
-                vm.proposal_activityTitles = response.body.activities;
-                vm.proposal_submitters = response.body.submitters;
-                vm.approval_status = response.body.approval_status_choices;
-            },(error) => {
-                console.log(error);
-            })
-            //console.log(vm.regions);
+            fetch(api_endpoints.filter_list_approvals).then(
+                async (response) => {
+                    if (!response.ok) { return response.json().then(err => { throw err }); }
+                    const filter_lists_approval = await response.json();
+                    vm.proposal_regions = filter_lists_approval.regions;
+                    vm.proposal_activityTitles = filter_lists_approval.activities;
+                    vm.proposal_submitters = filter_lists_approval.submitters;
+                    vm.approval_status = filter_lists_approval.approval_status_choices;
+                }).catch((error) => {
+                    console.log(error);
+                });
         },
 
         addEventListeners: function(){
@@ -796,13 +798,13 @@ export default {
 
         fetchProfile: function(){
             let vm = this;
-            Vue.http.get(api_endpoints.profile).then((response) => {
-                vm.profile = response.body
-
-            },(error) => {
-                console.log(error);
-
-            })
+            fetch(api_endpoints.profile).then(
+                async (response) => {
+                    if (!response.ok) { return response.json().then(err => { throw err }); }
+                    vm.profile = await response.json();
+                }).catch((error) => {
+                    console.log(error);
+                });
         },
 
         check_assessor: function(proposal){
@@ -835,23 +837,32 @@ export default {
                 confirmButtonText: 'Reissue approval',
                 //confirmButtonColor:'#d9534f'
             }).then(() => {
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(proposal_id+'/reissue_approval')),JSON.stringify(data),{
-                emulateJSON:true,
+                fetch(helpers.add_endpoint_json(api_endpoints.proposals,(proposal_id+'/reissue_approval')),{
+                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
+                    body: JSON.stringify(data),
                 })
-                .then((response) => {
+                .then(async (response) => {
 
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: "Reissue Approval",
+                            text: JSON.stringify(data),
+                            icon: "error",
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     vm.$router.push({
-                    name:"internal-proposal",
-                    params:{proposal_id:proposal_id}
+                        name:"internal-proposal",
+                        params:{proposal_id:proposal_id}
                     });
-                }, (error) => {
+                }).catch((error) => {
                     console.log(error);
-                    swal({
-                    title: "Reissue Approval",
-                    text: error.body,
-                    type: "error",
-                    })
-                });
+                })
             },(error) => {
 
             });
@@ -859,7 +870,7 @@ export default {
 
         reinstateApproval:function (approval_id) {
             let vm = this;
-            let status= 'with_approver'
+            // let status= 'with_approver'
             //let data = {'status': status}
             swal({
                 title: "Reinstate Approval",
@@ -869,24 +880,35 @@ export default {
                 confirmButtonText: 'Reinstate approval',
                 //confirmButtonColor:'#d9534f'
             }).then(() => {
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.approvals,(approval_id+'/approval_reinstate')),{
-
+                fetch(helpers.add_endpoint_json(api_endpoints.approvals,(approval_id+'/approval_reinstate')),{
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                 })
-                .then((response) => {
-                    swal(
-                        'Reinstate',
-                        'Your approval has been reinstated',
-                        'success'
-                    )
+                .then(async (response) => {
+                   if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            icon: "error",
+                            title: "Reinstate Approval",
+                            text: JSON.stringify(data),
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
+                    swal.fire({
+                        title: 'Reinstate',
+                        text: 'Your approval has been reinstated',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
                     vm.$refs.proposal_datatable.vmDataTable.ajax.reload();
 
-                }, (error) => {
+                }).catch((error) => {
                     console.log(error);
-                    swal({
-                    title: "Reinstate Approval",
-                    text: error.body,
-                    type: "error",
-                    })
                 });
             },(error) => {
 
@@ -905,23 +927,36 @@ export default {
                 confirmButtonText: 'Renew approval',
                 //confirmButtonColor:'#d9534f'
             }).then(() => {
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.proposals,(proposal_id+'/renew_approval')),{
+                fetch(helpers.add_endpoint_json(api_endpoints.proposals,(proposal_id+'/renew_approval')),{}).then(
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: "Renew Approval",
+                            text: JSON.stringify(data),
+                            icon: "error",
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
+                    let proposal = {}
+                    proposal = await response.json();
+                    vm.$router.push({
+                        name:"draft_proposal",
+                        params:{proposal_id: proposal.id}
+                    });
 
-                })
-                .then((response) => {
-                   let proposal = {}
-                   proposal = response.body
-                   vm.$router.push({
-                    name:"draft_proposal",
-                    params:{proposal_id: proposal.id}
-                   });
-
-                }, (error) => {
+                }).catch((error) => {
                     console.log(error);
-                    swal({
-                    title: "Renew Approval",
-                    text: error.body,
-                    type: "error",
+                    swal.fire({
+                        title: "Renew Approval",
+                        text: error,
+                        icon: "error",
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     })
                 });
             },(error) => {
@@ -939,26 +974,40 @@ export default {
                 confirmButtonText: 'Amend approval',
                 //confirmButtonColor:'#d9534f'
             }).then(() => {
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.proposals,(proposal_id+'/amend_approval')),{
+                fetch(helpers.add_endpoint_json(api_endpoints.proposals,(proposal_id+'/amend_approval')))
+                .then(async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: "Ammend Approval",
+                            text: JSON.stringify(data),
+                            icon: "error",
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
+                    let proposal = {}
+                    proposal = await response.json();
+                    vm.$router.push({
+                        name:"draft_proposal",
+                        params:{proposal_id: proposal.id}
+                    });
 
-                })
-                .then((response) => {
-                   let proposal = {}
-                   proposal = response.body
-                   vm.$router.push({
-                    name:"draft_proposal",
-                    params:{proposal_id: proposal.id}
-                   });
+                 }).catch((error) => {
+                        console.log(error);
+                        swal.fire({
+                            title: "Amend Approval",
+                            text: error.text,
+                            icon: "error",
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        })
 
-                }, (error) => {
-                    console.log(error);
-                    swal({
-                    title: "Amend Approval",
-                    text: error.body,
-                    type: "error",
-                    })
-
-                });
+                    }
+                );
             },(error) => {
 
             });
@@ -987,15 +1036,15 @@ export default {
         },
 
         viewApprovalPDF: function(id,media_link){
-            let vm=this;
-            //console.log(approval);
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.approvals,(id+'/approval_pdf_view_log')),{
-                })
-                .then((response) => {
-                    //console.log(response)
-                }, (error) => {
-                    console.log(error);
-                });
+            fetch(helpers.add_endpoint_json(api_endpoints.approvals,(id+'/approval_pdf_view_log')))
+            .then(async (response) => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err });
+                }
+                //console.log(response)
+            }).catch((error) => {
+                console.log(error);
+            });
             window.open(media_link, '_blank');
         },
         applySelect2: function(){
@@ -1041,20 +1090,27 @@ export default {
     },
     created: function() {
         // retrieve template group
-        this.$http.get('/template_group',{
+        fetch('/template_group',{
             emulateJSON:true
-            }).then(res=>{
+        }).then(
+            async res=>{
+                if (!res.ok) {
+                    return await res.json().then(err => { throw err });
+                }
                 //this.template_group = res.body.template_group;
-                if (res.body.template_group === 'apiary') {
+                let template_group_res = {}
+                template_group_res = await res.json()
+                if (template_group_res.template_group === 'apiary') {
                     this.apiaryTemplateGroup = true;
                 } else {
                     this.dasTemplateGroup = true;
                 }
                 this.setDashboardText();
                 this.templateGroupDetermined = true;
-        },err=>{
-        console.log(err);
-        });
+            }).catch(err=>{
+                console.log(err);
+            }
+        );
     },
 }
 </script>

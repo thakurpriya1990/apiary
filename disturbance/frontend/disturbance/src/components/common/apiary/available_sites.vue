@@ -648,26 +648,39 @@
 
                 return apiary_site_available
             },
-            toggleAvailability: function(e){
-                let vm = this;
+            toggleAvailability: async function(e){
                 let apiary_site_id = e.target.getAttribute("data-toggle-availability");
                 let current_availability = this.getApiarySiteAvailableFromEvent(e)
                 let requested_availability = current_availability === 'true' ? false : true
                 e.stopPropagation()
 
-                vm.$http.patch('/api/apiary_site/' + apiary_site_id + '/', { 'available': requested_availability }).then(
-                    async function(accept){
-                        // Update the site in the table
-                        let site_updated = accept.body
-                    },
-                    reject=>{
-                        swal(
-                            'Submit Error',
-                            helpers.apiVueResourceError(err),
-                            'error'
-                        )
+                try {
+                    const response = await fetch('/api/apiary_site/' + apiary_site_id + '/', {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            // Add authorization headers if needed
+                        },
+                        body: JSON.stringify({ available: requested_availability })
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText);
                     }
-                );
+
+                    const site_updated = await response.json();
+                    // Update the site in the table
+                    console.log('Site updated:', site_updated);
+
+                } catch (err) {
+                    swal(
+                    'Submit Error',
+                    err,
+                    'error'
+                    );
+                }
+
             },
             makeVacantClicked: function(e){
                 let vm = this;
@@ -683,27 +696,36 @@
                     confirmButtonText: 'Yes, make vacant'
                 }).then(
                     () => {
-                        vm.$http.patch('/api/apiary_site/' + apiary_site_id + '/', { 'status': 'vacant' }).then(
-                            async function(accept){
-                                // Remove the row from the table
-                                // TODO: Update table
-                                $(e.target).closest('tr').fadeOut('slow', function(){
-                                    // Remove the site table which the table is based on
-                                    vm.removeApiarySiteById(apiary_site_id)
-                                })
-
-                                // TODO: Update map
-                                // Remove the site from the map
-                                this.$refs.component_map.removeApiarySiteById(apiary_site_id)
+                        fetch('/api/apiary_site/' + apiary_site_id + '/',{
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                // Add authorization headers if needed
                             },
-                            reject=>{
-                                swal(
-                                    'Submit Error',
-                                    helpers.apiVueResourceError(err),
-                                    'error'
-                                )
+                            body: JSON.stringify({ 'status': 'vacant' })
+                        }).then( async (response) => {
+                            if (!response.ok) {
+                                const errorText = await response.text();
+                                throw new Error(errorText);
                             }
-                        );
+                            // Remove the row from the table
+                            // TODO: Update table
+                            $(e.target).closest('tr').fadeOut('slow', function(){
+                                // Remove the site table which the table is based on
+                                vm.removeApiarySiteById(apiary_site_id)
+                            })
+
+                            // TODO: Update map
+                            // Remove the site from the map
+                            this.$refs.component_map.removeApiarySiteById(apiary_site_id)
+                        }).catch((error) => {
+                            console.log(error);
+                            swal(
+                                'Submit Error',
+                                error,
+                                'error'
+                            )
+                        })
                     },
                     err => {
                     }
@@ -833,8 +855,10 @@
             },
             addOptionalLayers: function(){
                 let vm = this
-                this.$http.get('/api/map_layers/').then(response => {
-                    let layers = response.body
+                fetch('/api/map_layers/')
+                .then(async response => {
+                    if (!response.ok) { return response.json().then(err => { throw err }); }
+                    let layers = await response.json();
                     for (var i = 0; i < layers.length; i++){
                         let l = new TileWMS({
                             url: env['kmi_server_url'] + '/geoserver/' + layers[i].layer_group_name + '/wms',
@@ -860,7 +884,9 @@
                         vm.optionalLayers.push(tileLayer)
                         vm.map.addLayer(tileLayer)
                     }
-                })
+                }).catch((error) => {
+                    console.log(error);
+                });
             },
             closePopup: function(){
                 this.content_element.innerHTML = null
@@ -1268,15 +1294,15 @@
                     this.content_element.innerHTML = content;
                     this.overlay.setPosition(coord);
 
-                    this.$http.get('/api/apiary_site/' + feature.id_ + '/relevant_applicant_name/').then(
-                        res => {
-                            let applicant_name = res.body.relevant_applicant
+                    fetch('/api/apiary_site/' + feature.id_ + '/relevant_applicant_name/').then(
+                        async (res) => {
+                            if (!res.ok) { return res.json().then(err => { throw err }); }
+                            const res_json = await res.json();
+                            let applicant_name = res_json.relevant_applicant
                             $('#' + unique_id).text(applicant_name)
-                        },
-                        err => {
-                            console.log({err})
-                        }
-                    )
+                        }).catch((error) => {
+                             console.log(error);
+                        });
                 }
             },
             showPopupForLayersJson: function(geojson, coord, column_names, display_all_columns, target_layer){
@@ -1372,14 +1398,22 @@
                 e.stopPropagation()
             },
             contactLicenceHolderOK: function(obj){
-                this.$http.post('/api/apiary_site/' + obj.apiary_site_id + '/contact_licence_holder/', obj).then(
-                    res => {
-                        this.$refs.contact_licence_holder_modal.close();
-                    },
-                    err => {
-
+                fetch('/api/apiary_site/' + obj.apiary_site_id + '/contact_licence_holder/',
+                    {
+                        headers: { 'Content-Type': 'application/json' },
+                        method: 'POST',
+                        body: obj,
                     }
-                )
+                ).then(
+                    async (res) => {
+                        if (!res.ok) {
+                            return res.json().then(err => { throw err });
+                        }
+                            this.$refs.contact_licence_holder_modal.close();
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    });
             },
             openOnSiteInformationModal: async function(apiary_site_id) {
                 this.modalBindId = uuid()

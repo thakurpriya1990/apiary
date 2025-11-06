@@ -178,8 +178,8 @@
 </div>
 </template>
 <script>
-import $ from 'jquery'
 import datatable from '@/utils/vue/datatable.vue'
+import alert from '@vue-utils/alert.vue'
 import {
   api_endpoints,
   helpers,
@@ -267,6 +267,7 @@ export default {
     components: {
         datatable,
         searchSection,
+        alert,
     },
     beforeRouteEnter:function(to,from,next){
         utils.fetchOrganisations().then((response)=>{
@@ -360,20 +361,28 @@ export default {
           if(this.searchKeywords.length > 0)
           {
             vm.searching=true;
-            vm.$http.post('/api/search_keywords.json',{
-              searchKeywords: vm.searchKeywords,
-              searchProposal: vm.searchProposal,
-              searchApproval: vm.searchApproval,
-              searchCompliance: vm.searchCompliance,
-              is_internal: true,
-            }).then(res => {
-              vm.results = res.body;
+            fetch('/api/search_keywords.json',{
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                searchKeywords: vm.searchKeywords,
+                searchProposal: vm.searchProposal,
+                searchApproval: vm.searchApproval,
+                searchCompliance: vm.searchCompliance,
+                is_internal: true,
+              })
+            }).then(async (res) => {
+              if (!res.ok) {
+                  throw new Error(`HTTP error! Status: ${res.status}`);
+              }
+              vm.results = await res.json();
               vm.$refs.proposal_datatable.vmDataTable.clear()
               vm.$refs.proposal_datatable.vmDataTable.rows.add(vm.results);
               vm.$refs.proposal_datatable.vmDataTable.draw();
               vm.searching=false;
-            },
-            err => {
+            }).catch(err => {
               console.log(err);
               vm.searching=false;
             });
@@ -385,19 +394,28 @@ export default {
           let vm = this;
           if(vm.referenceWord)
           {
-            vm.$http.post('/api/search_reference.json',{
-              reference_number: vm.referenceWord,
-              
-            }).then(res => {
-              console.log(res)
-              vm.errors = false; 
-              vm.errorString = '';
-              vm.$router.push({ path: '/internal/'+res.body.type+'/'+res.body.id });
+            fetch('/api/search_reference.json',{
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
               },
-            error => {
+              body: JSON.stringify({
+                reference_number: vm.referenceWord,
+              })
+            }).then(async (res) => {
+              if (!res.ok) {
+                  throw new Error(`HTTP error! Status: ${res.status}`);
+              }
+              const responseBody = await res.json();
+              console.log(responseBody);
+              vm.errors = false;
+              vm.errorString = '';
+              vm.$router.push({ path: '/internal/'+responseBody.type+'/'+responseBody.id });
+            }).catch(error => {
               console.log(error);
               vm.errors = true;
-              vm.errorString = helpers.apiVueResourceError(error);
+              // vm.errorString = helpers.apiVueResourceError(error);
+              vm.errorString = error;
             });
           }
 

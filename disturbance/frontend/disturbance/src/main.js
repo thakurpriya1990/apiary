@@ -3,7 +3,7 @@
 import { createApp } from 'vue';
 import App from './App'
 import router from './router'
-import 'bootstrap'
+// import 'bootstrap'
 import helpers from '@/utils/helpers'
 // import api_endpoints from './api'
 

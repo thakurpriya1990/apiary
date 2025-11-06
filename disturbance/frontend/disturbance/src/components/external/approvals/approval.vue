@@ -148,15 +148,14 @@ export default {
     },
     watch: {
         approval: {
-            deep: true,
             handler(){
                 console.log('approval in watch');
-
+                
                 // Construct the array, which is passed to the child component, SiteAvailability
                 // Construct the array, which is passed to the child component, OnSiteInformation
                 this.test_apiary_sites = []
                 this.on_site_information_list = []
-
+                
                 for (let i=0; i<this.approval.apiary_sites.length; i++){
                     console.log(this.approval.apiary_sites[i]);
                     this.test_apiary_sites.push(this.approval.apiary_sites[i].apiary_site)
@@ -164,10 +163,11 @@ export default {
                         this.on_site_information_list.push(this.approval.apiary_sites[i].apiary_site.onsiteinformation_set[j])
                     }
                 }
-
+                
                 // Construct the array, which is passed to the child component, TemporaryUse
-
-            }
+                
+            },
+            deep: true,
         }
     },
         created: function() {
