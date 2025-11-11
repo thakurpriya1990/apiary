@@ -133,12 +133,13 @@ export default {
         },
         fetchAmendmentChoices: function(){
             let vm = this;
-            vm.$http.get('/api/amendment_request_reason_choices.json').then((response) => {
-                vm.reason_choices = response.body;
-
-            },(error) => {
+            fetch('/api/amendment_request_reason_choices.json')
+            .then(async (response) => {
+                if (!response.ok) { return response.json().then(err => { throw err }); }
+                vm.reason_choices = await response.json();
+            }).catch((error) => {
                 console.log(error);
-            } );
+            });
         },
         sendData:function(){
             let vm = this;
@@ -159,37 +160,43 @@ export default {
 
             formData.append('data', JSON.stringify(amendment));
 
-            // vm.$http.post('/api/amendment_request.json',JSON.stringify(amendment),{
-                vm.$http.post('/api/amendment_request.json', formData,{
-                        emulateJSON:true,
-                    }).then((response)=>{
-                        //vm.$parent.loading.splice('processing contact',1);
-                        let proposal_or_licence = vm.is_apiary_proposal ? 'application' : 'proposal'
-                        swal(
-                             'Sent',
-                             'An email has been sent to the proponent with the request to amend this ' + proposal_or_licence,
-                             'success'
-                        );
-                        vm.amendingProposal = true;
-                        vm.close();
-                        //vm.$emit('refreshFromResponse',response);
-                        Vue.http.get(`/api/proposal/${vm.proposal_id}/internal_proposal.json`).then((response)=>
-                        {
-                            vm.$emit('refreshFromResponse',response);
+           fetch('/api/amendment_request.json', {
+                method: 'POST',
+                body: formData
+            })
+            .then(async (response) => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                let proposal_or_licence = vm.is_apiary_proposal ? 'application' : 'proposal'
+                swal.fire({
+                    title: 'Sent',
+                    text: 'An email has been sent to the proponent with the request to amend this ' + proposal_or_licence,
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+                vm.amendingProposal = true;
+                vm.close();
 
-                        },(error)=>{
-                            console.log(error);
-                        });
-                        vm.$router.push({ path: '/internal' }); //Navigate to dashboard after creating Amendment request
+                // Fetch updated proposal data
+                fetch(`/api/proposal/${vm.proposal_id}/internal_proposal.json`)
+                .then(response => response.json())
+                .then(res_data => {
+                    vm.$emit('refreshFromResponse', res_data);
+                })
+                .catch(error => {
+                    console.log(error);
+                });
 
-                    },(error)=>{
-                        console.log(error);
-                        vm.errors = true;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                        vm.amendingProposal = true;
-
-                    });
-
+                vm.$router.push({ path: '/internal' }); // Navigate to dashboard
+            }).catch(error => {
+                console.log(error);
+                vm.errors = true;
+                vm.errorString = error;
+                vm.amendingProposal = true;
+            });
 
         },
         addFormValidations: function() {

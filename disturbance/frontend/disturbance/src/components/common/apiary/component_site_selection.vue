@@ -454,36 +454,41 @@
             if (vm.apiary_proposal_id){
                 vm.loading_sites = true
                 let url_sites = '/api/proposal_apiary/' + vm.apiary_proposal_id + '/apiary_sites/'
-                Vue.http.get(url_sites).then(
-                    (res) => {
-                        vm.apiary_sites = res.body
+                fetch(url_sites).then(
+                    async (response) => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw err });
+                        }
+                        vm.apiary_sites = await response.json()
                         vm.apiary_sites_local = JSON.parse(JSON.stringify(vm.apiary_sites)),  // Deep copy the array
-                        vm.constructApiarySitesTable(res.body);
-                        vm.addApiarySitesToMap(res.body)
+                        vm.constructApiarySitesTable(vm.apiary_sites);
+                        vm.addApiarySitesToMap(vm.apiary_sites)
                         vm.ensureCheckedStatus();
                         vm.loading_sites = false
-                    },
-                    (err) => {
+                    }).catch((error) => {
+                        console.log(error);
                         vm.loading_sites = false
-                    }
-                )
+                    })
             } else if (vm.apiary_approval_id){
                 vm.loading_sites = true
                 // Retrieve apiary_sites
                 let url_sites = '/api/approvals/' + vm.apiary_approval_id + '/apiary_sites/'
-                Vue.http.get(url_sites).then(
-                    (res) => {
-                        vm.apiary_sites = res.body.features
+                fetch(url_sites).then(
+                    async (response) => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw err });
+                        }
+                        const res = await response.json()
+                        vm.apiary_sites = res.features
                         vm.apiary_sites_local = JSON.parse(JSON.stringify(vm.apiary_sites)),  // Deep copy the array
-                        vm.constructApiarySitesTable(res.body.features);
-                        vm.addApiarySitesToMap(res.body.features)
+                        vm.constructApiarySitesTable(vm.apiary_sites);
+                        vm.addApiarySitesToMap(vm.apiary_sites)
                         vm.ensureCheckedStatus();
                         vm.loading_sites = false
-                    },
-                    (err) => {
+                    }).catch((error) => {
+                        console.log(error);
                         vm.loading_sites = false
-                    }
-                )
+                    })
             }
         },
         mounted: function(){
@@ -684,38 +689,54 @@
                 let apiary_site_id = e.target.getAttribute("data-make-vacant");
                 e.stopPropagation()
 
-                swal({
+                swal.fire({
                     title: "Make Vacant",
                     text: "Are you sure you want to make this apiary site: " + apiary_site_id + " vacant?",
-                    type: "question",
+                    icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: 'Yes, make vacant'
-                }).then(
-                    () => {
-                        vm.$http.patch('/api/apiary_site/' + apiary_site_id + '/', { 'status': 'vacant' }).then(
-                            async function(accept){
-                                // Remove the row from the table
-                                $(e.target).closest('tr').fadeOut('slow', function(){
-                                    // Remove the site table which the table is based on
-                                    vm.removeApiarySiteById(apiary_site_id)
-                                })
-
-                                // Remove the site from the map
-                                this.$refs.component_map.removeApiarySiteById(apiary_site_id)
-                                //vm.component_map_key = uuid()
-                            },
-                            reject=>{
-                                swal(
-                                    'Submit Error',
-                                    helpers.apiVueResourceError(err),
-                                    'error'
-                                )
-                            }
-                        );
+                    confirmButtonText: 'Yes, make vacant',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary',
                     },
-                    err => {
-                    }
-                );
+                }).then(
+                    (result) => {
+                        if (result.isConfirmed) {
+                            fetch('/api/apiary_site/' + apiary_site_id + '/',{
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    // Add authorization headers if needed
+                                },
+                                body: JSON.stringify({ 'status': 'vacant' })
+                            }).then( async (response) => {
+                                if (!response.ok) {
+                                    const errorText = await response.text();
+                                    throw new Error(errorText);
+                                }
+                                    // Remove the row from the table
+                                    $(e.target).closest('tr').fadeOut('slow', function(){
+                                        // Remove the site table which the table is based on
+                                        vm.removeApiarySiteById(apiary_site_id)
+                                    })
+
+                                    // Remove the site from the map
+                                    this.$refs.component_map.removeApiarySiteById(apiary_site_id)
+                                    //vm.component_map_key = uuid()
+                                }).catch((error) => {
+                                    console.log(error);
+                                    swal.fire({
+                                        title: 'Submit Error',
+                                        text: error,
+                                        icon: 'error',
+                                        customClass: {
+                                            confirmButton: 'btn btn-primary',
+                                        },
+                                    })
+                                })
+                            }
+                        }
+                    );
             },
             mouseEnter: function(e){
                 let vm = this;
@@ -732,29 +753,43 @@
                     vm.$refs.component_map.closePopup()
                 }
             },
-            toggleAvailability: function(e) {
+            toggleAvailability: async function(e) {
                 let vm = this;
                 let apiary_site_id = e.target.getAttribute("data-toggle-availability");
                 let current_availability = this.getApiarySiteAvailableFromEvent(e)
                 let requested_availability = current_availability === 'true' ? false : true
                 e.stopPropagation()
 
-                vm.$http.patch('/api/apiary_site/' + apiary_site_id + '/', { 'available': requested_availability }).then(
-                    async function(accept){
-                        // Update the site in the table
-                        let site_updated = accept.body
-                        vm.updateApiarySite(site_updated)
-                       // vm.constructApiarySitesTable();
-                        vm.constructApiarySitesTable(vm.apiary_sites);
-                    },
-                    reject=>{
-                        swal(
-                            'Submit Error',
-                            helpers.apiVueResourceError(err),
-                            'error'
-                        )
+                try {
+                    const response = await fetch('/api/apiary_site/' + apiary_site_id + '/', {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            // Add authorization headers if needed
+                        },
+                        body: JSON.stringify({ available: requested_availability })
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText);
                     }
-                );
+
+                    const site_updated = await response.json();
+                    vm.updateApiarySite(site_updated)
+                    // vm.constructApiarySitesTable();
+                    vm.constructApiarySitesTable(vm.apiary_sites);
+
+                } catch (error) {
+                    swal.fire({
+                        title: 'Submit Error',
+                        text: error,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
+                }
             },
             zoomOnApiarySite: function(e) {
                 this.not_close_popup_by_mouseleave = true

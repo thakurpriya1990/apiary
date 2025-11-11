@@ -607,35 +607,43 @@ export default {
 
         discardProposal:function (proposal_id) {
             let vm = this;
-            swal({
+             swal.fire({
                 title: "Discard Proposal",
                 text: "Are you sure you want to discard this proposal?",
-                type: "warning",
+                icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Proposal',
-                confirmButtonColor:'#d9534f'
-            }).then(() => {
-                fetch(api_endpoints.discard_proposal(proposal_id),{
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then((swalresult) => {
+                if (swalresult.isConfirmed) {
+                    fetch(api_endpoints.discard_proposal(proposal_id),{
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json'
                         }
-                    }).then(async (response) => {
+                   }).then(async (response) => {
                         if (!response.ok) {
                             throw new Error(`Discard Proposal failed: ${response.status}`);
                         }
-                        swal(
-                            'Discarded',
-                            'Your proposal has been discarded',
-                            'success'
-                        )
+                        swal.fire({
+                            title: 'Discarded',
+                            text: 'Your proposal has been discarded',
+                            icon: 'success',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        })
                         vm.$refs.proposal_datatable.vmDataTable.ajax.reload();
                     }).catch((error) => {
                         console.log(error);
                     });
-                },(error) => {
-
-                });
+                }
+            },(error) => {
+                console.log(error);
+            });
         },
         addEventListeners: function(){
             let vm = this;

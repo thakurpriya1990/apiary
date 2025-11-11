@@ -204,22 +204,30 @@ export default {
     },
     acceptCompliance: function() {
         let vm = this;
-        swal({
+        swal.fire({
             title: "Accept Compliance with requirements",
             text: "Are you sure you want to accept this compliance with requirements?",
-            type: "question",
+            icon: "question",
             showCancelButton: true,
-            confirmButtonText: 'Accept'
-        }).then(() => {
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.compliances,(vm.compliance.id+'/accept')))
-            .then((response) => {
-                console.log(response);
-                vm.compliance = response.body;
-            }, (error) => {
-                console.log(error);
-            });
+            confirmButtonText: 'Accept',
+            customClass: {
+                confirmButton: 'btn btn-primary',
+                cancelButton: 'btn btn-secondary',
+            },
+        }).then((swalresult) => {
+            if(swalresult.isConfirmed){
+                fetch(helpers.add_endpoint_json(api_endpoints.compliances,(vm.compliance.id+'/accept'))).then(
+                    async (response) => {
+                        if (!response.ok) { return response.json().then(err => { throw err }); }
+                        console.log(response);
+                        vm.compliance = await response.json();
+                    }).catch((error) => {
+                        console.log(error);
+                    }
+                );
+            }
         },(error) => {
-
+            console.log(error);
         });
 
     },
@@ -229,26 +237,22 @@ export default {
     },
     fetchProfile: function(){
         let vm = this;
-        Vue.http.get(api_endpoints.profile).then((response) => {
-            vm.profile = response.body
-                              
-         },(error) => {
+        fetch(api_endpoints.profile).then(async (response) => {
+            if (!response.ok) { return response.json().then(err => { throw err }); }
+            vm.profile = await response.json();
+        }).catch((error) => {
             console.log(error);
                 
         })
-        },
-
+    },
     check_assessor: function(){
         let vm = this;
         return vm.compliance.can_assess
-     },
+    },
   },
   mounted: function () {
-    let vm = this;
-    
     this.fetchProfile();
-    
-  }
+  },
 }
 </script>
 <style scoped>

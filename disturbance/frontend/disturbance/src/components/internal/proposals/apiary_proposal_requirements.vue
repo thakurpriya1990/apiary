@@ -245,50 +245,54 @@ export default {
         },
         removeRequirement(_id){
             let vm = this;
-            swal({
+            swal.fire({
                 title: "Remove Requirement",
                 text: "Are you sure you want to remove this requirement?",
-                type: "warning",
+                icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Requirement',
-                confirmButtonColor:'#d9534f'
-            }).then(() => {
-                // vm.$http.delete(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
-                // .then((response) => {
-                //     vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
-                // }, (error) => {
-                //     console.log(error);
-                // });
-
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id+'/discard'))
-                .then((response) => {
-                    vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
-                }, (error) => {
-                    console.log(error);
-                });
-
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then((swalresult) => {
+                if(swalresult.isConfirmed) {
+                    
+                    fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id+'/discard'))
+                    .then(async (response) => {
+                        if (!response.ok) { return response.json().then(err => { throw err }); }
+                        vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
+                    }).catch((error) => {
+                        console.log(error);
+                    });
+                }
             },(error) => {
+                console.log(error); 
             });
         },
         fetchRequirements(){
             let vm = this;
             
-            vm.$http.get(api_endpoints.proposal_standard_requirements).then((response) => {
-                vm.requirements = response.body
-            },(error) => {
-                console.log(error);
-            })
+            fetch(api_endpoints.proposal_standard_requirements).then(
+                async (response) => {
+                    if (!response.ok) { return response.json().then(err => { throw err }); }
+                    vm.requirements = await response.json();
+                }).catch((error) => {
+                    console.log(error);
+                });
         },
         editRequirement(_id){
-            let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id)).then((response) => {
-                this.$refs.requirement_detail.requirement = response.body;
-                this.$refs.requirement_detail.requirement.due_date =  response.body.due_date != null && response.body.due_date != undefined ? moment(response.body.due_date).format('DD/MM/YYYY'): '';
-                this.$refs.requirement_detail.requirement.referral_group=response.body.referral_group;
-                this.$refs.requirement_detail.requirement.requirement_documents=response.body.requirement_documents;
-                response.body.standard ? $(this.$refs.requirement_detail.$refs.standard_req).val(response.body.standard_requirement).trigger('change'): '';
+            fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
+            .then(async (response) => {
+                if (!response.ok) { return response.json().then(err => { throw err }); }
+                const data = await response.json();
+                this.$refs.requirement_detail.requirement = data;
+                this.$refs.requirement_detail.requirement.due_date =  data.due_date != null && data.due_date != undefined ? moment(data.due_date).format('DD/MM/YYYY'): '';
+                this.$refs.requirement_detail.requirement.referral_group=data.referral_group;
+                this.$refs.requirement_detail.requirement.requirement_documents=data.requirement_documents;
+                data.standard ? $(this.$refs.requirement_detail.$refs.standard_req).val(data.standard_requirement).trigger('change'): '';
                 this.addRequirement();
-            },(error) => {
+             }).catch((error) => {
                 console.log(error);
             })
         },
@@ -310,7 +314,7 @@ export default {
         },
         sendDirection(req,direction){
             let movement = direction == 'down'? 'move_down': 'move_up';
-            this.$http.get(helpers.add_endpoint_json(api_endpoints.proposal_requirements,req+'/'+movement)).then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements,req+'/'+movement)).then(() => {
             },(error) => {
                 console.log(error);
                 

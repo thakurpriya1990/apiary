@@ -380,7 +380,7 @@ export default {
 
         search: function() {
           let vm = this;
-          // swal(
+          // swal.fire(
           //         'Missing fields',
           //         'Please select all the mandatory fields',
           //         'error'
@@ -388,11 +388,14 @@ export default {
           if(!vm.selected_application_name || !vm.selected_section || !vm.selected_question || !vm.selected_option )
           {
             //console.log('here');
-            swal(
-                  'Missing fields',
-                  'Please select all the mandatory fields',
-                  'error'
-                );
+            swal.fire({
+              title:'Missing fields',
+              text:'Please select all the mandatory fields',
+              icon:'error',
+              customClass: {
+                confirmButton: 'btn btn-primary',
+              },
+            });
           }
           else
           {

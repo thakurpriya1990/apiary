@@ -367,32 +367,52 @@ export default {
             if (data.id === '') {
                 console.log(data);
 
-                await self.$http.post(api_endpoints.schema_masterlist, JSON.stringify(data),{
-                    emulateJSON:true
-                }).then((response) => {
+                await fetch(api_endpoints.schema_masterlist,{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                }).then(async (response) => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
                     self.$refs.schema_masterlist_table.vmDataTable.ajax.reload();
                     self.close();
-                }, (error) => {
-                    swal(
-                        'Save Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
+                }).catch((error) => {
+                    swal.fire({
+                        title:'Save Error',
+                        text:error,
+                        icon:'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 });
 
             } else {
 
-                await self.$http.post(helpers.add_endpoint_json(api_endpoints.schema_masterlist,data.id+'/save_masterlist'),JSON.stringify(data),{
-                        emulateJSON:true,
-                }).then((response)=>{
+                await fetch(helpers.add_endpoint_json(api_endpoints.schema_masterlist,data.id+'/save_masterlist'),{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                }).then(async (response) => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
                     self.$refs.schema_masterlist_table.vmDataTable.ajax.reload();
                     self.close();
-                },(error)=>{
-                    swal(
-                        'Save Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
+                }).catch((error) => {
+                    swal.fire({
+                        title:'Save Error',
+                        text:error,
+                        icon:'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 });
 
             }
@@ -443,29 +463,44 @@ export default {
                 self.$refs.schema_masterlist_table.row_of_data = self.$refs.schema_masterlist_table.vmDataTable.row('#'+$(this).attr('data-rowid'));
                 self.masterlist.id = self.$refs.schema_masterlist_table.row_of_data.data().id;
 
-                swal({
+                swal.fire({
                     title: "Delete Masterlist",
                     text: "Are you sure you want to delete?",
-                    type: "question",
+                    icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: 'Accept'
+                    confirmButtonText: 'Accept',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary',
+                    },
 
                 }).then(async (result) => {
-                    if (result) {
-                        await self.$http.delete(helpers.add_endpoint_json(api_endpoints.schema_masterlist,(self.masterlist.id+'/delete_masterlist')))
-                        .then((response) => {
+                    if (result.isConfirmed) {
+                        await fetch(helpers.add_endpoint_json(api_endpoints.schema_masterlist,(self.masterlist.id+'/delete_masterlist')), {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(async (response) => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! Status: ${response.status}`);
+                            }
                             self.$refs.schema_masterlist_table.vmDataTable.ajax.reload();
                         }, (error) => {
-                            swal(
-                                'Delete Error',
-                                helpers.apiVueResourceError(error),
-                                'error'
-                            )
+                            swal.fire({
+                                title:'Delete Error',
+                                text:error,
+                                icon:'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
                         });
                     }
 
                 },(error) => {
-                    //
+                  console.log(error);
                 });                
             });
         },
@@ -510,16 +545,21 @@ export default {
         },
         initSelects: async function() {
 
-            await this.$http.get(helpers.add_endpoint_json(api_endpoints.schema_masterlist,'1/get_masterlist_selects')).then(res=>{
+            fetch(helpers.add_endpoint_json(api_endpoints.schema_masterlist,'1/get_masterlist_selects'))
+            .then(async (res)=>{
+                if (!res.ok) { return res.json().then(err => { throw err }); }
+                let data = await res.json();
+                this.answerTypes = data.all_answer_types;
 
-                    this.answerTypes = res.body.all_answer_types
-
-            },err=>{
-                swal(
-                    'Get Application Selects Error',
-                    helpers.apiVueResourceError(err),
-                    'error'
-                )
+            }).catch(err=>{
+                swal.fire({
+                    title:'Get Application Selects Error',
+                    text:err,
+                    icon:'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
             });
             this.initAnswerTypeSelector();
         },        

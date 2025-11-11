@@ -316,14 +316,17 @@ export default {
             });
           }
           else{
-            swal({
-                    title: 'User not selected',
-                    html: 'Please select the user to view the details',
-                    type: 'error'
-                }).then(() => {
-                    
-                });
-                return;
+            swal.fire({
+                title: 'User not selected',
+                html: 'Please select the user to view the details',
+                icon: 'error',
+                customClass: {
+                  confirmButton: 'btn btn-primary',
+                },
+            }).then(() => {
+                
+            });
+            return;
           }
         },
 

@@ -265,21 +265,38 @@ export default {
                 if (vm.proposal.approval_level_document) {
                     data.append('approval_level_document_name', vm.proposal.approval_level_document[0])
                 }
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/approval_level_document'),data,{
-                emulateJSON:true
-            }).then(res=>{
-                vm.proposal = res.body;
-                vm.$emit('refreshFromResponse',res);
 
-                },err=>{
-                swal(
-                    'Submit Error',
-                    helpers.apiVueResourceError(err),
-                    'error'
-                )
+                fetch(helpers.add_endpoint_json(api_endpoints.proposals, vm.proposal.id + '/approval_level_document'), {
+                method: 'POST',
+                body: data // FormData handles headers automatically
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                    return response.json();
+                })
+                .then(res => {
+                    //vm.proposal = res;
+                    Object.assign(vm.proposal, res);
+                    vm.$emit('refreshFromResponse', res);
+                })
+                .catch(async err => {
+                    console.log(err);
+                    let errorText = 'An unexpected error occurred.';
+                    try {
+                        const errData = await err.json();
+                        // errorText = helpers.apiVueResourceError(errData);
+                        errorText = errData;
+                    } catch { console.log('Error parsing error response'); }
+                    
+                    swal.fire({
+                        title:'Submit Error', 
+                        text:errorText,
+                        icon:'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
             });
-
-
         },
         uploadedFileName: function() {
             return this.uploadedFile != null ? this.uploadedFile.name: '';
@@ -289,21 +306,27 @@ export default {
         },
         removeRequirement(_id){
             let vm = this;
-            swal({
+           swal.fire({
                 title: "Remove Requirement",
                 text: "Are you sure you want to remove this requirement?",
-                type: "warning",
+                icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Requirement',
-                confirmButtonColor:'#d9534f'
-            }).then(() => {
-                vm.$http.delete(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
-                .then((response) => {
-                    vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
-                }, (error) => {
-                    console.log(error);
-                });
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then((swalresult) => {
+                if(swalresult.isConfirmed){
+                    vm.$http.delete(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
+                    .then(() => {
+                        vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
+                    }, (error) => {
+                        console.log(error);
+                    });
+                }
             },(error) => {
+                console.log(error);
             });
         },
     },

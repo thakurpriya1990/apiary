@@ -140,61 +140,94 @@ export default {
         remindReferral:function(_id,user){
             let vm = this;
             
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.apiary_referrals,_id+'/remind')).then(response => {
-                vm.$emit('refreshFromResponse',response);
-                vm.table.ajax.reload();
-                swal(
-                    'Referral Reminder',
-                    'A reminder has been sent to '+user,
-                    'success'
-                )
-            },
-            error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
+            fetch(helpers.add_endpoint_json(api_endpoints.apiary_referrals,_id+'/remind')).then(
+                async (response) => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err });
+                    }
+                    let referrals_remind_res = await response.json();
+                    vm.$emit('refreshFromResponse',referrals_remind_res);
+                    vm.table.ajax.reload();
+                    swal.fire({
+                        title: 'Referral Reminder',
+                        text: 'A reminder has been sent to '+user,
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
+                }).catch(error => {
+                    swal.fire({
+                        title: 'Proposal Error',
+                        text: error,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
+                }
+            );
         },
         resendReferral:function(_id,user){
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.apiary_referrals,_id+'/resend')).then(response => {
-                vm.$emit('refreshFromResponse',response);
-                vm.table.ajax.reload();
-                swal(
-                    'Referral Resent',
-                    'The referral has been resent to '+user,
-                    'success'
-                )
-            },
-            error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
+            fetch(helpers.add_endpoint_json(api_endpoints.apiary_referrals,_id+'/resend')).then(
+                async (response) => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err });
+                    }
+                    let referrals_resend_res = await response.json();
+                    vm.$emit('refreshFromResponse',referrals_resend_res);
+                    vm.table.ajax.reload();
+                    swal.fire({
+                        title: 'Referral Resent',
+                        text: 'The referral has been resent to '+user,
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
+                }).catch(error => {
+                    swal.fire({
+                        title: 'Proposal Error',
+                        text: error,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
+                }
+            );
         },
         recallReferral:function(_id,user){
             let vm = this;
             
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.apiary_referrals,_id+'/recall')).then(response => {
-                vm.$emit('refreshFromResponse',response);
-                vm.table.ajax.reload();
-                swal(
-                    'Referral Recall',
-                    'The referall has been recalled from '+user,
-                    'success'
-                )
-            },
-            error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
+            fetch(helpers.add_endpoint_json(api_endpoints.apiary_referrals,_id+'/recall')).then(
+                async (response) => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err });
+                    }
+                    let ref_recall_res = await response.json()
+                    vm.$emit('refreshFromResponse',ref_recall_res);
+                    vm.table.ajax.reload();
+                    swal.fire({
+                        title: 'Referral Recall',
+                        text: 'The referral has been recalled from '+user,
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
+                }).catch(error => {
+                    swal.fire({
+                        title: 'Proposal Error',
+                        text: error,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
+                }
+            );
         },
         initialiseTable: function(){
             let vm = this;

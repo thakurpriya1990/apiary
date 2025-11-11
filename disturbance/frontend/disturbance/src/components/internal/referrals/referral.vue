@@ -386,7 +386,7 @@ export default {
         },
         refreshFromResponse:function(response){
             let vm = this;
-            vm.proposal = helpers.copyObject(response.body);
+            vm.proposal = helpers.copyObject(response);
             vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
         },
         initialiseOrgContactTable: function(){
@@ -406,37 +406,65 @@ export default {
         ammendmentRequest: function(){
             this.$refs.ammendment_request.isModalOpen = true;
         },
-        save: function(e) {
+        save: function() {
           let vm = this;
           let formData = new FormData(vm.form);
-          vm.$http.post(vm.proposal_form_url,formData).then(res=>{
-              swal(
-                'Saved',
-                'Your proposal has been saved',
-                'success'
-              )
-          },err=>{
-          });
+          fetch(vm.proposal_form_url, {
+            method: 'POST',
+            body: formData
+            })
+            .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            //return response.json(); // or response.text(), depending on your backend
+            })
+            .then(() => {
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Your proposal has been saved',
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+            })
+            .catch(err => {
+                console.log(err);
+            });
         },
         assignTo: function(){
             let vm = this;
             if ( vm.proposal.assigned_officer != 'null'){
                 let data = {'user_id': vm.proposal.assigned_officer};
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.proposal.id+'/assign_to')),JSON.stringify(data),{
-                    emulateJSON:true
-                }).then((response) => {
-                    console.log(response);
-                    vm.proposal = response.body;
-                }, (error) => {
+                fetch(helpers.add_endpoint_json(api_endpoints.organisation_requests, `${vm.proposal.id}/assign_to`), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                    })
+                    .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                    })
+                    .then(responseData => {
+                    vm.proposal = responseData;
+                    })
+                    .catch(error => {
                     console.log(error);
                 });
+
             }
             else{
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.proposal.id+'/unassign')))
-                .then((response) => {
+                fetch(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.proposal.id+'/unassign')))
+                .then(async (response) => {
+                    if (!response.ok) { return response.json().then(err => { throw err }); }
                     console.log(response);
-                    vm.proposal = response.body;
-                }, (error) => {
+                    vm.proposal = await response.json();
+                }).catch((error) => {
                     console.log(error);
                 });
             }
@@ -444,10 +472,12 @@ export default {
         fetchProposalGroupMembers: function(){
             let vm = this;
             vm.loading.push('Loading Proposal Group Members');
-            vm.$http.get(api_endpoints.organisation_access_group_members).then((response) => {
-                vm.members = response.body
+            fetch(api_endpoints.organisation_access_group_members)
+            .then(async (response) => {
+                if (!response.ok) { return response.json().then(err => { throw err }); }
+                vm.members = await response.json();
                 vm.loading.splice('Loading Proposal Group Members',1);
-            },(error) => {
+            }).catch((error) => {
                 console.log(error);
                 vm.loading.splice('Loading Proposal Group Members',1);
             })
@@ -501,13 +531,13 @@ export default {
                     },
                 }).
                 on("select2:select", function (e) {
-                    var selected = $(e.currentTarget);
+                    // var selected = $(e.currentTarget);
                     //vm.selected_referral = selected.val();
                     let data = e.params.data.id;
                     vm.selected_referral = data;
                 }).
                 on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
+                    // var selected = $(e.currentTarget);
                     vm.selected_referral = null;
                 });
 
@@ -529,153 +559,190 @@ export default {
             }
         },
         sendReferral: function(){
+            
             let vm = this;
-            let formData = new FormData(vm.form); //save data before completing referral
+            let formData = new FormData(vm.form); // Save data before completing referral
             vm.sendingReferral = true;
-            vm.$http.post(vm.proposal_form_url,formData).then(res=>{
-                let data = {'email':vm.selected_referral, 'text': vm.referral_text};
-                //vm.sendingReferral = true;
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.referrals,(vm.referral.id+'/send_referral')),JSON.stringify(data),{
-                emulateJSON:true
-                }).then((response) => {
-                vm.sendingReferral = false;
-                vm.referral = response.body;
-                vm.referral.proposal.applicant.address = vm.referral.proposal.applicant.address != null ? vm.referral.proposal.applicant.address : {};
-                swal(
-                    'Referral Sent',
-                    //'The referral has been sent to '+vm.department_users.find(d => d.email == vm.selected_referral).name,
-                    'The referral has been sent to '+ vm.selected_referral,
-                    'success'
-                )
-                $(vm.$refs.department_users).val(null).trigger("change");
-                vm.selected_referral = '';
-                vm.referral_text = '';
-             }, (error) => {
-                console.log(error);
-                swal(
-                    'Referral Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-                vm.sendingReferral = false;
-                vm.selected_referral = '';
-                vm.referral_text = '';
-                });
-            
-             
-             },err=>{
-             });
 
-            /*let data = {'email':vm.selected_referral};
-            vm.sendingReferral = true;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.referrals,(vm.referral.id+'/send_referral')),JSON.stringify(data),{
-                emulateJSON:true
-            }).then((response) => {
-                vm.sendingReferral = false;
-                vm.referral = response.body;
-                vm.referral.proposal.applicant.address = vm.referral.proposal.applicant.address != null ? vm.referral.proposal.applicant.address : {};
-                swal(
-                    'Referral Sent',
-                    'The referral has been sent to '+vm.department_users.find(d => d.email == vm.selected_referral).name,
-                    'success'
-                )
-            }, (error) => {
-                console.log(error);
-                swal(
-                    'Referral Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-                vm.sendingReferral = false;
-            }); */
-            
+            // First POST: Save proposal form
+            fetch(vm.proposal_form_url, {
+            method: 'POST',
+            body: formData
+            })
+            .then(response => {
+            if (!response.ok) {
+                throw new Error(`Form save failed: ${response.status}`);
+            }
+            //return response.json(); // or response.text() if no JSON is returned
+            })
+            .then(() => {
+            // Second POST: Send referral
+            let data = {
+                email: vm.selected_referral,
+                text: vm.referral_text
+            };
+
+            return fetch(helpers.add_endpoint_json(api_endpoints.referrals, `${vm.referral.id}/send_referral`), {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            })
+            .then(response => {
+            if (!response.ok) {
+                throw new Error(`Referral send failed: ${response.status}`);
+            }
+            return response.json();
+            })
+            .then(responseData => {
+            vm.sendingReferral = false;
+            vm.referral = responseData;
+            vm.referral.proposal.applicant.address = vm.referral.proposal.applicant.address || {};
+
+            swal.fire({
+                title: 'Referral Sent',
+                text: 'The referral has been sent to ' + vm.selected_referral,
+                icon: 'success',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                },
+            });
+
+            $(vm.$refs.department_users).val(null).trigger("change");
+            vm.selected_referral = '';
+            vm.referral_text = '';
+            })
+            .catch(error => {
+            console.log(error);
+
+            swal.fire({
+                title: 'Referral Error',
+                text: error,
+                icon: 'error',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                },
+            });
+
+            vm.sendingReferral = false;
+            vm.selected_referral = '';
+            vm.referral_text = '';
+            });
         },
         remindReferral:function(r){
             let vm = this;
             
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/remind')).then(response => {
-                // vm.original_proposal = helpers.copyObject(response.body);
-                // vm.proposal = response.body;
-                // vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
+            fetch(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/remind'))
+            .then(async (response) => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err });
+                }
                 vm.fetchReferral(vm.referral.id);
-                swal(
-                    'Referral Reminder',
-                    'A reminder has been sent to '+r.referral,
-                    'success'
-                )
-            },
-            error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
+                swal.fire({
+                    title: 'Referral Reminder',
+                    text: 'A reminder has been sent to '+r.referral,
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
+            })
+            .catch(error => {
+                swal.fire({
+                    title: 'Proposal Error',
+                    text: error,
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
             });
         },
         resendReferral:function(r){
             let vm = this;
             
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/resend')).then(response => {
-                // vm.original_proposal = helpers.copyObject(response.body);
-                // vm.proposal = response.body;
-                // vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
+            fetch(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/resend'))
+            .then(async(response) => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err });
+                }
                 vm.fetchReferral(vm.referral.id);
-                swal(
-                    'Referral Resent',
-                    'The referral has been resent to '+r.referral,
-                    'success'
-                )
-            },
-            error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
+                swal.fire({
+                    title: 'Referral Resent',
+                    text: 'The referral has been resent to '+r.referral,
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
+            })
+            .catch(error => {
+                swal.fire({
+                    title: 'Proposal Error',
+                    text: error,
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
             });
         },
         recallReferral:function(r){
             let vm = this;
             
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/recall')).then(response => {
+            fetch(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/recall'))
+            .then(async (response) => {
                 // vm.original_proposal = helpers.copyObject(response.body);
                 // vm.proposal = response.body;
                 // vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
+                if (!response.ok) {
+                    return response.json().then(err => { throw err });
+                }
                 vm.fetchReferral(vm.referral.id);
-                swal(
-                    'Referral Recall',
-                    'The referall has been recalled from '+r.referral,
-                    'success'
-                )
-            },
-            error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
+                swal.fire({
+                    title: 'Referral Recall',
+                    text: 'The referral has been recalled from '+r.referral,
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
+            })
+            .catch(error => {
+                swal.fire({
+                    title: 'Proposal Error',
+                    text: error,
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
             });
         },
         fetchreferrallist: function(referral_id){
             let vm = this;
 
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.referrals,referral_id+'/referral_list')).then(response => {
-                vm.referral_sent_list = response.body;     
-            },
-            err => {
+            fetch(helpers.add_endpoint_json(api_endpoints.referrals,referral_id+'/referral_list'))
+            .then(async (response) => {
+                if (!response.ok) { return response.json().then(err => { throw err }); }
+                vm.referral_sent_list = await response.json();
+            })
+            .catch(err => {
               console.log(err);
             });
         },
         fetchReferral: function(){
             let vm = this;
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.referrals,vm.referral.id)).then(res => {
-              
-                vm.referral = res.body;
+            fetch(helpers.add_endpoint_json(api_endpoints.referrals,vm.referral.id))
+            .then(async (res) => {
+                if (!res.ok) { return res.json().then(err => { throw err }); }
+                vm.referral = await res.json();
                 vm.referral.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                 //vm.fetchreferrallist(vm.referral.id);
               
-            },
-            err => {
+            }).catch(err => {
               console.log(err);
             });
         },
@@ -683,49 +750,70 @@ export default {
             let vm = this;
             let data = {'referral_comment': vm.referral_comment};
             
-            swal({
+            swal.fire({
                 title: "Complete Referral",
                 text: "Are you sure you want to complete this referral?",
-                type: "question",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: 'Submit'
-            }).then(() => { 
+                confirmButtonText: 'Submit',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then((swalresult) => {
+                if (swalresult.isConfirmed) {
                 let formData = new FormData(vm.form);
-                vm.$http.post(vm.proposal_form_url,formData).then(res=>{
-                    
-                    vm.$http.post(helpers.add_endpoint_json(api_endpoints.referrals,vm.$route.params.referral_id+'/complete'),JSON.stringify(data),{
-                emulateJSON:true
-                }).then(res => {
-                    vm.referral = res.body;
+
+                // First POST: Save proposal form
+                fetch(vm.proposal_form_url, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                    throw new Error(`Form save failed: ${response.status}`);
+                    }
+                    //return response.json(); // or response.text() if no JSON is returned
+                })
+                .then(() => {
+                    // Second POST: Complete referral
+                    return fetch(
+                    helpers.add_endpoint_json(api_endpoints.referrals, `${vm.$route.params.referral_id}/complete`),
+                    {
+                        method: 'POST',
+                        headers: {
+                        'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    }
+                    );
+                })
+                .then(response => {
+                    if (!response.ok) {
+                    throw new Error(`Referral completion failed: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(responseData => {
+                    vm.referral = responseData;
                     vm.referral.proposal.applicant.address = vm.referral.proposal.applicant.address != null ? vm.referral.proposal.applicant.address : {};
-                },
-                error => {
-                    swal(
-                        'Referral Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
+                })
+                .catch(error => {
+                    console.log(error);
+                    swal.fire({
+                        title: 'Referral Error',
+                        text: error,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 });
-                
-                 },err=>{
-                 });
-
-               /* vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,vm.$route.params.referral_id+'/complete')).then(res => {
-                    vm.referral = res.body;
-                    vm.referral.proposal.applicant.address = vm.referral.proposal.applicant.address != null ? vm.referral.proposal.applicant.address : {};
-                },
-                error => {
-                    swal(
-                        'Referral Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
-                }); */
-
-
-            },(error) => {
+                }
+            }).catch(error => {
+                console.log(error);
             });
-        }
+        },
     },
     mounted: function() {
         let vm = this;
@@ -752,12 +840,13 @@ export default {
         });
     },
     created: function() {
-        Vue.http.get(helpers.add_endpoint_json(api_endpoints.referrals,this.referralId)).then(res => {
-                this.referral = res.body;
+        fetch(helpers.add_endpoint_json(api_endpoints.referrals,this.referralId))
+        .then(async (res) => {
+            if (!res.ok) { return res.json().then(err => { throw err }); }
+                this.referral = await res.json();
                 this.referral.proposal.applicant.address = this.proposal.applicant.address != null ? this.proposal.applicant.address : {};
                 //vm.fetchreferrallist(vm.referral.id);
-            },
-            err => {
+            }).catch(err => {
               console.log(err);
             });
     },
@@ -777,13 +866,16 @@ export default {
     },
     */
     beforeRouteUpdate: function(to, from, next) {
-          Vue.http.get(`/api/proposal/${to.params.proposal_id}/referall_proposal.json`).then(res => {
+         fetch(`/api/proposal/${to.params.proposal_id}/referall_proposal.json`)
+          .then(async (res) => {
+            if (!res.ok) { return res.json().then(err => { throw err }); }
+            const data = await res.json();
               next(vm => {
-                vm.referral = res.body;
+                vm.referral = data;
                 vm.referral.proposal.applicant.address = vm.referral.proposal.applicant.address != null ? vm.referral.proposal.applicant.address : {};
               });
-            },
-            err => {
+            })
+            .catch(err => {
               console.log(err);
             });
     }

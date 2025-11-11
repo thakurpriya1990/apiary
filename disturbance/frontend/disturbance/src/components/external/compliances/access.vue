@@ -325,7 +325,7 @@ export default {
                 }).then((response)=>{
                     vm.addingCompliance = false;
                     vm.refreshFromResponse(response);                   
-                    /*swal(
+                    /*swal.fire(
                      'Submit',
                      'Your Compliance with Requirement has been submitted',
                      'success'
@@ -345,8 +345,8 @@ export default {
 
     refreshFromResponse:function(response){
             let vm = this;
-            vm.original_compliance = helpers.copyObject(response.body);
-            vm.compliance = helpers.copyObject(response.body);
+            vm.original_compliance = helpers.copyObject(response);
+            vm.compliance = helpers.copyObject(response);
             if ( vm.compliance.customer_status == "Under Review" || vm.compliance.customer_status == "Approved" ) { vm.isFinalised = true }
             if (vm.compliance && vm.compliance.documents){ vm.hasDocuments = true}
            

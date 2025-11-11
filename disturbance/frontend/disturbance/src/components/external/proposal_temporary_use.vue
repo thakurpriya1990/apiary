@@ -197,11 +197,14 @@
 
                 await this.$http.post('/api/proposal/' + proposal_id + '/draft/', data).then(
                     res=>{
-                        swal(
-                            'Saved',
-                            'Your proposal has been updated',
-                            'success'
-                        );
+                        swal.fire({
+                            title: 'Saved',
+                            text: 'Your proposal has been updated',
+                            icon: 'success',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
                     },
                     err=>{
                         helpers.processError(err)

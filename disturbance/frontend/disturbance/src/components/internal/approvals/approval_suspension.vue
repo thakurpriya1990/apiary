@@ -138,11 +138,14 @@ export default {
         },
         fetchContact: function(id){
             let vm = this;
-            vm.$http.get(api_endpoints.contact(id)).then((response) => {
-                vm.contact = response.body; vm.isModalOpen = true;
-            },(error) => {
-                console.log(error);
-            } );
+            fetch(api_endpoints.contact(id)).then(
+                async (response) => {
+                    if (!response.ok) { return response.json().then(err => { throw err }); }
+                    vm.contact = await response.json(); 
+                    vm.isModalOpen = true;
+                }).catch((error) => {
+                    console.log(error);
+                });
         },
         sendData:function(){
             let vm = this;
@@ -150,29 +153,38 @@ export default {
             let approval = JSON.parse(JSON.stringify(vm.approval));
             vm.issuingApproval = true;
 
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.approvals,vm.approval_id+'/approval_suspension'),JSON.stringify(approval),{
-                        emulateJSON:true,
-                    }).then((response)=>{
-                        vm.issuingApproval = false;
-                        vm.approval={};
-                        vm.close();
-                        swal(
-                             'Suspend',
-                             'An email has been sent to the proponent about suspension of this approval',
-                             'success'
-                        );
-                        vm.$emit('refreshFromResponse',response);
+            fetch(helpers.add_endpoint_json(api_endpoints.approvals,vm.approval_id+'/approval_suspension'),{
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(approval),
+            }).then(async (response)=>{
+                if (!response.ok) {
+                    //throw new Error(`Approval Suspension Failed: ${response.status}`);
+                    return response.json().then(err => { throw err });
+                }
+                const data = await response.json();
+                vm.issuingApproval = false;
+                vm.approval={};
+                vm.close();
+                swal.fire({
+                    title:'Suspend',
+                    text:'An email has been sent to the proponent about suspension of this approval',
+                    icon:'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+                vm.$emit('refreshFromResponse',data);
 
 
-                    },(error)=>{
-                        vm.errors = true;
-                        vm.issuingApproval = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                        //vm.approval={};
-                        //vm.close();
-                    });
-
-
+            }).catch((error)=>{
+                vm.errors = true;
+                vm.issuingApproval = false;
+                // vm.errorString = helpers.apiVueResourceError(error);
+                vm.errorString = error;
+                //vm.approval={};
+                //vm.close();
+            });
         },
         addFormValidations: function() {
             let vm = this;

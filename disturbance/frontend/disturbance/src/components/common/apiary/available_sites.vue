@@ -673,12 +673,15 @@
                     // Update the site in the table
                     console.log('Site updated:', site_updated);
 
-                } catch (err) {
-                    swal(
-                    'Submit Error',
-                    err,
-                    'error'
-                    );
+                } catch (error) {
+                    swal.fire({
+                        title: 'Submit Error',
+                        text: error,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
                 }
 
             },
@@ -688,47 +691,54 @@
                 let apiary_site_id = e.target.getAttribute("data-make-vacant");
                 e.stopPropagation()
 
-                swal({
+                swal.fire({
                     title: "Make Vacant",
                     text: "Are you sure you want to make this apiary site: " + apiary_site_id + " vacant?",
-                    type: "question",
+                    icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: 'Yes, make vacant'
-                }).then(
-                    () => {
-                        fetch('/api/apiary_site/' + apiary_site_id + '/',{
-                            method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                // Add authorization headers if needed
-                            },
-                            body: JSON.stringify({ 'status': 'vacant' })
-                        }).then( async (response) => {
-                            if (!response.ok) {
-                                const errorText = await response.text();
-                                throw new Error(errorText);
-                            }
-                            // Remove the row from the table
-                            // TODO: Update table
-                            $(e.target).closest('tr').fadeOut('slow', function(){
-                                // Remove the site table which the table is based on
-                                vm.removeApiarySiteById(apiary_site_id)
-                            })
-
-                            // TODO: Update map
-                            // Remove the site from the map
-                            this.$refs.component_map.removeApiarySiteById(apiary_site_id)
-                        }).catch((error) => {
-                            console.log(error);
-                            swal(
-                                'Submit Error',
-                                error,
-                                'error'
-                            )
-                        })
+                    confirmButtonText: 'Yes, make vacant',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary',
                     },
-                    err => {
-                    }
+                }).then(
+                    (result) => {
+                        if (result.isConfirmed) {
+                            fetch('/api/apiary_site/' + apiary_site_id + '/',{
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    // Add authorization headers if needed
+                                },
+                                body: JSON.stringify({ 'status': 'vacant' })
+                            }).then( async (response) => {
+                                if (!response.ok) {
+                                    const errorText = await response.text();
+                                    throw new Error(errorText);
+                                }
+                                // Remove the row from the table
+                                // TODO: Update table
+                                $(e.target).closest('tr').fadeOut('slow', function(){
+                                    // Remove the site table which the table is based on
+                                    vm.removeApiarySiteById(apiary_site_id)
+                                })
+
+                                // TODO: Update map
+                                // Remove the site from the map
+                                this.$refs.component_map.removeApiarySiteById(apiary_site_id)
+                            }).catch((error) => {
+                                console.log(error);
+                                swal.fire({
+                                    title: 'Submit Error',
+                                    text: error,
+                                    icon: 'error',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                })
+                            })
+                        }
+                    },
                 );
             },
             toggleStatusFilterDropdown: function(){

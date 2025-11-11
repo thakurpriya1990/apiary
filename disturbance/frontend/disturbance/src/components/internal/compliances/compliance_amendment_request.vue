@@ -96,43 +96,53 @@ export default {
         },
         fetchAmendmentChoices: function(){
             let vm = this;
-            vm.$http.get('/api/compliance_amendment_reason_choices.json').then((response) => {
-                vm.reason_choices = response.body;
-
-            },(error) => {
+            fetch('/api/compliance_amendment_reason_choices.json')
+            .then(async (response) => {
+                if (!response.ok) { return response.json().then(err => { throw err }); }
+                vm.reason_choices = await response.json();
+            }).catch((error) => {
                 console.log(error);
-            } );
+            });
         },
         sendData:function(){
             let vm = this;
             vm.errors = false;
             //console.log(vm.amendment);
             let amendment = JSON.parse(JSON.stringify(vm.amendment));
-            vm.$http.post('/api/compliance_amendment_request.json',JSON.stringify(amendment),{
-                        emulateJSON:true,
-                    }).then((response)=>{
-                        //vm.$parent.loading.splice('processing contact',1);
-                        swal(
-                             'Sent',
-                             'An email has been sent to the proponent with the request to amend this compliance',
-                             'success'
-                        );
-                        vm.amendingcompliance = true;
-                        console.log(response)
-                        vm.close();
-                        //vm.$emit('refreshFromResponse',response);
+            fetch('/api/compliance_amendment_request.json',{
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(amendment)
+            }).then(async (response)=>{
+                //vm.$parent.loading.splice('processing contact',1);
+                if (!response.ok) {
+                    throw new Error(`Compliance Amendment Request Failed: ${response.status}`);
+                }
+                const res = await response.json();
+                swal.fire({
+                    title:'Sent',
+                    text:'An email has been sent to the proponent with the request to amend this compliance',
+                    icon:'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+                vm.amendingcompliance = true;
+                console.log(res)
+                vm.close();
+                //vm.$emit('refreshFromResponse',response);
 
-                        vm.$router.push({ path: '/internal' }); //Navigate to dashboard after creating Amendment request
+                vm.$router.push({ path: '/internal' }); //Navigate to dashboard after creating Amendment request
 
-                    },(error)=>{
-                        console.log(error);
-                        vm.errors = true;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                        vm.amendingcompliance = true;
-
-                    });
-
-
+            }).catch((error)=>{
+                console.log(error);
+                vm.errors = true;
+                // vm.errorString = helpers.apiVueResourceError(error);
+                vm.errorString = error.message || 'An error occurred while requesting compliance amendment';
+                vm.amendingcompliance = true;
+            });
         },
         addFormValidations: function() {
             let vm = this;
