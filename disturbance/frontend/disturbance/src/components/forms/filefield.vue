@@ -193,25 +193,46 @@ export default {
             let vm = this;
             vm.show_spinner = true;
             var data = {id:file.id, name:file.name}
-            swal({
+            swal.fire({
                 title: "Delete Document",
                 text: "Are you sure you want to delete this document?",
-                type: "warning",
+                icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Delete Document',
-                confirmButtonColor:'#d9534f'
-            }).then(() => {
-                //vm.$http.post('/api/proposal_requirements/'+vm.requirement.id+'/delete_document/', data,{
-                vm.$http.post(vm.delete_url, data,{
-                    emulateJSON:true,
-                }).then((response)=>{
-                    vm.uploaded_documents = response.body;
-                    vm.$emit('refreshFromResponse',response.body);
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    try {
+                        const response = await fetch(vm.delete_url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data),
+                            credentials: 'same-origin'
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+
+                        const responseData = await response.json();
+                        vm.uploaded_documents = responseData;
+                        vm.$emit('refreshFromResponse', responseData);
+                    } catch (err) {
+                        console.error('Fetch error:', err);
+                    } finally {
+                        vm.show_spinner = false;
+                    }
+                } else {
                     vm.show_spinner = false;
-                },err=>{
-                    console.log(err);
-                });
-            },(error) => {
+                }
+            }).catch((error) => {
+                console.error('SweetAlert error:', error);
+                vm.show_spinner = false;
             });
         },
         num_documents: function() {

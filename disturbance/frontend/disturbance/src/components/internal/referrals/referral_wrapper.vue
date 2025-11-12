@@ -26,12 +26,6 @@ import ReturnDashTable from '@common-components/returns_dashboard.vue'
 */
 import Referral from './referral.vue';
 import ApiaryReferral from './apiary_referral.vue';
-import Vue from 'vue';
-import {
-  api_endpoints,
-  helpers
-}
-from '@/utils/hooks'
 export default {
     name: 'ReferralWrapper',
     data() {

@@ -1,15 +1,14 @@
-import Vue from 'vue'
-import Router from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router';
 import LedgerPay from '@/components/ledgerpay'
 import Profile from '@/components/user/profile.vue'
 import external_routes from '@/components/external/routes'
 import internal_routes from '@/components/internal/routes'
 import ManageOrganisation from '@/components/external/organisations/manage.vue'
 import Organisations from '@/components/user/manage_organisation.vue'
-Vue.use(Router)
 
-export default new Router({
-    mode: 'history',
+const router = createRouter({
+    history: createWebHistory(),
+    strict: false,
     routes: [
         {
           path: '/firsttime',
@@ -41,3 +40,5 @@ export default new Router({
         internal_routes,
     ]
 })
+
+export default router;

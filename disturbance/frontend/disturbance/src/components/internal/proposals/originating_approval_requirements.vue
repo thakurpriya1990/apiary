@@ -27,9 +27,11 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import {
     api_endpoints,
-    helpers
+    helpers,
+    constants
 }
 from '@/utils/hooks'
 import datatable from '@vue-utils/datatable.vue'
@@ -44,7 +46,7 @@ export default {
     data: function() {
         let vm = this;
         return {
-            panelBody: "proposal-requirements-"+vm._uid,
+            panelBody: "proposal-requirements-"+uuid(),
             //originatingApproval: {},
             requirements: [],
             requirement_headers:[
@@ -57,7 +59,7 @@ export default {
             requirement_options:{
                 autoWidth: false,
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 ajax: {
@@ -168,7 +170,7 @@ export default {
                     }
                 ],
                 processing: true,
-                drawCallback: function (settings) {
+                drawCallback: function () {
                     $(vm.$refs.originating_requirements_datatable.table).find('tr:last .dtMoveDown').remove();
                     $(vm.$refs.originating_requirements_datatable.table).children('tbody').find('tr:first .dtMoveUp').remove();
 
@@ -229,48 +231,53 @@ export default {
         },
         removeRequirement(_id){
             let vm = this;
-            swal({
+            swal.fire({
                 title: "Remove Requirement",
                 text: "Are you sure you want to remove this requirement?",
-                type: "warning",
+                icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Requirement',
-                confirmButtonColor:'#d9534f'
-            }).then(() => {
-                // vm.$http.delete(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
-                // .then((response) => {
-                //     vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
-                // }, (error) => {
-                //     console.log(error);
-                // });
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then((swalresult) => {
+                if(swalresult.isConfirmed) {
 
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id+'/discard'))
-                .then((response) => {
-                    vm.$refs.originating_requirements_datatable.vmDataTable.ajax.reload();
-                }, (error) => {
-                    console.log(error);
-                });
+                    fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id+'/discard'))
+                    .then(async (response) => {
+                        if (!response.ok) { return response.json().then(err => { throw err }); }
+                        vm.$refs.originating_requirements_datatable.vmDataTable.ajax.reload();
+                    }).catch((error) => {
+                        console.log(error);
+                    });
+                }
 
             },(error) => {
+                console.log(error); 
             });
         },
         fetchRequirements(){
             let vm = this;
             
-            vm.$http.get(api_endpoints.proposal_standard_requirements).then((response) => {
-                vm.requirements = response.body
-            },(error) => {
-                console.log(error);
-            })
+            fetch(api_endpoints.proposal_standard_requirements).then(
+                async (response) => {
+                    if (!response.ok) { return response.json().then(err => { throw err }); }
+                    vm.requirements = await response.json();
+                }).catch((error) => {
+                    console.log(error);
+                });
         },
         editRequirement(_id){
-            let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id)).then((response) => {
-                this.$refs.originating_requirement_detail.requirement = response.body;
-                this.$refs.originating_requirement_detail.requirement.due_date =  response.body.due_date != null && response.body.due_date != undefined ? moment(response.body.due_date).format('DD/MM/YYYY'): '';
-                response.body.standard ? $(this.$refs.originating_requirement_detail.$refs.standard_req).val(response.body.standard_requirement).trigger('change'): '';
+            fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
+            .then(async (response) => {
+                if (!response.ok) { return response.json().then(err => { throw err }); }
+                const data = await response.json();
+                this.$refs.originating_requirement_detail.requirement = data;
+                this.$refs.originating_requirement_detail.requirement.due_date =  data.due_date != null && data.due_date != undefined ? moment(data.due_date).format('DD/MM/YYYY'): '';
+                data.standard ? $(this.$refs.originating_requirement_detail.$refs.standard_req).val(data.standard_requirement).trigger('change'): '';
                 this.addRequirement();
-            },(error) => {
+            }).catch((error) => {
                 console.log(error);
             })
         },
@@ -292,10 +299,9 @@ export default {
         },
         sendDirection(req,direction){
             let movement = direction == 'down'? 'move_down': 'move_up';
-            this.$http.get(helpers.add_endpoint_json(api_endpoints.proposal_requirements,req+'/'+movement)).then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements,req+'/'+movement)).then(() => {
             },(error) => {
                 console.log(error);
-                
             })
         },
         moveUp(e) {
@@ -338,7 +344,7 @@ export default {
     },
     created: function() {
         /*
-        this.$http.get(helpers.add_endpoint_json(api_endpoints.approvals,this.proposal.proposal_apiary.originating_approval_id))
+        fetch(helpers.add_endpoint_json(api_endpoints.approvals,this.proposal.proposal_apiary.originating_approval_id))
         .then((response) => {
             //vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
             //Object.assign(this.originatingApproval, response.body);

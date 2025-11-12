@@ -17,15 +17,17 @@
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Lodged on</strong><br/>
-                                {{ access.lodgement_date | formatDate}}
+                                {{ formatDate(access.lodgement_date) }}
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <table class="table small-table">
-                                    <tr>
-                                        <th>Lodgement</th>
-                                        <th>Date</th>
-                                        <th>Action</th>
-                                    </tr>
+                                    <thead>
+                                        <tr>
+                                            <th>Lodgement</th>
+                                            <th>Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
                                 </table>
                             </div>
                         </div>
@@ -125,12 +127,12 @@
 </template>
 <script>
 import $ from 'jquery'
-import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import {
   api_endpoints,
-  helpers
+  helpers,
+  constants
 }
 from '@/utils/hooks'
 export default {
@@ -153,7 +155,7 @@ export default {
         comms_add_url: helpers.add_endpoint_json(api_endpoints.organisation_requests,vm.$route.params.access_id+'/add_comms_log'),
         actionDtOptions:{
             language: {
-                processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                processing: constants.DATATABLE_PROCESSING_HTML,
             },
             responsive: true,
             deferRender: true, 
@@ -187,7 +189,7 @@ export default {
         actionsTable : null,
         commsDtOptions:{
             language: {
-                processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                processing: constants.DATATABLE_PROCESSING_HTML,
             },
             responsive: true,
             deferRender: true, 
@@ -301,11 +303,6 @@ export default {
     }
   },
   watch: {},
-  filters: {
-    formatDate: function(data){
-        return moment(data).format('DD/MM/YYYY HH:mm:ss');
-    }
-  },
   beforeRouteEnter: function(to, from, next){
     Vue.http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,to.params.access_id)).then((response) => {
         next(vm => {
@@ -328,6 +325,9 @@ export default {
     },
   },
   methods: {
+    formatDate: function(data){
+        return moment(data).format('DD/MM/YYYY HH:mm:ss');
+    },
     commaToNewline(s){
         return s.replace(/[,;]/g, '\n');
     },

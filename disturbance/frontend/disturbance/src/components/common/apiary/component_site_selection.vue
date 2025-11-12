@@ -35,11 +35,13 @@
 </template>
 
 <script>
-    import Vue from 'vue'
     import datatable from '@vue-utils/datatable.vue'
     import { v4 as uuid } from 'uuid';
     import ComponentMap from '@/components/common/apiary/component_map.vue'
     import { getDisplayNameFromStatus, getStatusForColour, SiteColours } from '@/components/common/apiary/site_colours.js'
+    import {
+        constants
+    }from '@/utils/hooks'
 
     export default {
         props:{
@@ -206,11 +208,11 @@
                         [1, 'desc'], [0, 'desc'],
                     ],
                     language: {
-                        processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                        processing: constants.DATATABLE_PROCESSING_HTML,
                     },
                     responsive: true,
                     processing: true,
-                    createdRow: function(row, data, index){
+                    createdRow: function(row, data){
                         $(row).attr('data-apiary-site-id', data.id)
                     },
                     columns: [
@@ -284,7 +286,8 @@
                         {
                             // Longitude
                             visible: vm.show_col_longitude,
-                            mRender: function (data, type, apiary_site){
+                            // mRender: function (data, type, apiary_site){
+                            mRender: function (){
                                 return 'lng'
                             },
                             defaultContent: '',
@@ -292,7 +295,8 @@
                         {
                             // Latitude
                             visible: vm.show_col_latitude,
-                            mRender: function (data, type, apiary_site){
+                            // mRender: function (data, type, apiary_site){
+                            mRender: function (){
                                 return 'lat'
                             },
                             defaultContent: '',
@@ -300,7 +304,8 @@
                         {
                             // District
                             visible: vm.show_col_district,
-                            mRender: function (data, type, apiary_site){
+                            // mRender: function (data, type, apiary_site){
+                            mRender: function (){
                                 return 'dist'
                             },
                             defaultContent: '',
@@ -364,7 +369,7 @@
                             // Vacant (at time of submit): yes/no
                             visible: vm.show_col_vacant_when_submitted,
                             mRender: function (data, type, apiary_site) {
-                                let status = apiary_site.properties.status
+                                // let status = apiary_site.properties.status
                                 let is_vacant = apiary_site.properties.apiary_site_is_vacant_when_submitted
                                 if(is_vacant === true){
                                     return '<i class="fa fa-check" aria-hidden="true"></i>'
@@ -451,36 +456,41 @@
             if (vm.apiary_proposal_id){
                 vm.loading_sites = true
                 let url_sites = '/api/proposal_apiary/' + vm.apiary_proposal_id + '/apiary_sites/'
-                Vue.http.get(url_sites).then(
-                    (res) => {
-                        vm.apiary_sites = res.body
+                fetch(url_sites).then(
+                    async (response) => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw err });
+                        }
+                        vm.apiary_sites = await response.json()
                         vm.apiary_sites_local = JSON.parse(JSON.stringify(vm.apiary_sites)),  // Deep copy the array
-                        vm.constructApiarySitesTable(res.body);
-                        vm.addApiarySitesToMap(res.body)
+                        vm.constructApiarySitesTable(vm.apiary_sites);
+                        vm.addApiarySitesToMap(vm.apiary_sites)
                         vm.ensureCheckedStatus();
                         vm.loading_sites = false
-                    },
-                    (err) => {
+                    }).catch((error) => {
+                        console.log(error);
                         vm.loading_sites = false
-                    }
-                )
+                    })
             } else if (vm.apiary_approval_id){
                 vm.loading_sites = true
                 // Retrieve apiary_sites
                 let url_sites = '/api/approvals/' + vm.apiary_approval_id + '/apiary_sites/'
-                Vue.http.get(url_sites).then(
-                    (res) => {
-                        vm.apiary_sites = res.body.features
+                fetch(url_sites).then(
+                    async (response) => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw err });
+                        }
+                        const res = await response.json()
+                        vm.apiary_sites = res.features
                         vm.apiary_sites_local = JSON.parse(JSON.stringify(vm.apiary_sites)),  // Deep copy the array
-                        vm.constructApiarySitesTable(res.body.features);
-                        vm.addApiarySitesToMap(res.body.features)
+                        vm.constructApiarySitesTable(vm.apiary_sites);
+                        vm.addApiarySitesToMap(vm.apiary_sites)
                         vm.ensureCheckedStatus();
                         vm.loading_sites = false
-                    },
-                    (err) => {
+                    }).catch((error) => {
+                        console.log(error);
                         vm.loading_sites = false
-                    }
-                )
+                    })
             }
         },
         mounted: function(){
@@ -529,7 +539,7 @@
             ensureCheckedStatus: function() {
                 if (this.apiary_sites.length > 0){
                     for(let i=0; i<this.apiary_sites.length; i++){
-                        if (!this.apiary_sites[i].hasOwnProperty('checked')){
+                        if (!Object.prototype.hasOwnProperty.call(this.apiary_sites[i], 'checked')) {
                             this.apiary_sites[i].checked = this.default_checkbox_checked
                         }
                     }
@@ -547,7 +557,7 @@
             },
             addApiarySitesToMap: function(apiary_sites) {
                 for (let i=0; i<apiary_sites.length; i++){
-                    if (apiary_sites[i].hasOwnProperty('checked')){
+                    if (Object.prototype.hasOwnProperty.call(apiary_sites[i], 'checked')) {
                         //apiary_sites[i].as_geojson['properties']['checked'] = apiary_sites[i].checked
                         //apiary_sites[i].as_geojson.properties.checked = apiary_sites[i].checked
                         apiary_sites[i].properties.checked = apiary_sites[i].checked
@@ -626,7 +636,6 @@
                 }
             },
             checkboxClicked: function(e) {
-                let vm = this;
                 //let apiary_site_id = e.target.getAttribute("data-apiary-site-id");
                 let apiary_site_id = this.getApiarySiteIdFromEvent(e)
                 let checked_status = e.target.checked
@@ -640,7 +649,6 @@
                 e.stopPropagation()
             },
             checkboxLicensedSiteClicked: function(e) {
-                let vm = this;
                 //let apiary_site_id = e.target.getAttribute("data-apiary-site-id");
                 let apiary_site_id = this.getApiaryLicensedSiteIdFromEvent(e)
                 let checked_status = e.target.checked
@@ -668,7 +676,6 @@
                 e.stopPropagation()
             },
             contactLicenceHolder: function(e){
-                let vm = this;
                 //let apiary_site_id = e.target.getAttribute("data-apiary-site-id");
                 let apiary_site_id = e.target.getAttribute("data-contact-licence-holder");
 
@@ -681,38 +688,54 @@
                 let apiary_site_id = e.target.getAttribute("data-make-vacant");
                 e.stopPropagation()
 
-                swal({
+                swal.fire({
                     title: "Make Vacant",
                     text: "Are you sure you want to make this apiary site: " + apiary_site_id + " vacant?",
-                    type: "question",
+                    icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: 'Yes, make vacant'
-                }).then(
-                    () => {
-                        vm.$http.patch('/api/apiary_site/' + apiary_site_id + '/', { 'status': 'vacant' }).then(
-                            async function(accept){
-                                // Remove the row from the table
-                                $(e.target).closest('tr').fadeOut('slow', function(){
-                                    // Remove the site table which the table is based on
-                                    vm.removeApiarySiteById(apiary_site_id)
-                                })
-
-                                // Remove the site from the map
-                                this.$refs.component_map.removeApiarySiteById(apiary_site_id)
-                                //vm.component_map_key = uuid()
-                            },
-                            reject=>{
-                                swal(
-                                    'Submit Error',
-                                    helpers.apiVueResourceError(err),
-                                    'error'
-                                )
-                            }
-                        );
+                    confirmButtonText: 'Yes, make vacant',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary',
                     },
-                    err => {
-                    }
-                );
+                }).then(
+                    (result) => {
+                        if (result.isConfirmed) {
+                            fetch('/api/apiary_site/' + apiary_site_id + '/',{
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    // Add authorization headers if needed
+                                },
+                                body: JSON.stringify({ 'status': 'vacant' })
+                            }).then( async (response) => {
+                                if (!response.ok) {
+                                    const errorText = await response.text();
+                                    throw new Error(errorText);
+                                }
+                                    // Remove the row from the table
+                                    $(e.target).closest('tr').fadeOut('slow', function(){
+                                        // Remove the site table which the table is based on
+                                        vm.removeApiarySiteById(apiary_site_id)
+                                    })
+
+                                    // Remove the site from the map
+                                    this.$refs.component_map.removeApiarySiteById(apiary_site_id)
+                                    //vm.component_map_key = uuid()
+                                }).catch((error) => {
+                                    console.log(error);
+                                    swal.fire({
+                                        title: 'Submit Error',
+                                        text: error,
+                                        icon: 'error',
+                                        customClass: {
+                                            confirmButton: 'btn btn-primary',
+                                        },
+                                    })
+                                })
+                            }
+                        }
+                    );
             },
             mouseEnter: function(e){
                 let vm = this;
@@ -723,35 +746,49 @@
                     }
                 }
             },
-            mouseLeave: function(e){
+            mouseLeave: function(){
                 let vm = this;
                 if (!vm.not_close_popup_by_mouseleave){
                     vm.$refs.component_map.closePopup()
                 }
             },
-            toggleAvailability: function(e) {
+            toggleAvailability: async function(e) {
                 let vm = this;
                 let apiary_site_id = e.target.getAttribute("data-toggle-availability");
                 let current_availability = this.getApiarySiteAvailableFromEvent(e)
                 let requested_availability = current_availability === 'true' ? false : true
                 e.stopPropagation()
 
-                vm.$http.patch('/api/apiary_site/' + apiary_site_id + '/', { 'available': requested_availability }).then(
-                    async function(accept){
-                        // Update the site in the table
-                        let site_updated = accept.body
-                        vm.updateApiarySite(site_updated)
-                       // vm.constructApiarySitesTable();
-                        vm.constructApiarySitesTable(vm.apiary_sites);
-                    },
-                    reject=>{
-                        swal(
-                            'Submit Error',
-                            helpers.apiVueResourceError(err),
-                            'error'
-                        )
+                try {
+                    const response = await fetch('/api/apiary_site/' + apiary_site_id + '/', {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            // Add authorization headers if needed
+                        },
+                        body: JSON.stringify({ available: requested_availability })
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText);
                     }
-                );
+
+                    const site_updated = await response.json();
+                    vm.updateApiarySite(site_updated)
+                    // vm.constructApiarySitesTable();
+                    vm.constructApiarySitesTable(vm.apiary_sites);
+
+                } catch (error) {
+                    swal.fire({
+                        title: 'Submit Error',
+                        text: error,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
+                }
             },
             zoomOnApiarySite: function(e) {
                 this.not_close_popup_by_mouseleave = true

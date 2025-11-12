@@ -66,7 +66,7 @@ export default {
             let has_value=false;
             let boxes=JSON.parse(this.comment_boxes)
             for(var i=0; i<boxes.length; i++){
-                if(boxes[i].hasOwnProperty('value')){
+                if (Object.prototype.hasOwnProperty.call(boxes[i], 'value')) {
                     if(boxes[i].value!=null && boxes[i].value!=undefined && boxes[i].value!= '' ){
                         has_value=true;
                     }

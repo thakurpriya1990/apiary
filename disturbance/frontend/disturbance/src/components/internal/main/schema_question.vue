@@ -202,26 +202,27 @@
                 </form>
             </div>
         </div>
-        <div slot="footer">
+        <template #footer>
             <button type="button" class="btn btn-primary" @click="saveQuestion">Save</button>
-        </div>
+        </template>
     </modal>
 
   </div>
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue'
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 import SchemaOption from './schema_add_option.vue'
 import {
   api_endpoints,
-  helpers
+  helpers,
+  constants
 }
 from '@/utils/hooks'
 
-var select2 = require('select2');
 require("select2/dist/css/select2.min.css");
 require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
 
@@ -240,9 +241,9 @@ export default {
         vm.schema_question_url = helpers.add_endpoint_join(api_endpoints.schema_question_paginated, 'schema_question_datatable_list/?format=datatables');
 
         return {
-            schema_question_id: 'schema-question-datatable-'+vm._uid,
-            pOptionsBody: 'pOptionsBody' + vm._uid,
-            pQuestionBody: 'pQuestionBody' + vm._uid,
+            schema_question_id: 'schema-question-datatable-'+uuid(),
+            pOptionsBody: 'pOptionsBody' + uuid(),
+            pQuestionBody: 'pQuestionBody' + uuid(),
             isModalOpen: false,
             isNewEntry: false,
             missing_fields: [],
@@ -255,7 +256,7 @@ export default {
             dtHeadersSchemaQuestion: ["ID", "SectionID", "OptionID", "Proposal Type", "Section", "Question", "Index", "Action"],
             dtOptionsSchemaQuestion:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 serverSide: true,
@@ -421,26 +422,30 @@ export default {
             if (this.filterQuestionProposalType==='All') {
                 return true
             }
-            this.$http.get(helpers.add_endpoint_json(api_endpoints.schema_question,'1/get_question_sections'),{
+            fetch(helpers.add_endpoint_json(api_endpoints.schema_question,'1/get_question_sections'),{
                 params: { proposal_type_id: this.filterQuestionProposalType },
-            }).then((res)=>{
-                this.schemaGroups = res.body.question_groups; 
-                this.schemaSections = res.body.question_sections;
-            },err=>{
-
+            }).then(async (res)=>{
+                if (!res.ok) { return res.json().then(err => { throw err }); }
+                let data = await res.json();
+                this.schemaGroups = data.question_groups; 
+                this.schemaSections = data.question_sections;
+            }).catch(err=>{
+                console.log(err);
             });
         },
         filterQuestionSection: function(){
             if (this.filterQuestionSection==='All') {
                 return true
             }
-            this.$http.get(helpers.add_endpoint_json(api_endpoints.schema_question,'1/get_question_parents'),{
+            fetch(helpers.add_endpoint_json(api_endpoints.schema_question,'1/get_question_parents'),{
                 params: { section_id: this.filterQuestionSection },
-            }).then((res)=>{
+            }).then(async (res)=>{
+                if (!res.ok) { return res.json().then(err => { throw err }); }
+                let data = await res.json();
                 this.sectionQuestion.section = this.filterQuestionSection;
-                this.parentList = res.body.question_parents;
-            },err=>{
-
+                this.parentList = data.question_parents;
+            }).catch(err=>{
+                console.log(err);
             });
         },
     },
@@ -541,38 +546,60 @@ export default {
 
             if (data.id === '') {
 
-                await self.$http.post(api_endpoints.schema_question, JSON.stringify(data),{
-                    emulateJSON:true
+                await fetch(api_endpoints.schema_question,{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
 
-                }).then((response) => {
-
+                }).then(async (response) => {
+                    if (!response.ok) {
+                        throw new Error(`Save Error: ${response.status}`);
+                    }
                     self.$refs.schema_question_table.vmDataTable.ajax.reload();
                     self.close();
 
-                }, (error) => {
-
-                    swal(
-                        'Save Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
+                }).catch(error => {
+                    
+                    swal.fire({
+                        title:'Save Error',
+                        // helpers.apiVueResourceError(error),
+                        text:error,
+                        icon:'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 });
 
             } else {
 
-                await self.$http.post(helpers.add_endpoint_json(api_endpoints.schema_question,data.id+'/save_question'),JSON.stringify(data),{
-                        emulateJSON:true,
+                await fetch(helpers.add_endpoint_json(api_endpoints.schema_question,data.id+'/save_question'),{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
 
-                    }).then((response)=>{
+                }).then(async (response)=>{
+                    if (!response.ok) {
+                        throw new Error(`Save Error: ${response.status}`);
+                    }
+                    self.$refs.schema_question_table.vmDataTable.ajax.reload();
+                    self.close();
 
-                        self.$refs.schema_question_table.vmDataTable.ajax.reload();
-                        self.close();
-
-                    },(error)=>{
-                        'Save Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
+                }).catch(error => {
+                    
+                    swal.fire({
+                        title:'Save Error',
+                        text:error,
+                        icon:'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
+                });
 
             }
             this.isNewEntry = false;
@@ -644,33 +671,41 @@ export default {
                 self.$refs.schema_question_table.row_of_data = self.$refs.schema_question_table.vmDataTable.row('#'+$(this).attr('data-rowid'));
                 self.sectionQuestion.id = self.$refs.schema_question_table.row_of_data.data().id;
 
-                swal({
+                swal.fire({
                     title: "Delete Section Question",
                     text: "Are you sure you want to delete?",
-                    type: "question",
+                    icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: 'Accept'
-
+                    confirmButtonText: 'Accept',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary',
+                    },
                 }).then(async (result) => {
                     //console.log(result);
 
-                    if (result) {
+                    if (result.isConfirmed) {
 
-                        await self.$http.delete(helpers.add_endpoint_json(api_endpoints.schema_question,(self.sectionQuestion.id+'/delete_question')))
-    
-                        .then((response) => {
-
+                        await fetch(helpers.add_endpoint_json(api_endpoints.schema_question,(self.sectionQuestion.id+'/delete_question')),{
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        }).then(async (response) => {
+                            if (!response.ok) {
+                                throw new Error(`Delete Error: ${response.status}`);
+                            }
                             self.$refs.schema_question_table.vmDataTable.ajax.reload();
 
-                        }, (error) => {
-
+                        }).catch((error) => {
+                            console.log(error);
                         });
     
                     }
 
                 },(error) => {
-
-                });                
+                    console.log(error);
+                });                   
             });
 
         },
@@ -755,19 +790,25 @@ export default {
         },
         initSelects: async function() {
 
-            await this.$http.get(helpers.add_endpoint_json(api_endpoints.schema_question,'1/get_question_selects')).then(res=>{
+            fetch(helpers.add_endpoint_json(api_endpoints.schema_question,'1/get_question_selects'))
+            .then(async (res)=>{
+                if (!res.ok) { return res.json().then(err => { throw err }); }
+                let data = await res.json();
+                this.masterlist = data.all_masterlist;
+                this.schemaProposalTypes = data.all_proposal_types;
+                this.schemaSections = data.all_section;
+                this.schemaGroups = data.all_group
+                this.initQuestionSelector();
+            }).catch(err=>{
 
-                    this.masterlist = res.body.all_masterlist;
-                    this.schemaProposalTypes = res.body.all_proposal_types;
-                    this.schemaSections = res.body.all_section;
-                    this.schemaGroups = res.body.all_group
-
-            },err=>{
-                swal(
-                    'Get Application Selects Error',
-                    helpers.apiVueResourceError(err),
-                    'error'
-                )
+                swal.fire({
+                    title:'Get Application Selects Error',
+                    text:err,
+                    icon:'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
             });
             this.initQuestionSelector();
             this.initParentSelector();

@@ -85,7 +85,6 @@
     import VectorSource from 'ol/source/Vector';
     import { Circle as CircleStyle, Fill, Stroke, Style, Text, RegularShape } from 'ol/style';
     import { FullScreen as FullScreenControl, MousePosition as MousePositionControl } from 'ol/control';
-    import Vue from 'vue/dist/vue';
     import { Feature } from 'ol';
     import { LineString, Point } from 'ol/geom';
     import { getDistance } from 'ol/sphere';

@@ -29,7 +29,7 @@ export default {
         has_comment_value:function () {
             let has_value=false;
             for(var i=0; i<this.comment_boxes.length; i++){
-                if(this.comment_boxes[i].hasOwnProperty('value')){
+                if (Object.prototype.hasOwnProperty.call(this.comment_boxes[i], 'value')) {
                     if(this.comment_boxes[i].value!=null && this.comment_boxes[i].value!=undefined && this.comment_boxes[i].value!= '' ){
                         has_value=true;
                     }

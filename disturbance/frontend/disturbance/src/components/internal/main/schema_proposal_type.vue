@@ -88,28 +88,28 @@
                 </form>
             </div>
         </div>
-        <div slot="footer">
+        <template #footer>
             <button type="button" class="btn btn-primary" @click="saveProposalType()">Save</button>
-        </div>
+        </template>
     </modal>
 
   </div>
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue'
 import modal from '@vue-utils/bootstrap-modal.vue'
-import alert from '@vue-utils/alert.vue'
 import {
   api_endpoints,
-  helpers
+  helpers,
+  constants
 }
 from '@/utils/hooks'
 export default {
     name:'schema-purpose',
     components: {
         modal,
-        alert,
         datatable,
     },
     props:{
@@ -123,8 +123,8 @@ export default {
         let vm = this;
         vm.schema_purpose_url = helpers.add_endpoint_join(api_endpoints.schema_proposal_type_paginated, 'schema_proposal_type_datatable_list/?format=datatables');
         return {
-            schema_purpose_id: 'schema-purpose-datatable-'+vm._uid,
-            pProposalTypeBody: 'pProposalTypeBody' + vm._uid,
+            schema_purpose_id: 'schema-purpose-datatable-'+uuid(),
+            pProposalTypeBody: 'pProposalTypeBody' + uuid(),
             isModalOpen:false,
             missing_fields: [],
             filterTableProposalType: 'All',
@@ -133,7 +133,7 @@ export default {
             dtHeadersSchemaProposalType: ["ID", "Licence Proposal Type", "Section Label", "Index", "Action"],
             dtOptionsSchemaProposalType:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 searchDelay: 1000,
                 responsive: true,
@@ -243,38 +243,60 @@ export default {
 
             if (data.id === '') {
 
-                await self.$http.post(api_endpoints.schema_proposal_type, JSON.stringify(data),{
-                    emulateJSON:true
+                await fetch(api_endpoints.schema_proposal_type,{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
 
-                }).then((response) => {
+                }).then(async (response) => {
+                    if (!response.ok) {
+                        throw new Error(`Save Error: ${response.status}`);
+                    }
 
                     self.$refs.schema_purpose_table.vmDataTable.ajax.reload();
                     self.close();
 
-                }, (error) => {
-                    swal(
-                        'Save Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
+                }).catch(error => {
+                    
+                    swal.fire({
+                        title:'Save Error',
+                        text:error,
+                        icon:'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
                 });
 
             } else {
 
-                await self.$http.post(helpers.add_endpoint_json(api_endpoints.schema_proposal_type,data.id+'/save_proposal_type'),JSON.stringify(data),{
-                        emulateJSON:true,
+                await fetch(helpers.add_endpoint_json(api_endpoints.schema_proposal_type,data.id+'/save_proposal_type'),{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
 
-                }).then((response)=>{
+                }).then(async (response) => {
+                    if (!response.ok) {
+                        throw new Error(`Save Error: ${response.status}`);
+                    }
 
                     self.$refs.schema_purpose_table.vmDataTable.ajax.reload();
                     self.close();
 
-                },(error)=>{
-                    swal(
-                        'Save Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
+                }).catch(error => {
+                    
+                    swal.fire({
+                        title:'Save Error',
+                        text:error,
+                        icon:'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
                 });
 
             }
@@ -311,47 +333,60 @@ export default {
                 self.$refs.schema_purpose_table.row_of_data = self.$refs.schema_purpose_table.vmDataTable.row('#'+$(this).attr('data-rowid'));
                 self.sectionProposalType.id = self.$refs.schema_purpose_table.row_of_data.data().id;
 
-                swal({
+                swal.fire({
                     title: "Delete ProposalType Section",
                     text: "Are you sure you want to delete?",
                     type: "question",
                     showCancelButton: true,
-                    confirmButtonText: 'Accept'
-
+                    confirmButtonText: 'Accept',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary',
+                    },
                 }).then(async (result) => {
 
-                    if (result) {
+                    if (result.isConfirmed) {
 
-                        await self.$http.delete(helpers.add_endpoint_json(api_endpoints.schema_proposal_type,(self.sectionProposalType.id+'/delete_proposal_type')))
-    
-                        .then((response) => {
+                        await fetch(helpers.add_endpoint_json(api_endpoints.schema_proposal_type,(self.sectionProposalType.id+'/delete_proposal_type')),{
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        }).then(async (response) => {
+                            if (!response.ok) {
+                                throw new Error(`Delete Error: ${response.status}`);
+                            }
 
                             self.$refs.schema_purpose_table.vmDataTable.ajax.reload();
 
-                        }, (error) => {
-
+                        }).catch((error) => {
+                            console.log(error);
                         });
     
                     }
 
                 },(error) => {
-
-                });                
+                    console.error(error);
+                });              
             });
         },
         initSelects: async function() {
 
-            await this.$http.get(helpers.add_endpoint_json(api_endpoints.schema_proposal_type,'1/get_proposal_type_selects')).then(res=>{
+           fetch(helpers.add_endpoint_json(api_endpoints.schema_proposal_type,'1/get_proposal_type_selects'))
+            .then(async (res)=>{
+                if (!res.ok) { return res.json().then(err => { throw err }); }
+                let data = await res.json();
+                this.schemaProposalTypes = data.all_proposal_type;
+            }).catch(err=>{
 
-                    this.schemaProposalTypes = res.body.all_proposal_type;
-
-            },err=>{
-
-                swal(
-                    'Get Application Selects Error',
-                    helpers.apiVueResourceError(err),
-                    'error'
-                )
+                swal.fire({
+                    title:'Get Application Selects Error',
+                    text:err,
+                    icon:'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
             });
         },
     },

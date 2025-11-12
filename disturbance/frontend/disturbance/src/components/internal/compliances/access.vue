@@ -17,15 +17,17 @@
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Lodged on</strong><br/>
-                                {{ compliance.lodgement_date | formatDate}}
+                                {{ formatDate(compliance.lodgement_date) }}
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <table class="table small-table">
-                                    <tr>
-                                        <th>Lodgement</th>
-                                        <th>Date</th>
-                                        <th>Action</th>
-                                    </tr>
+                                    <tbody>
+                                        <tr>
+                                            <th>Lodgement</th>
+                                            <th>Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
@@ -109,8 +111,6 @@
 </div>
 </template>
 <script>
-import $ from 'jquery'
-import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import ComplianceAmendmentRequest from './compliance_amendment_request.vue'
@@ -139,10 +139,6 @@ export default {
     }
   },
   watch: {},
-  filters: {
-    formatDate: function(data){
-        return data ? moment(data).format('DD/MM/YYYY'): '';    }
-  },
   beforeRouteEnter: function(to, from, next){
     Vue.http.get(helpers.add_endpoint_json(api_endpoints.compliances,to.params.compliance_id)).then((response) => {
         next(vm => {
@@ -167,6 +163,9 @@ export default {
     },
   },
   methods: {
+    formatDate: function(data){
+        return data ? moment(data).format('DD/MM/YYYY'): '';    
+    },
     commaToNewline(s){
         return s.replace(/[,;]/g, '\n');
     },
@@ -205,22 +204,30 @@ export default {
     },
     acceptCompliance: function() {
         let vm = this;
-        swal({
+        swal.fire({
             title: "Accept Compliance with requirements",
             text: "Are you sure you want to accept this compliance with requirements?",
-            type: "question",
+            icon: "question",
             showCancelButton: true,
-            confirmButtonText: 'Accept'
-        }).then(() => {
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.compliances,(vm.compliance.id+'/accept')))
-            .then((response) => {
-                console.log(response);
-                vm.compliance = response.body;
-            }, (error) => {
-                console.log(error);
-            });
+            confirmButtonText: 'Accept',
+            customClass: {
+                confirmButton: 'btn btn-primary',
+                cancelButton: 'btn btn-secondary',
+            },
+        }).then((swalresult) => {
+            if(swalresult.isConfirmed){
+                fetch(helpers.add_endpoint_json(api_endpoints.compliances,(vm.compliance.id+'/accept'))).then(
+                    async (response) => {
+                        if (!response.ok) { return response.json().then(err => { throw err }); }
+                        console.log(response);
+                        vm.compliance = await response.json();
+                    }).catch((error) => {
+                        console.log(error);
+                    }
+                );
+            }
         },(error) => {
-
+            console.log(error);
         });
 
     },
@@ -230,26 +237,22 @@ export default {
     },
     fetchProfile: function(){
         let vm = this;
-        Vue.http.get(api_endpoints.profile).then((response) => {
-            vm.profile = response.body
-                              
-         },(error) => {
+        fetch(api_endpoints.profile).then(async (response) => {
+            if (!response.ok) { return response.json().then(err => { throw err }); }
+            vm.profile = await response.json();
+        }).catch((error) => {
             console.log(error);
                 
         })
-        },
-
+    },
     check_assessor: function(){
         let vm = this;
         return vm.compliance.can_assess
-     },
+    },
   },
   mounted: function () {
-    let vm = this;
-    
     this.fetchProfile();
-    
-  }
+  },
 }
 </script>
 <style scoped>

@@ -50,7 +50,7 @@
             <div v-if="!readonly" v-for="n in repeat">
                 <div v-if="isRepeatable || (!isRepeatable && num_documents()==0)">
                     <input :name="name" type="file" class="form-control" :data-que="n" :accept="fileTypes" @change="handleChange" :required="isRequired"/>
-                    <alert :show.sync="showError" type="danger" style="color: red"><strong>{{errorString}}</strong></alert>
+                    <alert v-if="showError" type="danger" style="color: red"><strong>{{errorString}}</strong></alert>
                 </div>
             </div>
 
@@ -143,7 +143,7 @@ export default {
             let has_value=false;
             let boxes=JSON.parse(this.comment_boxes)
             for(var i=0; i<boxes.length; i++){
-                if(boxes[i].hasOwnProperty('value')){
+                if (Object.prototype.hasOwnProperty.call(boxes[i], 'value')) {
                     if(boxes[i].value!=null && boxes[i].value!=undefined && boxes[i].value!= '' ){
                         has_value=true;
                     }

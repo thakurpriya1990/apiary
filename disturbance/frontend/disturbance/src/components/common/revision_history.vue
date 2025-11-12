@@ -4,14 +4,16 @@
             <div class="scrollable-div">
                 <div style="float: left; width: 80%;">
                     <table class="table small-table">
-                        <tr>
-                            <th>Lodgement</th>
-                            <th style="padding-left: 10px;">Date</th>
-                            <th style="padding-left: 10px; text-align:center">Actions</th>
-                        </tr>
+                        <thead>
+                            <tr>
+                                <th>Lodgement</th>
+                                <th style="padding-left: 10px;">Date</th>
+                                <th style="padding-left: 10px; text-align:center">Actions</th>
+                            </tr>
+                        </thead>
                         <tr v-for="revision in this.lodgement_revisions_actions" :key="revision.id">
                             <td>{{ revision.id }}</td>
-                            <td style="padding-left: 10px;">{{ revision.date | formatDateNoTime }}</td>
+                            <td style="padding-left: 10px;">{{ formatDateNoTime(revision.date) }}</td>
                             <td style="padding-left: 10px;" v-on:click="getCompareVersions(revision['index'],revision.date)">
                                 <span v-bind:id=revision.id v-html=revision.action></span>
                             </td>
@@ -20,9 +22,11 @@
                 </div>
                 <div style="float: right; width: 20%;">
                     <table class="table small-table">
-                        <tr>
-                            <th style="visibility: hidden;">Version</th>
-                        </tr>
+                        <thead>
+                            <tr>
+                                <th style="visibility: hidden;">Version</th>
+                            </tr>
+                        </thead>
                         <tr v-for="revision in this.lodgement_revisions_view_actions" :key="revision.id">
                             <td  style="padding-left: 15px;" v-on:click="getViewVersion(revision['index'])">
                                 <span v-bind:id=revision.view_id v-html=revision.view_action></span>
@@ -38,11 +42,10 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import {
-    api_endpoints,
-    helpers
+    constants
 } from '@/utils/hooks'
-import Vue from 'vue'
 export default {
     name: 'RevisionHistorySection',
     props: {
@@ -68,7 +71,7 @@ export default {
             compareModeActive:false,
             actionsDtOptions: {
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 deferRender: true, 
@@ -93,16 +96,14 @@ export default {
     components:{
 
     },
-    filters: {
-        formatDateNoTime: function(data){
-            return data ? moment(data).format('DD/MM/YY'): '';
-        },
-    },
     watch:{
 
     },
     computed: {
         console: () => console,
+        formatDateNoTime: function(data){
+            return data ? moment(data).format('DD/MM/YY'): '';
+        },
         createLodgementRevisionTable: function() {
             /* This creates a table of versions for the current model object. Each entry has the model object ID along with the revision
                 number and date of submission. An action is provided for each entry to allow comparison between versions. 
@@ -176,9 +177,9 @@ export default {
             vm.$refs.revision_history.isModalOpen = true;
         },
         initialiseRevisionHistoryPopover: function(vm_uid, ref, datatable_options, actions, view_actions){
-            let vm = this;
+            // let vm = this;
             let actionLogId = 'actions-log-table'+vm_uid;
-            let popover_name = 'popover-'+ vm._uid+'-logs';
+            let popover_name = 'popover-'+ uuid()+'-logs';
             $(ref).popover({
                 content: function() {
                     return ` 
@@ -241,7 +242,7 @@ export default {
         },
         initialisePopovers: function(){ 
             if (!this.popoversInitialised){
-                this.initialiseRevisionHistoryPopover(this._uid, 
+                this.initialiseRevisionHistoryPopover(uuid(), 
                                                       this.$refs.showActionBtn, 
                                                       this.actionsDtOptions, 
                                                       this.lodgement_revisions_actions,

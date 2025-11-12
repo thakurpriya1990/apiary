@@ -207,10 +207,9 @@
     </div>
 </template>
 <script>
-import Vue from 'vue'
+import { v4 as uuid } from 'uuid';
 import {
   api_endpoints,
-  helpers
 }
 from '@/utils/hooks'
 import utils from './utils'
@@ -226,8 +225,8 @@ export default {
         },
         "loading": [],
         form: null,
-        pBody: 'pBody' + vm._uid,
-        pBody2: 'pBody2' + vm._uid,
+        pBody: 'pBody' +uuid(),
+        pBody2: 'pBody2' + uuid(),
 
         selected_application_id: '',
         selected_application_name: '',
@@ -384,16 +383,21 @@ export default {
             text = "Are you sure you want to create " + this.alertText() + " proposal on behalf of "+vm.org+" ?"
         }
 
-        swal({
+        swal.fire({
             title: "Create " + vm.selected_application_name,
             //text: "Are you sure you want to create " + this.alertText() + " proposal on behalf of "+vm.org+" ?",
             text: text,
-            type: "question",
+            icon: "question",
             showCancelButton: true,
-            confirmButtonText: 'Accept'
-        }).then(() => {
-         	vm.createProposal();
-        },(error) => {
+            confirmButtonText: 'Accept',
+            customClass: {
+                confirmButton: 'btn btn-primary',
+                cancelButton: 'btn btn-secondary',
+            },
+        }).then((result) => {
+            if (result.isConfirmed){
+         	    vm.createProposal();
+            }
         });
     },
     individualDisableApplyRadioButton: function() {
@@ -458,15 +462,20 @@ export default {
 			console.log(err);
             console.log(err.bodyText);
             if (err.bodyText.includes("null_applicant_address")) {
-                swal({
+                swal.fire({
                     title: "Cannot create application",
                     text: "Please add your address",
-                    type: "error",
-                    confirmButtonText: 'Ok'
-                }).then(() => {
-                    vm.$router.push({
-                        name:"account",
-                    });
+                    icon: "error",
+                    confirmButtonText: 'Ok',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                }).then((result) => {
+                    if(result.isConfirmed){
+                        vm.$router.push({
+                            name:"account",
+                        });
+                    }
                 });
             }
 		});

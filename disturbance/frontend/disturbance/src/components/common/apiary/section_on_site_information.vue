@@ -28,10 +28,9 @@
 </template>
 
 <script>
-    import Vue from 'vue'
     import datatable from '@vue-utils/datatable.vue'
     import { v4 as uuid } from 'uuid';
-    import { api_endpoints, helpers, } from '@/utils/hooks'
+    import { api_endpoints, helpers, constants } from '@/utils/hooks'
     import OnSiteInformationModal from './on_site_information_modal'
 
     export default {
@@ -92,7 +91,7 @@
                         [1, 'desc'], [0, 'desc'],
                     ],
                     language: {
-                        processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                        processing: constants.DATATABLE_PROCESSING_HTML,
                     },
                     rowCallback: function (row, obj){
                         return // We disable the expander for now
@@ -455,43 +454,54 @@
                 let vm = this;
                 let on_site_information_id = e.target.getAttribute("data-on-site-information-id");
 
-                swal({
-                      title: "Delete on site information",
-                      text: "Are you sure you want to delete this?",
-                      type: "warning",
-                      showCancelButton: true,
-                      confirmButtonClass: "btn-danger",
-                      confirmButtonText: "Yes, delete it",
-                }).then(
-                    (accept) => {
-                        vm.$http.delete('/api/on_site_information/' + on_site_information_id + '/').then(
-                            async function(accept){
-                                await vm.loadOnSiteInformation(this.approval_id);
-                                vm.constructOnSiteInformationTable();
-                            },
-                            reject=>{
-                                swal(
-                                    'Submit Error',
-                                    helpers.apiVueResourceError(err),
-                                    'error'
-                                )
-                            }
-                        );
+                swal.fire({
+                    title: "Delete on site information",
+                    text: "Are you sure you want to delete this?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "Yes, delete it",
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary',
                     },
-                    (reject)=>{
-
-                    }
-                )
+                }).then(
+                    (result) => {
+                        if (result.isConfirmed){
+                            fetch('/api/on_site_information/' + on_site_information_id + '/',{
+                                method: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            }).then(
+                                async (response) =>{
+                                     if (!response.ok) {
+                                        throw new Error(`Delete OnSite Information failed: ${response.status}`);
+                                    }
+                                    await vm.loadOnSiteInformation(this.approval_id);
+                                    vm.constructOnSiteInformationTable();
+                               }).catch((error) => {
+                                    console.log(error);
+                                    swal.fire({
+                                        title: "Submit Error",
+                                        text: error,
+                                        icon: "error",
+                                        customClass: {
+                                            confirmButton: 'btn btn-primary',
+                                        },
+                                    })
+                                });
+                        }
+                    });
             },
             loadOnSiteInformation: async function(){
-                await this.$http.get('/api/approvals/' + this.approval_id + '/on_site_information/').then(
-                    (accept)=>{
-                        this.on_site_information_list = accept.body
+                fetch('/api/approvals/' + this.approval_id + '/on_site_information/').then(
+                    async (response)=>{
+                        this.on_site_information_list = await response.json();
                         this.constructOnSiteInformationTable()
-                    },
-                    (reject)=>{
-                    },
-                )
+                    }).catch((error) => {
+                        console.log(error);
+                    })
             }
         },
         created: function() {

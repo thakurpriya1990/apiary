@@ -42,7 +42,7 @@
                         <div class="row">
                            <div class="col-md-12"> 
                             <form class="form-horizontal" name="complianceForm" method="post">
-                                <alert :show.sync="showError" type="danger">
+                                <alert v-if="showError" type="danger">
                                     <strong>{{errorString}}</strong>
                                 </alert>
                                 <div class="row">
@@ -129,8 +129,8 @@
 </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import $ from 'jquery'
-import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import {
@@ -152,10 +152,8 @@ export default {
         isFinalised: false,
         errors: false,
         errorString: '',
-        pdBody: 'pdBody'+vm._uid,
-        oBody: 'oBody'+vm._uid,
-        isFinalised: false,
-        pdBody: 'pdBody'+vm._uid,
+        pdBody: 'pdBody'+uuid(),
+        oBody: 'oBody'+uuid(),
         hasDocuments: false,
         validation_form: null,
         files: [
@@ -200,6 +198,9 @@ export default {
     
   },
   methods: {
+    formatDate: function(data){
+        return moment(data).format('DD/MM/YYYY HH:mm:ss');
+    },
     uploadFile(target,file_obj){
             let vm = this;
             let _file = null;
@@ -323,7 +324,7 @@ export default {
                 }).then((response)=>{
                     vm.addingCompliance = false;
                     vm.refreshFromResponse(response);                   
-                    /*swal(
+                    /*swal.fire(
                      'Submit',
                      'Your Compliance with Requirement has been submitted',
                      'success'
@@ -343,8 +344,8 @@ export default {
 
     refreshFromResponse:function(response){
             let vm = this;
-            vm.original_compliance = helpers.copyObject(response.body);
-            vm.compliance = helpers.copyObject(response.body);
+            vm.original_compliance = helpers.copyObject(response);
+            vm.compliance = helpers.copyObject(response);
             if ( vm.compliance.customer_status == "Under Review" || vm.compliance.customer_status == "Approved" ) { vm.isFinalised = true }
             if (vm.compliance && vm.compliance.documents){ vm.hasDocuments = true}
            

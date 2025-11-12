@@ -183,7 +183,7 @@
                     </div>
                 </div>
             </template>
-            <template v-else>
+            <!-- <template v-else>
                 <ProposalDisturbance v-if="proposal" :proposal="proposal" id="proposalStart" :showSections="sectionShow">
                 <NewApply v-if="proposal" :proposal="proposal" ref="proposal_apply"></NewApply>
                 <div>
@@ -216,7 +216,6 @@
                         </div>
                         <div v-else class="container">
                           <p class="pull-right" style="margin-top:5px;">
-                            <!--button id="sectionHide" @click.prevent="sectionHide" class="btn btn-primary">Show/Hide sections</button-->
                             <input
                             id="sectionHide"
                             v-if="proposal && !proposal.apiary_group_application_type"
@@ -233,7 +232,7 @@
                     </div>
                 </div>
                 </ProposalDisturbance>
-            </template>
+            </template> -->
 
 
         </form>
@@ -242,11 +241,10 @@
     </div>
 </template>
 <script>
-import ProposalDisturbance from '../form.vue'
+// import ProposalDisturbance from '../form.vue'
 import ProposalApiary from '../form_apiary.vue'
 import ApiarySiteTransfer from '../form_apiary_site_transfer.vue'
 import NewApply from './proposal_apply_new.vue'
-import Vue from 'vue'
 import {
   api_endpoints,
   helpers
@@ -300,7 +298,7 @@ export default {
         }
     },
     components: {
-        ProposalDisturbance,
+        // ProposalDisturbance,
         ProposalApiary,
         NewApply,
         ApiarySiteTransfer,
@@ -567,17 +565,23 @@ export default {
                 res=>{
                     if (confirmation_required){
                         if (this.apiaryTemplateGroup) {
-                            swal(
-                                'Saved',
-                                'Your application has been saved',
-                                'success'
-                            );
+                            swal.fire({
+                            title: 'Saved',
+                            text: 'Your application has been saved',
+                            icon: 'success',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
                         } else {
-                            swal(
-                                'Saved',
-                                'Your proposal has been saved',
-                                'success'
-                            );
+                           swal.fire({
+                            title: 'Saved',
+                            text: 'Your proposal has been saved',
+                            icon: 'success',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
                         }
                     }
                     this.isSaving = false;
@@ -863,10 +867,13 @@ export default {
 
             let missing_data = vm.can_submit();
             if(missing_data!=true){
-              swal({
+               swal.fire({
                 title: "Please fix following errors before submitting",
                 text: missing_data,
-                type:'error'
+                icon:'error',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                },
               })
             //vm.paySubmitting=false;
             return false;
@@ -890,58 +897,68 @@ export default {
                 swalTitle = "Submit Application";
                 swalText = "Are you sure you want to submit this application?";
             }
-            swal({
+             swal.fire({
                 title: swalTitle,
                 text: swalText,
-                type: "question",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: 'Submit'
-            }).then(async () => {
-                console.log('in then()');
-                vm.submittingProposal = true;
-                // Only Apiary has an application fee
-                //if (!vm.proposal.fee_paid && ['Apiary', 'Site Transfer'].includes(vm.proposal.application_type)) {
-                if (['Apiary', 'Site Transfer'].includes(vm.proposal.application_type)) {
-                    //if (this.submit_button_text === 'Pay and submit' && ['Apiary', 'Site Transfer'].includes(vm.proposal.application_type)) {
-                    console.log('--- save and pay ---')
-                    vm.save_and_redirect();
-                } else {
-                    /* just save and submit - no payment required (probably application was pushed back by assessor for amendment */
-                    try {
-                        console.log('http.post(submit)')
-                        console.log('http.post: ' + helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'))
+                confirmButtonText: 'Submit',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    console.log('in then()');
+                    vm.submittingProposal = true;
+                    // Only Apiary has an application fee
+                    //if (!vm.proposal.fee_paid && ['Apiary', 'Site Transfer'].includes(vm.proposal.application_type)) {
+                    if (['Apiary', 'Site Transfer'].includes(vm.proposal.application_type)) {
+                        //if (this.submit_button_text === 'Pay and submit' && ['Apiary', 'Site Transfer'].includes(vm.proposal.application_type)) {
+                        console.log('--- save and pay ---')
+                        vm.save_and_redirect();
+                    } else {
+                        /* just save and submit - no payment required (probably application was pushed back by assessor for amendment */
+                        try {
+                            console.log('http.post(submit)')
+                            console.log('http.post: ' + helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'))
 
-                        const res = await vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'),formData);
-                        vm.proposal = res.body;
-                        vm.$router.push({
-                            name: 'submit_proposal',
-                            params: { proposal: vm.proposal}
+                            const res = await vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'),formData);
+                            vm.proposal = res.body;
+                            vm.$router.push({
+                                name: 'submit_proposal',
+                                params: { proposal: vm.proposal}
+                            });
+                        } catch (err) {
+                            swal.fire({
+                                title: 'Submit Error',
+                                text: helpers.apiVueResourceError(err),
+                                icon: 'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            })
+                        }
+                        /*
+                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'),formData).then(res=>{
+                            vm.proposal = res.body;
+                            vm.$router.push({
+                                name: 'submit_proposal',
+                                params: { proposal: vm.proposal}
+                            });
+                        },err=>{
+                            swal(
+                                'Submit Error',
+                                helpers.apiVueResourceError(err),
+                                'error'
+                            )
                         });
-                    } catch (err) {
-                        swal(
-                            'Submit Error',
-                            helpers.apiVueResourceError(err),
-                            'error'
-                        )
+                        */
                     }
-                    /*
-                    vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'),formData).then(res=>{
-                        vm.proposal = res.body;
-                        vm.$router.push({
-                            name: 'submit_proposal',
-                            params: { proposal: vm.proposal}
-                        });
-                    },err=>{
-                        swal(
-                            'Submit Error',
-                            helpers.apiVueResourceError(err),
-                            'error'
-                        )
-                    });
-                    */
                 }
             },(error) => {
-              vm.paySubmitting=false;
+                console.log(error);
+                vm.paySubmitting=false;
             });
             vm.submittingProposal= false;
         },
@@ -990,27 +1007,32 @@ export default {
             let vm = this
             let apiary_site_id = err.body.apiary_site_id[0]
 
-            swal({
+            swal.fire({
                 title: "Vacant site no longer available",
                 text: err.body.message[0],
-                type: "warning",
+                icon: "warning",
                 confirmButtonText: 'Remove the site from the application',
-                allowOutsideClick: false
-            }).then(function(){
-                console.log('confirmed')
-                vm.$refs.proposal_apiary.remove_apiary_site(apiary_site_id)
-                console.log('confirmed2')
-                // vm.save(false)
-                vm.$http.post(vm.remove_apiary_site_url, {'apiary_site_id': apiary_site_id}).then(
-                    res => {
-                        console.log('res')
-                        console.log(res);
-                    },
-                    err => {
-                        console.log('err')
-                        console.log(err);
-                    },
-                )
+                allowOutsideClick: false,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                },
+            }).then(function(swalresult){
+                if (swalresult.isConfirmed){
+                    console.log('confirmed')
+                    vm.$refs.proposal_apiary.remove_apiary_site(apiary_site_id)
+                    console.log('confirmed2')
+                    // vm.save(false)
+                    vm.$http.post(vm.remove_apiary_site_url, {'apiary_site_id': apiary_site_id}).then(
+                        res => {
+                            console.log('res')
+                            console.log(res);
+                        },
+                        err => {
+                            console.log('err')
+                            console.log(err);
+                        },
+                    )
+                }
             });
         },
         post_and_redirect: function(url, postData) {
@@ -1024,7 +1046,7 @@ export default {
             var postFormStr = "<form method='POST' action='" + url + "'>";
 
             for (var key in postData) {
-                if (postData.hasOwnProperty(key)) {
+                if (Object.prototype.hasOwnProperty.call(postData, key)) {
                     postFormStr += "<input type='hidden' name='" + key + "' value='" + postData[key] + "'>";
                 }
             }

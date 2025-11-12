@@ -147,7 +147,6 @@
     import Cluster from 'ol/source/Cluster';
     import {Circle as CircleStyle, Fill, Stroke, Style, Icon, Text, RegularShape} from 'ol/style';
     import {FullScreen as FullScreenControl, MousePosition as MousePositionControl} from 'ol/control';
-    import Vue from 'vue/dist/vue';
     import { Feature } from 'ol';
     import { Point, LineString } from 'ol/geom';
     import { getDistance } from 'ol/sphere';
@@ -167,7 +166,7 @@
     import MeasureStyles, { formatLength } from '@/components/common/apiary/measure.js'
     import { getArea, getLength } from 'ol/sphere'
     import Awesomplete from 'awesomplete'
-    import { api_endpoints } from '@/utils/hooks'
+    import { api_endpoints, constants } from '@/utils/hooks'
 
     // create the WMTS tile grid in the google projection
     const projection = getProjection('EPSG:4326');
@@ -370,7 +369,7 @@
                         [0, 'desc']
                     ],
                     language: {
-                        processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                        processing: constants.DATATABLE_PROCESSING_HTML,
                     },
                     responsive: true,
                     processing: true,
@@ -1510,7 +1509,7 @@
                 vm.drawingLayerSource.on('addfeature', async function(e){
                     let coords = e.feature.getGeometry().getCoordinates()
                     let ret = await vm.$http.get('/gisdata/?layer=wa_coast_smoothed&lat=' + coords[1] + '&lng=' + coords[0])
-                    if(!ret.body.hasOwnProperty('id')){
+                    if (!Object.prototype.hasOwnProperty.call(ret.body,'id')) {
                         vm.removeBufferForSite(e.feature)
                         vm.drawingLayerSource.removeFeature(e.feature);
                     }
@@ -1672,7 +1671,7 @@
                                 }
                                 else {
                                     let ret = await vm.$http.get('/gisdata/?layer=wa_coast_smoothed&lat=' + coords[1] + '&lng=' + coords[0])
-                                    if(!ret.body.hasOwnProperty('id')){
+                                    if (!Object.prototype.hasOwnProperty.call(ret.body, 'id')) {
                                         // rollback proposed modification
                                         let c = feature.get("stable_coords");
                                         feature.getGeometry().setCoordinates(c);

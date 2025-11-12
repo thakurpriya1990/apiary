@@ -151,7 +151,7 @@
                 ref="assessor_checklist"
                 index="2"
                 />
-                <div v-for="site in apiary_sites">
+                <div v-for="site in apiary_sites" :key="site.id">
                     <ApiaryChecklist
                     :checklist="assessorChecklistAnswersPerSite(site.id)"
                     :section_title="'Assessor checklist for site ' + site.id"
@@ -161,7 +161,7 @@
                     />
                 </div>
             </div>
-            <div v-for="r in referrerChecklistAnswers">
+            <div v-for="r in referrerChecklistAnswers" :key="r.id">
                 <!--div v-if="(referral && r.referral_id === referral.id) || (assessorChecklistVisibility && proposal.processing_status === 'With Assessor')"-->
                 <div v-if="(referral && r.referral_id === referral.id) || (assessorChecklistVisibility)">
                 <!--div v-if="r.id = referral.id"-->
@@ -172,7 +172,7 @@
                     ref="referrer_checklist"
                     index="3"
                     />
-                    <div v-for="site in apiary_sites">
+                    <div v-for="site in apiary_sites" :key="site.id">
                         <ApiaryChecklist
                         :checklist="referrerChecklistAnswersPerSite(r.apiary_referral_id, site.id)"
                         :section_title="'Referral Checklist: ' + r.referrer_group_name + ' for site ' + site.id"
@@ -209,15 +209,15 @@
 </template>
 
 <script>
+    import { v4 as uuid } from 'uuid';
     import ManageUser from '@/components/external/organisations/manage.vue'
     import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
     import FileField from '@/components/forms/filefield_immediate.vue'
     import FormSection from "@/components/forms/section_toggle.vue"
     import SiteLocations from '@/components/common/apiary/site_locations.vue'
     import ApiaryChecklist from '@/components/common/apiary/section_checklist.vue'
-    import { v4 as uuid } from 'uuid';
     import DeedPoll from "@/components/common/apiary/section_deed_poll.vue"
-    import { api_endpoints, helpers }from '@/utils/hooks'
+    import { helpers }from '@/utils/hooks'
     export default {
         name: 'ApiaryForm',
         props:{
@@ -263,10 +263,9 @@
             },
         },
         data:function () {
-            let vm = this;
             return{
                 values:null,
-                pBody: 'pBody'+vm._uid,
+                pBody: 'pBody'+uuid(),
                 component_site_selection_key: '',
                 expiry_date_local: '',
                 deed_poll_url: '',
@@ -371,14 +370,14 @@
                 }
                 return readonlyStatus;
             },
-            referrerChecklistVisibility: function() {
-                let visibility = false;
-                // must be relevant referral
-                if ((!this.referrerChecklistReadonly && r.id === this.referral.id) || this.assessorChecklistVisibility) {
-                    visibility = true;
-                }
-                return visibility;
-            },
+            // referrerChecklistVisibility: function() {
+            //     let visibility = false;
+            //     // must be relevant referral
+            //     if ((!this.referrerChecklistReadonly && r.id === this.referral.id) || this.assessorChecklistVisibility) {
+            //         visibility = true;
+            //     }
+            //     return visibility;
+            // },
             getUnansweredChecklistQuestions: function() {
                 let UnansweredChecklistQuestions = false;
                 if(this.applicantChecklistAnswers){
@@ -395,6 +394,7 @@
                 if (this.proposal && this.proposal.proposal_apiary) {
                     return this.proposal.proposal_apiary.apiary_sites;
                 }
+                return [];
             },
             draftApiaryApplication: function() {
                 let draftStatus = false;
@@ -408,18 +408,21 @@
                     this.proposal.proposal_apiary.applicant_checklist_answers.length > 0) {
                     return this.proposal.proposal_apiary.applicant_checklist_answers;
                 }
+                return [];
             },
             assessorChecklistAnswers: function() {
                 if (this.proposal && this.proposal.proposal_apiary && this.proposal.proposal_apiary.assessor_checklist_answers &&
                     this.proposal.proposal_apiary.assessor_checklist_answers.length > 0) {
                     return this.proposal.proposal_apiary.assessor_checklist_answers;
                 }
+                return [];
             },
             referrerChecklistAnswers: function() {
                 if (this.proposal && this.proposal.proposal_apiary && this.proposal.proposal_apiary.referrer_checklist_answers &&
                     this.proposal.proposal_apiary.referrer_checklist_answers.length > 0) {
                     return this.proposal.proposal_apiary.referrer_checklist_answers;
                 }
+                return [];
             },
           //applicantType: function(){
           //  return this.proposal.applicant_type;

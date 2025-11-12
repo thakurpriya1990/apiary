@@ -113,31 +113,31 @@
                 </form>
             </div>
         </div>
-        <div slot="footer">
+        <template #footer>
             <button type="button" class="btn btn-primary" @click="saveMasterlist()">Save</button>
-        </div>
+        </template>
     </modal>
 
   </div>
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue'
 import modal from '@vue-utils/bootstrap-modal.vue'
-import alert from '@vue-utils/alert.vue'
 import SchemaOption from './schema_add_option.vue'
 // import SchemaHeader from './schema_add_header.vue'
 // import SchemaExpander from './schema_add_expander.vue'
 import {
   api_endpoints,
-  helpers
+  helpers,
+  constants
 }
 from '@/utils/hooks'
 export default {
     name:'schemaMasterlistModal',
     components: {
         modal,
-        alert,
         datatable,
         SchemaOption,
         // SchemaHeader,
@@ -149,11 +149,11 @@ export default {
         let vm = this;
         vm.schema_masterlist_url = helpers.add_endpoint_join(api_endpoints.schema_masterlist_paginated, 'schema_masterlist_datatable_list/?format=datatables');
         return {
-            schema_masterlist_id: 'schema-materlist-datatable-'+vm._uid,
-            pMasterListBody: 'pMasterListBody' + vm._uid,
-            pOptionBody: 'pOptionBody' + vm._uid,
-            pHeaderBody: 'pHeaderBody' + vm._uid,
-            pExpanderBody: 'pOptionBody' + vm._uid,
+            schema_masterlist_id: 'schema-materlist-datatable-'+uuid(),
+            pMasterListBody: 'pMasterListBody' + uuid(),
+            pOptionBody: 'pOptionBody' + uuid(),
+            pHeaderBody: 'pHeaderBody' + uuid(),
+            pExpanderBody: 'pOptionBody' + uuid(),
             filterOptions: '',
             isModalOpen:false,
             missing_fields: [],
@@ -161,7 +161,7 @@ export default {
             dtHeadersSchemaMasterlist: ["ID", "QuestionOP", "QuestionHD", "QuestionEX", "Question", "Answer Type", "Action"],
             dtOptionsSchemaMasterlist:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 serverSide: true,
@@ -366,32 +366,52 @@ export default {
             if (data.id === '') {
                 console.log(data);
 
-                await self.$http.post(api_endpoints.schema_masterlist, JSON.stringify(data),{
-                    emulateJSON:true
-                }).then((response) => {
+                await fetch(api_endpoints.schema_masterlist,{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                }).then(async (response) => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
                     self.$refs.schema_masterlist_table.vmDataTable.ajax.reload();
                     self.close();
-                }, (error) => {
-                    swal(
-                        'Save Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
+                }).catch((error) => {
+                    swal.fire({
+                        title:'Save Error',
+                        text:error,
+                        icon:'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 });
 
             } else {
 
-                await self.$http.post(helpers.add_endpoint_json(api_endpoints.schema_masterlist,data.id+'/save_masterlist'),JSON.stringify(data),{
-                        emulateJSON:true,
-                }).then((response)=>{
+                await fetch(helpers.add_endpoint_json(api_endpoints.schema_masterlist,data.id+'/save_masterlist'),{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                }).then(async (response) => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
                     self.$refs.schema_masterlist_table.vmDataTable.ajax.reload();
                     self.close();
-                },(error)=>{
-                    swal(
-                        'Save Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
+                }).catch((error) => {
+                    swal.fire({
+                        title:'Save Error',
+                        text:error,
+                        icon:'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 });
 
             }
@@ -442,29 +462,44 @@ export default {
                 self.$refs.schema_masterlist_table.row_of_data = self.$refs.schema_masterlist_table.vmDataTable.row('#'+$(this).attr('data-rowid'));
                 self.masterlist.id = self.$refs.schema_masterlist_table.row_of_data.data().id;
 
-                swal({
+                swal.fire({
                     title: "Delete Masterlist",
                     text: "Are you sure you want to delete?",
-                    type: "question",
+                    icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: 'Accept'
+                    confirmButtonText: 'Accept',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary',
+                    },
 
                 }).then(async (result) => {
-                    if (result) {
-                        await self.$http.delete(helpers.add_endpoint_json(api_endpoints.schema_masterlist,(self.masterlist.id+'/delete_masterlist')))
-                        .then((response) => {
+                    if (result.isConfirmed) {
+                        await fetch(helpers.add_endpoint_json(api_endpoints.schema_masterlist,(self.masterlist.id+'/delete_masterlist')), {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(async (response) => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! Status: ${response.status}`);
+                            }
                             self.$refs.schema_masterlist_table.vmDataTable.ajax.reload();
                         }, (error) => {
-                            swal(
-                                'Delete Error',
-                                helpers.apiVueResourceError(error),
-                                'error'
-                            )
+                            swal.fire({
+                                title:'Delete Error',
+                                text:error,
+                                icon:'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
                         });
                     }
 
                 },(error) => {
-                    //
+                  console.log(error);
                 });                
             });
         },
@@ -509,16 +544,21 @@ export default {
         },
         initSelects: async function() {
 
-            await this.$http.get(helpers.add_endpoint_json(api_endpoints.schema_masterlist,'1/get_masterlist_selects')).then(res=>{
+            fetch(helpers.add_endpoint_json(api_endpoints.schema_masterlist,'1/get_masterlist_selects'))
+            .then(async (res)=>{
+                if (!res.ok) { return res.json().then(err => { throw err }); }
+                let data = await res.json();
+                this.answerTypes = data.all_answer_types;
 
-                    this.answerTypes = res.body.all_answer_types
-
-            },err=>{
-                swal(
-                    'Get Application Selects Error',
-                    helpers.apiVueResourceError(err),
-                    'error'
-                )
+            }).catch(err=>{
+                swal.fire({
+                    title:'Get Application Selects Error',
+                    text:err,
+                    icon:'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
             });
             this.initAnswerTypeSelector();
         },        

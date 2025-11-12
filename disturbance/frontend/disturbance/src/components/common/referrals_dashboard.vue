@@ -97,12 +97,13 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue'
 require("select2/dist/css/select2.min.css");
 require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
 import {
     api_endpoints,
-    helpers
+    constants
 }from '@/utils/hooks'
 export default {
     name: 'RefferralsTableDash',
@@ -116,8 +117,8 @@ export default {
     data() {
         let vm = this;
         return {
-            pBody: 'pBody' + vm._uid,
-            datatable_id: 'proposal-datatable-'+vm._uid,
+            pBody: 'pBody' + uuid(),
+            datatable_id: 'proposal-datatable-'+uuid(),
             //template_group: '',
             dasTemplateGroup: false,
             apiaryTemplateGroup: false,
@@ -146,9 +147,9 @@ export default {
             //proposal_headers:["Number","Region","Activity","Title","Submitter","Proponent","Status","Lodged on","Action","Template Group"],
             proposal_options:{
                 customProposalSearch: true,
-                tableID: 'proposal-datatable-'+vm._uid,
+                tableID: 'proposal-datatable-'+uuid(),
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 serverSide: true,
@@ -461,17 +462,21 @@ export default {
         fetchFilterLists: function(){
             let vm = this;
 
-            vm.$http.get(api_endpoints.filter_list_referrals).then((response) => {
-                vm.proposal_regions = response.body.regions;
-                //vm.proposal_districts = response.body.districts;
-                vm.proposal_activityTitles = response.body.activities;
-                vm.proposal_applicationTypes = response.body.application_types;
-                vm.proposal_submitters = response.body.submitters;
-                vm.proposal_status = response.body.processing_status_choices;
-            },(error) => {
-                console.log(error);
-            })
-            //console.log(vm.regions);
+            fetch(api_endpoints.filter_list_referrals).then(
+                async (response) => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err });
+                    }
+                    const filter_list_ref = await response.json();
+                    vm.proposal_regions = filter_list_ref.regions;
+                    //vm.proposal_districts = response.body.districts;
+                    vm.proposal_activityTitles = filter_list_ref.activities;
+                    vm.proposal_applicationTypes = filter_list_ref.application_types;
+                    vm.proposal_submitters = filter_list_ref.submitters;
+                    vm.proposal_status = filter_list_ref.processing_status_choices;
+                }).catch((error) => {
+                    console.log(error);
+                });
         },
 
         addEventListeners: function(){
@@ -642,18 +647,21 @@ export default {
     },
     created: function() {
         // retrieve template group
-        this.$http.get('/template_group',{
-            emulateJSON:true
-            }).then(res=>{
+        fetch('/template_group',{ emulateJSON:true }).then(
+            async res=>{
+                if (!res.ok) {
+                    return await res.json().then(err => { throw err });
+                }
                 //this.template_group = res.body.template_group;
-                if (res.body.template_group === 'apiary') {
+                const template_group_res = await res.json();
+                if (template_group_res.template_group === 'apiary') {
                     this.apiaryTemplateGroup = true;
                 } else {
                     this.dasTemplateGroup = true;
                     this.applySelect2()
                 }
-        },err=>{
-        console.log(err);
+        }).catch(err=>{
+            console.log(err);
         });
     },
     /*

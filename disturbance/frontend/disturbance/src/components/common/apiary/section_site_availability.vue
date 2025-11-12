@@ -25,7 +25,6 @@
 </template>
 
 <script>
-    import Vue from 'vue'
     import { v4 as uuid } from 'uuid';
     import { api_endpoints, helpers, } from '@/utils/hooks'
     import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
@@ -125,51 +124,69 @@
                 vm.creatingProposal = true;
                 let data = vm._get_basic_data();
 
-                vm.$http.post('/api/proposal.json', data).then(res => {
-                    vm.proposal = res.body;
+                fetch('/api/proposal.json',{
+                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                }).then(async (response) => {
+                    if (!response.ok) {
+                            const data = await response.json();
+                            swal.fire({
+                                title: "Create Site Transfer Application - Error",
+                                text: JSON.stringify(data),
+                                icon: "error",
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            return;
+                        }
+                    vm.proposal = await response.json();
 
                     console.log('returned: ')
                     console.log(vm.proposal)
 
                     vm.$router.push({ name:"draft_proposal", params:{ proposal_id: vm.proposal.id }});
                     vm.creatingProposal = false;
-                },
-                err => {
-                    console.log(err);
-                });
+                }).catch((error) => {
+                    console.log(error);
+                })
             },
 
             openNewSiteTransfer: function() {
                 let vm = this
 
-                swal({
+                swal.fire({
                     title: "Create Site Transfer Application",
                     text: "Are you sure you want to create a new site transfer application?",
-                    type: "question",
+                    icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: 'Create'
-                }).then(
-                    () => {
-                        vm.createProposal();
+                    confirmButtonText: 'Create',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary',
                     },
-                    (error) => {
-
+                }).then( (result) => {
+                    if (result.isConfirmed){
+                        vm.createProposal();
                     }
-                );
+                });
             },
 
             loadApiarySites: async function(){
                 console.log('loadApiarySites');
 
-                await this.$http.get('/api/approvals/' + this.approval_id + '/apiary_site/').then(
-                    (accept)=>{
-                        console.log(accept.body)
-                        this.apiary_sites = accept.body
+                fetch('/api/approvals/' + this.approval_id + '/apiary_site/').then(
+                    async (response)=>{
+                         if (!response.ok) {
+                            return response.json().then(err => { throw err });
+                        }
+                        console.log(response.json())
+                        this.apiary_sites = await response.json();
                         this.component_site_selection_key = uuid()
-                    },
-                    (reject)=>{
-                    },
-                )
+                    }).catch((error) => {
+                        console.log(error);
+                    });
             },
             addEventListeners: function() {
             },

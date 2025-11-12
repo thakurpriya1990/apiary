@@ -46,7 +46,7 @@
                                 <div v-else-if="licenceHolders && licenceHolders.length">
                                     <!--label class="col-sm-6 emailLabel">Select the licence you want to transfer to:</label-->
                                     <label>Select the licence you want to transfer to:</label>
-                                    <div v-for="holder in licenceHolders">
+                                    <div v-for="holder in licenceHolders" :key="holder.id">
                                         <!--input type="radio" name="approval_choice" :value="approval.id" v-model="proposal.proposal_apiary.selected_licence"/-->
                                         <input type="radio" name="holder_choice" :value="holder" v-model="selectedLicenceHolder" :disabled="readonlyLicenceHolders"/>
                                         <span v-if="holder.lodgement_number">
@@ -166,7 +166,7 @@
                 ref="assessor_checklist"
                 index="2"
                 />
-                <div v-for="site in apiary_sites">
+                <div v-for="site in apiary_sites" :key="site.id">
                     <ApiaryChecklist
                     :checklist="assessorChecklistAnswersPerSite(site.id)"
                     :section_title="'Assessor checklist for site ' + site.id"
@@ -176,7 +176,7 @@
                     />
                 </div>
             </div>
-            <div v-for="r in referrerChecklistAnswers">
+            <div v-for="r in referrerChecklistAnswers" :key="r.id">
                 <!--div v-if="(referral && r.referral_id === referral.id) || (assessorChecklistVisibility && proposal.processing_status === 'With Assessor')"-->
                 <div v-if="(referral && r.referral_id === referral.id) || (assessorChecklistVisibility)">
                 <!--div v-if="r.id = referral.id"-->
@@ -187,7 +187,7 @@
                     ref="referrer_checklist"
                     index="3"
                     />
-                    <div v-for="site in apiary_sites">
+                    <div v-for="site in apiary_sites" :key="site.id">
                         <ApiaryChecklist
                         :checklist="referrerChecklistAnswersPerSite(r.apiary_referral_id, site.id)"
                         :section_title="'Referral Checklist: ' + r.referrer_group_name + ' for site ' + site.id"
@@ -228,12 +228,11 @@
 <script>
 
     //import SiteLocations from '@/components/common/apiary/site_locations.vue'
-    import FileField from '@/components/forms/filefield_immediate.vue'
+    import { v4 as uuid } from 'uuid';
+    // import FileField from '@/components/forms/filefield_immediate.vue'
     import FormSection from "@/components/forms/section_toggle.vue"
-    import Vue from 'vue'
     import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
     import ApiaryChecklist from '@/components/common/apiary/section_checklist.vue'
-    import { v4 as uuid } from 'uuid';
     import DeedPoll from "@/components/common/apiary/section_deed_poll.vue"
     import { api_endpoints, helpers }from '@/utils/hooks'
 
@@ -281,7 +280,7 @@
             let vm=this;
             return{
                 values:null,
-                pBody: 'pBody'+vm._uid,
+                pBody: 'pBody'+vm.uuid(),
                 checklist_answers : [],
                 transfereeEmail: '',
                 //apiaryApprovals: {},
@@ -300,7 +299,6 @@
         components: {
             //SiteLocations,
             ComponentSiteSelection,
-            FileField,
             FormSection,
             ApiaryChecklist,
             DeedPoll,
@@ -409,36 +407,43 @@
                     this.proposal.proposal_apiary.applicant_checklist_answers.length > 0) {
                     return this.proposal.proposal_apiary.applicant_checklist_answers;
                 }
+                return [];
             },
             transfereeName: function() {
                 if (this.proposal && this.proposal.proposal_apiary) {
                     return this.proposal.proposal_apiary.transferee_name;
                 }
+                return '';
             },
             transfereeOrgName: function() {
                 if (this.proposal && this.proposal.proposal_apiary) {
                     return this.proposal.proposal_apiary.transferee_org_name;
                 }
+                return '';
             },
             transfereeFirstName: function() {
                 if (this.proposal && this.proposal.proposal_apiary) {
                     return this.proposal.proposal_apiary.transferee_first_name;
                 }
+                return '';
             },
             transfereeLastName: function() {
                 if (this.proposal && this.proposal.proposal_apiary) {
                     return this.proposal.proposal_apiary.transferee_last_name;
                 }
+                return '';
             },
             targetApprovalLodgementNumber: function() {
                 if (this.proposal && this.proposal.proposal_apiary) {
                     return this.proposal.proposal_apiary.target_approval_lodgement_number;
                 }
+                return '';
             },
             transfereeEmailText: function() {
                 if (this.proposal && this.proposal.proposal_apiary) {
                     return this.proposal.proposal_apiary.transferee_email_text;
                 }
+                return '';
             },
             apiary_sections_classname: function() {
                 // For external page, we need 'col-md-9' classname
@@ -566,25 +571,27 @@
                 }
                 return readonlyStatus;
             },
-            referrerChecklistVisibility: function() {
-                let visibility = false;
-                // must be relevant referral
-                if ((!this.referrerChecklistReadonly && r.id === this.referral.id) || this.assessorChecklistVisibility) {
-                    visibility = true;
-                }
-                return visibility;
-            },
+            // referrerChecklistVisibility: function() {
+            //     let visibility = false;
+            //     // must be relevant referral
+            //     if ((!this.referrerChecklistReadonly && r.id === this.referral.id) || this.assessorChecklistVisibility) {
+            //         visibility = true;
+            //     }
+            //     return visibility;
+            // },
             assessorChecklistAnswers: function() {
                 if (this.proposal && this.proposal.proposal_apiary && this.proposal.proposal_apiary.site_transfer_assessor_checklist_answers &&
                     this.proposal.proposal_apiary.site_transfer_assessor_checklist_answers.length > 0) {
                     return this.proposal.proposal_apiary.site_transfer_assessor_checklist_answers;
                 }
+                return [];
             },
             referrerChecklistAnswers: function() {
                 if (this.proposal && this.proposal.proposal_apiary && this.proposal.proposal_apiary.site_transfer_referrer_checklist_answers &&
                     this.proposal.proposal_apiary.site_transfer_referrer_checklist_answers.length > 0) {
                     return this.proposal.proposal_apiary.site_transfer_referrer_checklist_answers;
                 }
+                return [];
             },
 
         },
@@ -633,12 +640,11 @@
                 this.$emit('button_text', button_text)
             },
             getChecklistAnswers: function() {
-                let vm = this;
                 this.checklist_answers.push({
                     'id' : 'this.proposal.proposal_apiary.checklist_answers.id',
                     'answer' : 'this.proposal.proposal_apiary.checklist_answers.answer'
                  })
-             return checklist_answers;
+             return this.checklist_answers;
             },
             lookupTransferee: function() {
                 this.lookupErrorText = '';

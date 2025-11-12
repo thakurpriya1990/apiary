@@ -34,7 +34,6 @@
 </template>
 
 <script>
-    import Vue from 'vue'
     import { v4 as uuid } from 'uuid';
     import { api_endpoints, helpers } from '@/utils/hooks'
     import SectionsProposalTemporaryUse from '@/components/common/apiary/sections_proposal_temporary_use.vue'
@@ -159,7 +158,7 @@
                 var postFormStr = "<form method='POST' action='" + url + "'>";
 
                 for (var key in postData) {
-                    if (postData.hasOwnProperty(key)) {
+                    if (Object.prototype.hasOwnProperty.call(postData, key)) {
                         postFormStr += "<input type='hidden' name='" + key + "' value='" + postData[key] + "'>";
                     }
                 }
@@ -198,11 +197,14 @@
 
                 await this.$http.post('/api/proposal/' + proposal_id + '/draft/', data).then(
                     res=>{
-                        swal(
-                            'Saved',
-                            'Your proposal has been updated',
-                            'success'
-                        );
+                        swal.fire({
+                            title: 'Saved',
+                            text: 'Your proposal has been updated',
+                            icon: 'success',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
                     },
                     err=>{
                         helpers.processError(err)

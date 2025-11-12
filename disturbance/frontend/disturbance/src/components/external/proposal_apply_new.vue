@@ -143,7 +143,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue'
+import { v4 as uuid } from 'uuid';
 import {
   api_endpoints,
   helpers
@@ -168,8 +168,8 @@ export default {
         },
         "loading": [],
         form: null,
-        pBody: 'pBody' + vm._uid,
-        pBody2: 'pBody2' + vm._uid,
+        pBody: 'pBody' + uuid(),
+        pBody2: 'pBody2' + uuid(),
 
         selected_application_id: '',
         selected_application_name: '',
@@ -237,15 +237,16 @@ export default {
     submit: function() {
         let vm = this;
 			
-        swal({
+        swal.fire({
             title: "Create ",
             text: "Are you sure you want to create ",
-            type: "question",
+            icon: "question",
             showCancelButton: true,
             confirmButtonText: 'Accept1'
-        }).then(() => {
-         	vm.createProposal();
-        },(error) => {
+        }).then((swalResult) => {
+            if(swalResult.isConfirmed){
+         	    vm.createProposal();
+            }
         });
     },
     alertText: function() {

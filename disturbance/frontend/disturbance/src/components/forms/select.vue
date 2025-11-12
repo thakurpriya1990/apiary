@@ -64,6 +64,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 var select2 = require('select2');
 require("select2/dist/css/select2.min.css");
 require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
@@ -72,7 +73,7 @@ import CommentBox from './comment_box_referral.vue'
 import HelpText from './help_text.vue'
 import HelpTextUrl from './help_text_url.vue'
 export default {
-    name:"Select",
+    name:"SelectComponent",
     props:{
         'name':String,
         'label':String,
@@ -105,7 +106,7 @@ export default {
         let vm =this;
         return{
             selected: (this.isMultiple) ? [] : "",
-            selectid: "select"+vm._uid,
+            selectid: "select"+uuid(),
             multipleSelected: [],
             showingComment: false,
            
@@ -117,7 +118,8 @@ export default {
             immediately: true,
             handler (value, old_value){
                 this.init();
-            }
+            },
+            deep: true,
         }
     },
     computed:{
@@ -130,7 +132,7 @@ export default {
             for(var i=0; i<boxes.length; i++){
                 console.log('comment box')
                 console.log(boxes[i])
-                if(boxes[i].hasOwnProperty('value')){
+                if (Object.prototype.hasOwnProperty.call(boxes[i], 'value')) {
                     if(boxes[i].value!=null && boxes[i].value!=undefined && boxes[i].value!= '' ){
                         has_value=true;
                     }
