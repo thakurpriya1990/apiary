@@ -331,6 +331,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import ProposalApiary from '../../form_apiary.vue'
 import ApiarySiteTransfer from '../../form_apiary_site_transfer.vue'
 // import NewApply from '../../external/proposal_apply_new.vue'
@@ -352,9 +353,9 @@ export default {
     data: function() {
         let vm = this;
         return {
-            detailsBody: 'detailsBody'+vm._uid,
-            addressBody: 'addressBody'+vm._uid,
-            contactsBody: 'contactsBody'+vm._uid,
+            detailsBody: 'detailsBody'+uuid(),
+            addressBody: 'addressBody'+uuid(),
+            contactsBody: 'contactsBody'+uuid(),
             //"proposal": null,
             //referral: null,
             assigned_officer_id: null,
@@ -369,7 +370,7 @@ export default {
             department_users : [],
             contacts_table_initialised: false,
             initialisedSelects: false,
-            contacts_table_id: vm._uid+'contacts-table',
+            contacts_table_id: uuid() +'contacts-table',
             contacts_options:{
                 language: {
                     processing: constants.DATATABLE_PROCESSING_HTML,

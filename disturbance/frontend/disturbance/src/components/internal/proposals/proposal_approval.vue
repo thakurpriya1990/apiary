@@ -149,16 +149,14 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import {
     api_endpoints,
     helpers
 }
 from '@/utils/hooks'
-import datatable from '@vue-utils/datatable.vue'
-import RequirementDetail from './proposal_add_requirement.vue'
 import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
-import { v4 as uuid } from 'uuid';
 
 export default {
     name: 'InternalProposalRequirements',
@@ -166,10 +164,9 @@ export default {
         proposal: Object
     },
     data: function() {
-        let vm = this;
         return {
-            proposedDecision: "proposal-decision-"+vm._uid,
-            proposedLevel: "proposal-level-"+vm._uid,
+            proposedDecision: "proposal-decision-"+uuid(),
+            proposedLevel: "proposal-level-"+uuid(),
             uploadedFile: null,
             component_site_selection_key: '',
         }
@@ -210,6 +207,7 @@ export default {
             if (this.proposal && this.proposal.proposal_apiary) {
                 return this.proposal.proposal_apiary.apiary_sites;
             }
+            return [];
         },
         apiary_sites_prop: function() {
             let apiary_sites = [];
@@ -331,7 +329,6 @@ export default {
         },
     },
     mounted: function(){
-        let vm = this;
         this.updateComponentSiteSelectionKey()
     }
 }

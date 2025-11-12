@@ -70,7 +70,7 @@
 </div>
 </template>
 <script>
-import $ from 'jquery'
+import { v4 as uuid } from 'uuid';
 import datatable from '@vue-utils/datatable.vue'
 import {
   api_endpoints,
@@ -78,7 +78,6 @@ import {
   constants
 }
 from '@/utils/hooks'
-import { v4 as uuid } from 'uuid';
 export default {
   name: 'OrganisationAccessDashboard',
   data() {
@@ -87,7 +86,7 @@ export default {
         dasTemplateGroup: false,
         apiaryTemplateGroup: false,
         // Filters
-        pBody: 'pBody' + vm._uid,
+        pBody: 'pBody' + uuid(),
         filterOrganisation: 'All',
         filterApplicant : 'All',
         filterRole : 'All',

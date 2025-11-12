@@ -178,6 +178,7 @@
 </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import {
@@ -186,7 +187,7 @@ import {
 }
 from '@/utils/hooks'
 export default {
-  name: 'Approval',
+  name: 'ApprovalComponent',
   data() {
     let vm = this;
     return {
@@ -196,10 +197,10 @@ export default {
             
         },
         DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-        adBody: 'adBody'+vm._uid,
-        pBody: 'pBody'+vm._uid,
-        cBody: 'cBody'+vm._uid,
-        oBody: 'oBody'+vm._uid,
+        adBody: 'adBody'+uuid(),
+        pBody: 'pBody'+uuid(),
+        cBody: 'cBody'+uuid(),
+        oBody: 'oBody'+uuid(),
         org: {
             address: {}
         },

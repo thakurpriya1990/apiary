@@ -108,8 +108,9 @@
 </template>
 
 <script>
+    import { v4 as uuid } from 'uuid';
     import datatable from '@vue-utils/datatable.vue'
-    import { api_endpoints, helpers, } from '@/utils/hooks'
+    import { helpers, } from '@/utils/hooks'
     import FormSection from "@/components/forms/section_toggle.vue"
     import PeriodAndSites from "@/components/common/apiary/section_period_and_sites.vue"
     import TemporaryOccupier from "@/components/common/apiary/section_temporary_occupier.vue"
@@ -138,7 +139,7 @@
             return{
                 period_and_sites_key: '',
                 temporary_occupier_key: '',
-                pBody: 'pBody'+vm._uid,
+                pBody: 'pBody'+uuid(),
                 licence: null,
                 from_date_enabled: true,
                 to_date_enabled: true,

@@ -96,6 +96,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue'
 require("select2/dist/css/select2.min.css");
 require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
@@ -121,11 +122,11 @@ export default {
         }
     },
     data() {
-        let vm = this;
+        // let vm = this;
         return {
-            pBody: 'pBody' + vm._uid,
+            pBody: 'pBody' + uuid(),
             uuid: 0,
-            datatable_id: 'compliances-datatable-'+vm._uid,
+            datatable_id: 'compliances-datatable-'+ uuid(),
             //Profile to check if user has access to process Proposal
             profile: {},
             dasTemplateGroup: false,

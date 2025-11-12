@@ -97,12 +97,12 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue'
 require("select2/dist/css/select2.min.css");
 require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
 import {
     api_endpoints,
-    helpers,
     constants
 }from '@/utils/hooks'
 export default {
@@ -117,8 +117,8 @@ export default {
     data() {
         let vm = this;
         return {
-            pBody: 'pBody' + vm._uid,
-            datatable_id: 'proposal-datatable-'+vm._uid,
+            pBody: 'pBody' + uuid(),
+            datatable_id: 'proposal-datatable-'+uuid(),
             //template_group: '',
             dasTemplateGroup: false,
             apiaryTemplateGroup: false,
@@ -147,7 +147,7 @@ export default {
             //proposal_headers:["Number","Region","Activity","Title","Submitter","Proponent","Status","Lodged on","Action","Template Group"],
             proposal_options:{
                 customProposalSearch: true,
-                tableID: 'proposal-datatable-'+vm._uid,
+                tableID: 'proposal-datatable-'+uuid(),
                 language: {
                     processing: constants.DATATABLE_PROCESSING_HTML,
                 },

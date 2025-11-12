@@ -122,9 +122,9 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue'
 import modal from '@vue-utils/bootstrap-modal.vue'
-import alert from '@vue-utils/alert.vue'
 import SchemaOption from './schema_add_option.vue'
 // import SchemaHeader from './schema_add_header.vue'
 // import SchemaExpander from './schema_add_expander.vue'
@@ -138,7 +138,6 @@ export default {
     name:'schemaMasterlistModal',
     components: {
         modal,
-        alert,
         datatable,
         SchemaOption,
         // SchemaHeader,
@@ -150,11 +149,11 @@ export default {
         let vm = this;
         vm.schema_masterlist_url = helpers.add_endpoint_join(api_endpoints.schema_masterlist_paginated, 'schema_masterlist_datatable_list/?format=datatables');
         return {
-            schema_masterlist_id: 'schema-materlist-datatable-'+vm._uid,
-            pMasterListBody: 'pMasterListBody' + vm._uid,
-            pOptionBody: 'pOptionBody' + vm._uid,
-            pHeaderBody: 'pHeaderBody' + vm._uid,
-            pExpanderBody: 'pOptionBody' + vm._uid,
+            schema_masterlist_id: 'schema-materlist-datatable-'+uuid(),
+            pMasterListBody: 'pMasterListBody' + uuid(),
+            pOptionBody: 'pOptionBody' + uuid(),
+            pHeaderBody: 'pHeaderBody' + uuid(),
+            pExpanderBody: 'pOptionBody' + uuid(),
             filterOptions: '',
             isModalOpen:false,
             missing_fields: [],

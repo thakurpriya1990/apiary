@@ -28,6 +28,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import {
     api_endpoints,
     helpers,
@@ -46,7 +47,7 @@ export default {
     data: function() {
         let vm = this;
         return {
-            panelBody: "proposal-requirements-"+vm._uid,
+            panelBody: "proposal-requirements-"+uuid(),
             //targetApproval: {},
             requirements: [],
             requirement_headers:[

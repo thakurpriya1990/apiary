@@ -92,6 +92,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 require("select2/dist/css/select2.min.css");
@@ -125,9 +126,9 @@ export default {
             assigned_officer_column_name: "assigned_officer__first_name, assigned_officer__last_name, assigned_officer__email",
             submitter_column_name: "submitter__email, submitter__first_name, submitter__last_name",
             proponent_applicant_column_name: 'applicant__organisation__name, proxy_applicant__first_name, proxy_applicant__last_name, proxy_applicant__email',
-            pBody: 'pBody' + vm._uid,
+            pBody: 'pBody' + uuid(),
             uuid: 0,
-            datatable_id: 'proposal-datatable-'+vm._uid,
+            datatable_id: 'proposal-datatable-'+uuid(),
             //datatable_id: 'proposal-datatable-'+vm.uuid,
             //Profile to check if user has access to process Proposal
             profile: {},

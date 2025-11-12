@@ -42,9 +42,8 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import {
-    api_endpoints,
-    helpers,
     constants
 } from '@/utils/hooks'
 export default {
@@ -178,9 +177,9 @@ export default {
             vm.$refs.revision_history.isModalOpen = true;
         },
         initialiseRevisionHistoryPopover: function(vm_uid, ref, datatable_options, actions, view_actions){
-            let vm = this;
+            // let vm = this;
             let actionLogId = 'actions-log-table'+vm_uid;
-            let popover_name = 'popover-'+ vm._uid+'-logs';
+            let popover_name = 'popover-'+ uuid()+'-logs';
             $(ref).popover({
                 content: function() {
                     return ` 
@@ -243,7 +242,7 @@ export default {
         },
         initialisePopovers: function(){ 
             if (!this.popoversInitialised){
-                this.initialiseRevisionHistoryPopover(this._uid, 
+                this.initialiseRevisionHistoryPopover(uuid(), 
                                                       this.$refs.showActionBtn, 
                                                       this.actionsDtOptions, 
                                                       this.lodgement_revisions_actions,

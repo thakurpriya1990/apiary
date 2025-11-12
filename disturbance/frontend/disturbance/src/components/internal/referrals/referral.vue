@@ -263,12 +263,12 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import Proposal from '../../form.vue'
 import NewApply from '../../external/proposal_apply_new.vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import MoreReferrals from '@common-utils/more_referrals.vue'
-var select2 = require('select2');
 require("select2/dist/css/select2.min.css");
 require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
 
@@ -279,13 +279,13 @@ import {
 }
 from '@/utils/hooks'
 export default {
-    name: 'Referral',
+    name: 'ReferralComponent',
     data: function() {
         let vm = this;
         return {
-            detailsBody: 'detailsBody'+vm._uid,
-            addressBody: 'addressBody'+vm._uid,
-            contactsBody: 'contactsBody'+vm._uid,
+            detailsBody: 'detailsBody'+uuid(),
+            addressBody: 'addressBody'+uuid(),
+            contactsBody: 'contactsBody'+uuid(),
             //"proposal": null,
             //referral: null,
             referral_sent_list: null,
@@ -299,7 +299,7 @@ export default {
             //department_users : [],
             contacts_table_initialised: false,
             initialisedSelects: false,
-            contacts_table_id: vm._uid+'contacts-table',
+            contacts_table_id: uuid()+'contacts-table',
             contacts_options:{
                 language: {
                     processing: constants.DATATABLE_PROCESSING_HTML,

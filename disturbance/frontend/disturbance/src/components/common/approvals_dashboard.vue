@@ -123,6 +123,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue'
 import ApprovalCancellation from '../internal/approvals/approval_cancellation.vue'
 import ApprovalSuspension from '../internal/approvals/approval_suspension.vue'
@@ -150,10 +151,10 @@ export default {
         }
     },
     data() {
-        let vm = this;
+        // let vm = this;
         return {
-            pBody: 'pBody' + vm._uid,
-            datatable_id: 'approvals-datatable-'+vm._uid,
+            pBody: 'pBody' + uuid(),
+            datatable_id: 'approvals-datatable-'+uuid(),
             uuid: 0,
             //datatable_id: 'proposal-datatable-'+vm.uuid,
             //Profile to check if user has access to process Proposal

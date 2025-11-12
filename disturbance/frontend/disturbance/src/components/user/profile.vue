@@ -279,17 +279,17 @@
 </template>
 
 <script>
-import $ from 'jquery'
+import { v4 as uuid } from 'uuid';
 import { api_endpoints, helpers } from '@/utils/hooks'
 export default {
-    name: 'Profile',
+    name: 'ProfileComponent',
     data () {
         let vm = this;
         return {
-            adBody: 'adBody'+vm._uid,
-            pBody: 'pBody'+vm._uid,
-            cBody: 'cBody'+vm._uid,
-            oBody: 'oBody'+vm._uid,
+            adBody: 'adBody'+uuid(),
+            pBody: 'pBody'+uuid(),
+            cBody: 'cBody'+uuid(),
+            oBody: 'oBody'+uuid(),
             profile: {
                 first_name: '',
                 last_name: '',

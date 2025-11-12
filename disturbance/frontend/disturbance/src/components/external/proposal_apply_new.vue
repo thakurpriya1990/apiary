@@ -143,6 +143,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import {
   api_endpoints,
   helpers
@@ -167,8 +168,8 @@ export default {
         },
         "loading": [],
         form: null,
-        pBody: 'pBody' + vm._uid,
-        pBody2: 'pBody2' + vm._uid,
+        pBody: 'pBody' + uuid(),
+        pBody2: 'pBody2' + uuid(),
 
         selected_application_id: '',
         selected_application_name: '',

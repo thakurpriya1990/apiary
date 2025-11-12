@@ -100,7 +100,7 @@
 </div>
 </template>
 <script>
-import $ from 'jquery'
+import { v4 as uuid } from 'uuid';
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
@@ -130,11 +130,11 @@ export default {
                 applicant_id: null
             },
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            adBody: 'adBody'+vm._uid,
-            pBody: 'pBody'+vm._uid,
-            cBody: 'cBody'+vm._uid,
-            oBody: 'oBody'+vm._uid,
-            onBody: 'onBody'+vm._uid,
+            adBody: 'adBody'+uuid(),
+            pBody: 'pBody'+uuid(),
+            cBody: 'cBody'+uuid(),
+            oBody: 'oBody'+uuid(),
+            onBody: 'onBody'+uuid(),
             org: {
                 address: {}
             },

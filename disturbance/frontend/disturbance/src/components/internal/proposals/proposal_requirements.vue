@@ -23,6 +23,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import {
     api_endpoints,
     helpers,
@@ -39,7 +40,7 @@ export default {
     data: function() {
         let vm = this;
         return {
-            panelBody: "proposal-requirements-"+vm._uid,
+            panelBody: "proposal-requirements-"+uuid(),
             requirements: [],
             requirement_headers:["Requirement","Due Date","Recurrence","Action","Order"],
             requirement_options:{
@@ -96,7 +97,7 @@ export default {
                     },
                     {
                         data: "due_date",
-                        mRender:function (data,type,full) {
+                        mRender:function (data) {
                             return data != '' && data != null ? moment(data).format('DD/MM/YYYY'): '';
                         },
                         orderable: false,
@@ -153,14 +154,14 @@ export default {
                     }
                 ],
                 processing: true,
-                rowCallback: function ( row, data, index) {
+                rowCallback: function ( row, data) {
                     if (data.copied_for_renewal && data.require_due_date && !data.due_date) {
                         $('td', row).css('background-color', 'Red');
                         vm.setApplicationWorkflowState(false)
                         //vm.$emit('refreshRequirements',false);
                     }
                 },
-                drawCallback: function (settings) {
+                drawCallback: function () {
                     $(vm.$refs.requirements_datatable.table).find('tr:last .dtMoveDown').remove();
                     $(vm.$refs.requirements_datatable.table).children('tbody').find('tr:first .dtMoveUp').remove();
 
@@ -172,7 +173,7 @@ export default {
                     $('.dtMoveUp').click(vm.moveUp);
                     $('.dtMoveDown').click(vm.moveDown);
                 },
-                 preDrawCallback: function (settings) {
+                 preDrawCallback: function () {
                     vm.setApplicationWorkflowState(true)
                     //vm.$emit('refreshRequirements',true);
                 }
@@ -240,7 +241,6 @@ export default {
             )
         },
         editRequirement(_id){
-            let vm = this;
             fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
             .then(async (response) => {
                 if (!response.ok) { return response.json().then(err => { throw err }); }

@@ -40,6 +40,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 export default {
     name:"schema-add-option",
     props: {
@@ -47,9 +48,8 @@ export default {
         canAddMore: Boolean,
     },
     data:function () {
-        let vm = this;
         return {
-            pOptionBody: 'pOptionBody' + vm._uid,
+            pOptionBody: 'pOptionBody' + uuid(),
             addedOption: {
                 id: '',
                 label: '',

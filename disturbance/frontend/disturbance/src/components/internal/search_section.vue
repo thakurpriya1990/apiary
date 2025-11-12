@@ -158,8 +158,8 @@
                     <div class="row">
                       <div class="col-lg-12">
                         <div >
-                          <input type="button" @click.prevent="search" class="btn btn-primary" style="margin-bottom: 5px"value="Search"/>
-                          <input type="reset" @click.prevent="reset" class="btn btn-primary" style="margin-bottom: 5px"value="Clear"/>
+                          <input type="button" @click.prevent="search" class="btn btn-primary" style="margin-bottom: 5px" value="Search"/>
+                          <input type="reset" @click.prevent="reset" class="btn btn-primary" style="margin-bottom: 5px" value="Clear"/>
 
                         </div>
                       </div> 
@@ -179,8 +179,7 @@
 </div>
 </template>
 <script>
-import $ from 'jquery'
-import alert from '@vue-utils/alert.vue'
+import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue'
 import {
   api_endpoints,
@@ -188,7 +187,6 @@ import {
   constants
 }
 from '@/utils/hooks'
-import utils from './utils'
 export default {
   name: 'SearchSection',
   props: {
@@ -197,9 +195,9 @@ export default {
   data() {
     let vm = this;
     return {
-      rBody: 'rBody' + vm._uid,
-      oBody: 'oBody' + vm._uid,
-      kBody: 'kBody' + vm._uid,
+      rBody: 'rBody' + uuid(),
+      oBody: 'oBody' + uuid(),
+      kBody: 'kBody' + uuid(),
       loading: [],
       searchKeywords: [],
       searchProposal: true,
@@ -213,10 +211,9 @@ export default {
       errors: false,
       errorString: '',
       form: null,
-      pBody: 'pBody' + vm._uid,
-      pBody2: 'pBody2' + vm._uid,
+      pBody: 'pBody' + uuid(),
+      pBody2: 'pBody2' + uuid(),
 
-      selected_application_name: '',
       selected_application_name: '',
       selected_region: '',
       selected_district: '',
@@ -248,7 +245,7 @@ export default {
                 allowInputToggle:true
             },
       site_url: (api_endpoints.site_url.endsWith("/")) ? (api_endpoints.site_url): (api_endpoints.site_url + "/"),
-      datatable_id: 'proposal-datatable-'+vm._uid,
+      datatable_id: 'proposal-datatable-'+uuid(),
       proposal_headers:["Number","Type","Proponent","Text found","Action"],
       proposal_options:{
           language: {

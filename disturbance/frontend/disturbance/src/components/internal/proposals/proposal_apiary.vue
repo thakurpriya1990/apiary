@@ -503,6 +503,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 // import ProposalDisturbance from '../../form.vue'
 //import ProposalApiary from '../../form_apiary.vue'
 import ApiaryForm from '@/components/form_apiary.vue'
@@ -528,10 +529,10 @@ export default {
         let vm = this;
         return {
             requirementsComplete:true,
-            detailsBody: 'detailsBody'+vm._uid,
-            addressBody: 'addressBody'+vm._uid,
-            contactsBody: 'contactsBody'+vm._uid,
-            siteLocations: 'siteLocations'+vm._uid,
+            detailsBody: 'detailsBody'+ uuid(),
+            addressBody: 'addressBody'+ uuid(),
+            contactsBody: 'contactsBody'+ uuid(),
+            siteLocations: 'siteLocations'+ uuid(),
             defaultKey: "aho",
             "proposal": null,
             "original_proposal": null,
@@ -549,7 +550,7 @@ export default {
             showingRequirements:false,
             hasAmendmentRequest: false,
             state_options: ['requirements','processing'],
-            contacts_table_id: vm._uid+'contacts-table',
+            contacts_table_id: uuid() +'contacts-table',
             contacts_options:{
                 language: {
                     processing: constants.DATATABLE_PROCESSING_HTML,

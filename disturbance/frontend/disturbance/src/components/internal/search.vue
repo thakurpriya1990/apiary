@@ -178,11 +178,11 @@
 </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue'
 import alert from '@vue-utils/alert.vue'
 import {
   api_endpoints,
-  helpers,
   constants
 }
 from '@/utils/hooks'
@@ -196,9 +196,9 @@ export default {
   data() {
     let vm = this;
     return {
-      rBody: 'rBody' + vm._uid,
-      oBody: 'oBody' + vm._uid,
-      kBody: 'kBody' + vm._uid,
+      rBody: 'rBody' + uuid(),
+      oBody: 'oBody' + uuid(),
+      kBody: 'kBody' + uuid(),
       loading: [],
       filtered_url: api_endpoints.filtered_users + '?search=',
       searchKeywords: [],
@@ -213,7 +213,7 @@ export default {
       results: [],
       errors: false,
       errorString: '',
-      datatable_id: 'proposal-datatable-'+vm._uid,
+      datatable_id: 'proposal-datatable-'+uuid(),
       proposal_headers:["Number","Type","Proponent","Text found","Action"],
       proposal_options:{
           language: {

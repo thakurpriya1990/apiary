@@ -33,10 +33,9 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import AddCommLog from './add_comm_log.vue'
 import {
-    api_endpoints,
-    helpers,
     constants
 }from '@/utils/hooks'
 export default {
@@ -82,7 +81,6 @@ export default {
                     "url": vm.logs_url, 
                     "dataSrc": '',
                 },
-                order: [],
                 columns:[
                     {
                         data:"who",
@@ -95,7 +93,7 @@ export default {
                     {
                         data:"when",
                         orderable: false,
-                        mRender:function(data,type,full){
+                        mRender:function(data){
                             //return moment(data).format(vm.DATE_TIME_FORMAT)
                             return moment(data).format(vm.dateFormat);
                         }
@@ -326,9 +324,8 @@ export default {
     },
     methods:{
         initialiseCommLogs: function(vm_uid,ref,datatable_options,table){
-            let vm = this;
             let commsLogId = 'comms-log-table'+vm_uid;
-            let popover_name = 'popover-'+ vm._uid+'-comms';
+            let popover_name = 'popover-'+ uuid()+'-comms';
             $(ref).popover({
                 content: function() {
                     return ` 
@@ -358,18 +355,18 @@ export default {
                 });
             }).on('shown.bs.popover', function () {
                 var el = ref;
-                var popoverheight = parseInt($('.'+popover_name).height());
+                // var popoverheight = parseInt($('.'+popover_name).height());
 
                 var popover_bounding_top = parseInt($('.'+popover_name)[0].getBoundingClientRect().top);
-                var popover_bounding_bottom = parseInt($('.'+popover_name)[0].getBoundingClientRect().bottom);
+                // var popover_bounding_bottom = parseInt($('.'+popover_name)[0].getBoundingClientRect().bottom);
 
                 var el_bounding_top = parseInt($(el)[0].getBoundingClientRect().top);
-                var el_bounding_bottom = parseInt($(el)[0].getBoundingClientRect().top);
+                // var el_bounding_bottom = parseInt($(el)[0].getBoundingClientRect().top);
                 
                 var diff = el_bounding_top - popover_bounding_top;
 
-                var position = parseInt($('.'+popover_name).position().top);
-                var pos2 = parseInt($(el).position().top) - 5;
+                // var position = parseInt($('.'+popover_name).position().top);
+                // var pos2 = parseInt($(el).position().top) - 5;
 
                 var x = diff + 5;
                 $('.'+popover_name).children('.arrow').css('top', x + 'px');
@@ -377,9 +374,8 @@ export default {
 
         },
         initialiseActionLogs: function(vm_uid,ref,datatable_options,table){
-            let vm = this;
             let actionLogId = 'actions-log-table'+vm_uid;
-            let popover_name = 'popover-'+ vm._uid+'-logs';
+            let popover_name = 'popover-'+ uuid()+'-logs';
             $(ref).popover({
                 content: function() {
                     return ` 
@@ -405,18 +401,18 @@ export default {
                 table = $('#'+actionLogId).DataTable(datatable_options);
             }).on('shown.bs.popover', function () {
                 var el = ref;
-                var popoverheight = parseInt($('.'+popover_name).height());
+                // var popoverheight = parseInt($('.'+popover_name).height());
 
                 var popover_bounding_top = parseInt($('.'+popover_name)[0].getBoundingClientRect().top);
-                var popover_bounding_bottom = parseInt($('.'+popover_name)[0].getBoundingClientRect().bottom);
+                // var popover_bounding_bottom = parseInt($('.'+popover_name)[0].getBoundingClientRect().bottom);
 
                 var el_bounding_top = parseInt($(el)[0].getBoundingClientRect().top);
-                var el_bounding_bottom = parseInt($(el)[0].getBoundingClientRect().top);
+                // var el_bounding_bottom = parseInt($(el)[0].getBoundingClientRect().top);
                 
                 var diff = el_bounding_top - popover_bounding_top;
 
-                var position = parseInt($('.'+popover_name).position().top);
-                var pos2 = parseInt($(el).position().top) - 5;
+                // var position = parseInt($('.'+popover_name).position().top);
+                // var pos2 = parseInt($(el).position().top) - 5;
 
                 var x = diff + 5;
                 $('.'+popover_name).children('.arrow').css('top', x + 'px');
@@ -424,8 +420,8 @@ export default {
         },
         initialisePopovers: function(){
             if (!this.popoversInitialised){
-                this.initialiseActionLogs(this._uid,this.$refs.showActionBtn,this.actionsDtOptions,this.actionsTable);
-                this.initialiseCommLogs('-internal-proposal-'+this._uid,this.$refs.showCommsBtn,this.commsDtOptions,this.commsTable);
+                this.initialiseActionLogs(uuid(),this.$refs.showActionBtn,this.actionsDtOptions,this.actionsTable);
+                this.initialiseCommLogs('-internal-proposal-'+uuid(),this.$refs.showCommsBtn,this.commsDtOptions,this.commsTable);
                 this.popoversInitialised = true;
             }
         },

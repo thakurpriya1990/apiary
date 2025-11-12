@@ -129,6 +129,7 @@
 </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import $ from 'jquery'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
@@ -151,10 +152,8 @@ export default {
         isFinalised: false,
         errors: false,
         errorString: '',
-        pdBody: 'pdBody'+vm._uid,
-        oBody: 'oBody'+vm._uid,
-        isFinalised: false,
-        pdBody: 'pdBody'+vm._uid,
+        pdBody: 'pdBody'+uuid(),
+        oBody: 'oBody'+uuid(),
         hasDocuments: false,
         validation_form: null,
         files: [
