@@ -250,7 +250,8 @@ class Approval(RevisionedMixin):
     @property
     def relevant_applicant_address(self):
         if self.applicant:
-            return self.applicant.address
+            # return self.applicant.address
+            return self.applicant.address_string
         elif self.proxy_applicant:
             #return self.proxy_applicant.addresses.all().first()
             return self.proxy_applicant.residential_address
