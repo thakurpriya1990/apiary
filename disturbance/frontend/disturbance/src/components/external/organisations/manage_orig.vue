@@ -122,9 +122,8 @@
 </template>
 
 <script>
-//import $ from 'jquery'
-import Vue from 'vue'
-import { api_endpoints, helpers } from '@/utils/hooks'
+import { v4 as uuid } from 'uuid';
+import { api_endpoints, helpers , constants} from '@/utils/hooks'
 import datatable from '@vue-utils/datatable.vue'
 import utils from '../utils'
 import api from '../api'
@@ -133,7 +132,7 @@ import AddContact from '@common-utils/add_contact.vue'
 
 
 export default {
-    name: 'Organisation',
+    name: 'OrganisationComponent',
     props:{
         org_id:{
             type: Number,
@@ -179,10 +178,10 @@ export default {
     data () {
         let vm = this;
         return {
-            adBody: 'adBody'+vm._uid,
-            pBody: 'pBody'+vm._uid,
-            cBody: 'cBody'+vm._uid,
-            oBody: 'oBody'+vm._uid,
+            adBody: 'adBody'+uuid(),
+            pBody: 'pBody'+uuid(),
+            cBody: 'cBody'+uuid(),
+            oBody: 'oBody'+uuid(),
             org: null,
             loading: [],
             countries: [],
@@ -201,7 +200,7 @@ export default {
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             logsDtOptions:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 deferRender: true, 
@@ -236,7 +235,7 @@ export default {
             },
             commsDtOptions:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 deferRender: true, 
@@ -364,7 +363,7 @@ export default {
             contacts_headers:["Name","Phone","Mobile","Fax","Email","Action"],
             contacts_options:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 ajax: {
@@ -403,7 +402,7 @@ export default {
             contacts_headers_ref:["Name","Role","Email","Status","Action"],
             contacts_options_ref:{
                language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 ajax: {
@@ -930,7 +929,7 @@ export default {
                 //var another=error;
                 var text= helpers.apiVueResourceError(error);
                 if(typeof text == 'object'){
-                    if (text.hasOwnProperty('email')){
+                    if (Object.prototype.hasOwnProperty.call(text, 'email')) {
                         text=text.email[0];
                     }
                 }
