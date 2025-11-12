@@ -214,6 +214,14 @@ class ApplicantAddressSerializer(serializers.ModelSerializer):
             'postcode'
         )
 
+class OrgAddressSerializer(serializers.Serializer):
+    line1 = serializers.CharField()
+    locality = serializers.CharField()
+    state = serializers.CharField()
+    postcode = serializers.CharField()
+    country = serializers.CharField()
+
+
 
 class OnSiteInformationSerializer(serializers.ModelSerializer):
     apiary_site_id = serializers.IntegerField(read_only=True, source='apiary_site_on_approval.apiary_site.id')
