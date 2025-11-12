@@ -157,7 +157,7 @@ class ApplicationFeeView(TemplateView):
 
         proposal = self.get_object()
         application_fee = ApplicationFee.objects.create(proposal=proposal, created_by=request.user, payment_type=ApplicationFee.PAYMENT_TYPE_TEMPORARY)
-
+        print('application_fee:',application_fee)
         try:
             with transaction.atomic():
                 if proposal.application_type.name == ApplicationType.SITE_TRANSFER:
@@ -172,7 +172,7 @@ class ApplicationFeeView(TemplateView):
                         proposal,
                         lines,
                         return_url_ns='site_transfer_fee_success',
-                        return_preload_url_ns='site_transfer_fee_success',
+                        return_preload_url_ns='fee_success_preload',
                         invoice_text='Site Transfer Application Fee'
                     )
                 else:
@@ -199,47 +199,58 @@ class ApplicationFeeView(TemplateView):
 class SiteTransferApplicationFeeSuccessView(TemplateView):
     template_name = 'disturbance/payment/success_fee.html'
 
-    def get(self, request, *args, **kwargs):
-        print (" SITE TRANSFER APPLICATION FEE SUCCESS ")
-        #print(request.session.__dict__)
+    def get(self, request, lodgement_number, *args, **kwargs):
+        print (" SITE TRANSFER APPLICATION FEE SUCCESS VIEW ")
 
         proposal = None
         submitter = None
         invoice = None
         try:
-            application_fee = get_session_site_transfer_application_invoice(request.session)
-            proposal = application_fee.proposal
+            proposal = Proposal.objects.get(lodgement_number=lodgement_number)
+            print("proposal:",proposal)
+        except Exception as e:
+            print(e)
+            return redirect('home')
+        
+        try:
+            # application_fee = get_session_site_transfer_application_invoice(request.session)
+            application_fee = ApplicationFee.objects.filter(proposal=proposal).order_by('id').last()
             try:
                 if proposal.applicant:
                     recipient = proposal.applicant.email
-                    #submitter = proposal.applicant
                 elif proposal.proxy_applicant:
                     recipient = proposal.proxy_applicant.email
-                    #submitter = proposal.proxy_applicant
                 else:
                     recipient = proposal.submitter.email
-                    #submitter = proposal.submitter
             except:
                 recipient = proposal.submitter.email
             submitter = proposal.submitter
 
-            if self.request.user.is_authenticated:
-                basket = Basket.objects.filter(status='Submitted', owner=request.user).order_by('-id')[:1]
-            else:
-                basket = Basket.objects.filter(status='Submitted', owner=booking.proposal.submitter).order_by('-id')[:1]
+            # if self.request.user.is_authenticated:
+            #     basket = Basket.objects.filter(status='Submitted', owner=request.user).order_by('-id')[:1]
+            # else:
+            #     basket = Basket.objects.filter(status='Submitted', owner=proposal.submitter).order_by('-id')[:1]
 
-            order = Order.objects.get(basket=basket[0])
-            invoice = Invoice.objects.get(order_number=order.number)
-            invoice_ref = invoice.reference
-            fee_inv, created = ApplicationFeeInvoice.objects.get_or_create(application_fee=application_fee, invoice_reference=invoice_ref)
+            # order = Order.objects.get(basket=basket[0])
+            # invoice = Invoice.objects.get(order_number=order.number)
+            # invoice_ref = invoice.reference
+            # invoice_ref = request.GET.get('invoice')
+            # print("invoice_ref:",invoice_ref)
+            #fee_inv, created = ApplicationFeeInvoice.objects.get(application_fee=application_fee, invoice_reference=invoice_ref)
+            fee_inv = ApplicationFeeInvoice.objects.filter(application_fee=application_fee).order_by('id').last()
+            print("fee_inv",fee_inv)
+            if fee_inv and fee_inv.invoice_reference:
+                invoice_ref = fee_inv.invoice_reference
+                invoice = Invoice.objects.filter(reference=invoice_ref).order_by('id').last()
+
 
             if application_fee.payment_type == ApplicationFee.PAYMENT_TYPE_TEMPORARY:
                 try:
                     inv = Invoice.objects.get(reference=invoice_ref)
-                    order = Order.objects.get(number=inv.order_number)
-                    #order.user = submitter
-                    order.user = request.user
-                    order.save()
+                    # order = Order.objects.get(number=inv.order_number)
+                    # #order.user = submitter
+                    # order.user = request.user
+                    # order.save()
                 except Invoice.DoesNotExist:
                     logger.error('{} tried paying an application fee with an incorrect invoice'.format('User {} with id {}'.format(proposal.submitter.get_full_name(), proposal.submitter.id) if proposal.submitter else 'An anonymous user'))
                     return redirect('external-proposal-detail', args=(proposal.id,))
@@ -251,10 +262,10 @@ class SiteTransferApplicationFeeSuccessView(TemplateView):
                     #application_fee.payment_type = 1  # internet booking
                     application_fee.payment_type = ApplicationFee.PAYMENT_TYPE_INTERNET
                     application_fee.expiry_time = None
-                    update_payments(invoice_ref)
+                    #update_payments(invoice_ref)
 
-                    if proposal and (invoice.payment_status == 'paid' or invoice.payment_status == 'over_paid'):
-                        # proposal.fee_invoice_reference = invoice_ref
+                    invoice_properties = get_invoice_properties(invoice.id)
+                    if proposal and (invoice_properties['data']['invoice']['payment_status'] == 'paid' or invoice_properties['data']['invoice']['payment_status'] == 'over_paid'):
                         if isinstance(proposal.fee_invoice_references, list):
                             proposal.fee_invoice_references.append(invoice_ref)
                         else:
@@ -262,7 +273,7 @@ class SiteTransferApplicationFeeSuccessView(TemplateView):
                         proposal.save()
                         proposal_submit_apiary(proposal, request)
                     else:
-                        logger.error('Invoice payment status is {}'.format(invoice.payment_status))
+                        logger.error('Invoice payment status is {}'.format(invoice_properties['data']['invoice']['payment_status']))
                         raise
 
                     application_fee.save()
@@ -280,7 +291,7 @@ class SiteTransferApplicationFeeSuccessView(TemplateView):
                     return render(request, self.template_name, context)
 
         except Exception as e:
-            #import ipdb; ipdb.set_trace()
+            print(e)
             if ('site_transfer_last_app_invoice' in request.session) and ApplicationFee.objects.filter(id=request.session['site_transfer_last_app_invoice']).exists():
                 application_fee = ApplicationFee.objects.get(id=request.session['site_transfer_last_app_invoice'])
                 proposal = application_fee.proposal

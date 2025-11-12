@@ -5,3 +5,15 @@
     <li><a class="dropdown-item" href="/ledger-ui/accounts-management">Accounts Management</a></li>
 {% endif %}
 <li><a class="dropdown-item" href="/ledger-ui/system-accounts">Manage Account</a></li>
+{% for org in request.user.disturbance_organisations.all %}
+    {% for org_contact in org.contacts.all%}
+        {% if org_contact.email == request.user.email %}
+            {% if org_contact.user_status == 'active' %}
+                {% if org_contact.is_admin or org_contact.check_consultant %}
+                    <li><a href="/ledger-ui/organisation/{{org.organisation_id}}/">Manage {{org.name}} </a></li>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+{% endfor %}
+<li role="separator" class="divider"></li>

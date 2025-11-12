@@ -1,0 +1,21 @@
+{% extends "ledgerui/organisation.html" %}
+
+{% load static %}
+
+{% block myorganisation_nav %}
+
+<button class="nav-link managed-organisation-nav" id="nav-manage-organisation-tab" data-bs-toggle="tab" data-bs-target="#nav-manage-organisation" type="button" role="tab" aria-controls="nav-manage-organisation" aria-selected="false">Manage Organisation</button>
+
+{% endblock %}
+
+{% block additional_content %}
+
+<div id="nav-manage-organisation-tab-page" style="display:none;">
+    <div id="app"></div>
+</div>
+
+
+<script type="text/javascript" src="{% static 'disturbance_vue/js/chunk-vendors.js' %}?v={{build_tag}}"></script>
+<script type="text/javascript" src="{% static 'disturbance_vue/js/app.js' %}?v={{build_tag}}"></script>
+
+{% endblock %}	

@@ -58,16 +58,29 @@ class ApiaryAnnualRentalFeePeriodStartDateAdmin(admin.ModelAdmin):
 @admin.register(models.Proposal)
 class ProposalAdmin(VersionAdmin):
     inlines =[ProposalDocumentInline,]
-    list_display = ['lodgement_number', 'application_type', 'proposal_type', 'processing_status']
+    list_display = ['lodgement_number', 'application_type', 'proposal_type', 'processing_status', 'approval',  'previous_app_lodgement_number', 'proxy_applicant', 'submitter', 'applicant']
     search_fields = ['lodgement_number', 'application_type__name', 'proposal_type', 'processing_status']
     #raw_id_fields = ('applicant','proxy_applicant','submitter','previous_application', 'assigned_officer', 'assigned_approver')
     raw_id_fields = ('applicant','proxy_applicant','submitter','previous_application', 'assigned_officer', 'assigned_approver', 'approval')
     readonly_fields = ['approval_level_document']
 
+    @admin.display(description='Prev. App No.')
+    def previous_app_lodgement_number(self, obj):
+        if obj.previous_application:
+            return obj.previous_application.lodgement_number
+        else:
+            return ''
+
 @admin.register(models.ApiarySite)
 class ApiarySite(admin.ModelAdmin):
     list_display = ['id', 'site_guid','is_vacant']
     readonly_fields = ['site_guid','is_vacant','latest_proposal_link','latest_approval_link','proposal_link_for_vacant','approval_link_for_vacant', 'coordinates']
+
+
+@admin.register(models.ApiarySiteOnProposal)
+class ApiarySiteOnProposalAdmin(admin.ModelAdmin):
+    list_display = ['apiary_site', 'proposal_apiary', 'site_status', 'for_renewal', 'making_payment', 'application_fee_paid', 'created_at', 'modified_at',]
+    readonly_fields = ['apiary_site', 'proposal_apiary', 'site_status', 'created_at', 'modified_at',]
 
 
 class ProposalAssessorGroupMembershipInline(admin.TabularInline):

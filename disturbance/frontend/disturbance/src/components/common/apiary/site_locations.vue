@@ -1908,9 +1908,9 @@
                 this.$http.get('/api/apiary_site/list_existing_approval/?proposal_id=' + this.proposal.id).then(
                     res => {
                         let num_sites = 0
-                        if(res.body.features){
-                            vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(res.body))
-                            num_sites = res.body.features.length
+                        if(res.features){
+                            vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(res))
+                            num_sites = res.features.length
                         }
                         vm.approval_loaded = true
                         vm.display_duration('approval (' + num_sites + ' sites)')

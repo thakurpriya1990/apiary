@@ -3,7 +3,7 @@ const { defineConfig } = require('@vue/cli-service');
 const path = require('path');
 const webpack = require('webpack');
 const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
-const port = process.env.PORT ? parseInt(process.env.PORT) : 9122;
+const port = process.env.PORT ? parseInt(process.env.PORT) : 9062;
 
 module.exports = defineConfig({
     runtimeCompiler: true,

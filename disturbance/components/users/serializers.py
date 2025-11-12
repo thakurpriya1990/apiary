@@ -10,6 +10,7 @@ from disturbance.components.approvals.models import Approval
 from disturbance.components.proposals.models import Proposal
 from disturbance.components.main.models import ApplicationType
 from disturbance.components.main.utils import get_template_group
+from disturbance.helpers import is_internal
 
 class DocumentSerializer(serializers.ModelSerializer):
 
@@ -243,3 +244,109 @@ class ContactSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('You must provide a mobile/phone number')
         return obj
 
+class MyUserDetailsSerializer(serializers.ModelSerializer):
+    residential_address = UserAddressSerializer()
+    personal_details = serializers.SerializerMethodField()
+    address_details = serializers.SerializerMethodField()
+    contact_details = serializers.SerializerMethodField()
+    disturbance_organisations = serializers.SerializerMethodField()
+    #identification = IdentificationSerializer()
+    is_customer = serializers.SerializerMethodField()
+    is_internal = serializers.SerializerMethodField()
+    dob = serializers.SerializerMethodField(read_only=True)
+    legal_dob = serializers.SerializerMethodField(read_only=True)
+    #has_complete_first_time = serializers.SerializerMethodField(read_only=True)
+    sso_setting_url = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = EmailUser
+        fields = (
+            'title',
+            'id',
+            'last_name',
+            'first_name',
+            'dob',
+            'legal_last_name',
+            'legal_first_name',
+            'legal_dob',
+            'email',
+            # 'identification',
+            'residential_address',
+            'phone_number',
+            'mobile_number',
+            'fax_number',
+            'disturbance_organisations',
+            'personal_details',
+            'address_details',
+            'contact_details',
+            'is_customer',
+            'is_internal',
+            'sso_setting_url',
+        )
+
+    def get_has_complete_first_time(self, obj):
+        '''
+        Verify request user has completed adding reqired details for first time
+        usage.
+        '''
+        is_completed = False
+
+        request = self.context.get('request')
+
+        if is_internal(request):
+            is_completed = True
+        else:
+            is_completed = not is_new_to_wildlifelicensing(request)
+
+        return is_completed
+
+
+    def get_dob(self, obj):
+        formatted_date = obj.dob.strftime(
+            '%d/%m/%Y'
+        ) if obj.dob else None
+
+        return formatted_date
+    
+    def get_legal_dob(self, obj):
+        formatted_date = obj.legal_dob.strftime(
+            '%d/%m/%Y'
+        ) if obj.legal_dob else None
+
+        return formatted_date
+
+    def get_personal_details(self, obj):
+        return True if obj.last_name and obj.first_name and (obj.dob or obj.legal_dob)  else False
+
+    def get_address_details(self, obj):
+        return True if obj.residential_address else False
+
+    def get_contact_details(self, obj):
+        if obj.mobile_number and obj.email:
+            return True
+        elif obj.phone_number and obj.email:
+            return True
+        elif obj.mobile_number and obj.phone_number:
+            return True
+        else:
+            return False
+
+    def get_disturbance_organisations(self, obj):
+        request = self.context.get('request')
+        disturbance_organisations = obj.disturbance_organisations
+        serialized_orgs = UserOrganisationSerializer(
+            disturbance_organisations, many=True, 
+            context={
+                'user_id': obj.id,
+                'request': request
+                }).data
+        return serialized_orgs
+
+    def get_is_customer(self, obj):
+        return not is_internal(self.context.get('request'))
+
+    def get_is_internal(self, obj):
+        return is_internal(self.context.get('request'))
+    
+    def get_sso_setting_url(self, obj):
+        return settings.SSO_SETTING_URL
