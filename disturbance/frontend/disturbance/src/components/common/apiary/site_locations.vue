@@ -1509,7 +1509,7 @@
                 vm.drawingLayerSource.on('addfeature', async function(e){
                     let coords = e.feature.getGeometry().getCoordinates()
                     let ret = await vm.$http.get('/gisdata/?layer=wa_coast_smoothed&lat=' + coords[1] + '&lng=' + coords[0])
-                    if(!ret.body.hasOwnProperty('id')){
+                    if (!Object.prototype.hasOwnProperty.call(ret.body,'id')) {
                         vm.removeBufferForSite(e.feature)
                         vm.drawingLayerSource.removeFeature(e.feature);
                     }
@@ -1671,7 +1671,7 @@
                                 }
                                 else {
                                     let ret = await vm.$http.get('/gisdata/?layer=wa_coast_smoothed&lat=' + coords[1] + '&lng=' + coords[0])
-                                    if(!ret.body.hasOwnProperty('id')){
+                                    if (!Object.prototype.hasOwnProperty.call(ret.body, 'id')) {
                                         // rollback proposed modification
                                         let c = feature.get("stable_coords");
                                         feature.getGeometry().setCoordinates(c);

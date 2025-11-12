@@ -4,10 +4,10 @@
 
     <SchemaTabs :tabs="tabs" :initialTab="initialTab">
 
-        <template slot="tab-panel-question"><SchemaQuestion /></template>
-        <template slot="tab-panel-masterlist"><SchemaMasterlist /></template>
-        <template slot="tab-panel-proposal-type"><SchemaProposalType /></template>
-        <!-- <template slot="tab-panel-group"><SchemaGroup /></template> -->
+        <template #tab-panel-question><SchemaQuestion /></template>
+        <template #tab-panel-masterlist><SchemaMasterlist /></template>
+        <template #tab-panel-proposal-type><SchemaProposalType /></template>
+        <!-- <template #tab-panel-group><SchemaGroup /></template> -->
 
     </SchemaTabs>
 

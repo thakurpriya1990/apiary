@@ -97,11 +97,11 @@
 
             </div>
 
-            <div slot="footer">
+            <template #footer>
                 <button type="button" v-if="issuingApproval" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
                 <button type="button" v-else class="btn btn-default" @click="ok">Ok</button>
                 <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
-            </div>
+            </template>
         </modal>
     </div>
 </template>
@@ -154,7 +154,6 @@ export default {
         },
     },
     data:function () {
-        let vm = this;
         return {
             isModalOpen:false,
             form:null,
@@ -241,7 +240,7 @@ export default {
             */
             var postFormStr = "<form method='POST' target='_blank' name='Preview Licence' action='" + url + "'>";
             for (var key in postData) {
-                if (postData.hasOwnProperty(key)) {
+                if (Object.prototype.hasOwnProperty.call(postData, key)) {
                     postFormStr += "<input type='hidden' name='" + key + "' value='" + postData[key] + "'>";
                 }
             }
@@ -317,7 +316,7 @@ export default {
         },
         validateApprovalCC: function() {
             let vm = this;
-            const ccRegex = new RegExp(/^(([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5}){1,25})+([,.](([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5}){1,25})+)*$/)
+            const ccRegex = new RegExp(/^(([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5}){1,25})+([,.](([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5}){1,25})+)*$/)
             if (!vm.approval.cc_email || ccRegex.test(vm.approval.cc_email)) {
                 vm.approvalCCError = false;
                 vm.approvalCCErrorString = '';
@@ -331,7 +330,7 @@ export default {
         },
         validateApplicantAddress: function() {
             let vm = this;
-            if (vm.relevant_applicant_address.hasOwnProperty("id")) {
+            if (Object.prototype.hasOwnProperty.call(vm.relevant_applicant_address, "id")) {
                 vm.applicantAddressError = false;
                 vm.applicantAddressErrorString = '';
                 return true;

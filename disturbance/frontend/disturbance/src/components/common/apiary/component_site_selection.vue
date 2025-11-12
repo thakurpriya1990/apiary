@@ -40,7 +40,6 @@
     import ComponentMap from '@/components/common/apiary/component_map.vue'
     import { getDisplayNameFromStatus, getStatusForColour, SiteColours } from '@/components/common/apiary/site_colours.js'
     import {
-        helpers,
         constants
     }from '@/utils/hooks'
 
@@ -213,7 +212,7 @@
                     },
                     responsive: true,
                     processing: true,
-                    createdRow: function(row, data, index){
+                    createdRow: function(row, data){
                         $(row).attr('data-apiary-site-id', data.id)
                     },
                     columns: [
@@ -287,7 +286,8 @@
                         {
                             // Longitude
                             visible: vm.show_col_longitude,
-                            mRender: function (data, type, apiary_site){
+                            // mRender: function (data, type, apiary_site){
+                            mRender: function (){
                                 return 'lng'
                             },
                             defaultContent: '',
@@ -295,7 +295,8 @@
                         {
                             // Latitude
                             visible: vm.show_col_latitude,
-                            mRender: function (data, type, apiary_site){
+                            // mRender: function (data, type, apiary_site){
+                            mRender: function (){
                                 return 'lat'
                             },
                             defaultContent: '',
@@ -303,7 +304,8 @@
                         {
                             // District
                             visible: vm.show_col_district,
-                            mRender: function (data, type, apiary_site){
+                            // mRender: function (data, type, apiary_site){
+                            mRender: function (){
                                 return 'dist'
                             },
                             defaultContent: '',
@@ -367,7 +369,7 @@
                             // Vacant (at time of submit): yes/no
                             visible: vm.show_col_vacant_when_submitted,
                             mRender: function (data, type, apiary_site) {
-                                let status = apiary_site.properties.status
+                                // let status = apiary_site.properties.status
                                 let is_vacant = apiary_site.properties.apiary_site_is_vacant_when_submitted
                                 if(is_vacant === true){
                                     return '<i class="fa fa-check" aria-hidden="true"></i>'
@@ -537,7 +539,7 @@
             ensureCheckedStatus: function() {
                 if (this.apiary_sites.length > 0){
                     for(let i=0; i<this.apiary_sites.length; i++){
-                        if (!this.apiary_sites[i].hasOwnProperty('checked')){
+                        if (!Object.prototype.hasOwnProperty.call(this.apiary_sites[i], 'checked')) {
                             this.apiary_sites[i].checked = this.default_checkbox_checked
                         }
                     }
@@ -555,7 +557,7 @@
             },
             addApiarySitesToMap: function(apiary_sites) {
                 for (let i=0; i<apiary_sites.length; i++){
-                    if (apiary_sites[i].hasOwnProperty('checked')){
+                    if (Object.prototype.hasOwnProperty.call(apiary_sites[i], 'checked')) {
                         //apiary_sites[i].as_geojson['properties']['checked'] = apiary_sites[i].checked
                         //apiary_sites[i].as_geojson.properties.checked = apiary_sites[i].checked
                         apiary_sites[i].properties.checked = apiary_sites[i].checked
@@ -634,7 +636,6 @@
                 }
             },
             checkboxClicked: function(e) {
-                let vm = this;
                 //let apiary_site_id = e.target.getAttribute("data-apiary-site-id");
                 let apiary_site_id = this.getApiarySiteIdFromEvent(e)
                 let checked_status = e.target.checked
@@ -648,7 +649,6 @@
                 e.stopPropagation()
             },
             checkboxLicensedSiteClicked: function(e) {
-                let vm = this;
                 //let apiary_site_id = e.target.getAttribute("data-apiary-site-id");
                 let apiary_site_id = this.getApiaryLicensedSiteIdFromEvent(e)
                 let checked_status = e.target.checked
@@ -676,7 +676,6 @@
                 e.stopPropagation()
             },
             contactLicenceHolder: function(e){
-                let vm = this;
                 //let apiary_site_id = e.target.getAttribute("data-apiary-site-id");
                 let apiary_site_id = e.target.getAttribute("data-contact-licence-holder");
 
@@ -747,7 +746,7 @@
                     }
                 }
             },
-            mouseLeave: function(e){
+            mouseLeave: function(){
                 let vm = this;
                 if (!vm.not_close_popup_by_mouseleave){
                     vm.$refs.component_map.closePopup()

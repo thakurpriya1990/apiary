@@ -202,9 +202,9 @@
                 </form>
             </div>
         </div>
-        <div slot="footer">
+        <template #footer>
             <button type="button" class="btn btn-primary" @click="saveQuestion">Save</button>
-        </div>
+        </template>
     </modal>
 
   </div>

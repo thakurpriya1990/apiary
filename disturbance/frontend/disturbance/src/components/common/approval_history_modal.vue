@@ -18,7 +18,7 @@
                 </form>
 
             </div>
-            <div slot="footer" />
+            <template #footer />
         </modal>
 
     </div>

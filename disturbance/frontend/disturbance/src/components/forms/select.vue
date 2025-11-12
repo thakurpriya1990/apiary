@@ -132,7 +132,7 @@ export default {
             for(var i=0; i<boxes.length; i++){
                 console.log('comment box')
                 console.log(boxes[i])
-                if(boxes[i].hasOwnProperty('value')){
+                if (Object.prototype.hasOwnProperty.call(boxes[i], 'value')) {
                     if(boxes[i].value!=null && boxes[i].value!=undefined && boxes[i].value!= '' ){
                         has_value=true;
                     }

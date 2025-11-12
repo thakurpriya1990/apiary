@@ -80,7 +80,7 @@
 
                 </div>
             </div>
-            <div slot="footer">
+            <template #footer>
                 <div v-if="errorResponse" class="form-group">
                     <div class="row">
                         <div class="col-sm-12">
@@ -93,7 +93,7 @@
                 <button type="button" v-if="processingDetails" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Adding</button>
                 <button type="button" v-else class="btn btn-default" @click="ok">Ok</button>
                 <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
-            </div>
+            </template>
         </modal>
     </div>
 </template>
@@ -255,7 +255,7 @@
                 } else {
                     // When field errors raised
                     for (let field_name in err.body){
-                        if (err.body.hasOwnProperty(field_name)){
+                        if (Object.prototype.hasOwnProperty.call(err.body, field_name)) {
                             errorText += field_name + ': ';
                             for (let j=0; j<err.body[field_name].length; j++){
                                 errorText += err.body[field_name][j] + '<br />';

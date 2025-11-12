@@ -321,14 +321,14 @@
             </div>
 -->
 
-            <div slot="footer">
+            <template #footer>
                 <button type="button" v-if="issuingApproval" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
                 <span v-else-if="ok_button_disabled" class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Please select at least one site to issue">
                     <button type="button" style="pointer-events: none;" class="btn btn-default" @click="ok" disabled>Ok</button>
                 </span>
                 <button v-else type="button" class="btn btn-default" @click="ok" >Ok</button>
                 <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
-            </div>
+            </template>
         </modal>
     </div>
 </template>
@@ -675,7 +675,7 @@ export default {
             */
             var postFormStr = "<form method='POST' target='_blank' name='Preview Licence' action='" + url + "'>";
             for (var key in postData) {
-                if (postData.hasOwnProperty(key)) {
+                if (Object.prototype.hasOwnProperty.call(postData, key)) {
                     postFormStr += "<input type='hidden' name='" + key + "' value='" + postData[key] + "'>";
                 }
             }

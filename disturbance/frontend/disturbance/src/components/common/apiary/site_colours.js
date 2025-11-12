@@ -73,7 +73,7 @@ export function getStatusForColour(feature_or_apiary_site, vacant_suppress_disca
     let is_vacant_when_submitted = false
     let making_payment = false
 
-    if (feature_or_apiary_site.hasOwnProperty('ol_uid')){
+    if (Object.prototype.hasOwnProperty.call(feature_or_apiary_site, 'ol_uid')) {
         // feature_or_apiary_site is Feature object
         my_status = feature_or_apiary_site.get("status");
         is_vacant = feature_or_apiary_site.get('is_vacant')

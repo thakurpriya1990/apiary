@@ -158,7 +158,7 @@
                 var postFormStr = "<form method='POST' action='" + url + "'>";
 
                 for (var key in postData) {
-                    if (postData.hasOwnProperty(key)) {
+                    if (Object.prototype.hasOwnProperty.call(postData, key)) {
                         postFormStr += "<input type='hidden' name='" + key + "' value='" + postData[key] + "'>";
                     }
                 }
