@@ -230,9 +230,8 @@
 //import {$,swal,bus,datetimepicker,api_endpoints,helpers,Moment,validate} from "@/utils/hooks.js"
 import {api_endpoints,helpers} from "@/utils/hooks.js"
 export default {
-    name:"reports",
+     name:"PaymentReports",
     data:function () {
-        let vm = this;
         return {
             form:null,
             refund_form:null,

@@ -16,14 +16,13 @@
 </template>
 
 <script>
-import { api_endpoints, helpers } from '@/utils/hooks'
+// import { api_endpoints, helpers } from '@/utils/hooks'
 import ProposalTemporaryUse from '@/components/external/proposal_temporary_use.vue'
 import Proposal from '@/components/external/proposal_external.vue'
 
 export default {
     name: 'ExternalProposalWrapper',
     data() {
-        let vm = this;
         return {
             proposalId: null,
             applicationTypeName: '',
@@ -44,7 +43,6 @@ export default {
 
     },
     beforeRouteEnter: function(to, from, next) {
-        let vm = this
         Vue.http.get(`/api/proposal/${to.params.proposal_id}/internal_proposal_wrapper.json`).then(res => {
             next(vm => {
                 vm.proposalId = res.body.id;

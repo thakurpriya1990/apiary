@@ -16,14 +16,13 @@
 
 import ApiaryApproval from './apiary_approval.vue';
 import {
-  api_endpoints,
-  helpers
+//   api_endpoints,
+//   helpers
 }
 from '@/utils/hooks'
 export default {
     name: 'ApprovalWrapper',
     data() {
-        let vm = this;
         return {
             approvalId: null,
             apiaryApproval: false,

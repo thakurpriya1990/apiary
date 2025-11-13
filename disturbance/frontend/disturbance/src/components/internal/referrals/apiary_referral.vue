@@ -647,7 +647,7 @@ export default {
         ammendmentRequest: function(){
             this.$refs.ammendment_request.isModalOpen = true;
         },
-        save: function(e) {
+        save: function() {
           let vm = this;
           let formData = new FormData(vm.form);
           fetch(vm.proposal_form_url, {
@@ -937,7 +937,7 @@ export default {
                             }
                             return response.json();
                         })
-                        .then(responseData => {
+                        .then(() => {
                             //this.referral = responseData;
                             this.$router.push({ path: '/internal' });
                          })

@@ -55,7 +55,6 @@ require('../node_modules/jquery.easing')
 // } );
 
 
-/* eslint-disable no-new */
 // new Vue( {
 //   el: '#app',
 //   router,

@@ -25,7 +25,6 @@ import ApiaryReferral from './apiary_referral.vue';
 export default {
     name: 'ReferralWrapper',
     data() {
-        let vm = this;
         return {
             referralId: null,
             apiaryReferral: false,

@@ -115,7 +115,7 @@ export default {
                     },
                     {
                         data: "due_date",
-                        mRender:function (data,type,full) {
+                        mRender:function (data) {
                             return data != '' && data != null ? moment(data).format('DD/MM/YYYY'): '';
                         },
                         orderable: false,
@@ -174,7 +174,7 @@ export default {
                     }
                 ],
                 processing: true,
-                drawCallback: function (settings) {
+                drawCallback: function () {
                     $(vm.$refs.target_requirements_datatable.table).find('tr:last .dtMoveDown').remove();
                     $(vm.$refs.target_requirements_datatable.table).children('tbody').find('tr:first .dtMoveUp').remove();
 

@@ -35,15 +35,9 @@
     </div>
 </template>
 <script>
-import {
-  api_endpoints,
-  helpers
-}
-from '@/utils/hooks'
-//import utils from './utils'
 export default {
+    name: 'ComplianceSubmit',
   data: function() {
-    let vm = this;
     return {
         "compliance": {},
     }

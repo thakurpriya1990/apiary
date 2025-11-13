@@ -20,12 +20,12 @@
                                     <div class="col-sm-9" v-if="requirement.standard">
                                         <div style="width:70% !important">
                                             <select class="form-control" ref="standard_req" name="standard_requirement" v-model="requirement.standard_requirement">
-                                                <option v-for="r in requirements" :value="r.id">{{r.code}} {{r.text}}</option>
+                                                <option v-for="r in requirements" :value="r.id" :key="r.id">{{r.code}} {{r.text}}</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div class="col-sm-9" v-else>
-                                        <textarea style="width: 70%;"class="form-control" name="free_requirement" v-model="requirement.free_requirement"></textarea>
+                                        <textarea style="width: 70%;" class="form-control" name="free_requirement" v-model="requirement.free_requirement"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -182,6 +182,7 @@ export default {
     },
     methods:{
         initialiseRequirement: function(){
+            let vm = this;
             this.requirement = {
                 due_date: '',
                 standard: true,
@@ -275,21 +276,21 @@ export default {
                 rules: {
                     standard_requirement:{
                         required: {
-                            depends: function(el){
+                            depends: function(){
                                 return vm.requirement.standard;
                             }
                         }
                     },
                     free_requirement:{
                         required: {
-                            depends: function(el){
+                            depends: function(){
                                 return !vm.requirement.standard;
                             }
                         }
                     },
                     schedule:{
                         required: {
-                            depends: function(el){
+                            depends: function(){
                                 return vm.requirement.recurrence;
                             }
                         }
