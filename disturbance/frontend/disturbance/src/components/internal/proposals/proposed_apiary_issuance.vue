@@ -133,7 +133,7 @@
                                     <pre>{{ site.properties }}</pre>
                                     <pre>{{ site.properties.licensed_site }}</pre>
 -->
-                            <div v-for="(site, index) in apiary_sites_updated_ordered">
+                            <div v-for="(site) in apiary_sites_updated_ordered" :key="site">
                                 <div v-if="!site.properties.licensed_site">
 				    <div class="col-md-12">
 					<div class="row">
@@ -544,11 +544,13 @@ export default {
             if (this.proposal.proposal_apiary && this.proposal.proposal_apiary.transferee_email_text){
                 return  this.proposal.proposal_apiary.transferee_email_text;
             }
+            return '';
         },
         originatingLicenceRecipients: function() {
             if (this.proposal.proposal_apiary && this.proposal.proposal_apiary.transferee_email_text && this.proposal.applicant){
                 return  this.proposal.applicant.email;
             }
+            return '';
         },
         apiary_sites_updated_ordered: function () {
             // adding ordering here on client-side, because iserver-side serializer is ordered for 'apiary_site_id'

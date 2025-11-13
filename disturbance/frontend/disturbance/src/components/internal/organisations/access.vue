@@ -53,7 +53,7 @@
                                     </select>
                                     <select @change="assignTo" :disabled="isFinalised || !check_assessor()" v-if="!isLoading" class="form-control" v-model="access.assigned_officer">
                                         <option value="null">Unassigned</option>
-                                        <option v-for="member in members" :value="member.id">{{member.name}}</option>
+                                        <option v-for="member in members" :value="member.id" :key="member.id">{{member.name}}</option>
                                     </select>
                                     <a v-if="!isFinalised && check_assessor()" @click.prevent="assignMyself()" class="actionBtn pull-right">Assign to me</a>
                                 </div>
@@ -127,7 +127,6 @@
 </template>
 <script>
 import $ from 'jquery'
-import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import {
   api_endpoints,
@@ -179,7 +178,7 @@ export default {
                 },
                 {
                     data:"when",
-                    mRender:function(data,type,full){
+                    mRender:function(data){
                         return moment(data).format(vm.DATE_TIME_FORMAT)
                     }
                 },
@@ -313,7 +312,6 @@ export default {
     })
   },
   components: {
-    datatable,
     CommsLogs
   },
   computed: {
@@ -393,7 +391,7 @@ export default {
                 console.log(error);
             });
         },(error) => {
-
+            console.log(error);
         });
 
     },
@@ -415,7 +413,7 @@ export default {
                 console.log(error);
             });
         },(error) => {
-
+            console.log(error);
         });
     },
 

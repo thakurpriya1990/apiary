@@ -95,7 +95,7 @@
                                             <label for="" class="col-sm-3 control-label" >Country</label>
                                             <div class="col-sm-4">
                                                 <select class="form-control" name="country" v-model="org.address.country">
-                                                    <option v-for="c in countries" :value="c.code">{{ c.name }}</option>
+                                                    <option v-for="c in countries" :value="c.code" :key="c.code">{{ c.name }}</option>
                                                 </select>
                                             </div>
                                           </div>
@@ -148,7 +148,7 @@
                                                 <div class="col-sm-12">
                                                     <h4>Persons linked to this organisation:</h4>
                                                 </div>
-                                                <div v-for="d in org.delegates">
+                                                <div v-for="d in org.delegates" :key="d.id">
                                                     <div v-if="d.is_admin" class="col-sm-6">
                                                         <h4>{{d.name}} (Admin)</h4>
                                                     </div>
@@ -395,6 +395,7 @@ export default {
                 }).then(() => {
                     vm.deleteContact(id);
                 },(error) => {
+                    console.log(error);
                 });
             });
 
@@ -405,7 +406,7 @@ export default {
             });
 
             // Fix the table responsiveness when tab is shown
-            $('a[href="#'+vm.oTab+'"]').on('shown.bs.tab', function (e) {
+            $('a[href="#'+vm.oTab+'"]').on('shown.bs.tab', function () {
                 vm.$refs.proposals_table.$refs.proposal_datatable.vmDataTable.columns.adjust().responsive.recalc();
                 vm.$refs.approvals_table.$refs.proposal_datatable.vmDataTable.columns.adjust().responsive.recalc();
                 vm.$refs.compliances_table.$refs.proposal_datatable.vmDataTable.columns.adjust().responsive.recalc();
@@ -492,7 +493,6 @@ export default {
         },
     },
     mounted: function(){
-        let vm = this;
         this.personal_form = document.forms.personal_form;
         this.eventListeners();
     },

@@ -84,7 +84,7 @@
                                                 <th>Status/Action</th>
                                             </tr>
                                         </thead>
-                                        <tr v-for="r in proposal.latest_referrals">
+                                        <tr v-for="r in proposal.latest_referrals" :key="r.id">
                                             <td>
                                                 <small><strong>{{r.referral}}</strong></small><br/>
                                                 <small><strong>{{ formatDate(r.lodged_on) }}</strong></small>
@@ -92,7 +92,7 @@
                                             <td>
                                                 <small><strong>{{r.processing_status}}</strong></small><br/>
                                                 <template v-if="r.processing_status == 'Awaiting'">
-                                                    <small v-if="canLimitedAction"><a @click.prevent="remindReferral(r)" href="#">Remind</a> / <a @click.prevent="recallReferral(r)"href="#">Recall</a></small>
+                                                    <small v-if="canLimitedAction"><a @click.prevent="remindReferral(r)" href="#">Remind</a> / <a @click.prevent="recallReferral(r)" href="#">Recall</a></small>
                                                 </template>
                                                 <template v-else>
                                                     <small v-if="canLimitedAction"><a @click.prevent="resendReferral(r)" href="#">Resend</a></small>
@@ -111,13 +111,13 @@
                                 <div class="form-group">
                                     <template v-if="proposal.processing_status == 'With Approver'">
                                         <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="proposal.assigned_approver">
-                                            <option v-for="member in proposal.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
+                                            <option v-for="member in proposal.allowed_assessors" :value="member.id" :key="member.id">{{member.first_name}} {{member.last_name}}</option>
                                         </select>
                                         <a v-if="canAssess && proposal.assigned_approver != proposal.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
                                     </template>
                                     <template v-else>
                                         <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="proposal.assigned_officer">
-                                            <option v-for="member in proposal.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
+                                            <option v-for="member in proposal.allowed_assessors" :value="member.id" :key="member.id">{{member.first_name}} {{member.last_name}}</option>
                                         </select>
                                         <a v-if="canAssess && proposal.assigned_officer != proposal.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
                                     </template>
@@ -394,10 +394,10 @@ require("select2/dist/css/select2.min.css");
 require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
 // import ProposalDisturbance from '../../form.vue'
 import ProposalApiary from '@/components/form_apiary.vue'
-import NewApply from '../../external/proposal_apply_new.vue'
+// import NewApply from '../../external/proposal_apply_new.vue'
 import ProposedDecline from './proposal_proposed_decline.vue'
 import AmendmentRequest from './amendment_request.vue'
-import datatable from '@vue-utils/datatable.vue'
+// import datatable from '@vue-utils/datatable.vue'
 import Requirements from './proposal_requirements.vue'
 import ProposedApproval from './proposed_issuance.vue'
 import ApprovalScreen from './proposal_approval.vue'
@@ -494,7 +494,6 @@ export default {
     components: {
         // ProposalDisturbance,
         ProposalApiary,
-        datatable,
         ProposedDecline,
         AmendmentRequest,
         Requirements,
@@ -503,7 +502,7 @@ export default {
         CommsLogs,
         RevisionHistory,
         MoreReferrals,
-        NewApply,
+        // NewApply,
     },
     props: {
         proposalId: {
@@ -743,7 +742,7 @@ export default {
                             to show the state of the older version.
                         */
                         let select_found = false;
-                        $.each(replacement.siblings(), (function(i, obj){
+                        $.each(replacement.siblings(), (function(){
                             let compare_select = null;
                             let compare_select_id = k + '_compare_select';
                             if ($(this).is('select:not(.revision_note)')){
@@ -753,14 +752,14 @@ export default {
                                     compare_select.attr('id', compare_select_id);
                                     compare_select.addClass('revision_note');
                                     replacement.last().after(compare_select);
-                                    vm.$nextTick(function(e){
+                                    vm.$nextTick(function(){
                                         $('#'+compare_select_id).select2({
                                             "theme": "bootstrap",
                                             allowClear: true,
                                             placeholder:"Select..."
                                         });
                                     });
-                                    vm.$nextTick(function(e){
+                                    vm.$nextTick(function(){
                                         compare_select = $('#' + compare_select_id);
                                         compare_select.next().attr('style','margin-top:15px; border:1px solid red;');
                                         compare_select.next().attr('id', k + '_compare_select2');
@@ -777,13 +776,13 @@ export default {
                                     });
                                 }
                                 if($(this)[0].hasAttribute('multiple')){
-                                    vm.$nextTick(function(e){
+                                    vm.$nextTick(function(){
                                         if(revision_text.includes(',')){
                                             const item_to_remove = revision_text.split(',')[0];
                                             const option_value_remove = item_to_remove.substring(1);
                                             console.log('Removing item = ' + option_value_remove);
                                             const option_text = $('body').find('option[value=' + option_value_remove + ']').first().text();
-                                            vm.$nextTick(function(e){
+                                            vm.$nextTick(function(){
                                                 $('#' + k + '_compare_select2').find("li.select2-selection__choice[title|='" + option_text + "']").remove();          
                                             });
                                             const item_to_add = revision_text.split(',')[1];
@@ -823,7 +822,6 @@ export default {
             }
         },
         applyFileRevisionNotes: function(diffdata){
-            let vm = this;
             for (let entry in diffdata) {
                 
                 for (let k in diffdata[entry]) {
@@ -1021,7 +1019,7 @@ export default {
             //console.log('deficient fields', deficient_fields);
             vm.highlight_deficient_fields(deficient_fields);
         },
-        save: function(e) {
+        save: function() {
           let vm = this;
           vm.checkAssessorData();
           let formData = new FormData(vm.form);
@@ -1360,12 +1358,12 @@ export default {
                     vm.proposal.assigned_officer = selected.val();
                 }
                 vm.assignTo();
-            }).on("select2:unselecting", function(e) {
+            }).on("select2:unselecting", function() {
                 var self = $(this);
                 setTimeout(() => {
                     self.select2('close');
                 }, 0);
-            }).on("select2:unselect",function (e) {
+            }).on("select2:unselect",function () {
                 // var selected = $(e.currentTarget);
                 if (vm.proposal.processing_status == 'With Approver'){
                     vm.proposal.assigned_approver = null;
@@ -1582,7 +1580,7 @@ export default {
                 let data = e.params.data.id;
                 vm.selected_referral = data;
             }).
-            on("select2:unselect",function (e) {
+            on("select2:unselect",function () {
                 // var selected = $(e.currentTarget);
                 vm.selected_referral = null;
             })/*.

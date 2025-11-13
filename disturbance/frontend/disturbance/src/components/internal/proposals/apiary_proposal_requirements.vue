@@ -122,7 +122,7 @@ export default {
                     },
                     {
                         data: "due_date",
-                        mRender:function (data,type,full) {
+                        mRender:function (data) {
                             return data != '' && data != null ? moment(data).format('DD/MM/YYYY'): '';
                         },
                         orderable: false,
@@ -195,7 +195,7 @@ export default {
                     },
                     {
                         data: 'requirement_documents',
-                        mRender:function (data,type,full) {
+                        mRender:function (data) {
                             let links = '';
                             _.forEach(data, function (doc) {
                                 links += '<a href="' + doc._file + '" target="_blank"><p>' + doc.name+ '</p></a><br>';
@@ -207,7 +207,7 @@ export default {
 
                 ],
                 processing: true,
-                drawCallback: function (settings) {
+                drawCallback: function () {
                     $(vm.$refs.requirements_datatable.table).find('tr:last .dtMoveDown').remove();
                     $(vm.$refs.requirements_datatable.table).children('tbody').find('tr:first .dtMoveUp').remove();
 

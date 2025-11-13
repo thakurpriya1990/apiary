@@ -111,7 +111,7 @@ export default {
                     },
                     {
                         data: "due_date",
-                        mRender:function (data,type,full) {
+                        mRender:function (data) {
                             return data != '' && data != null ? moment(data).format('DD/MM/YYYY'): '';
                         },
                         orderable: false,

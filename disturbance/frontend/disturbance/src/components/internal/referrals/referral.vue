@@ -84,7 +84,7 @@
                                         </tr>
                                     </thead>
                                     <!-- <tr v-for="r in proposal.latest_referrals"> -->
-                                    <tr v-for="r in referral.latest_referrals">
+                                    <tr v-for="r in referral.latest_referrals" :key="r.id">
                                         <td>
                                             <small><strong>{{r.referral}}</strong></small><br/>
                                             <small><strong>{{ formatDate(r.lodged_on) }}</strong></small>
@@ -92,7 +92,7 @@
                                         <td><small><strong>{{r.processing_status}}</strong></small><br/>
                                         <template v-if="!isFinalised && referral.referral == proposal.current_assessor.id">
                                             <template v-if="r.processing_status == 'Awaiting'">
-                                                <small><a @click.prevent="remindReferral(r)" href="#">Remind</a> / <a @click.prevent="recallReferral(r)"href="#">Recall</a></small>
+                                                <small><a @click.prevent="remindReferral(r)" href="#">Remind</a> / <a @click.prevent="recallReferral(r)" href="#">Recall</a></small>
                                             </template>
                                             <template v-else>
                                                 <small><a @click.prevent="resendReferral(r)" href="#">Resend</a></small>
@@ -266,7 +266,6 @@
 import { v4 as uuid } from 'uuid';
 import Proposal from '../../form.vue'
 import NewApply from '../../external/proposal_apply_new.vue'
-import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import MoreReferrals from '@common-utils/more_referrals.vue'
 require("select2/dist/css/select2.min.css");
@@ -345,7 +344,6 @@ export default {
     },
     components: {
         Proposal,
-        datatable,
         CommsLogs,
         MoreReferrals,
         NewApply,
@@ -536,7 +534,7 @@ export default {
                     let data = e.params.data.id;
                     vm.selected_referral = data;
                 }).
-                on("select2:unselect",function (e) {
+                on("select2:unselect",function () {
                     // var selected = $(e.currentTarget);
                     vm.selected_referral = null;
                 });

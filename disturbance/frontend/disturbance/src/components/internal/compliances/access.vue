@@ -53,7 +53,7 @@
                                     </select>
                                     <select @change="assignTo" :disabled="canViewonly || !check_assessor()" v-if="!isLoading" class="form-control" v-model="compliance.assigned_to">
                                         <option value="null">Unassigned</option>
-                                        <option v-for="member in compliance.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
+                                        <option v-for="member in compliance.allowed_assessors" :value="member.id" :key="member.id">{{member.first_name}} {{member.last_name}}</option>
                                     </select>
                                     <a v-if="!canViewonly && check_assessor()" @click.prevent="assignMyself()" class="actionBtn pull-right">Assign to me</a>
                                 </div>
@@ -94,7 +94,7 @@
                                     <div class="form-group">
                                         <label for="" class="col-sm-3 control-label">Documents</label>
                                         <div class="col-sm-6">
-                                            <div class="row" v-for="d in compliance.documents">
+                                            <div class="row" v-for="d in compliance.documents" :key="d[1]">
                                                     <a :href="d[1]" target="_blank" class="control-label pull-left">{{d[0]}}</a>
                                             </div>
                                         </div>
@@ -111,7 +111,6 @@
 </div>
 </template>
 <script>
-import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import ComplianceAmendmentRequest from './compliance_amendment_request.vue'
 import {
@@ -150,7 +149,6 @@ export default {
     })
   },
   components: {
-    datatable,
     CommsLogs,
     ComplianceAmendmentRequest,
   },

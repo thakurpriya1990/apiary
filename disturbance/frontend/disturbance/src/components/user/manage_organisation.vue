@@ -193,16 +193,15 @@
 import { v4 as uuid } from 'uuid';
 import $ from 'jquery'
 import { api_endpoints, helpers, fetch_util } from '@/utils/hooks'
-import SecureBaseLink from '@/components/common/securebase_link.vue';
+// import SecureBaseLink from '@/components/common/securebase_link.vue';
 import FormSection from "@/components/forms/section_toggle.vue";
 export default {
     name: 'MyUserDetails',
     components: {
         FormSection,
-        SecureBaseLink,
+        // SecureBaseLink,
     },
     data () {
-        let vm = this;
         return {
             oBody: 'oBody'+uuid(),
             current_user: {
@@ -330,8 +329,11 @@ export default {
                 if (new_organisation.abn && vm.current_user.wildlifecompliance_organisations[organisation].abn == new_organisation.abn) {
                     swal.fire({
                         title: 'Checking Organisation',
-                        html: 'You are already associated with this organisation.',
-                        type: 'info'
+                        text: 'You are already associated with this organisation.',
+                        icon: 'info',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     })
                     vm.registeringOrg = false;
                     vm.uploadedFile = null;
@@ -364,8 +366,11 @@ export default {
                 }
                 swal.fire({
                     title: 'Checking Organisation',
-                    html: 'There was an error checking this organisation.<br/>' + error_msg,
-                    type: 'error'
+                    text: 'There was an error checking this organisation.<br/>' + error_msg,
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
             });
         },
@@ -377,11 +382,14 @@ export default {
             })
             request.then((response) => {
                 if (response.valid){
-                    swal.fire(
-                        'Validate Pins',
-                        'The pins you entered have been validated and your request will be processed by Organisation Administrator.',
-                        'success'
-                    )
+                    swal.fire({
+                        title:'Validate Pins',
+                        text:'The pins you entered have been validated and your request will be processed by Organisation Administrator.',
+                        icon:'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
                     vm.registeringOrg = false;
                     vm.uploadedFile = null;
                     vm.addingCompany = false;
@@ -396,14 +404,18 @@ export default {
                     });
 
                 }else {
-                    swal.fire(
-                        'Validate Pins',
-                        'The pins you entered were incorrect', 
-                        'error'
-                    )
+                    swal.fire({
+                        title:'Validate Pins',
+                        text:'The pins you entered were incorrect', 
+                        icon:'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
                 }
                 vm.validatingPins = false;
             }, (error) => {
+                console.log(error);
                 vm.validatingPins = false;
             });
         },
@@ -419,15 +431,18 @@ export default {
             vm.newOrg.abn = vm.newOrg.abn == null ? '' : vm.newOrg.abn
             if (vm.newOrg.name == '' || vm.newOrg.abn == '' || vm.uploadedFile == null){
                 vm.registeringOrg = false;
-                swal.fire(
-                    'Error submitting organisation request',
-                    'Please enter the organisation details and attach a file before submitting your request.',
-                    'error'
-                )
+                swal.fire({
+                    title:'Error submitting organisation request',
+                    text:'Please enter the organisation details and attach a file before submitting your request.',
+                    icon:'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
             } else {
                 console.log(data)
                 let request = fetch_util.fetchUrl(api_endpoints.organisation_requests,{method:'POST', body:data},{})
-                request.then((response) => {
+                request.then(() => {
                     vm.registeringOrg = false;
                     vm.uploadedFile = null;
                     vm.addingCompany = false;
@@ -436,6 +451,9 @@ export default {
                         title: 'Sent',
                         html: 'Your organisation request has been successfully submitted.',
                         icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     }).then(() => {
                         if (this.$route.name == 'account'){
                            window.location.reload(true);
@@ -451,11 +469,14 @@ export default {
                             error_msg += key + ': ' + error.body[key] + '<br/>';
                         }
                     }
-                    swal.fire(
-                        'Error submitting organisation request',
-                        error_msg,
-                        'error'
-                    );
+                    swal.fire({
+                        title:'Error submitting organisation request',
+                        text:error_msg,
+                        icon:'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 });
             }
         },
@@ -468,8 +489,11 @@ export default {
                 if (new_organisation.abn && vm.current_user.wildlifecompliance_organisations[organisation].abn == new_organisation.abn) {
                     swal.fire({
                         title: 'Checking Organisation',
-                        html: 'You are already associated with this organisation.',
-                        type: 'info'
+                        text: 'You are already associated with this organisation.',
+                        icon: 'info',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     })
                     vm.registeringOrg = false;
                     vm.uploadedFile = null;
@@ -486,23 +510,29 @@ export default {
             vm.newOrg.abn = vm.newOrg.abn == null ? '' : vm.newOrg.abn
             if (vm.newOrg.name == '' || vm.newOrg.abn == '' || vm.uploadedFile == null){
                 vm.registeringOrg = false;
-                swal.fire(
-                    'Error submitting organisation request',
-                    'Please enter the organisation details and attach a file before submitting your request.',
-                    'error'
-                )
+                swal.fire({
+                    title:'Error submitting organisation request',
+                    text:'Please enter the organisation details and attach a file before submitting your request.',
+                    icon:'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
             } else {
                 console.log(data)
                 let request = fetch_util.fetchUrl(api_endpoints.organisation_requests,{method:'POST', body:data},{})
-                request.then((response) => {
+                request.then(() => {
                     vm.registeringOrg = false;
                     vm.uploadedFile = null;
                     vm.addingCompany = false;
                     vm.resetNewOrg();
                     swal.fire({
                         title: 'Sent',
-                        html: 'Your organisation request has been successfully submitted.',
+                        text: 'Your organisation request has been successfully submitted.',
                         icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     }).then(() => {
                         if (this.$route.name == 'account'){
                            window.location.reload(true);
@@ -518,11 +548,14 @@ export default {
                             error_msg += key + ': ' + error.body[key] + '<br/>';
                         }
                     }
-                    swal.fire(
-                        'Error submitting organisation request',
-                        error_msg,
-                        'error'
-                    );
+                    swal.fire({
+                        title:'Error submitting organisation request',
+                        text:error_msg,
+                        icon:'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 });
             }
         },
@@ -537,13 +570,16 @@ export default {
             {
                 emulateJSON:true
             })
-            request.then((response) => {
+            request.then(() => {
                 vm.uploadedFile = null;
                 vm.resetNewOrg();
                 swal.fire({
                     title: 'Sent',
-                    html: 'Your organisation request has been successfully submitted.',
-                    type: 'success',
+                    text: 'Your organisation request has been successfully submitted.',
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 }).then(() => {
                     window.location.reload(true);
                 });
@@ -554,24 +590,27 @@ export default {
                 for (var key in error.body) {
                     error_msg += key + ': ' + error.body[key] + '<br/>';
                 }
-                swal.fire(
-                    'Error submitting organisation request',
-                    error_msg,
-                    'error'
-                );
+                swal.fire({
+                    title:'Error submitting organisation request',
+                    text:error_msg,
+                    icon:'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
             });
         },
         toggleSection: function (e) {
             let el = e.target;
             let chev = null;
-            $(el).on('click', function (event) {
+            $(el).on('click', function () {
                 chev = $(this);
                 $(chev).toggleClass('glyphicon-chevron-down glyphicon-chevron-up');
             })
         },
         fetchOrgRequestPending:function (){
             let vm =this;
-            let request = fetch_util.fetchUrl(helpers.add_endpoint_json(api_endpoints.organisation_requests,'get_pending_requests')).then((response)=>{
+            fetch_util.fetchUrl(helpers.add_endpoint_json(api_endpoints.organisation_requests,'get_pending_requests')).then((response)=>{
                 vm.orgRequest_pending = response;
                 vm.loading.splice('fetching pending organisation requests',1);
             }).catch((error) => {
@@ -580,7 +619,7 @@ export default {
         },
         fetchOrgRequestAmendmentRequested:function (){
             let vm =this;
-            let request = fetch_util.fetchUrl(helpers.add_endpoint_json(api_endpoints.organisation_requests,'get_amendment_requested_requests')).then((response)=>{
+            fetch_util.fetchUrl(helpers.add_endpoint_json(api_endpoints.organisation_requests,'get_amendment_requested_requests')).then((response)=>{
                 vm.orgRequest_amendment_requested = response;
                 vm.loading.splice('fetching amendment requested organisation requests',1);
             }).catch((error) => {
@@ -596,13 +635,17 @@ export default {
                 text: "Are you sure you want to be unlinked from "+org.name+" ?",
                 icon: "question",
                 showCancelButton: true,
-                confirmButtonText: 'Accept'
+                confirmButtonText: 'Accept',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
             }).then((result) => {
                 if (result.isConfirmed) {
                     let request = fetch_util.fetchUrl(helpers.add_endpoint_json(api_endpoints.organisations,org.id+'/unlink_user'), {method:'POST', body:JSON.stringify(vm.current_user)},{
                         emulateJSON:true
                     })
-                    request.then((response) => {
+                    request.then(() => {
                         let request = fetch_util.fetchUrl(api_endpoints.my_user_details)
                         request.then((response) => {
                             vm.current_user = response
@@ -610,24 +653,31 @@ export default {
                         }).catch((error) => {
                             console.log(error);
                         });
-                        swal.fire(
-                            'Unlink',
-                            'You have been successfully unlinked from '+org_name+'.',
-                            'success'
-                        )
+                        swal.fire({
+                            title:'Unlink',
+                            text:'You have been successfully unlinked from '+org_name+'.',
+                            icon:'success',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        })
                     }, (error) => {
                         let error_msg = '<br/>';
                         for (var key in error.body) {
                             if (key == 'non_field_errors') { error_msg += error.body[key] + '<br/>'; }
                         }
-                        swal.fire(
-                            'Unlink',
-                            'There was an error unlinking you from '+org_name+'.' + error_msg,
-                            'error'
-                        )
+                        swal.fire({
+                            title:'Unlink',
+                            text:'There was an error unlinking you from '+org_name+'.' + error_msg,
+                            icon:'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        })
                     });
                 }
             },(error) => {
+                console.log(error);
             }); 
         },
     },
