@@ -12,13 +12,12 @@ import Referral from '../referrals/referral_wrapper.vue'
 import ApprovalDash from '../approvals/dashboard.vue'
 import ComplianceDash from '../compliances/dashboard.vue'
 import Compliance from '../compliances/access.vue'
-//import Approval from '../approvals/approval.vue'
 import Approval from '../approvals/approval_wrapper.vue'
 import SiteTransitions from '../site_transitions/site_transitions.vue'
 //import AvailableSites from '../available_sites.vue'
 import AvailableSites from '@/components/common/apiary/available_sites.vue'
 import Reports from '@/components/reports/reports.vue'
-import SchemaManager from '../main/schema_manager.vue'
+
 
 export default
 {
@@ -122,11 +121,11 @@ export default
 
             ]
         },
-        {
-            path: 'schema',
-            component: SchemaManager,
-            name:"schema-manager"
-        },
+        // {
+        //     path: 'schema',
+        //     component: SchemaManager,
+        //     name:"schema-manager"
+        // },
         /*{
             path: 'proposal',
             component: Proposal,

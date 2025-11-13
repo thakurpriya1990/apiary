@@ -229,7 +229,6 @@
 
     //import SiteLocations from '@/components/common/apiary/site_locations.vue'
     import { v4 as uuid } from 'uuid';
-    // import FileField from '@/components/forms/filefield_immediate.vue'
     import FormSection from "@/components/forms/section_toggle.vue"
     import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
     import ApiaryChecklist from '@/components/common/apiary/section_checklist.vue'

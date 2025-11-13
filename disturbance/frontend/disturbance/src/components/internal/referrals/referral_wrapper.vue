@@ -10,9 +10,6 @@
         <div v-if="apiaryReferral">
             <ApiaryReferral :referralId="referralId"/>
         </div>
-        <div v-else>
-            <Referral :referralId="referralId"/>
-        </div>
     </div>
 
 </div>
@@ -24,7 +21,6 @@ import ApplicationDashTable from '@common-components/applications_dashboard.vue'
 import LicenceDashTable from '@common-components/licences_dashboard.vue'
 import ReturnDashTable from '@common-components/returns_dashboard.vue'
 */
-import Referral from './referral.vue';
 import ApiaryReferral from './apiary_referral.vue';
 export default {
     name: 'ReferralWrapper',
@@ -40,7 +36,6 @@ export default {
         LicenceDashTable,
         ReturnDashTable,
         */
-        Referral,
         ApiaryReferral
     },
     watch: {},

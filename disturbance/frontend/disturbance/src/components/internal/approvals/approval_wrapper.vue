@@ -4,9 +4,6 @@
         <div v-if="apiaryApproval">
             <ApiaryApproval :approvalId="approvalId"/>
         </div>
-        <div v-else>
-            <Approval :approvalId="approvalId"/>
-        </div>
     </div>
 
 </div>
@@ -14,7 +11,6 @@
 <script>
 
 import ApiaryApproval from './apiary_approval.vue';
-import Approval from './approval.vue';
 import {
   api_endpoints,
   helpers
@@ -30,7 +26,6 @@ export default {
         }
     },
     components:{
-        Approval,
         ApiaryApproval,
     },
     watch: {},

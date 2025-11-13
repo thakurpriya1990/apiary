@@ -152,7 +152,6 @@
     import { getDistance } from 'ol/sphere';
     import { circular} from 'ol/geom/Polygon';
     import GeoJSON from 'ol/format/GeoJSON';
-    import TextField from '@/components/forms/text.vue'
     import datatable from '@vue-utils/datatable.vue'
     import { v4 as uuid } from 'uuid';
     import { getStatusForColour, getApiaryFeatureStyle,SiteColours, zoomToCoordinates, checkIfValidlatitudeAndlongitude } from '@/components/common/apiary/site_colours.js'
@@ -470,7 +469,6 @@
             }
         },
         components: {
-            TextField,
             datatable,
         },
         computed:{
