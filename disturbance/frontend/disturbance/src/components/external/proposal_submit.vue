@@ -30,15 +30,13 @@
     </div>
 </template>
 <script>
-import {
-  api_endpoints,
-  helpers
-}
-from '@/utils/hooks'
-import utils from './utils'
+// import {
+//   api_endpoints,
+//   helpers
+// }
+// from '@/utils/hooks'
 export default {
   data: function() {
-    let vm = this;
     return {
         "proposal": {},
     }

@@ -16,10 +16,10 @@
                         </h3>
                       </div>
                       <div class="panel-body collapse in" :id="pBody">
-                        <div v-for="a in amendment_request">
+                        <div v-for="a in amendment_request" :key="a.id">
                           <p>Reason: {{a.reason}}</p>
-                          <p v-if="a.amendment_request_documents">Documents:<p v-for="d in a.amendment_request_documents"><a :href="d._file" target="_blank" class="control-label pull-left">{{d.name   }}</a><br></p></p>
-                          <p>Details: <p v-for="t in splitText(a.text)">{{t}}</p></p>
+                          <p v-if="a.amendment_request_documents">Documents: </p><p v-for="d in a.amendment_request_documents" :key="d.id"><a :href="d._file" target="_blank" class="control-label pull-left">{{d.name   }}</a><br></p>
+                          <p>Details: </p> <p v-for="t in splitText(a.text)" :key="t.text">{{t}}</p>
                       </div>
                     </div>
                   </div>
@@ -34,7 +34,7 @@
             <div id="error" v-if="missing_fields.length > 0" style="margin: 10px; padding: 5px; color: red; border:1px solid red;">
                 <b>Please answer the following mandatory question(s):</b>
                 <ul>
-                    <li v-for="error in missing_fields">
+                    <li v-for="error in missing_fields" :key="error.id">
                         {{ error.label }}
                     </li>
                 </ul>
@@ -244,7 +244,7 @@
 // import ProposalDisturbance from '../form.vue'
 import ProposalApiary from '../form_apiary.vue'
 import ApiarySiteTransfer from '../form_apiary_site_transfer.vue'
-import NewApply from './proposal_apply_new.vue'
+// import NewApply from './proposal_apply_new.vue'
 import {
   api_endpoints,
   helpers
@@ -300,7 +300,7 @@ export default {
     components: {
         // ProposalDisturbance,
         ProposalApiary,
-        NewApply,
+        // NewApply,
         ApiarySiteTransfer,
     },
     computed: {
@@ -526,6 +526,7 @@ export default {
                 }
                 return formData
             } catch (err) {
+                console.log(err)
                 return formData
             }
         },
@@ -597,7 +598,7 @@ export default {
                 }
             );
         },
-        save_exit: async function(e) {
+        save_exit: async function() {
             let vm = this;
             this.isSaving = true;
             vm.form=document.forms.new_proposal;
@@ -610,7 +611,7 @@ export default {
             });
             this.isSaving = false;
         },
-        sectionHide: function(e) {
+        sectionHide: function() {
             let vm = this;
             vm.sectionShow=!vm.sectionShow
             //console.log(vm.sectionShow);
@@ -674,45 +675,52 @@ export default {
                 }
 
                 if (this.type == 'checkbox') {
-                    var id = 'id_' + this.className
+                    var chk_id  = 'id_' + this.className
+                     var chk_text = ''
                     if ($("[class="+this.className+"]:checked").length == 0) {
-                        try { var text = $('#'+id).text() } catch(error) { var text = $('#'+id).textContent }
-                        console.log('checkbox not checked: ' + this.type + ' ' + text)
-                        vm.missing_fields.push({id: id, label: text});
+                        try { 
+                            chk_text  = $('#'+chk_id ).text() 
+                        } 
+                        catch(error) { 
+                            console.log(error);
+                            chk_text  = $('#'+chk_id ).textContent 
+                        }
+                        console.log('checkbox not checked: ' + this.type + ' ' + chk_text )
+                        vm.missing_fields.push({id: chk_id , label: chk_text });
                     }
                 }
 
                 if (this.type == 'select-one') {
                     if ($(this).val() == '') {
-                        var text = $('#'+id).text()  // this is the (question) label
-                        var id = 'id_' + $(this).prop('name'); // the label id
-                        console.log('selector not selected: ' + this.type + ' ' + text)
-                        vm.missing_fields.push({id: id, label: text});
+                        var sel_text = $('#'+id).text()  // this is the (question) label
+                        var sel_id = 'id_' + $(this).prop('name'); // the label id
+                        console.log('selector not selected: ' + this.type + ' ' + sel_text)
+                        vm.missing_fields.push({id: sel_id, label: sel_text});
                     }
                 }
 
                 if (this.type == 'file') {
                     var num_files = $('#'+id).attr('num_files')
                     if (num_files == "0") {
-                        var text = $('#'+id).text()
+                        var file_text = $('#'+id).text()
                         console.log('file not uploaded: ' + this.type + ' ' + this.name)
-                        vm.missing_fields.push({id: id, label: text});
+                        vm.missing_fields.push({id: id, label: file_text});
                     }
                 }
 
                 if (this.type == 'text') {
                     if (this.value == '') {
-                        var text = $('#'+id).text()
+                        var txt_text = $('#'+id).text()
                         console.log('text not provided: ' + this.type + ' ' + this.name)
-                        vm.missing_fields.push({id: id, label: text});
+                        vm.missing_fields.push({id: id, label: txt_text});
                     }
                 }
 
                 if (this.type == 'textarea') {
                     if (this.value == '') {
-                        var text = $('#'+id).text()
+                        var txtarea_text = $('#'+id).text()
                         console.log('textarea not provided: ' + this.type + ' ' + this.name)
-                        vm.missing_fields.push({id: id, label: text});
+                        vm.missing_fields.push({id: id, label: txtarea_text});
                     }
                 }
 
@@ -835,7 +843,6 @@ export default {
         },
 
         highlight_deficient_fields: function(deficient_fields){
-            let vm = this;
             for (var deficient_field of deficient_fields) {
                 $("#" + "id_"+deficient_field).css("color", 'red');
             }
@@ -963,7 +970,7 @@ export default {
             vm.submittingProposal= false;
         },
         // Apiary submission
-        save_and_redirect: async function(e) {
+        save_and_redirect: async function() {
             console.log('in save_and_redirect');
             this.isSaving = true;
             let vm = this;
@@ -1120,7 +1127,7 @@ export default {
         });
     },
 
-    beforeRouteEnter: function(to, from, next) {
+    beforeRouteEnter: function(to) {
         console.log('in beforeRouteEnter')
         console.log('id: ' + to.params.proposal_id)
     }

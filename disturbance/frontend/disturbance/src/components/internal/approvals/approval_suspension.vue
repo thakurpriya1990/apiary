@@ -83,7 +83,6 @@ export default {
         //},
     },
     data:function () {
-        let vm = this;
         return {
             isModalOpen:false,
             form:null,

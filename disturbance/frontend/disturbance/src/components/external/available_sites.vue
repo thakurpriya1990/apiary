@@ -63,7 +63,7 @@
                         this.$refs.contact_licence_holder_modal.close();
                     },
                     err => {
-
+                        console.log(err)
                     }
                 )
             },
@@ -78,10 +78,10 @@
                         }
                     });
                 } catch (err) {
-
+                    console.log(err)
                 }
             },
-            apiarySitesUpdated: function(apiary_sites){
+            apiarySitesUpdated: function(){
             },
             loadSites: async function() {
                 let vm = this
