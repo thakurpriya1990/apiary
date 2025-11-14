@@ -18,19 +18,19 @@
                 </form>
 
             </div>
-            <div slot="footer" />
+            <template #footer />
         </modal>
 
     </div>
 </template>
 <script>
-import Vue from "vue";
 import modal from "@vue-utils/bootstrap-modal.vue";
 import datatable from "@vue-utils/datatable.vue";
-import alert from '@vue-utils/alert.vue';
+// import alert from '@vue-utils/alert.vue';
 import {
     api_endpoints,
-    helpers
+    helpers,
+    constants
 }from '@/utils/hooks'
 export default {
     name: 'ApprovalHistoryModal',
@@ -40,7 +40,6 @@ export default {
     components:{
         modal,
         datatable,
-        alert,
     },
     data() {
         let vm = this;
@@ -57,7 +56,7 @@ export default {
             popoversInitialised: false,
             dtOptionsApprovalHistory:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 deferRender: true, 
@@ -87,7 +86,7 @@ export default {
                     { data:"history_date" },
                     {
                         data:"history_document_url",
-                        mRender:function(data,type,full){
+                        mRender:function(data){
                             return `<a href="${data}" target="_blank"><i style="color:red" class="fa fa-file-pdf-o"></i></a>`;
                         },
                         orderable: false
@@ -145,17 +144,18 @@ export default {
     },
     created: function() {
         // retrieve template group
-        this.$http.get('/template_group',{
+        fetch('/template_group',{
             emulateJSON:true
-            }).then(res=>{
+            }).then(async res=>{
                 //this.template_group = res.body.template_group;
-                if (res.body.template_group === 'apiary') {
+                const template_group_res = await res.json();
+                if (template_group_res.template_group === 'apiary') {
                     this.apiaryTemplateGroup = true;
                 } else {
                     this.dasTemplateGroup = true;
                 }
-        },err=>{
-        console.log(err);
+        }).catch(err=>{
+                console.log(err);
         });
     },
 

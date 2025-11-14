@@ -29,7 +29,6 @@
     import FormSection from "@/components/forms/section_toggle.vue"
     import ContactLicenceHolderModal from "@/components/common/apiary/contact_licence_holder_modal.vue"
     import uuid from 'uuid'
-    import Vue from 'vue'
 
     export default {
         name: 'AvailableSites',
@@ -64,7 +63,7 @@
                         this.$refs.contact_licence_holder_modal.close();
                     },
                     err => {
-
+                        console.log(err)
                     }
                 )
             },
@@ -79,10 +78,10 @@
                         }
                     });
                 } catch (err) {
-
+                    console.log(err)
                 }
             },
-            apiarySitesUpdated: function(apiary_sites){
+            apiarySitesUpdated: function(){
             },
             loadSites: async function() {
                 let vm = this

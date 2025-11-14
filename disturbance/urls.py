@@ -75,10 +75,12 @@ router.register(r'map_layers', main_api.MapLayerViewSet,"map_layers")
 
 api_patterns = [
     re_path(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),
+    re_path(r'^api/my_user_details/$',users_api.GetMyUserDetails.as_view(), name='get-my-user-details'),
     re_path(r'^api/countries$', users_api.GetCountries.as_view(), name='get-countries'),
     re_path(r'^api/proposal_type$', proposal_api.GetProposalType.as_view(), name='get-proposal-type'),
     re_path(r'^api/organisation_access_group_members',org_api.OrganisationAccessGroupMembers.as_view(),name='organisation-access-group-members'),
     re_path(r'^api/apiary_organisation_access_group_members',org_api.ApiaryOrganisationAccessGroupMembers.as_view(),name='apiary-organisation-access-group-members'),
+    re_path(r'^api/get_organisation_id/$',org_api.GetOrganisationId.as_view(),name='get-organisation-id'),
     re_path(r'^api/',include(router.urls)),
     re_path(r'^api/amendment_request_reason_choices',proposal_api.AmendmentRequestReasonChoicesView.as_view(),name='amendment_request_reason_choices'),
     re_path(r'^api/compliance_amendment_reason_choices',compliances_api.ComplianceAmendmentReasonChoicesView.as_view(),name='amendment_request_reason_choices'),
@@ -129,7 +131,8 @@ urlpatterns = [
     re_path(r'^invoice_payment/(?P<invoice_reference>\d+)/$', payment_views.InvoicePaymentView.as_view(), name='invoice_payment'),
     re_path(r'^application_fee/(?P<proposal_pk>\d+)/$', payment_views.ApplicationFeeView.as_view(), name='application_fee'),
     re_path(r'^annual_rental_fee/(?P<annual_rental_fee_id>\d+)/$', payment_views.AnnualRentalFeeView.as_view(), name='annual_rental_fee'),
-    re_path(r'^success/fee/$', payment_views.ApplicationFeeSuccessView.as_view(), name='fee_success'),
+    # re_path(r'^success/fee/$', payment_views.ApplicationFeeSuccessView.as_view(), name='fee_success'),
+    re_path(r'^success/fee/(?P<lodgement_number>.+)/', payment_views.ApplicationFeeSuccessView.as_view(), name='fee_success'),
     re_path(r'^success_preload/fee/(?P<lodgement_number>.+)/', payment_views.ApplicationFeeSuccessViewPreload.as_view(), name='fee_success_preload'),
     # re_path(r'^success/site_transfer_fee/$', payment_views.SiteTransferApplicationFeeSuccessView.as_view(), name='site_transfer_fee_success'),
     re_path(r'^success/site_transfer_fee/(?P<lodgement_number>.+)/', payment_views.SiteTransferApplicationFeeSuccessView.as_view(), name='site_transfer_fee_success'),
@@ -157,6 +160,7 @@ urlpatterns = [
     re_path(r'^history/organisation/(?P<pk>\d+)/$', organisation_views.OrganisationHistoryCompareView.as_view(), name='organisation_history'),
     re_path(r'^template_group$', views.TemplateGroupView.as_view(), name='template-group'),
     re_path(r'^private-media/', views.getPrivateFile, name='view_private_file'),
+    re_path(r'^organisation/$', views.ExternalView.as_view(), name='organisation'),
 
     # Reports
     re_path(r'^api/oracle_job$', main_api.OracleJob.as_view(), name='get-oracle'),

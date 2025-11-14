@@ -7,10 +7,11 @@ from django.core.management.base import BaseCommand
 
 from django.db import transaction
 from django.db.models import Q, Min
-from ledger.checkout.utils import createCustomBasket
+#from ledger.checkout.utils import createCustomBasket
 from ledger_api_client.ledger_models import Invoice
-from ledger.payments.invoice.utils import CreateInvoiceBasket
-from ledger.settings_base import TIME_ZONE
+#from ledger.payments.invoice.utils import CreateInvoiceBasket
+#from ledger.settings_base import TIME_ZONE
+from ledger_api_client.utils import create_basket_session, process_create_future_invoice
 
 from disturbance.components.approvals.email import send_annual_rental_fee_awaiting_payment_confirmation
 from disturbance.components.approvals.models import Approval, ApiarySiteOnApproval
@@ -19,7 +20,11 @@ from disturbance.components.ap_payments.models import AnnualRentalFee, AnnualRen
 from disturbance.components.ap_payments.utils import generate_line_items_for_annual_rental_fee
 from disturbance.components.proposals.models import ApiaryAnnualRentalFeeRunDate, ApiaryAnnualRentalFeePeriodStartDate, \
     ApiarySite
-from disturbance.settings import SITE_STATUS_CURRENT, SITE_STATUS_SUSPENDED, PAYMENT_SYSTEM_ID, PAYMENT_SYSTEM_PREFIX
+from disturbance.settings import SITE_STATUS_CURRENT, SITE_STATUS_SUSPENDED, PAYMENT_SYSTEM_ID, PAYMENT_SYSTEM_PREFIX, APIARY_EXTERNAL_URL, TIME_ZONE
+
+from collections import namedtuple
+from django.urls import reverse
+import uuid
 
 import logging
 logger = logging.getLogger(__name__)
@@ -152,19 +157,42 @@ class Command(BaseCommand):
                                     try:
                                         logger.info('Creating annual site fee invoice for the approval {}'.format(approval.lodgement_number))
 
-                                        basket = createCustomBasket(line_items, approval.relevant_applicant_email_user, PAYMENT_SYSTEM_ID)
-                                        order = CreateInvoiceBasket(
-                                            payment_method='other', system=PAYMENT_SYSTEM_PREFIX
-                                        ).create_invoice_and_order(basket, 0, None, None, user=approval.relevant_applicant_email_user,
-                                                                   invoice_text='Payment Invoice')
-                                        invoice = Invoice.objects.get(order_number=order.number)
+                                        # basket = createCustomBasket(line_items, approval.relevant_applicant_email_user, PAYMENT_SYSTEM_ID)
+                                        # order = CreateInvoiceBasket(
+                                        #     payment_method='other', system=PAYMENT_SYSTEM_PREFIX
+                                        # ).create_invoice_and_order(basket, 0, None, None, user=approval.relevant_applicant_email_user,
+                                        #                            invoice_text='Payment Invoice')
+                                        # invoice = Invoice.objects.get(order_number=order.number)
+                                        MockRequest = namedtuple("MockRequest", ["user"])
+                                        request = MockRequest(user=approval.relevant_applicant_email_user)
+                                        invoice_uuid = uuid.uuid4()
 
+                                        basket_params = {
+                                            'products': line_items,
+                                            'vouchers': [],
+                                            'system': PAYMENT_SYSTEM_ID,
+                                            'custom_basket': True,
+                                            'booking_reference': approval.lodgement_number,
+                                            'booking_reference_link': approval.lodgement_number,
+                                            'no_payment': False,
+                                        }
+                                        basket_hash = create_basket_session(request, approval.relevant_applicant_email_user.id, basket_params)
+                                        basket_hash = basket_hash.split("|")[0]
+                                        invoice_text='Payment Invoice'
+                                        return_preload_url = APIARY_EXTERNAL_URL + reverse("ledger-api-success-callback", kwargs={"uuid": application_fee.uuid})
+                                        
+                                        future_invoice = process_create_future_invoice(
+                                            basket_hash, invoice_text, return_preload_url
+                                        )
+                                        data = future_invoice["data"]
+                                        invoice_reference = data["invoice"]
+                                        
                                         line_items = make_serializable(
                                             line_items)  # Make line items serializable to store in the JSONField
                                         annual_rental_fee = AnnualRentalFee.objects.create(
                                             approval=approval,
                                             annual_rental_fee_period=annual_rental_fee_period,
-                                            invoice_reference=invoice.reference,
+                                            invoice_reference=invoice_reference,
                                             invoice_period_start_date=invoice_period[0],
                                             invoice_period_end_date=invoice_period[1],
                                             lines=line_items,

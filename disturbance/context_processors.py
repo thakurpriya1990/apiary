@@ -29,4 +29,5 @@ def apiary_url(request):
         'build_tag': settings.BUILD_TAG,
         'KMI_SERVER_URL': KMI_SERVER_URL,
         'ledger_totals': lt,
+        'LEDGER_UI_URL': f'{settings.LEDGER_UI_URL}',
     }

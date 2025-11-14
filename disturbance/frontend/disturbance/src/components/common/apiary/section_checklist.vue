@@ -1,7 +1,7 @@
 <template lang="html">
     <div>
         <FormSection :formCollapse="false" :label="section_title" :Index="index">
-            <ul class="list-unstyled col-sm-12" v-for="q in checklist">
+            <ul class="list-unstyled col-sm-12" v-for="q in checklist" :key="q.id">
                 <div class="row">
                     <div class="col-sm-12">
                         <li class="col-sm-6">
@@ -34,7 +34,7 @@
 </template>
 
 <script>
-    import FileField from '@/components/forms/filefield_immediate.vue'
+    // import FileField from '@/components/forms/filefield_immediate.vue'
     import FormSection from "@/components/forms/section_toggle.vue"
 
     export default {
@@ -68,13 +68,11 @@
 
         },
         mounted: function(){
-            let vm = this;
             this.$nextTick(() => {
                 //vm.addEventListeners();
             });
         },
         components: {
-            FileField,
             FormSection,
         },
         computed: {

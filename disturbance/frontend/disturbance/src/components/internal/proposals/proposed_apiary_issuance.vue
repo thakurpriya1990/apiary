@@ -8,7 +8,7 @@
                 <div class="row">
                     <form class="form-horizontal" name="approvalForm">
                         <!-- <alert v-if="isApprovalLevelDocument" type="warning"><strong>{{warningString}}</strong></alert> -->
-                        <alert :show.sync="showError" type="danger"><strong>{{errorString}}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
 
                             <div v-if="!siteTransferApplication">
@@ -70,14 +70,12 @@
                                             <label v-else class="control-label pull-left"  for="Name">Proposed Start Date</label>
                                         </div>
                                         <div class="col-sm-9">
-                                            <template>
-                                                <div class="input-group date" ref="start_date" style="width: 70%;">
-                                                    <input type="text" class="form-control" name="start_date" placeholder="DD/MM/YYYY" v-model="approval.start_date">
-                                                    <span class="input-group-addon">
-                                                        <span class="glyphicon glyphicon-calendar"></span>
-                                                    </span>
-                                                </div>
-                                            </template>
+                                            <div class="input-group date" ref="start_date" style="width: 70%;">
+                                                <input type="text" class="form-control" name="start_date" placeholder="DD/MM/YYYY" v-model="approval.start_date">
+                                                <span class="input-group-addon">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="row" v-show="showstartDateError">
@@ -92,14 +90,12 @@
                                             <label v-else class="control-label pull-left"  for="Name">Proposed Expiry Date</label>
                                         </div>
                                         <div class="col-sm-9">
-                                            <template>
-                                                <div class="input-group date" ref="due_date" style="width: 70%;">
-                                                    <input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="approval.expiry_date">
-                                                    <span class="input-group-addon">
-                                                        <span class="glyphicon glyphicon-calendar"></span>
-                                                    </span>
-                                                </div>
-                                            </template>
+                                            <div class="input-group date" ref="due_date" style="width: 70%;">
+                                                <input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="approval.expiry_date">
+                                                <span class="input-group-addon">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="row" v-show="showtoDateError">
@@ -137,7 +133,7 @@
                                     <pre>{{ site.properties }}</pre>
                                     <pre>{{ site.properties.licensed_site }}</pre>
 -->
-                            <div v-for="(site, index) in apiary_sites_updated_ordered">
+                            <div v-for="(site) in apiary_sites_updated_ordered" :key="site">
                                 <div v-if="!site.properties.licensed_site">
 				    <div class="col-md-12">
 					<div class="row">
@@ -325,20 +321,19 @@
             </div>
 -->
 
-            <div slot="footer">
+            <template #footer>
                 <button type="button" v-if="issuingApproval" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
                 <span v-else-if="ok_button_disabled" class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Please select at least one site to issue">
                     <button type="button" style="pointer-events: none;" class="btn btn-default" @click="ok" disabled>Ok</button>
                 </span>
                 <button v-else type="button" class="btn btn-default" @click="ok" >Ok</button>
                 <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
-            </div>
+            </template>
         </modal>
     </div>
 </template>
 
 <script>
-//import $ from 'jquery'
 import { v4 as uuid } from 'uuid';
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
@@ -387,9 +382,8 @@ export default {
         },
     },
     data:function () {
-        let vm = this;
         return {
-            //furtherInfo: "further-info-"+vm._uid,
+            //furtherInfo: "further-info-"+uuid(),
             isModalOpen:false,
             form:null,
             approval: {},
@@ -550,11 +544,13 @@ export default {
             if (this.proposal.proposal_apiary && this.proposal.proposal_apiary.transferee_email_text){
                 return  this.proposal.proposal_apiary.transferee_email_text;
             }
+            return '';
         },
         originatingLicenceRecipients: function() {
             if (this.proposal.proposal_apiary && this.proposal.proposal_apiary.transferee_email_text && this.proposal.applicant){
                 return  this.proposal.applicant.email;
             }
+            return '';
         },
         apiary_sites_updated_ordered: function () {
             // adding ordering here on client-side, because iserver-side serializer is ordered for 'apiary_site_id'
@@ -681,7 +677,7 @@ export default {
             */
             var postFormStr = "<form method='POST' target='_blank' name='Preview Licence' action='" + url + "'>";
             for (var key in postData) {
-                if (postData.hasOwnProperty(key)) {
+                if (Object.prototype.hasOwnProperty.call(postData, key)) {
                     postFormStr += "<input type='hidden' name='" + key + "' value='" + postData[key] + "'>";
                 }
             }

@@ -36,9 +36,7 @@
                                 <option value=""></option>
                                 <!-- option v-for="site in apiary_sites_options" :value="site" :key="site.id" -->
                                 <option v-for="site in apiary_sites_options" :value="site.id" :key="site.id">
-                                    <span>
-                                        Site: {{ site.id }}
-                                    </span>
+                                    Site: {{ site.id }}
                                 </option>
                             </select>
                         </div>
@@ -82,7 +80,7 @@
 
                 </div>
             </div>
-            <div slot="footer">
+            <template #footer>
                 <div v-if="errorResponse" class="form-group">
                     <div class="row">
                         <div class="col-sm-12">
@@ -95,15 +93,14 @@
                 <button type="button" v-if="processingDetails" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Adding</button>
                 <button type="button" v-else class="btn btn-default" @click="ok">Ok</button>
                 <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
-            </div>
+            </template>
         </modal>
     </div>
 </template>
 
 <script>
-    import Vue from "vue";
     import modal from '@vue-utils/bootstrap-modal.vue';
-    import { api_endpoints, helpers, cache_helper } from "@/utils/hooks";
+    // import { api_endpoints, helpers, cache_helper } from "@/utils/hooks";
 
     export default {
         name: "OnSiteInformationAdd",
@@ -153,8 +150,6 @@
                 await this.$http.get('/api/approvals/' + this.approval_id + '/apiary_site/').then(
                     (accept)=>{
                         this.apiary_sites_options = accept.body
-                    },
-                    (reject)=>{
                     },
                 )
             },
@@ -257,7 +252,7 @@
                 } else {
                     // When field errors raised
                     for (let field_name in err.body){
-                        if (err.body.hasOwnProperty(field_name)){
+                        if (Object.prototype.hasOwnProperty.call(err.body, field_name)) {
                             errorText += field_name + ': ';
                             for (let j=0; j<err.body[field_name].length; j++){
                                 errorText += err.body[field_name][j] + '<br />';
@@ -272,7 +267,6 @@
                 this.close();
             },
             close: function () {
-                let vm = this;
                 this.isModalOpen = false;
             },
             sendData: async function () {

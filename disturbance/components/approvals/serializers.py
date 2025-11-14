@@ -21,6 +21,7 @@ from rest_framework import serializers
 from disturbance.components.proposals.serializers_apiary import (
     ApplicantAddressSerializer,
     ApiaryProposalRequirementSerializer,
+    OrgAddressSerializer,
 )
 
 
@@ -92,8 +93,12 @@ class ApprovalSerializerForLicenceDoc(serializers.ModelSerializer):
         return approval.relevant_applicant_name
 
     def get_authority_holder_address(self, approval):
-        return approval.relevant_applicant_address.summary
-
+        # return approval.relevant_applicant_address.summary
+        if isinstance(approval.relevant_applicant_address, str):
+            return approval.relevant_applicant_address
+        else:
+            return approval.relevant_applicant_address.summary
+        
     def get_trading_name(self, approval):
         #return approval.applicant.trading_name if approval.applicant else ''
         try:
@@ -520,11 +525,21 @@ class ApprovalSerializer(serializers.ModelSerializer):
      #   return obj.relevant_applicant_address
 
     def get_applicant_address(self, obj):
-        address_serializer = None
-        if obj.relevant_applicant_address:
-            address_serializer = ApplicantAddressSerializer(obj.relevant_applicant_address)
-            return address_serializer.data
-        return address_serializer
+        # address_serializer = None
+        # if obj.relevant_applicant_address:
+        #     address_serializer = ApplicantAddressSerializer(obj.relevant_applicant_address)
+        #     return address_serializer.data
+        # return address_serializer
+        if obj.applicant:
+            address= obj.applicant.address
+            address_serializer = OrgAddressSerializer(address)
+        elif obj.proxy_applicant:
+            address= obj.proxy_applicant.residential_address
+            address_serializer = ApplicantAddressSerializer(address)
+        else:
+            address= obj.current_proposal.submitter.residential_address
+            address_serializer = ApplicantAddressSerializer(address)
+        return address_serializer.data
 
     def get_renewal_document(self,obj):
         if obj.relevant_renewal_document and obj.relevant_renewal_document._file:

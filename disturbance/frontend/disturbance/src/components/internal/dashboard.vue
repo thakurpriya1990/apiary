@@ -9,13 +9,11 @@ import ProposalDashTable from '@common-utils/proposals_dashboard.vue'
 import ReferralDashTable from '@common-utils/referrals_dashboard.vue'
 import {
   api_endpoints,
-  helpers
 }
 from '@/utils/hooks'
 export default {
-    name: 'ExternalDashboard',
+    name: 'InternalDashboard',
     data() {
-        let vm = this;
         return {
             //proposals_url: api_endpoints.proposals,
             //proposals_url: api_endpoints.proposals_paginated_internal,

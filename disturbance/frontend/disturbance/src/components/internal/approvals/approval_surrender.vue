@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="approvalForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{errorString}}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row">
@@ -39,11 +39,11 @@
                     </form>
                 </div>
             </div>
-            <div slot="footer">
+            <template #footer>
                 <button type="button" v-if="issuingApproval" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
                 <button type="button" v-else class="btn btn-default" @click="ok">Ok</button>
                 <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
-            </div>
+            </template>
         </modal>
     </div>
 </template>
@@ -66,7 +66,6 @@ export default {
         //},
     },
     data:function () {
-        let vm = this;
         return {
             isModalOpen:false,
             form:null,
@@ -118,11 +117,14 @@ export default {
         },
         fetchContact: function(id){
             let vm = this;
-            vm.$http.get(api_endpoints.contact(id)).then((response) => {
-                vm.contact = response.body; vm.isModalOpen = true;
-            },(error) => {
-                console.log(error);
-            } );
+            fetch(api_endpoints.contact(id)).then(
+                async (response) => {
+                    if (!response.ok) { return response.json().then(err => { throw err }); }
+                    vm.contact = await response.json(); 
+                    vm.isModalOpen = true;
+                }).catch((error) => {
+                    console.log(error);
+                });
         },
         sendData:function(){
             let vm = this;
@@ -130,26 +132,35 @@ export default {
             let approval = JSON.parse(JSON.stringify(vm.approval));
             vm.issuingApproval = true;
 
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.approvals,vm.approval_id+'/approval_surrender'),JSON.stringify(approval),{
-                        emulateJSON:true,
-                    }).then((response)=>{
-                        vm.issuingApproval = false;
-                        vm.close();
-                        swal(
-                             'Surrender',
-                             'An email has been sent to the proponent about surrender of this approval',
-                             'success'
-                        );
-                        vm.$emit('refreshFromResponse',response);
+            fetch(helpers.add_endpoint_json(api_endpoints.approvals,vm.approval_id+'/approval_surrender'),{
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(approval),
+            }).then(async (response)=>{
+                if (!response.ok) {
+                    //throw new Error(`Approval Surrender failed: ${response.status}`);
+                    return response.json().then(err => { throw err });
+                }
 
+                const data = await response.json();
+                vm.issuingApproval = false;
+                vm.close();
+                swal.fire({
+                    title:'Surrender',
+                    text:'An email has been sent to the proponent about surrender of this approval',
+                    icon:'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+                vm.$emit('refreshFromResponse',data);
 
-                    },(error)=>{
-                        vm.errors = true;
-                        vm.issuingApproval = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    });
-
-
+            }).catch((error) => {
+                vm.errors = true;
+                vm.issuingApproval = false;
+                // vm.errorString = helpers.apiVueResourceError(error);
+                vm.errorString = error;
+            });
         },
         addFormValidations: function() {
             let vm = this;

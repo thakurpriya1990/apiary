@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="requirementForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{errorString}}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label class="radio-inline control-label"><input type="radio" name="requirementType" :value="true" v-model="requirement.standard">Standard Requirement</label>
@@ -20,12 +20,12 @@
                                     <div class="col-sm-9" v-if="requirement.standard">
                                         <div style="width:70% !important">
                                             <select class="form-control" ref="standard_req" name="standard_requirement" v-model="requirement.standard_requirement">
-                                                <option v-for="r in requirements" :value="r.id">{{r.code}} {{r.text}}</option>
+                                                <option v-for="r in requirements" :value="r.id" :key="r.id">{{r.code}} {{r.text}}</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div class="col-sm-9" v-else>
-                                        <textarea style="width: 70%;"class="form-control" name="free_requirement" v-model="requirement.free_requirement"></textarea>
+                                        <textarea style="width: 70%;" class="form-control" name="free_requirement" v-model="requirement.free_requirement"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -105,7 +105,7 @@
                     </form>
                 </div>
             </div>
-            <div slot="footer">
+            <template #footer>
                 <template v-if="requirement.id">
                     <button type="button" v-if="updatingRequirement" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinnner fa-spin"></i> Updating</button>
                     <button type="button" v-else class="btn btn-default" @click="ok">Update</button>
@@ -115,7 +115,7 @@
                     <button type="button" v-else class="btn btn-default" @click="ok">Add</button>
                 </template>
                 <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
-            </div>
+            </template>
         </modal>
     </div>
 </template>
@@ -219,6 +219,7 @@ export default {
             this.requirement.requirement_documents = updated_docs;
         },
         initialiseRequirement: function(){
+            let vm = this;
             this.requirement = {
                 due_date: '',
                 standard: true,
@@ -338,21 +339,21 @@ export default {
                 rules: {
                     standard_requirement:{
                         required: {
-                            depends: function(el){
+                            depends: function(){
                                 return vm.requirement.standard;
                             }
                         }
                     },
                     free_requirement:{
                         required: {
-                            depends: function(el){
+                            depends: function(){
                                 return !vm.requirement.standard;
                             }
                         }
                     },
                     schedule:{
                         required: {
-                            depends: function(el){
+                            depends: function(){
                                 return vm.requirement.recurrence;
                             }
                         }

@@ -143,16 +143,14 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import {
     api_endpoints,
     helpers
 }
 from '@/utils/hooks'
-import datatable from '@vue-utils/datatable.vue'
-import RequirementDetail from './proposal_add_requirement.vue'
 import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
-import { v4 as uuid } from 'uuid';
 import SectionsProposalTemporaryUse from '@/components/common/apiary/sections_proposal_temporary_use.vue'
 
 export default {
@@ -161,10 +159,9 @@ export default {
         proposal: Object
     },
     data: function() {
-        let vm = this;
         return {
-            proposedDecision: "proposal-decision-"+vm._uid,
-            proposedLevel: "proposal-level-"+vm._uid,
+            proposedDecision: "proposal-decision-"+uuid(),
+            proposedLevel: "proposal-level-"+uuid(),
             uploadedFile: null,
             component_site_selection_key: '',
         }
@@ -204,6 +201,7 @@ export default {
             if (this.proposal && this.proposal.proposal_apiary) {
                 return this.proposal.proposal_apiary.apiary_sites;
             }
+            return [];
         },
         apiary_sites_prop: function() {
             let apiary_sites = [];
@@ -269,11 +267,14 @@ export default {
                 vm.$emit('refreshFromResponse',res);
 
                 },err=>{
-                swal(
-                    'Submit Error',
-                    helpers.apiVueResourceError(err),
-                    'error'
-                )
+                swal.fire({
+                    title:'Submit Error',
+                    text:helpers.apiVueResourceError(err),
+                    icon:'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
             });
 
 
@@ -286,26 +287,31 @@ export default {
         },
         removeRequirement(_id){
             let vm = this;
-            swal({
+            swal.fire({
                 title: "Remove Requirement",
                 text: "Are you sure you want to remove this requirement?",
-                type: "warning",
+                icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Requirement',
-                confirmButtonColor:'#d9534f'
-            }).then(() => {
-                vm.$http.delete(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
-                .then((response) => {
-                    vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
-                }, (error) => {
-                    console.log(error);
-                });
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then((swalResult) => {
+                if(swalResult.isConfirmed){
+                    vm.$http.delete(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
+                    .then((response) => {
+                        vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
+                    }, (error) => {
+                        console.log(error);
+                    });
+                }
             },(error) => {
+                console.log(error)
             });
         },
     },
     mounted: function(){
-        let vm = this;
         this.component_site_selection_key = uuid()
     }
 }

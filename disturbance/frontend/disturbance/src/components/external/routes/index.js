@@ -1,3 +1,4 @@
+import { RouterView } from 'vue-router';
 import ExternalDashboard from '../dashboard.vue'
 //import Proposal from '../proposal_external.vue'
 import Proposal from '../proposal_wrapper.vue'
@@ -14,16 +15,10 @@ import AvailableSites from '@/components/common/apiary/available_sites.vue'
 export default
 {
     path: '/external',
-    component:
-    {
-        render(c)
-        {
-            return c('router-view')
-        }
-    },
+    component: RouterView,
     children: [
         {
-            path: '/',
+            path: '',
             component: ExternalDashboard,
             name: 'external-proposals-dash'
         },
@@ -53,16 +48,10 @@ export default
         },
         {
             path: 'proposal',
-            component:
-            {
-                render(c)
-                {
-                    return c('router-view')
-                }
-            },
+            component: RouterView,
             children: [
                 {
-                    path: '/',
+                    path: '',
                     component: ProposalApply,
                     name:"apply_proposal"
                 },

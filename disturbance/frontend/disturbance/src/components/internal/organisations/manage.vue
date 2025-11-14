@@ -95,7 +95,7 @@
                                             <label for="" class="col-sm-3 control-label" >Country</label>
                                             <div class="col-sm-4">
                                                 <select class="form-control" name="country" v-model="org.address.country">
-                                                    <option v-for="c in countries" :value="c.code">{{ c.name }}</option>
+                                                    <option v-for="c in countries" :value="c.code" :key="c.code">{{ c.name }}</option>
                                                 </select>
                                             </div>
                                           </div>
@@ -148,7 +148,7 @@
                                                 <div class="col-sm-12">
                                                     <h4>Persons linked to this organisation:</h4>
                                                 </div>
-                                                <div v-for="d in org.delegates">
+                                                <div v-for="d in org.delegates" :key="d.id">
                                                     <div v-if="d.is_admin" class="col-sm-6">
                                                         <h4>{{d.name}} (Admin)</h4>
                                                     </div>
@@ -178,7 +178,7 @@
                                             </form>
                                         </div> -->
                                     </div>
-                                    <form class="form-horizontal" action="index.html" method="post" v-if="org.pins">
+                                    <form class="form-horizontal col-sm-12 row" action="index.html" method="post" v-if="org.pins">
                                          <div class="col-sm-6 row">
                                             <div class="form-group">
                                                 <label for="" class="col-sm-6 control-label"> Organisation User Pin Code 1:</label>
@@ -229,9 +229,8 @@
 </template>
 
 <script>
-//import $ from 'jquery'
-import Vue from 'vue'
-import { api_endpoints, helpers } from '@/utils/hooks'
+import { v4 as uuid } from 'uuid';
+import { api_endpoints, helpers, constants } from '@/utils/hooks'
 import datatable from '@vue-utils/datatable.vue'
 import AddContact from '@common-utils/add_contact.vue'
 import ProposalDashTable from '@common-utils/proposals_dashboard.vue'
@@ -239,21 +238,20 @@ import ApprovalDashTable from '@common-utils/approvals_dashboard.vue'
 import ComplianceDashTable from '@common-utils/compliances_dashboard.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import utils from '../utils'
-import api from '../api'
 export default {
-    name: 'Organisation',
+    name: 'OrganisationComponent',
     data () {
         let vm = this;
         return {
-            adBody: 'adBody'+vm._uid,
-            aBody: 'aBody'+vm._uid,
-            pdBody: 'pdBody'+vm._uid,
-            pBody: 'pBody'+vm._uid,
-            cdBody: 'cdBody'+vm._uid,
-            cBody: 'cBody'+vm._uid,
-            oBody: 'oBody'+vm._uid,
-            dTab: 'dTab'+vm._uid,
-            oTab: 'oTab'+vm._uid,
+            adBody: 'adBody'+uuid(),
+            aBody: 'aBody'+uuid(),
+            pdBody: 'pdBody'+uuid(),
+            pBody: 'pBody'+uuid(),
+            cdBody: 'cdBody'+uuid(),
+            cBody: 'cBody'+uuid(),
+            oBody: 'oBody'+uuid(),
+            dTab: 'dTab'+uuid(),
+            oTab: 'oTab'+uuid(),
             org: {
                 address: {}
             },
@@ -281,7 +279,7 @@ export default {
 
             contacts_options:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 ajax: {
@@ -388,15 +386,22 @@ export default {
                 let name = $(e.target).data('name');
                 let email = $(e.target).data('email');
                 let id = $(e.target).data('id');
-                swal({
+                swal.fire({
                     title: "Delete Contact",
                     text: "Are you sure you want to remove "+ name + "("+ email + ") as a contact  ?",
-                    type: "error",
+                    icon: "error",
                     showCancelButton: true,
-                    confirmButtonText: 'Accept'
-                }).then(() => {
-                    vm.deleteContact(id);
+                    confirmButtonText: 'Accept',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary',
+                    },
+                }).then((swalResult) => {
+                    if (swalResult.isConfirmed){
+                        vm.deleteContact(id);
+                    }
                 },(error) => {
+                    console.log(error);
                 });
             });
 
@@ -407,7 +412,7 @@ export default {
             });
 
             // Fix the table responsiveness when tab is shown
-            $('a[href="#'+vm.oTab+'"]').on('shown.bs.tab', function (e) {
+            $('a[href="#'+vm.oTab+'"]').on('shown.bs.tab', function () {
                 vm.$refs.proposals_table.$refs.proposal_datatable.vmDataTable.columns.adjust().responsive.recalc();
                 vm.$refs.approvals_table.$refs.proposal_datatable.vmDataTable.columns.adjust().responsive.recalc();
                 vm.$refs.compliances_table.$refs.proposal_datatable.vmDataTable.columns.adjust().responsive.recalc();
@@ -422,34 +427,43 @@ export default {
                 vm.updatingDetails = false;
                 vm.org = response.body;
                 if (vm.org.address == null){ vm.org.address = {}; }
-                swal(
-                    'Saved',
-                    'Organisation details have been saved',
-                    'success'
-                )
+                swal.fire({
+                    title:'Saved',
+                    text:'Organisation details have been saved',
+                    icon:'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
             }, (error) => {
                 console.log(error);
                 var text= helpers.apiVueResourceError(error);
                 if(typeof text == 'object'){
-                    if (text.hasOwnProperty('email')){
+                    if (Object.prototype.hasOwnProperty.call(text, 'email')) {
                         text=text.email[0];
                     }
                 }
-                swal(
-                    'Error', 
-                    'Organisation details have cannot be saved because of the following error: '+text,
-                    'error'
-                )
+                swal.fire({
+                    title:'Error', 
+                    text:'Organisation details have cannot be saved because of the following error: '+text,
+                    icon:'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
                 vm.updatingDetails = false;
             });
         },
         addedContact: function() {
             let vm = this;
-            swal(
-                'Added',
-                'The contact has been successfully added.',
-                'success'
-            )
+            swal.fire({
+                title:'Added', 
+                text:'The contact has been successfully added.',
+                icon:'success',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                },
+            })
             vm.$refs.contacts_datatable.vmDataTable.ajax.reload();
         },
         deleteContact: function(id){
@@ -458,19 +472,25 @@ export default {
             vm.$http.delete(helpers.add_endpoint_json(api_endpoints.organisation_contacts,id),{
                 emulateJSON:true
             }).then((response) => {
-                swal(
-                    'Contact Deleted', 
-                    'The contact was successfully deleted',
-                    'success'
-                )
+                swal.fire({
+                    title:'Contact Deleted', 
+                    text:'The contact was successfully deleted',
+                    icon:'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
                 vm.$refs.contacts_datatable.vmDataTable.ajax.reload();
             }, (error) => {
                 console.log(error);
-                swal(
-                    'Contact Deleted', 
-                    'The contact could not be deleted because of the following error : [' + error.body + ']',
-                    'error'
-                )
+                swal.fire({
+                    title:'Contact Deleted', 
+                    text:'The contact could not be deleted because of the following error : [' + error.body + ']',
+                    icon:'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
             });
         },
         updateAddress: function() {
@@ -481,11 +501,14 @@ export default {
             }).then((response) => {
                 vm.updatingAddress = false;
                 vm.org = response.body;
-                swal(
-                    'Saved',
-                    'Address details have been saved',
-                    'success'
-                )
+                swal.fire({
+                    title:'Saved',
+                    text:'Address details have been saved',
+                    icon:'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
                 if (vm.org.address == null){ vm.org.address = {}; }
             }, (error) => {
                 console.log(error);
@@ -494,7 +517,6 @@ export default {
         },
     },
     mounted: function(){
-        let vm = this;
         this.personal_form = document.forms.personal_form;
         this.eventListeners();
     },

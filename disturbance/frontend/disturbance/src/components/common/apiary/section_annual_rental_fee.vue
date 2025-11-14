@@ -35,8 +35,8 @@
                             All
                         </option>
                     </template>
-                    <template v-for="annual_rental_fee_period in annual_rental_fee_periods">
-                        <option :value="annual_rental_fee_period.year_name" :key="annual_rental_fee_period.id">
+                    <template v-for="annual_rental_fee_period in annual_rental_fee_periods" :key="annual_rental_fee_period.id">
+                        <option :value="annual_rental_fee_period.year_name">
                             {{ annual_rental_fee_period.year_name }}
                         </option>
                     </template>
@@ -49,7 +49,7 @@
             <div class="col-sm-9">
                 <template v-for="annual_rental_fee_period in annual_rental_fee_periods">
                     <template v-if="annual_rental_fee_period.year_name == year_name_selected || year_name_selected == 'all'">
-                        <template v-for="annual_rental_fee in annual_rental_fee_period.annual_rental_fees">
+                        <template v-for="annual_rental_fee in annual_rental_fee_period.annual_rental_fees" :key="annual_rental_fee.id">
                             <div>
                                 <a :href="'/payments/invoice-pdf/' + annual_rental_fee.invoice_reference + '.pdf'" target='_blank'>
                                     <i style='color:red;' class='fa fa-file-pdf-o'></i> #{{ annual_rental_fee.invoice_reference }}
@@ -151,19 +151,32 @@
                 this.saving_date = true
                 let vm = this
                 console.log(vm.until_date)
-                vm.$http.post('/api/approvals/' + vm.approval_id + '/no_charge_until_date/', {'until_date': vm.until_date}).then(
-                    res=>{
-                        swal(
-                            'Saved',
-                            'Date has been saved',
-                            'success'
-                        );
+                fetch('/api/approvals/' + vm.approval_id + '/no_charge_until_date/',
+                    {
+                        headers: { 'Content-Type': 'application/json' },
+                        method: 'POST',
+                        body: JSON.stringify({
+                            'until_date': vm.until_date,
+                        }),
+                    }).then(
+                    async (response)=>{
+                        if (!response.ok) {
+                            const errorBody = await response.json();
+                            throw errorBody;
+                        }
+                        swal.fire({
+                            title:'Saved',
+                            text:'Date has been saved',
+                            icon:'success',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
                         this.saving_date = false
-                    },
-                    err=>{
+                    }).catch(error => {
+                        console.log(error);
                         this.saving_date = false
-                    }
-                );
+                    });
             },
             addEventListeners: function () {
                 console.log('in addEventListener')

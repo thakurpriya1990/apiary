@@ -1,4 +1,15 @@
 {% extends "ledgerui/accounts_base_b5.html" %}
+{% load static %}
 
 {% block myaccount_nav %}
+<button class="nav-link managed-account-nav" id="nav-organisation-tab" data-bs-toggle="tab" data-bs-target="#nav-organisation" type="button" role="tab" aria-controls="nav-organisation" aria-selected="false">Organisation</button>
+{% endblock %}
+{% block additional_content %}
+<div id="nav-organisation-tab-page" style="display:none;">
+    <div id="app"></div>
+</div>
+<script type="text/javascript" src="{% static 'disturbance_vue/js/chunk-vendors.js' %}?v={{build_tag}}"></script>
+<script type="text/javascript" src="{% static 'disturbance_vue/js/app.js' %}?v={{build_tag}}"></script>
+
+
 {% endblock %}

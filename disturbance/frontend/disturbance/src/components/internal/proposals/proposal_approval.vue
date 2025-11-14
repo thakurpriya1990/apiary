@@ -4,12 +4,12 @@
             <div class="col-md-12 alert alert-success" v-if="proposal.processing_status == 'Approved'">
                 <div v-if="proposal.proposal_apiary">
                     <p>The licence has been issued and has been emailed to {{proposal.applicant.name}}</p>
-                    <p>Expiry date: {{approvalExpiryDate}}
+                    <p>Expiry date: {{approvalExpiryDate}}</p>
                     <p>Licence: <a target="_blank" :href="proposal.permit">licence.pdf</a></p>
                 </div>
                 <div v-else>
                     <p>The approval has been issued and has been emailed to {{proposal.applicant.name}}</p>
-                    <p>Expiry date: {{approvalExpiryDate}}
+                    <p>Expiry date: {{approvalExpiryDate}}</p>
                     <p>Permit: <a target="_blank" :href="proposal.permit">approval.pdf</a></p>
                 </div>
             </div>
@@ -149,16 +149,14 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import {
     api_endpoints,
     helpers
 }
 from '@/utils/hooks'
-import datatable from '@vue-utils/datatable.vue'
-import RequirementDetail from './proposal_add_requirement.vue'
 import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
-import { v4 as uuid } from 'uuid';
 
 export default {
     name: 'InternalProposalRequirements',
@@ -166,10 +164,9 @@ export default {
         proposal: Object
     },
     data: function() {
-        let vm = this;
         return {
-            proposedDecision: "proposal-decision-"+vm._uid,
-            proposedLevel: "proposal-level-"+vm._uid,
+            proposedDecision: "proposal-decision-"+uuid(),
+            proposedLevel: "proposal-level-"+uuid(),
             uploadedFile: null,
             component_site_selection_key: '',
         }
@@ -210,6 +207,7 @@ export default {
             if (this.proposal && this.proposal.proposal_apiary) {
                 return this.proposal.proposal_apiary.apiary_sites;
             }
+            return [];
         },
         apiary_sites_prop: function() {
             let apiary_sites = [];
@@ -265,21 +263,38 @@ export default {
                 if (vm.proposal.approval_level_document) {
                     data.append('approval_level_document_name', vm.proposal.approval_level_document[0])
                 }
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/approval_level_document'),data,{
-                emulateJSON:true
-            }).then(res=>{
-                vm.proposal = res.body;
-                vm.$emit('refreshFromResponse',res);
 
-                },err=>{
-                swal(
-                    'Submit Error',
-                    helpers.apiVueResourceError(err),
-                    'error'
-                )
+                fetch(helpers.add_endpoint_json(api_endpoints.proposals, vm.proposal.id + '/approval_level_document'), {
+                method: 'POST',
+                body: data // FormData handles headers automatically
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                    return response.json();
+                })
+                .then(res => {
+                    //vm.proposal = res;
+                    Object.assign(vm.proposal, res);
+                    vm.$emit('refreshFromResponse', res);
+                })
+                .catch(async err => {
+                    console.log(err);
+                    let errorText = 'An unexpected error occurred.';
+                    try {
+                        const errData = await err.json();
+                        // errorText = helpers.apiVueResourceError(errData);
+                        errorText = errData;
+                    } catch { console.log('Error parsing error response'); }
+                    
+                    swal.fire({
+                        title:'Submit Error', 
+                        text:errorText,
+                        icon:'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
             });
-
-
         },
         uploadedFileName: function() {
             return this.uploadedFile != null ? this.uploadedFile.name: '';
@@ -289,26 +304,31 @@ export default {
         },
         removeRequirement(_id){
             let vm = this;
-            swal({
+           swal.fire({
                 title: "Remove Requirement",
                 text: "Are you sure you want to remove this requirement?",
-                type: "warning",
+                icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Requirement',
-                confirmButtonColor:'#d9534f'
-            }).then(() => {
-                vm.$http.delete(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
-                .then((response) => {
-                    vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
-                }, (error) => {
-                    console.log(error);
-                });
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then((swalresult) => {
+                if(swalresult.isConfirmed){
+                    vm.$http.delete(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
+                    .then(() => {
+                        vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
+                    }, (error) => {
+                        console.log(error);
+                    });
+                }
             },(error) => {
+                console.log(error);
             });
         },
     },
     mounted: function(){
-        let vm = this;
         this.updateComponentSiteSelectionKey()
     }
 }

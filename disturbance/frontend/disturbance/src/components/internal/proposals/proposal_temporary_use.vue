@@ -18,15 +18,17 @@
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Lodged on</strong><br/>
-                                {{ proposal.lodgement_date | formatDate}}
+                                {{ formatDate(proposal.lodgement_date) }}
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <table class="table small-table">
-                                    <tr>
-                                        <th>Lodgement</th>
-                                        <th>Date</th>
-                                        <th>Action</th>
-                                    </tr>
+                                    <thead>
+                                        <tr>
+                                            <th>Lodgement</th>
+                                            <th>Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
                                 </table>
                             </div>
                         </div>
@@ -93,9 +95,6 @@
                                             </td>
                                         </tr>
                                     </table>
-                                    <template>
-
-                                    </template>
                                     <ApiaryReferralsForProposal @refreshFromResponse="refreshFromResponse" :proposal="proposal" :canAction="canLimitedAction" :isFinalised="isFinalised" :referral_url="referralListURL"/>
                                 </div>
                                 <div class="col-sm-12">
@@ -108,13 +107,13 @@
                                 <div class="form-group">
                                     <template v-if="proposal.processing_status == 'With Approver'">
                                         <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="proposal.assigned_approver">
-                                            <option v-for="member in proposal.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
+                                            <option v-for="member in proposal.allowed_assessors" :value="member.id" :key="member.id">{{member.first_name}} {{member.last_name}}</option>
                                         </select>
                                         <a v-if="canAssess && proposal.assigned_approver != proposal.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
                                     </template>
                                     <template v-else>
                                         <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="proposal.assigned_officer">
-                                            <option v-for="member in proposal.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
+                                            <option v-for="member in proposal.allowed_assessors" :value="member.id" :key="member.id">{{member.first_name}} {{member.last_name}}</option>
                                         </select>
                                         <a v-if="canAssess && proposal.assigned_officer != proposal.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
                                     </template>
@@ -316,21 +315,21 @@
     </div>
 </template>
 <script>
-import ProposalDisturbance from '../../form.vue'
+import { v4 as uuid } from 'uuid';
+// import ProposalDisturbance from '../../form.vue'
 //import ProposalApiary from '../../form_apiary.vue'
-import ProposalApiary from '@/components/form_apiary.vue'
-import NewApply from '../../external/proposal_apply_new.vue'
-import Vue from 'vue'
+// import ProposalApiary from '@/components/form_apiary.vue'
+// import NewApply from '../../external/proposal_apply_new.vue'
 import ProposedDecline from './proposal_proposed_decline.vue'
 import AmendmentRequest from './amendment_request.vue'
-import datatable from '@vue-utils/datatable.vue'
+//import datatable from '@vue-utils/datatable.vue'
 import Requirements from './proposal_requirements.vue'
-import ProposedApproval from './proposed_apiary_issuance.vue'
+// import ProposedApproval from './proposed_apiary_issuance.vue'
 import ApprovalScreen from './proposal_approval.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 //import MoreReferrals from '@common-utils/more_referrals.vue'
-import ApiaryReferralsForProposal from '@common-utils/apiary/apiary_referrals_for_proposal.vue'
-import { api_endpoints, helpers } from '@/utils/hooks'
+// import ApiaryReferralsForProposal from '@common-utils/apiary/apiary_referrals_for_proposal.vue'
+import { api_endpoints, helpers, constants } from '@/utils/hooks'
 import SectionsProposalTemporaryUse from '@/components/common/apiary/sections_proposal_temporary_use.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
 import ApprovalScreenSiteTransferTemporaryUse from './proposal_approval_site_transfer_temporary_use.vue'
@@ -340,10 +339,10 @@ export default {
     data: function() {
         let vm = this;
         return {
-            detailsBody: 'detailsBody'+vm._uid,
-            addressBody: 'addressBody'+vm._uid,
-            contactsBody: 'contactsBody'+vm._uid,
-            siteLocations: 'siteLocations'+vm._uid,
+            detailsBody: 'detailsBody'+uuid(),
+            addressBody: 'addressBody'+uuid(),
+            contactsBody: 'contactsBody'+uuid(),
+            siteLocations: 'siteLocations'+uuid(),
             defaultKey: "aho",
             "proposal": null,
             "original_proposal": null,
@@ -361,10 +360,10 @@ export default {
             showingRequirements:false,
             hasAmendmentRequest: false,
             state_options: ['requirements','processing'],
-            contacts_table_id: vm._uid+'contacts-table',
+            contacts_table_id: uuid() +'contacts-table',
             contacts_options:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 ajax: {
@@ -407,26 +406,21 @@ export default {
         }
     },
     components: {
-        ProposalDisturbance,
-        ProposalApiary,
-        datatable,
+        // ProposalDisturbance,
+        // ProposalApiary,
+        // datatable,
         ProposedDecline,
         AmendmentRequest,
         Requirements,
-        ProposedApproval,
+        // ProposedApproval,
         ApprovalScreen,
         ApprovalScreenSiteTransferTemporaryUse,
         CommsLogs,
         //MoreReferrals,
-        ApiaryReferralsForProposal,
-        NewApply,
+        // ApiaryReferralsForProposal,
+        // NewApply,
         FormSection,
         SectionsProposalTemporaryUse,
-    },
-    filters: {
-        formatDate: function(data){
-            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss'): '';
-        }
     },
     props: {
         proposalId: {
@@ -454,6 +448,7 @@ export default {
             if (this.apiaryProposal) {
                 return `/api/proposal_apiary/${this.apiaryProposal.id}/assessor_save.json`;
             }
+            return '';
         },
         isFinalised: function(){
             return this.proposal.processing_status == 'Declined' || this.proposal.processing_status == 'Approved';
@@ -527,6 +522,9 @@ export default {
 
     },
     methods: {
+        formatDate: function(data){
+            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss'): '';
+        },
         locationUpdated: function(){
             console.log('in locationUpdated()');
         },
@@ -586,59 +584,80 @@ export default {
         //},
         issueProposal:function(){
             let vm = this
-            swal({
+            swal.fire({
                 title: "Approve Proposal",
                 text: "Are you sure you want to approve this proposal?",
-                type: "question",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: 'Approve'
-            }).then(
-                () => {
+                confirmButtonText: 'Approve',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then((swalresult) => {
+                if(swalresult.isConfirmed){
                     let post_url = helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/final_approval_temp_use')
                     console.log(post_url)
-                    vm.$http.post(post_url, {}).then(
-                        res=>{
-                            vm.$router.push({
-                                name: 'internal-dashboard',
-                            });
+                    fetch(post_url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
                         },
-                        err => {
-
-                        }
-                    );
-                },
-                err => {
-                    console.log(err)
+                    }).then(response => {
+                        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                        return response.json();
+                    })
+                    .then(() => {
+                        vm.$router.push({
+                            name: 'internal-dashboard',
+                        });
+                    })
+                    .catch(async err => {
+                        console.log(err);
+                    });
                 }
-            );
+            },(error) => {
+                console.log(error);
+            });
         },
         declineProposal:function(){
             let vm = this
-            swal({
+            swal.fire({
                 title: "Decline Proposal",
                 text: "Are you sure you want to decline this proposal?",
-                type: "question",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: 'Decline'
-            }).then(
-                () => {
+                confirmButtonText: 'Decline',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+           }).then((swalresult) => {
+                if(swalresult.isConfirmed){
                     let post_url = helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/final_decline_temp_use')
                     console.log(post_url)
-                    vm.$http.post(post_url, {}).then(
-                        res=>{
-                            vm.$router.push({
-                                name: 'internal-dashboard',
-                            });
+                    fetch(post_url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
                         },
-                        err => {
-
-                        }
-                    );
-                },
-                err => {
-                    console.log(err)
+                    }).then(response => {
+                        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                        return response.json();
+                    })
+                    .then(() => {
+                        vm.$router.push({
+                            name: 'internal-dashboard',
+                        });
+                    })
+                    .catch(async err => {
+                        console.log(err);
+                    });
                 }
-            );
+            },
+            err => {
+                console.log(err)
+            });
         },
         amendmentRequest: function(){
             this.save_wo();
@@ -652,7 +671,6 @@ export default {
             this.$refs.amendment_request.isModalOpen = true;
         },
         highlight_deficient_fields: function(deficient_fields){
-            let vm = this;
             for (var deficient_field of deficient_fields) {
                 $("#" + "id_"+deficient_field).css("color", 'red');
             }
@@ -671,28 +689,30 @@ export default {
             //console.log('deficient fields', deficient_fields);
             vm.highlight_deficient_fields(deficient_fields);
         },
-        save: function(e) {
+        save: function() {
           let vm = this;
           vm.checkAssessorData();
           let formData = new FormData(vm.form);
-          vm.$http.post(vm.proposal_form_url,formData).then(res=>{
-              swal(
-                'Saved',
-                'Your proposal has been saved',
-                'success'
-              )
-          },err=>{
-          });
-        },
-        save_wo: function() {
-          let vm = this;
-          vm.checkAssessorData();
-          let formData = new FormData(vm.form);
-          vm.$http.post(vm.proposal_form_url,formData).then(res=>{
-
-
-          },err=>{
-          });
+            fetch(vm.proposal_form_url, {
+                method: 'POST',
+                body: formData,
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err });
+                    }
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Your proposal has been saved',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                })
+                .catch(err => {
+                console.log(err);
+            });
         },
 
         toggleProposal:function(){
@@ -714,27 +734,35 @@ export default {
         },
         assignRequestUser: function(){
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/assign_request_user')))
-            .then((response) => {
-                vm.proposal = response.body;
-                vm.original_proposal = helpers.copyObject(response.body);
+            fetch(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/assign_request_user')))
+            .then(async (response) => {
+                if (!response.ok) { return response.json().then(err => { throw err }); }
+                const data = await response.json();
+                vm.proposal = data;
+                vm.original_proposal = helpers.copyObject(data);
                 vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                 vm.updateAssignedOfficerSelect();
-            }, (error) => {
+            }).catch((error) => {
                 vm.proposal = helpers.copyObject(vm.original_proposal)
                 vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                 vm.updateAssignedOfficerSelect();
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
+                swal.fire({
+                    title: 'Proposal Error',
+                    text: error,
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
             });
         },
-        refreshFromResponse:function(response){
+        refreshFromResponse:function(response_data){
             let vm = this;
-            vm.original_proposal = helpers.copyObject(response.body);
-            vm.proposal = helpers.copyObject(response.body);
+            // TODO  check the response_data if that's send in .json() wherever it's emitted as per new fetch calls.
+            // vm.original_proposal = helpers.copyObject(response.body);
+            // vm.proposal = helpers.copyObject(response.body);
+            vm.original_proposal = helpers.copyObject(response_data);
+            vm.proposal = helpers.copyObject(response_data);
             vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
             vm.$nextTick(() => {
                 vm.initialiseAssignedOfficerSelect(true);
@@ -754,40 +782,60 @@ export default {
                 data = {'assessor_id': vm.proposal.assigned_officer};
             }
             if (!unassign){
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/assign_to')),JSON.stringify(data),{
-                    emulateJSON:true
-                }).then((response) => {
-                    vm.proposal = response.body;
-                    vm.original_proposal = helpers.copyObject(response.body);
+                fetch(helpers.add_endpoint_json(api_endpoints.proposals, `${vm.proposal.id}/assign_to`), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+                })
+                .then(async response => {
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    throw errorBody;
+                }
+                const responseBody = await response.json();
+                console.log('data', data);
+                vm.proposal = responseBody;
+                vm.original_proposal = helpers.copyObject(responseBody);
+                vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
+                vm.updateAssignedOfficerSelect();
+                })
+                .catch(error => {
+                    vm.proposal = helpers.copyObject(vm.original_proposal);
                     vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                     vm.updateAssignedOfficerSelect();
-                }, (error) => {
-                    vm.proposal = helpers.copyObject(vm.original_proposal)
-                    vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                    vm.updateAssignedOfficerSelect();
-                    swal(
-                        'Proposal Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
-                });
+                    swal.fire({
+                        title: 'Proposal Error',
+                        text: error,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                })
             }
             else{
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/unassign')))
-                .then((response) => {
-                    vm.proposal = response.body;
-                    vm.original_proposal = helpers.copyObject(response.body);
+                fetch(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/unassign')))
+                .then(async (response) => {
+                    if (!response.ok) { return response.json().then(err => { throw err }); }
+                    const data = await response.json();
+                    vm.proposal = data;
+                    vm.original_proposal = helpers.copyObject(data);
                     vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                     vm.updateAssignedOfficerSelect();
-                }, (error) => {
+                }).catch((error) => {
                     vm.proposal = helpers.copyObject(vm.original_proposal)
                     vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                     vm.updateAssignedOfficerSelect();
-                    swal(
-                        'Proposal Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
+                    swal.fire({
+                        title: 'Proposal Error',
+                        text: error,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
                 });
             }
         },
@@ -885,12 +933,15 @@ export default {
         //},
         fetchApiaryReferralGroups: function() {
             this.loading.push('Loading Apiary Referral Groups');
-            this.$http.get(api_endpoints.apiary_referral_groups).then((response) => {
-                for (let group of response.body) {
+            fetch(api_endpoints.apiary_referral_groups)
+            .then(async (response) => {
+                if (!response.ok) { return response.json().then(err => { throw err }); }
+                const data = await response.json();
+                for (let group of data) {
                     this.apiaryReferralGroups.push(group)
                 }
                 this.loading.splice('Loading Apiary Referral Groups',1);
-            },(error) => {
+            }).catch((error) => {
                 console.log(error);
                 this.loading.splice('Loading Apiary Referral Groups',1);
             })
@@ -929,13 +980,13 @@ export default {
                     vm.proposal.assigned_officer = selected.val();
                 }
                 vm.assignTo();
-            }).on("select2:unselecting", function(e) {
+            }).on("select2:unselecting", function() {
                 var self = $(this);
                 setTimeout(() => {
                     self.select2('close');
                 }, 0);
-            }).on("select2:unselect",function (e) {
-                var selected = $(e.currentTarget);
+            }).on("select2:unselect",function () {
+                // var selected = $(e.currentTarget);
                 if (vm.proposal.processing_status == 'With Approver'){
                     vm.proposal.assigned_approver = null;
                 }
@@ -957,8 +1008,8 @@ export default {
                     var selected = $(e.currentTarget);
                     vm.selected_referral = selected.val();
                 }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
+                on("select2:unselect",function () {
+                    // var selected = $(e.currentTarget);
                     vm.selected_referral = ''
                 });
                 vm.initialiseAssignedOfficerSelect();
@@ -1135,10 +1186,12 @@ export default {
     },
     created: function() {
         let vm = this
-        Vue.http.get(`/api/proposal/${this.proposalId}/internal_proposal.json`).then(res => {
-            this.proposal = res.body;
-            //console.log(res.body)
-            this.original_proposal = helpers.copyObject(res.body);
+         fetch(`/api/proposal/${this.proposalId}/internal_proposal.json`)
+        .then(async (res) => {
+            if (!res.ok) { return res.json().then(err => { throw err }); }
+            const data = await res.json();
+            this.proposal = data;
+            this.original_proposal = helpers.copyObject(data);
             if (this.proposal.applicant) {
                 this.proposal.applicant.address = this.proposal.applicant.address != null ? this.proposal.applicant.address : {};
             }
@@ -1152,9 +1205,9 @@ export default {
             }
 
             this.hasAmendmentRequest = this.proposal.hasAmendmentRequest;
-        },
-        err => {
+        }).catch(err => {
           console.log(err);
+          this.loading.splice('Loading Proposal', 1);
         });
     },
     /*
@@ -1177,16 +1230,18 @@ export default {
     */
     beforeRouteUpdate: function(to, from, next) {
         console.log("beforeRouteUpdate");
-          Vue.http.get(`/api/proposal/${to.params.proposal_id}.json`).then(res => {
+          fetch(`/api/proposal/${to.params.proposal_id}.json`)
+          .then(async (res) => {
+            if (!res.ok) { return res.json().then(err => { throw err }); }
+            const data = await res.json();
               next(vm => {
-                  vm.proposal = res.body;
-                  vm.original_proposal = helpers.copyObject(res.body);
-                  if (vm.proposal.applicant) {
-                      vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                  }
+                vm.proposal = data;
+                vm.original_proposal = helpers.copyObject(data);
+                if (vm.proposal.applicant) {
+                    vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
+                }
               });
-            },
-            err => {
+            }).catch(err => {
               console.log(err);
             });
     }

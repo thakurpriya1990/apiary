@@ -28,10 +28,9 @@
 </template>
 
 <script>
-    import Vue from 'vue'
     import datatable from '@vue-utils/datatable.vue'
     import { v4 as uuid } from 'uuid';
-    import { api_endpoints, helpers, } from '@/utils/hooks'
+    import { helpers, constants } from '@/utils/hooks'
     import OnSiteInformationModal from './on_site_information_modal'
 
     export default {
@@ -92,13 +91,13 @@
                         [1, 'desc'], [0, 'desc'],
                     ],
                     language: {
-                        processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                        processing: constants.DATATABLE_PROCESSING_HTML,
                     },
                     rowCallback: function (row, obj){
                         return // We disable the expander for now
-                        console.log('in rowCallback')
-                        let row_jq = $(row)
-                        row_jq.children().first().addClass(vm.td_expand_class_name)
+                        // console.log('in rowCallback')
+                        // let row_jq = $(row)
+                        // row_jq.children().first().addClass(vm.td_expand_class_name)
                     },
                     responsive: true,
                     processing: true,
@@ -157,7 +156,7 @@
                         {
                             // 4
                             data: 'comments',
-                            mRender: function (data, type, full) {
+                            mRender: function (data, type) {
                                 var result= helpers.dtPopover(data);
                                 return type=='display' ? result : data;
                             },
@@ -167,7 +166,7 @@
                         {
                             // 5
                             data: 'hives_loc',
-                            render: function (data, type, full, meta) {
+                            render: function (data, type) {
                                 var result= helpers.dtPopover(data);
                                 return type=='display' ? result : data;
                             },
@@ -188,7 +187,7 @@
                         {
                             // 7
                             data: 'people_names',
-                            mRender: function (data, type, full) {
+                            mRender: function (data, type) {
                                 var result= helpers.dtPopover(data);
                                 return type=='display' ? result : data;
                             },
@@ -198,7 +197,7 @@
                         {
                             // 8
                             data: 'flora',
-                            mRender: function (data, type, full) {
+                            mRender: function (data, type) {
                                 var result= helpers.dtPopover(data);
                                 return type=='display' ? result : data;
                             },
@@ -263,7 +262,7 @@
                     if(this.approval_id && this.user_can_interact){
                         enabled = true
                     }
-                } catch(err) { }
+                } catch(err) { console.log(err)}
                 return enabled;
             }
         },
@@ -284,7 +283,7 @@
                 await this.loadOnSiteInformation(this.approval_id);
                 this.constructOnSiteInformationTable();
             },
-            openOnSiteInformationModalToAdd: async function(e){
+            openOnSiteInformationModalToAdd: async function(){
                 this.openOnSiteInformationModal({
                     id: null,
                     apiary_site: null,
@@ -342,7 +341,7 @@
 
                 // Listener for thr row
                 //let vm = this
-                vm.$refs.on_site_information_table.vmDataTable.on('click', 'td', function(e) {
+                vm.$refs.on_site_information_table.vmDataTable.on('click', 'td', function() {
                 //    return  // We disable the expander for now
                     let td_link = $(this)
 
@@ -428,7 +427,6 @@
             editOnSiteInformation: async function(e) {
                 console.log('in editOnSiteInformation')
 
-                let vm = this;
                 let on_site_information_id = e.target.getAttribute("data-on-site-information-id");
                 
                 console.log('on_site_information_id: ' + on_site_information_id)
@@ -455,43 +453,54 @@
                 let vm = this;
                 let on_site_information_id = e.target.getAttribute("data-on-site-information-id");
 
-                swal({
-                      title: "Delete on site information",
-                      text: "Are you sure you want to delete this?",
-                      type: "warning",
-                      showCancelButton: true,
-                      confirmButtonClass: "btn-danger",
-                      confirmButtonText: "Yes, delete it",
-                }).then(
-                    (accept) => {
-                        vm.$http.delete('/api/on_site_information/' + on_site_information_id + '/').then(
-                            async function(accept){
-                                await vm.loadOnSiteInformation(this.approval_id);
-                                vm.constructOnSiteInformationTable();
-                            },
-                            reject=>{
-                                swal(
-                                    'Submit Error',
-                                    helpers.apiVueResourceError(err),
-                                    'error'
-                                )
-                            }
-                        );
+                swal.fire({
+                    title: "Delete on site information",
+                    text: "Are you sure you want to delete this?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "Yes, delete it",
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary',
                     },
-                    (reject)=>{
-
-                    }
-                )
+                }).then(
+                    (result) => {
+                        if (result.isConfirmed){
+                            fetch('/api/on_site_information/' + on_site_information_id + '/',{
+                                method: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            }).then(
+                                async (response) =>{
+                                     if (!response.ok) {
+                                        throw new Error(`Delete OnSite Information failed: ${response.status}`);
+                                    }
+                                    await vm.loadOnSiteInformation(this.approval_id);
+                                    vm.constructOnSiteInformationTable();
+                               }).catch((error) => {
+                                    console.log(error);
+                                    swal.fire({
+                                        title: "Submit Error",
+                                        text: error,
+                                        icon: "error",
+                                        customClass: {
+                                            confirmButton: 'btn btn-primary',
+                                        },
+                                    })
+                                });
+                        }
+                    });
             },
             loadOnSiteInformation: async function(){
-                await this.$http.get('/api/approvals/' + this.approval_id + '/on_site_information/').then(
-                    (accept)=>{
-                        this.on_site_information_list = accept.body
+                fetch('/api/approvals/' + this.approval_id + '/on_site_information/').then(
+                    async (response)=>{
+                        this.on_site_information_list = await response.json();
                         this.constructOnSiteInformationTable()
-                    },
-                    (reject)=>{
-                    },
-                )
+                    }).catch((error) => {
+                        console.log(error);
+                    })
             }
         },
         created: function() {

@@ -475,6 +475,15 @@ class Organisation(models.Model):
     @property
     def address(self):
         return self.organisation["postal_address"]
+    
+    @property
+    def address_string(self):
+        org_address = self.organisation["postal_address"]
+        if org_address:
+            fields = [str(org_address[key]) for key in org_address if org_address[key]]
+            return u', '.join(fields)
+        else:
+            return ''
 
     #@property
     #def phone_number(self):

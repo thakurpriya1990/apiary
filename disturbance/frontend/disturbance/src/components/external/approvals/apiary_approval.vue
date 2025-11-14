@@ -76,8 +76,7 @@
                         <div class="form-group">
                             <label for="" class="col-sm-3 control-label" >Country</label>
                             <div class="col-sm-4">
-                                <input type="text" disabled class="form-control" name="country" v-model="approval.applicant_address.country">
-                                </input>
+                                <input type="text" disabled class="form-control" name="country" v-model="approval.applicant_address.country" />
                             </div>
                         </div>
                     </form>
@@ -90,19 +89,19 @@
                         <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Issue Date</label>
                             <div class="col-sm-6">
-                                <label for="" class="control-label pull-left">{{approval.issue_date | formatDate}}</label>
+                                <label for="" class="control-label pull-left">{{ formatDate(approval.issue_date) }}</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="" class="col-sm-3 control-label" >Start Date</label>
                             <div class="col-sm-6">
-                                <label for="" class="control-label pull-left">{{approval.start_date | formatDate}}</label>
+                                <label for="" class="control-label pull-left">{{ formatDate(approval.start_date) }}</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Expiry Date</label>
                             <div class="col-sm-3">
-                                <label for="" class="control-label pull-left">{{approval.expiry_date | formatDate}}</label>
+                                <label for="" class="control-label pull-left">{{ formatDate(approval.expiry_date) }}</label>
                             </div>
                         </div>
                         <div class="form-group">
@@ -184,10 +183,9 @@
 </div>
 </template>
 <script>
-import $ from 'jquery'
-import Vue from 'vue'
-import datatable from '@vue-utils/datatable.vue'
-import CommsLogs from '@common-utils/comms_logs.vue'
+import { v4 as uuid } from 'uuid';
+// import datatable from '@vue-utils/datatable.vue'
+// import CommsLogs from '@common-utils/comms_logs.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
 import { api_endpoints, helpers } from '@/utils/hooks'
 import OnSiteInformation from '@/components/common/apiary/section_on_site_information.vue'
@@ -212,18 +210,17 @@ export default {
         }
     },
     data() {
-        let vm = this;
         return {
             loading: [],
             approval: {
                 applicant_id: null
             },
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            adBody: 'adBody'+vm._uid,
-            pBody: 'pBody'+vm._uid,
-            cBody: 'cBody'+vm._uid,
-            oBody: 'oBody'+vm._uid,
-            onBody: 'onBody'+vm._uid,
+            adBody: 'adBody'+uuid(),
+            pBody: 'pBody'+uuid(),
+            cBody: 'cBody'+uuid(),
+            oBody: 'oBody'+uuid(),
+            onBody: 'onBody'+uuid(),
             org: {
                 address: {}
             },
@@ -236,32 +233,27 @@ export default {
     },
     watch: {
         approval: {
-            deep: true,
             handler(){
                 console.log('approval in watch');
-
+                
                 // Construct the array, which is passed to the child component, SiteAvailability
                 // Construct the array, which is passed to the child component, OnSiteInformation
                 //this.on_site_information_list = []
-
+                
                 console.log(this.approval)
-
+                
                 //for (let i=0; i<this.approval.apiary_sites.length; i++){
-                    //console.log('in apiary_sites.length')
-                    //for (let j=0; j<this.approval.apiary_sites[i].onsiteinformation_set.length; j++){
-                        //console.log('in onsiteinformation_setgt.length')
-                        //this.on_site_information_list.push(this.approval.apiary_sites[i].onsiteinformation_set[j])
+                //console.log('in apiary_sites.length')
+                //for (let j=0; j<this.approval.apiary_sites[i].onsiteinformation_set.length; j++){
+                    //console.log('in onsiteinformation_setgt.length')
+                    //this.on_site_information_list.push(this.approval.apiary_sites[i].onsiteinformation_set[j])
                     //}
-                //}
-
-                // Construct the array, which is passed to the child component, TemporaryUse
-
-            }
-        }
-    },
-    filters: {
-        formatDate: function(data){
-            return moment(data).format('DD/MM/YYYY');
+                    //}
+                    
+                    // Construct the array, which is passed to the child component, TemporaryUse
+                    
+            },
+            deep: true,
         }
     },
     created: function() {
@@ -285,14 +277,15 @@ export default {
     //},
     components: {
         SectionAnnualRentalFee,
-        datatable,
-        CommsLogs,
         FormSection,
         OnSiteInformation,
         SiteAvailability,
         TemporaryUse,
     },
     computed: {
+        formatDate: function(data){
+            return moment(data).format('DD/MM/YYYY');
+        },
         isLoading: function () {
             return this.loading.length > 0;
         },
@@ -300,6 +293,7 @@ export default {
             try {
                 return this.approval.current_proposal.proposal_apiary.id;
             } catch(err) {
+                console.error(err);
                 return 0;
             }
         },
@@ -344,7 +338,6 @@ export default {
         },
     },
     mounted: function () {
-        let vm = this;
     }
 }
 </script>

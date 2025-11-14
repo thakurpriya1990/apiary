@@ -3,7 +3,7 @@
         <modal @ok="ok()" @cancel="cancel()" :title="title()" large>
             <form class="form-horizontal" name="addContactForm">
                 <div class="row">
-                    <alert :show.sync="showError" type="danger"><strong>{{errorString}}</strong></alert>
+                    <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                     <div class="col-lg-12">
                         <div class="row">
                             <div class="form-group">
@@ -76,7 +76,6 @@ export default {
             },
     },
     data:function () {
-        let vm = this;
         return {
             isModalOpen:false,
             form:null,
@@ -164,7 +163,7 @@ export default {
                     campground:"required",
                     campsite:{
                         required: {
-                            depends: function(el){
+                            depends: function(){
                                 return vm.campsites.length > 0;
                             }
                         }
@@ -197,7 +196,6 @@ export default {
             });
        },
        eventListerners:function () {
-           let vm = this;
        }
    },
    mounted:function () {

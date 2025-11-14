@@ -5,7 +5,7 @@
             <div class="map-wrapper">
                 <div v-show="!fullscreen" id="filter_search_row_wrapper">
                     <div class="filter_search_wrapper" style="margin-bottom: 5px;" id="filter_search_row">
-                        <template v-show="select2Applied">
+                        <div v-show="select2Applied">
                             <div class="row" id="filters_parent">
                                 <div class="col-sm-1">
                                     <label class="control-label">Status</label>
@@ -26,7 +26,7 @@
                                     <input v-model="search_text" pattern="[0-9]*" id="search_text" required class="form-control" />
                                 </div>
                             </div>
-                        </template>
+                        </div>
                     </div>
                 </div>
                 <div :id="elem_id" class="map" style="position: relative;">
@@ -56,13 +56,13 @@
                         </div>
                         <div style="position:relative">
                             <transition v-if="optionalLayers.length">
-                                <div class="optional-layers-button" @mouseover="hover=true">
+                                <div class="optional-layers-button" @mouseover="hover=true" v-if="optionalLayers.length">
                                     <img src="../../../assets/layers.svg" />
                                 </div>
                             </transition>
                             <transition v-if="optionalLayers.length">
                                 <div div class="layer_options" v-show="hover" @mouseleave="hover=false" >
-                                    <div v-for="layer in optionalLayers">
+                                    <div v-for="layer in optionalLayers" :key="layer.ol_uid">
                                         <input
                                             type="checkbox"
                                             :id="layer.ol_uid"
@@ -106,44 +106,42 @@
     import FormSection from "@/components/forms/section_toggle.vue"
     import ContactLicenceHolderModal from "@/components/common/apiary/contact_licence_holder_modal.vue"
     import { v4 as uuid } from 'uuid';
-    import Vue from 'vue'
 
     import 'ol/ol.css';
     import 'ol-layerswitcher/dist/ol-layerswitcher.css'
     import Map from 'ol/Map';
     import View from 'ol/View';
-    import WMTSCapabilities from 'ol/format/WMTSCapabilities';
+    // import WMTSCapabilities from 'ol/format/WMTSCapabilities';
     import TileLayer from 'ol/layer/Tile';
     import OSM from 'ol/source/OSM';
     import TileWMS from 'ol/source/TileWMS';
-    import WMTS, {optionsFromCapabilities} from 'ol/source/WMTS';
-    import Collection from 'ol/Collection';
-    import { Draw, Modify, Snap } from 'ol/interaction';
+    // import WMTS, {optionsFromCapabilities} from 'ol/source/WMTS';
+    // import Collection from 'ol/Collection';
+    import { Draw, Modify} from 'ol/interaction';
     import VectorLayer from 'ol/layer/Vector';
     import VectorSource from 'ol/source/Vector';
-    import { Circle as CircleStyle, Fill, Stroke, Style, Text, RegularShape } from 'ol/style';
-    import { FullScreen as FullScreenControl, MousePosition as MousePositionControl, SelectFeature } from 'ol/control';
-    import { Feature } from 'ol';
+    import { Circle as CircleStyle, Fill, Stroke, Style, Text } from 'ol/style';
+    import { FullScreen as FullScreenControl, MousePosition as MousePositionControl } from 'ol/control';
+    // import { Feature } from 'ol';
     import { LineString, Point } from 'ol/geom';
-    import { getDistance } from 'ol/sphere';
-    import { circular} from 'ol/geom/Polygon';
+    // import { getDistance } from 'ol/sphere';
+    // import { circular} from 'ol/geom/Polygon';
     import GeoJSON from 'ol/format/GeoJSON';
     import Overlay from 'ol/Overlay';
     import { getDisplayNameFromStatus, getDisplayNameOfCategory, getStatusForColour, getApiaryFeatureStyle, zoomToCoordinates, checkIfValidlatitudeAndlongitude } from '@/components/common/apiary/site_colours.js'
-    import { getArea, getLength } from 'ol/sphere'
+    // import { getArea, getLength } from 'ol/sphere'
     import MeasureStyles, { formatLength } from '@/components/common/apiary/measure.js'
-    import Datatable from '@vue-utils/datatable.vue'
+    // import Datatable from '@vue-utils/datatable.vue'
     import Cluster from 'ol/source/Cluster';
     import 'select2/dist/css/select2.min.css'
     import 'select2-bootstrap-theme/dist/select2-bootstrap.min.css'
     import Awesomplete from 'awesomplete'
     import { api_endpoints } from '@/utils/hooks'
-    import { fromLonLat } from 'ol/proj'
+    // import { fromLonLat } from 'ol/proj'
 
     export default {
         name: 'AvailableSites',
         data: function(){
-            let vm = this
             let default_show_statuses = ['vacant', 'pending', 'denied', 'current', 'not_to_be_reissued', 'suspended']
             let default_show_availabilities = ['available', 'unavailable']
 
@@ -311,7 +309,6 @@
         components: {
             FormSection,
             ContactLicenceHolderModal,
-            Datatable
         },
         props: {
             is_external:{
@@ -452,7 +449,7 @@
                             types: 'region,postcode,district,place,locality,neighborhood,address,poi'
                         }),
                         dataType: 'json',
-                        success: function(data, status, xhr) {
+                        success: function(data) {
                             vm.suggest_list = [];  // Clear the list first
                             if (data.features && data.features.length > 0){
                                 for (var i = 0; i < data.features.length; i++){
@@ -480,7 +477,6 @@
                 }
             },
             updateAvailabilityInstructions: function(availabilities_currently_selected, options){
-                let vm = this
                 if (availabilities_currently_selected.length === 0){
                     for (let option of options){
                         option.show = true
@@ -575,11 +571,11 @@
                         data: vm.filter_status_options,
                         dropdownParent: $('#filters_parent'),
                     }).
-                    on('select2:select', function(e){
+                    on('select2:select', function(){
                         vm.updateInstructions()
                         vm.showHideApiarySites()
                     }).
-                    on('select2:unselect', function(e){
+                    on('select2:unselect', function(){
                         vm.updateInstructions()
                         vm.showHideApiarySites()
                     })
@@ -592,11 +588,11 @@
                         data: vm.filter_availability_options,
                         dropdownParent: $('#filters_parent'),
                     }).
-                    on("select2:select",function (e) {
+                    on("select2:select",function () {
                         vm.updateInstructions()
                         vm.showHideApiarySites()
                     }).
-                    on("select2:unselect",function (e) {
+                    on("select2:unselect",function () {
                         vm.updateInstructions()
                         vm.showHideApiarySites()
                     })
@@ -604,7 +600,6 @@
                 }
             },
             clearApiarySitesFromMap: function(){
-                let vm = this
                 this.apiarySitesQuerySource.clear()
             },
             clearAjaxObjects: function(){
@@ -626,7 +621,6 @@
                 }
             },
             addApiarySitesToMap: function(apiary_sites_geojson){
-                let vm = this
                 let features = (new GeoJSON()).readFeatures(apiary_sites_geojson)
                 this.apiarySitesQuerySource.addFeatures(features)
             },
@@ -649,26 +643,42 @@
 
                 return apiary_site_available
             },
-            toggleAvailability: function(e){
-                let vm = this;
+            toggleAvailability: async function(e){
                 let apiary_site_id = e.target.getAttribute("data-toggle-availability");
                 let current_availability = this.getApiarySiteAvailableFromEvent(e)
                 let requested_availability = current_availability === 'true' ? false : true
                 e.stopPropagation()
 
-                vm.$http.patch('/api/apiary_site/' + apiary_site_id + '/', { 'available': requested_availability }).then(
-                    async function(accept){
-                        // Update the site in the table
-                        let site_updated = accept.body
-                    },
-                    reject=>{
-                        swal(
-                            'Submit Error',
-                            helpers.apiVueResourceError(err),
-                            'error'
-                        )
+                try {
+                    const response = await fetch('/api/apiary_site/' + apiary_site_id + '/', {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            // Add authorization headers if needed
+                        },
+                        body: JSON.stringify({ available: requested_availability })
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText);
                     }
-                );
+
+                    const site_updated = await response.json();
+                    // Update the site in the table
+                    console.log('Site updated:', site_updated);
+
+                } catch (error) {
+                    swal.fire({
+                        title: 'Submit Error',
+                        text: error,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
+                }
+
             },
             makeVacantClicked: function(e){
                 let vm = this;
@@ -676,16 +686,31 @@
                 let apiary_site_id = e.target.getAttribute("data-make-vacant");
                 e.stopPropagation()
 
-                swal({
+                swal.fire({
                     title: "Make Vacant",
                     text: "Are you sure you want to make this apiary site: " + apiary_site_id + " vacant?",
-                    type: "question",
+                    icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: 'Yes, make vacant'
+                    confirmButtonText: 'Yes, make vacant',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary',
+                    },
                 }).then(
-                    () => {
-                        vm.$http.patch('/api/apiary_site/' + apiary_site_id + '/', { 'status': 'vacant' }).then(
-                            async function(accept){
+                    (result) => {
+                        if (result.isConfirmed) {
+                            fetch('/api/apiary_site/' + apiary_site_id + '/',{
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    // Add authorization headers if needed
+                                },
+                                body: JSON.stringify({ 'status': 'vacant' })
+                            }).then( async (response) => {
+                                if (!response.ok) {
+                                    const errorText = await response.text();
+                                    throw new Error(errorText);
+                                }
                                 // Remove the row from the table
                                 // TODO: Update table
                                 $(e.target).closest('tr').fadeOut('slow', function(){
@@ -696,18 +721,19 @@
                                 // TODO: Update map
                                 // Remove the site from the map
                                 this.$refs.component_map.removeApiarySiteById(apiary_site_id)
-                            },
-                            reject=>{
-                                swal(
-                                    'Submit Error',
-                                    helpers.apiVueResourceError(err),
-                                    'error'
-                                )
-                            }
-                        );
+                            }).catch((error) => {
+                                console.log(error);
+                                swal.fire({
+                                    title: 'Submit Error',
+                                    text: error,
+                                    icon: 'error',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                })
+                            })
+                        }
                     },
-                    err => {
-                    }
                 );
             },
             toggleStatusFilterDropdown: function(){
@@ -722,7 +748,7 @@
                     }
                 }
             },
-            mouseLeave: function(e){
+            mouseLeave: function(){
                 let vm = this;
                 if (!vm.not_close_popup_by_mouseleave){
                     //vm.$refs.component_map.closePopup()
@@ -774,6 +800,7 @@
                 return styles
             },
             styleFunctionForMeasurement: function (feature, resolution){
+                console.log(resolution)
                 let vm = this
                 let for_layer = feature.get('for_layer', false)
 
@@ -834,8 +861,10 @@
             },
             addOptionalLayers: function(){
                 let vm = this
-                this.$http.get('/api/map_layers/').then(response => {
-                    let layers = response.body
+                fetch('/api/map_layers/')
+                .then(async response => {
+                    if (!response.ok) { return response.json().then(err => { throw err }); }
+                    let layers = await response.json();
                     for (var i = 0; i < layers.length; i++){
                         let l = new TileWMS({
                             url: env['kmi_server_url'] + '/geoserver/' + layers[i].layer_group_name + '/wms',
@@ -861,7 +890,9 @@
                         vm.optionalLayers.push(tileLayer)
                         vm.map.addLayer(tileLayer)
                     }
-                })
+                }).catch((error) => {
+                    console.log(error);
+                });
             },
             closePopup: function(){
                 this.content_element.innerHTML = null
@@ -995,13 +1026,13 @@
                 })
                 // Set a custom listener to the Measure tool
                 vm.drawForMeasure.set('escKey', '')
-                vm.drawForMeasure.on('change:escKey', function(evt){
+                vm.drawForMeasure.on('change:escKey', function(){
                     //vm.drawForMeasure.finishDrawing()
                 })
-                vm.drawForMeasure.on('drawstart', function(evt){
+                vm.drawForMeasure.on('drawstart', function(){
                     vm.measuring = true
                 })
-                vm.drawForMeasure.on('drawend', function(evt){
+                vm.drawForMeasure.on('drawend', function(){
                     vm.measuring = false
                 })
 
@@ -1047,7 +1078,7 @@
 
                 vm.map.on('singleclick', function(evt){
                     if (vm.mode === 'layer'){
-                        let feature = vm.map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
+                        let feature = vm.map.forEachFeatureAtPixel(evt.pixel, function(feature) {
                             return feature;
                         });
                         if (feature){
@@ -1121,7 +1152,7 @@
                     let hit = vm.map.hasFeatureAtPixel(pixel);
                     vm.map.getTargetElement().style.cursor = hit ? 'pointer' : '';
                 });
-                vm.map.on('moveend', function(e){
+                vm.map.on('moveend', function(){
                     let extent = vm.map.getView().calculateExtent(vm.map.getSize());
                     let features = vm.apiarySitesQuerySource.getFeaturesInExtent(extent)
                     vm.$emit('featuresDisplayed', features)
@@ -1140,7 +1171,7 @@
                         source: vm.apiarySitesQuerySource,
                     });
                     modifyTool.on("modifystart", function(attributes){
-                            attributes.features.forEach(function(feature){
+                            attributes.features.forEach(function(){
                         })
                     });
                     modifyTool.on("modifyend", function(attributes){
@@ -1183,6 +1214,7 @@
                 return approval_link
             },
             get_actions: function(feature, contactLicenceHolder){
+                console.log(contactLicenceHolder);
                 let action_list = []
 
                 let a_status = getStatusForColour(feature, false, this.display_at_time_of_submitted)
@@ -1269,15 +1301,15 @@
                     this.content_element.innerHTML = content;
                     this.overlay.setPosition(coord);
 
-                    this.$http.get('/api/apiary_site/' + feature.id_ + '/relevant_applicant_name/').then(
-                        res => {
-                            let applicant_name = res.body.relevant_applicant
+                    fetch('/api/apiary_site/' + feature.id_ + '/relevant_applicant_name/').then(
+                        async (res) => {
+                            if (!res.ok) { return res.json().then(err => { throw err }); }
+                            const res_json = await res.json();
+                            let applicant_name = res_json.relevant_applicant
                             $('#' + unique_id).text(applicant_name)
-                        },
-                        err => {
-                            console.log({err})
-                        }
-                    )
+                        }).catch((error) => {
+                             console.log(error);
+                        });
                 }
             },
             showPopupForLayersJson: function(geojson, coord, column_names, display_all_columns, target_layer){
@@ -1297,8 +1329,6 @@
                             tr.append(th)
                             tr.append(td)
                             tbody.append(tr)
-                        } else {
-
                         }
                     }
                     this.content_element.innerHTML += wrapper.html()  // Export contents as HTML string
@@ -1366,21 +1396,28 @@
                 this.openOnSiteInformationModal(apiary_site_id)
             },
             contactLicenceHolder: function(e){
-                let vm = this;
                 //let apiary_site_id = e.target.getAttribute("data-apiary-site-id");
                 let apiary_site_id = e.target.getAttribute("data-contact-licence-holder");
                 this.contactLicenceHolderClicked(apiary_site_id)
                 e.stopPropagation()
             },
             contactLicenceHolderOK: function(obj){
-                this.$http.post('/api/apiary_site/' + obj.apiary_site_id + '/contact_licence_holder/', obj).then(
-                    res => {
-                        this.$refs.contact_licence_holder_modal.close();
-                    },
-                    err => {
-
+                fetch('/api/apiary_site/' + obj.apiary_site_id + '/contact_licence_holder/',
+                    {
+                        headers: { 'Content-Type': 'application/json' },
+                        method: 'POST',
+                        body: obj,
                     }
-                )
+                ).then(
+                    async (res) => {
+                        if (!res.ok) {
+                            return res.json().then(err => { throw err });
+                        }
+                            this.$refs.contact_licence_holder_modal.close();
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    });
             },
             openOnSiteInformationModal: async function(apiary_site_id) {
                 this.modalBindId = uuid()
@@ -1393,7 +1430,7 @@
                         }
                     });
                 } catch (err) {
-
+                    console.log(err)
                 }
             },
             showHideApiarySites: async function() {
@@ -1402,7 +1439,7 @@
                 /////
                 let vm = this
 
-                let temp = vm.show_hide_instructions
+                // let temp = vm.show_hide_instructions
 
                 vm.clearApiarySitesFromMap()
                 vm.clearAjaxObjects()
@@ -1419,11 +1456,11 @@
                                 option.loading_sites = true
                                 option.ajax_obj = $.ajax('/api/apiary_site/' + option.api + '/?search_text=' + vm.search_text, {
                                     dataType: 'json',
-                                    success: function(re, status, xhr){
+                                    success: function(re){
                                         vm.addApiarySitesToMap(re)
                                         option.loading_sites = false
                                     },
-                                    error: function (jqXhr, textStatus, errorMessage) { // error callback 
+                                    error: function () { // error callback 
                                         option.loading_sites = false
                                     }
                                 })
@@ -1464,7 +1501,7 @@
                             site_status.loading_sites = true
                             site_status.ajax_obj = $.ajax('/api/apiary_site/' + site_status.api + '/?search_text=' + vm.search_text, {
                                 dataType: 'json',
-                                success: function(re, status, xhr){
+                                success: function(re){
                                     vm.addApiarySitesToMap(re)
                                     site_status.loading_sites = false
                                 },

@@ -90,7 +90,6 @@
             }
         },
         data:function () {
-            let vm=this;
             return{
                 component_site_selection_key: '',
                 period_from: '',

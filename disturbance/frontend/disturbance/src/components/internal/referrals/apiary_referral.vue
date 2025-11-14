@@ -18,15 +18,17 @@
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Lodged on</strong><br/>
-                                {{ proposal.lodgement_date | formatDate}}
+                                {{ formatDate(proposal.lodgement_date) }}
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <table class="table small-table">
-                                    <tr>
-                                        <th>Lodgement</th>
-                                        <th>Date</th>
-                                        <th>Action</th>
-                                    </tr>
+                                    <thead>
+                                        <tr>
+                                            <th>Lodgement</th>
+                                            <th>Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
                                 </table>
                             </div>
                         </div>
@@ -50,17 +52,15 @@
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Currently assigned to</strong><br/>
                                 <div class="form-group">
-                                    <template>
-                                        <select ref="assigned_officer_referral" :disabled="!canProcess" class="form-control" v-model="apiaryReferral.assigned_officer_id">
-                                            <option :value="null"></option>
-                                            <option v-for="member in apiaryReferral.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
-                                        </select>
-                                        <a 
-                                            v-if="canAssign && apiaryReferral.assigned_officer_id != apiaryReferral.current_officer.id" 
-                                            @click.prevent="assignRequestUser()" 
-                                            class="actionBtn pull-right">Assign to me
-                                        </a>
-                                    </template>
+                                    <select ref="assigned_officer_referral" :disabled="!canProcess" class="form-control" v-model="apiaryReferral.assigned_officer_id">
+                                        <option :value="null"></option>
+                                        <option v-for="member in apiaryReferral.allowed_assessors" :value="member.id" :key="member.id">{{member.first_name}} {{member.last_name}}</option>
+                                    </select>
+                                    <a 
+                                        v-if="canAssign && apiaryReferral.assigned_officer_id != apiaryReferral.current_officer.id" 
+                                        @click.prevent="assignRequestUser()" 
+                                        class="actionBtn pull-right">Assign to me
+                                    </a>
                                 </div>
                             </div>
 
@@ -280,7 +280,7 @@
                                 :is_internal="true" 
                                 :hasAssessorMode="hasAssessorMode"
                                 :referral="referral"
-                                />
+                                >
                                     <!--NewApply v-if="proposal" :proposal="proposal"></NewApply>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                     <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
@@ -308,7 +308,7 @@
                                     :is_external="false" 
                                     :is_internal="true" 
                                     :referral="referral"
-                                />
+                                >
                                     <input type='hidden' name="referrer_checklist_answers" :value="JSON.stringify(siteTransferProposalApiaryReferrerChecklistAnswers)" />
                                     <input type='hidden' name="referrer_checklist_answers_per_site" :value="JSON.stringify(siteTransferProposalApiaryReferrerChecklistAnswersPerSite)" />
                                     <div class="navbar navbar-fixed-bottom" v-if="!proposal.can_user_edit && !isFinalised" style="background-color: #f5f5f5 ">
@@ -331,20 +331,21 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import ProposalApiary from '../../form_apiary.vue'
 import ApiarySiteTransfer from '../../form_apiary_site_transfer.vue'
-import NewApply from '../../external/proposal_apply_new.vue'
-import Vue from 'vue'
-import datatable from '@vue-utils/datatable.vue'
+// import NewApply from '../../external/proposal_apply_new.vue'
+// import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 //import MoreReferrals from '@common-utils/more_referrals.vue'
-import ApiaryReferralsForProposal from '@common-utils/apiary/apiary_referrals_for_proposal.vue'
+//import ApiaryReferralsForProposal from '@common-utils/apiary/apiary_referrals_for_proposal.vue'
 //import OriginatingApprovalRequirements from '../proposals/originating_approval_requirements.vue'
 //import TargetApprovalRequirements from '../proposals/target_approval_requirements.vue'
 
 import {
     api_endpoints,
-    helpers
+    helpers,
+    constants
 }
 from '@/utils/hooks'
 export default {
@@ -352,9 +353,9 @@ export default {
     data: function() {
         let vm = this;
         return {
-            detailsBody: 'detailsBody'+vm._uid,
-            addressBody: 'addressBody'+vm._uid,
-            contactsBody: 'contactsBody'+vm._uid,
+            detailsBody: 'detailsBody'+uuid(),
+            addressBody: 'addressBody'+uuid(),
+            contactsBody: 'contactsBody'+uuid(),
             //"proposal": null,
             //referral: null,
             assigned_officer_id: null,
@@ -369,10 +370,10 @@ export default {
             department_users : [],
             contacts_table_initialised: false,
             initialisedSelects: false,
-            contacts_table_id: vm._uid+'contacts-table',
+            contacts_table_id: uuid() +'contacts-table',
             contacts_options:{
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 ajax: {
@@ -416,19 +417,14 @@ export default {
     },
     components: {
         ProposalApiary,
-        datatable,
+        // datatable,
         CommsLogs,
         //MoreReferrals,
-        NewApply,
-        ApiaryReferralsForProposal,
+        //NewApply,
+        //ApiaryReferralsForProposal,
         ApiarySiteTransfer,
         //OriginatingApprovalRequirements,
         //TargetApprovalRequirements,
-    },
-    filters: {
-        formatDate: function(data){
-            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss'): '';
-        }
     },
     props:{
             referralId:{
@@ -457,6 +453,7 @@ export default {
             if (this.referral && this.referral.apiary_referral) {
                 return this.referral.apiary_referral;
             }
+            return null;
         },
 
 
@@ -467,21 +464,25 @@ export default {
             if (this.proposal && this.proposal.proposal_apiary) {
                 return this.proposal.proposal_apiary.referrer_checklist_answers;
             }
+            return null;
         },
         proposalApiaryReferrerChecklistAnswersPerSite: function() {
             if (this.proposal && this.proposal.proposal_apiary) {
                 return this.proposal.proposal_apiary.referrer_checklist_answers_per_site;
             }
+            return null;
         },
         siteTransferProposalApiaryReferrerChecklistAnswers: function() {
             if (this.proposal && this.proposal.proposal_apiary) {
                 return this.proposal.proposal_apiary.site_transfer_referrer_checklist_answers;
             }
+            return null;
         },
         siteTransferProposalApiaryReferrerChecklistAnswersPerSite: function() {
             if (this.proposal && this.proposal.proposal_apiary) {
                 return this.proposal.proposal_apiary.site_transfer_referrer_checklist_answers_per_site;
             }
+            return null;
         },
         contactsURL: function(){
             return this.proposal!= null ? helpers.add_endpoint_json(api_endpoints.organisations,this.proposal.applicant.id+'/contacts') : '';
@@ -531,6 +532,9 @@ export default {
         },
     },
     methods: {
+        formatDate: function(data){
+            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss'): '';
+        },
         updateAssignedOfficerSelect: function(){
             let vm = this;
             console.log(vm)
@@ -539,23 +543,52 @@ export default {
         },
         assignRequestUser: async function(){
             await this.$nextTick();
-            const res = await this.$http.post(helpers.add_endpoint_json(api_endpoints.apiary_referrals,this.referral.apiary_referral.id+'/assign_request_user'));
-            this.referral = res.body;
+            const response = await fetch(helpers.add_endpoint_json(api_endpoints.apiary_referrals,this.referral.apiary_referral.id+'/assign_request_user'),
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const res = await response.json();
+            this.referral = res;
             await this.$nextTick();
             this.updateAssignedOfficerSelect();
         },
         assignTo: async function() {
             await this.$nextTick();
             const data = {'assigned_officer_id': this.apiaryReferral.assigned_officer_id};
-            const res = await this.$http.post(helpers.add_endpoint_json(api_endpoints.apiary_referrals,this.referral.apiary_referral.id+'/assign_to'), data);
+            const response = await fetch(helpers.add_endpoint_json(api_endpoints.apiary_referrals,this.referral.apiary_referral.id+'/assign_to'),{
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const res = await response.json();
             this.referral = res.body;
             await this.$nextTick();
             this.updateAssignedOfficerSelect();
         },
         unAssign: async function() {
             await this.$nextTick();
-            const res = await this.$http.post(helpers.add_endpoint_json(api_endpoints.apiary_referrals,this.referral.apiary_referral.id+'/unassign'));
-            this.referral = res.body;
+            const response = await fetch(helpers.add_endpoint_json(api_endpoints.apiary_referrals,this.referral.apiary_referral.id+'/unassign'),{
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const res = await response.json();
+            this.referral = res;
             await this.$nextTick();
             this.updateAssignedOfficerSelect();
         },
@@ -583,8 +616,8 @@ export default {
                     self.select2('close');
                 }, 0);
                 */
-            }).on("select2:unselect", async function (e) {
-                var selected = $(e.currentTarget);
+            }).on("select2:unselect", async function () {
+                // var selected = $(e.currentTarget);
                 vm.apiaryReferral.assigned_officer_id = null;
                 //await vm.$nextTick();
                 await vm.unAssign();
@@ -594,7 +627,7 @@ export default {
 
         refreshFromResponse:function(response){
             let vm = this;
-            vm.proposal = helpers.copyObject(response.body);
+            vm.proposal = helpers.copyObject(response);
             vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
         },
         initialiseOrgContactTable: function(){
@@ -614,17 +647,32 @@ export default {
         ammendmentRequest: function(){
             this.$refs.ammendment_request.isModalOpen = true;
         },
-        save: function(e) {
+        save: function() {
           let vm = this;
           let formData = new FormData(vm.form);
-          vm.$http.post(vm.proposal_form_url,formData).then(res=>{
-              swal(
-                'Saved',
-                'Your proposal has been saved',
-                'success'
-              )
-          },err=>{
-          });
+          fetch(vm.proposal_form_url, {
+            method: 'POST',
+            body: formData
+            })
+            .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            //return response.json(); // or response.text(), depending on your backend
+            })
+            .then(() => {
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Your proposal has been saved',
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+            })
+            .catch(err => {
+                console.log(err);
+            });
         },
         /*
         assignTo: function(){
@@ -654,10 +702,12 @@ export default {
         fetchProposalGroupMembers: function(){
             let vm = this;
             vm.loading.push('Loading Proposal Group Members');
-            vm.$http.get(api_endpoints.organisation_access_group_members).then((response) => {
-                vm.members = response.body
+             fetch(api_endpoints.organisation_access_group_members)
+            .then(async (response) => {
+                if (!response.ok) { return response.json().then(err => { throw err }); }
+                vm.members = await response.json();
                 vm.loading.splice('Loading Proposal Group Members',1);
-            },(error) => {
+            }).catch((error) => {
                 console.log(error);
                 vm.loading.splice('Loading Proposal Group Members',1);
             })
@@ -715,7 +765,7 @@ export default {
                 //commenting out the following lines, as a secondary referral should not overwrite the current referral
                 //vm.referral = response.body;
                 //vm.referral.proposal.applicant.address = vm.referral.proposal.applicant.address != null ? vm.referral.proposal.applicant.address : {};
-                swal(
+                swal.fire(
                     'Referral Sent',
                     'The referral has been sent to '+vm.apiaryReferralGroups.find(d => d.id == vm.selected_referral).name,
                     //'The referral has been sent to '+vm.apiaryReferralGroups.find(d => d.email == vm.selected_referral).name,
@@ -726,7 +776,7 @@ export default {
                 vm.referral_text = '';
              }, (error) => {
                 console.log(error);
-                swal(
+                swal.fire(
                     'Referral Error',
                     helpers.apiVueResourceError(error),
                     'error'
@@ -761,14 +811,14 @@ export default {
                 // vm.proposal = response.body;
                 // vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                 vm.fetchReferral(vm.referral.id);
-                swal(
+                swal.fire(
                     'Referral Reminder',
                     'A reminder has been sent to '+r.referral,
                     'success'
                 )
             },
             error => {
-                swal(
+                swal.fire(
                     'Proposal Error',
                     helpers.apiVueResourceError(error),
                     'error'
@@ -783,14 +833,14 @@ export default {
                 // vm.proposal = response.body;
                 // vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                 vm.fetchReferral(vm.referral.id);
-                swal(
+                swal.fire(
                     'Referral Resent',
                     'The referral has been resent to '+r.referral,
                     'success'
                 )
             },
             error => {
-                swal(
+                swal.fire(
                     'Proposal Error',
                     helpers.apiVueResourceError(error),
                     'error'
@@ -805,14 +855,14 @@ export default {
                 // vm.proposal = response.body;
                 // vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                 vm.fetchReferral(vm.referral.id);
-                swal(
+                swal.fire(
                     'Referral Recall',
                     'The referall has been recalled from '+r.referral,
                     'success'
                 )
             },
             error => {
-                swal(
+                swal.fire(
                     'Proposal Error',
                     helpers.apiVueResourceError(error),
                     'error'
@@ -823,59 +873,92 @@ export default {
         fetchreferrallist: function(referral_id){
             let vm = this;
 
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.referrals,referral_id+'/referral_list')).then(response => {
-                vm.referral_sent_list = response.body;     
-            },
-            err => {
+           fetch(helpers.add_endpoint_json(api_endpoints.referrals,referral_id+'/referral_list'))
+            .then(async (response) => {
+                if (!response.ok) { return response.json().then(err => { throw err }); }
+                vm.referral_sent_list = await response.json();
+            })
+            .catch(err => {
               console.log(err);
             });
         },
         fetchReferral: function(){
             let vm = this;
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.referrals,vm.referral.id)).then(res => {
-              
-                vm.referral = res.body;
+            fetch(helpers.add_endpoint_json(api_endpoints.referrals,vm.referral.id))
+            .then(async (res) => {
+                if (!res.ok) { return res.json().then(err => { throw err }); }
+                vm.referral = await res.json();
                 vm.referral.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                 //vm.fetchreferrallist(vm.referral.id);
               
-            },
-            err => {
+            }).catch(err => {
               console.log(err);
             });
         },
         completeReferral:function(){
-            //let vm = this;
+            let vm = this;
             let data = {'referral_comment': this.referral_comment};
             
-            swal({
+            swal.fire({
                 title: "Complete Referral",
                 text: "Are you sure you want to complete this referral?",
-                type: "question",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: 'Submit'
-            }).then(() => { 
-                let formData = new FormData(this.form);
-                this.$http.post(this.proposal_form_url,formData).then(res=>{
-                    
-                    //vm.$http.post(helpers.add_endpoint_json(api_endpoints.apiary_referrals,vm.$route.params.referral_id+'/complete'),JSON.stringify(data),{
-                    this.$http.post(helpers.add_endpoint_json(api_endpoints.apiary_referrals,this.referral.apiary_referral.id+'/complete'),JSON.stringify(data),{
-                emulateJSON:true
-                }).then(res => {
-                    //this.referral = res.body;
-                    this.$router.push({ path: '/internal' });
+                confirmButtonText: 'Submit',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
                 },
-                error => {
-                    swal(
-                        'Referral Error',
-                        helpers.apiVueResourceError(error),
-                        'error'
-                    )
-                });
-                
-                 },err=>{
-                 });
-
-            },(error) => {
+            }).then((swalresult) => {
+                if (swalresult.isConfirmed) {
+                    let formData = new FormData(this.form);
+                    fetch(vm.proposal_form_url, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                        throw new Error(`Form save failed: ${response.status}`);
+                        }
+                        //return response.json(); // or response.text() if no JSON is returned
+                    })
+                    .then(() => {
+                        // Second POST: Complete referral
+                        return fetch(
+                        helpers.add_endpoint_json(api_endpoints.apiary_referrals,this.referral.apiary_referral.id+'/complete'),{
+                            method: 'POST',
+                            headers: {
+                            'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                        }) .then(response => {
+                            if (!response.ok) {
+                            throw new Error(`Referral completion failed: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(() => {
+                            //this.referral = responseData;
+                            this.$router.push({ path: '/internal' });
+                         })
+                        .catch(error => {
+                            console.log(error);
+                            swal.fire({
+                                title: 'Referral Error',
+                                text: error,
+                                icon: 'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                        });
+                    
+                    }).catch(error => {
+                        console.log(error);
+                    });
+                }
+            }).catch(error => {
+                console.log(error);
             });
         }
     },
@@ -905,12 +988,15 @@ export default {
         });
     },
     created: async function() {
-        const res = await Vue.http.get(helpers.add_endpoint_json(api_endpoints.referrals,this.referralId))
-        this.referral = res.body;
-        // TODO: review this logic and modify for individual applicants
-        if (this.referral.proposal.applicant) {
-            this.referral.proposal.applicant.address = this.proposal.applicant.address != null ? this.proposal.applicant.address : {};
-        }
+       fetch(helpers.add_endpoint_json(api_endpoints.referrals,this.referralId))
+        .then(async (res) => {
+            if (!res.ok) { return res.json().then(err => { throw err }); }
+            this.referral = await res.json();
+            // TODO: review this logic and modify for individual applicants
+            if (this.referral.proposal.applicant) {
+                this.referral.proposal.applicant.address = this.proposal.applicant.address != null ? this.proposal.applicant.address : {};
+            }
+        })
         //vm.fetchreferrallist(vm.referral.id);
         await this.$nextTick();
         this.initialiseAssignedOfficerSelect()
@@ -931,13 +1017,16 @@ export default {
     },
     */
     beforeRouteUpdate: function(to, from, next) {
-          Vue.http.get(`/api/proposal/${to.params.proposal_id}/referall_proposal.json`).then(res => {
+           fetch(`/api/proposal/${to.params.proposal_id}/referall_proposal.json`)
+          .then(async (res) => {
+            if (!res.ok) { return res.json().then(err => { throw err }); }
+            const data = await res.json();
               next(vm => {
-                vm.referral = res.body;
+                vm.referral = data;
                 vm.referral.proposal.applicant.address = vm.referral.proposal.applicant.address != null ? vm.referral.proposal.applicant.address : {};
               });
-            },
-            err => {
+            })
+            .catch(err => {
               console.log(err);
             });
     }

@@ -22,6 +22,7 @@ ANNUAL_RENTAL_FEE_GST_EXEMPT = True
 FILE_UPLOAD_MAX_MEMORY_SIZE = env('FILE_UPLOAD_MAX_MEMORY_SIZE', 15728640)
 APIARY_MIGRATED_LICENCES_APPROVER = env('APIARY_MIGRATED_LICENCES_APPROVER', 'jacinta.overman@dbca.wa.gov.au')
 SHOW_ROOT_API = env('SHOW_ROOT_API', False)
+SSO_SETTING_URL=env('SSO_SETTING_URL','')
 
 INSTALLED_APPS += [
     'reversion',
@@ -62,6 +63,7 @@ REST_FRAMEWORK = {
         #'rest_framework.renderers.BrowsableAPIRenderer',
         'rest_framework_datatables.renderers.DatatablesRenderer',
     ),
+    "EXCEPTION_HANDLER": "disturbance.exceptions.custom_exception_handler",
     #'DEFAULT_FILTER_BACKENDS': (
     #    'rest_framework_datatables.filters.DatatablesFilterBackend',
     #),
@@ -197,6 +199,7 @@ SITE_STATUS_VACANT = 'vacant'
 SITE_STATUS_DISCARDED = 'discarded'
 BASE_EMAIL_TEXT = ''
 BASE_EMAIL_HTML = ''
+ORGANISATION_PERMISSION_MODULE = 'disturbance.permission'
 
 HTTP_HOST_FOR_TEST = 'localhost:9061'
 
@@ -241,3 +244,16 @@ if len(GIT_COMMIT_HASH) == 0:
 APPLICATION_VERSION = env("APPLICATION_VERSION", "1.0.0") + "-" + GIT_COMMIT_HASH[:7]
 
 APIARY_EXTERNAL_URL = env('APIARY_EXTERNAL_URL', 'External url not configured')
+LEDGER_UI_ACCOUNTS_MANAGEMENT = [
+    {'first_name': {'options' : {'view': True, 'edit': True}}},
+    {'last_name': {'options' : {'view': True, 'edit': True}}},
+    {'residential_address': {'options' : {'view': True, 'edit': True}}},
+    {'postal_address': {'options' : {'view': True, 'edit': True}}},
+    {'phone_number' : {'options' : {'view': True, 'edit': True}}},
+    {'mobile_number' : {'options' : {'view': True, 'edit': True}}},
+    {'dob' : {'options' : {'view': True, 'edit': True}}},
+    {'postal_same_as_residential' : {'options' : {'view': True, 'edit': True}}},
+    {'address_details' : {'options' : {'billing_address': {'show': False}}}},
+]
+LEDGER_UI_SYSTEM_ACCOUNTS_MANAGEMENT['address_details']['options']['billing_address']['show'] = False
+# LEDGER_UI_CARDS_MANAGEMENT = env('LEDGER_UI_CARDS_MANAGEMENT', True)

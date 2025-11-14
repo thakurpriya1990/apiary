@@ -9,6 +9,7 @@ module.exports = {
     users_api: '/api/users',
     users: '/api/users.json',
     profile: '/api/profile',
+     my_user_details: '/api/my_user_details/',
     //department_users: '/api/department_users',
     //other
     //countries: "https://restcountries.eu/rest/v1/?fullText=true",
@@ -81,4 +82,7 @@ module.exports = {
     history_versions: "/api/history/versions/",
     history_version: "/api/history/version/",
     geocoding_address_search: "https://api.mapbox.com/geocoding/v5/mapbox.places/",
+    get_organisation_id: function (org_id) {
+      return `/api/get_organisation_id/?org_id=${org_id}`
+    },
 }

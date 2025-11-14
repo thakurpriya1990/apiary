@@ -69,19 +69,19 @@
                         <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Issue Date</label>
                             <div class="col-sm-6">
-                                <label for="" class="control-label pull-left">{{approval.issue_date | formatDate}}</label>
+                                <label for="" class="control-label pull-left">{{formatDate(approval.issue_date)}}</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="" class="col-sm-3 control-label" >Start Date</label>
                             <div class="col-sm-6">
-                                <label for="" class="control-label pull-left">{{approval.start_date | formatDate}}</label>
+                                <label for="" class="control-label pull-left">{{formatDate(approval.start_date)}}</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Expiry Date</label>
                             <div class="col-sm-3">
-                                <label for="" class="control-label pull-left">{{approval.expiry_date | formatDate}}</label>
+                                <label for="" class="control-label pull-left">{{formatDate(approval.expiry_date)}}</label>
                             </div>
                         </div>
                         <div class="form-group">
@@ -100,8 +100,7 @@
 </div>
 </template>
 <script>
-import $ from 'jquery'
-import Vue from 'vue'
+import { v4 as uuid } from 'uuid';
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
@@ -131,11 +130,11 @@ export default {
                 applicant_id: null
             },
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            adBody: 'adBody'+vm._uid,
-            pBody: 'pBody'+vm._uid,
-            cBody: 'cBody'+vm._uid,
-            oBody: 'oBody'+vm._uid,
-            onBody: 'onBody'+vm._uid,
+            adBody: 'adBody'+uuid(),
+            pBody: 'pBody'+uuid(),
+            cBody: 'cBody'+uuid(),
+            oBody: 'oBody'+uuid(),
+            onBody: 'onBody'+uuid(),
             org: {
                 address: {}
             },
@@ -149,15 +148,14 @@ export default {
     },
     watch: {
         approval: {
-            deep: true,
             handler(){
                 console.log('approval in watch');
-
+                
                 // Construct the array, which is passed to the child component, SiteAvailability
                 // Construct the array, which is passed to the child component, OnSiteInformation
                 this.test_apiary_sites = []
                 this.on_site_information_list = []
-
+                
                 for (let i=0; i<this.approval.apiary_sites.length; i++){
                     console.log(this.approval.apiary_sites[i]);
                     this.test_apiary_sites.push(this.approval.apiary_sites[i].apiary_site)
@@ -165,18 +163,14 @@ export default {
                         this.on_site_information_list.push(this.approval.apiary_sites[i].apiary_site.onsiteinformation_set[j])
                     }
                 }
-
+                
                 // Construct the array, which is passed to the child component, TemporaryUse
-
-            }
+                
+            },
+            deep: true,
         }
     },
-    filters: {
-        formatDate: function(data){
-            return moment(data).format('DD/MM/YYYY');
-        }
-    },
-    created: function() {
+        created: function() {
         if (this.approvalId) {
             this.loadApproval(this.approvalId)
         }
@@ -187,6 +181,9 @@ export default {
         FormSection,
     },
     computed: {
+        formatDate: function(data){
+            return moment(data).format('DD/MM/YYYY');
+        },
         isLoading: function () {
             return this.loading.length > 0;
         },

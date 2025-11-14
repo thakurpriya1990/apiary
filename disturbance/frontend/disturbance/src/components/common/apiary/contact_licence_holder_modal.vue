@@ -17,9 +17,8 @@
 </template>
 
 <script>
-    import Vue from "vue";
     import modal from '@vue-utils/bootstrap-modal.vue';
-    import { api_endpoints, helpers, cache_helper } from "@/utils/hooks";
+    // import { api_endpoints, helpers, cache_helper } from "@/utils/hooks";
 
     export default {
         name: "ContactLicenceHolderModal",
@@ -67,9 +66,9 @@
                 // validated.  Send data to the parent component
                 this.$emit('contact_licence_holder', {'apiary_site_id': this.apiary_site_id, 'comments': this.comments})
             },
-            processError: async function(err) {
+            // processError: async function(err) {
 
-            },
+            // },
             cancel: async function() {
                 this.close();
             },

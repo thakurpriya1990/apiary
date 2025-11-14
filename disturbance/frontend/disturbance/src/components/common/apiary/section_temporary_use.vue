@@ -24,13 +24,9 @@
 </template>
 
 <script>
-    import Vue from 'vue'
     import datatable from '@vue-utils/datatable.vue'
-    import { v4 as uuid } from 'uuid';
-    import { api_endpoints, helpers, } from '@/utils/hooks'
-    //import uuid from 'uuid'
-   // import Swal from 'sweetalert2'
-    //import Swal from 'sweetalert2/dist/sweetalert2.js'
+    // import { v4 as uuid } from 'uuid';
+    import { constants} from '@/utils/hooks'
 
     export default {
         props:{
@@ -75,7 +71,7 @@
                         [1, 'desc'], [0, 'desc'],
                     ],
                     language: {
-                        processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                        processing: constants.DATATABLE_PROCESSING_HTML,
                     },
                     responsive: true,
                     processing: true,
@@ -167,14 +163,17 @@
         methods:{
             loadTemporaryUses: async function(){
 
-                await this.$http.get('/api/approvals/' + this.approval_id + '/temporary_use/').then(
-                    (accept)=>{
-                        this.temporary_uses = accept.body
+                fetch('/api/approvals/' + this.approval_id + '/temporary_use/').then(
+                    async (response)=>{
+                        if (!response.ok) {
+                            return response.json().then(err => { throw err });
+                        }
+                        console.log(response.json())
+                        this.temporary_uses = await response.json();
                         this.constructTemporaryUseTable()
-                    },
-                    (reject)=>{
-                    },
-                )
+                   }).catch((error) => {
+                        console.log(error);
+                    });
             },
             constructTemporaryUseTable: function() {
                 this.$refs.temporary_use_table.vmDataTable.clear().draw();
@@ -189,20 +188,21 @@
             openNewTemporaryUse: function() {
                 let vm = this
 
-                swal({
+                swal.fire({
                     title: "Create Temporary Use Application",
                     text: "Are you sure you want to create temporary use application?",
-                    type: "question",
+                    icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: 'Create'
-                }).then(
-                    () => {
-                        vm.createProposal();
+                    confirmButtonText: 'Create',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary',
                     },
-                    (error) => {
-
+                }).then( (result) => {
+                    if (result.isConfirmed){
+                        vm.createProposal();
                     }
-                );
+                });
             },
             _get_basic_data: function(){
                 let data = {
@@ -228,15 +228,33 @@
                 vm.creatingProposal = true;
                 let data = vm._get_basic_data();
 
-                vm.$http.post('/api/proposal.json', data).then(res => {
-                    vm.proposal = res.body;
+                fetch('/api/proposal.json',{
+                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                }).then(async (response) => {
+                    if (!response.ok) {
+                            const data = await response.json();
+                            swal.fire({
+                                title: "Create Temporary Use Application - Error",
+                                text: JSON.stringify(data),
+                                icon: "error",
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            return;
+                        }
+                    vm.proposal = await response.json();
+
+                    console.log('returned: ')
+                    console.log(vm.proposal)
 
                     vm.$router.push({ name:"draft_proposal", params:{ proposal_id: vm.proposal.id }});
                     vm.creatingProposal = false;
-                },
-                err => {
-                    console.log(err);
-                });
+                }).catch((error) => {
+                    console.log(error);
+                })
             },
             addEventListeners: function() {
 

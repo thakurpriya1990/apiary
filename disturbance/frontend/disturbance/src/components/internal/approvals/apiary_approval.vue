@@ -14,15 +14,17 @@
 
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Issued on</strong><br/>
-                                {{ approval.issue_date | formatDate}}
+                                {{ formatDate(approval.issue_date) }}
                             </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <table class="table small-table">
-                                    <tr>
-                                        <th>Lodgement</th>
-                                        <th>Date</th>
-                                        <th>Action</th>
-                                    </tr>
+                                    <tbody>
+                                        <tr>
+                                            <th>Lodgement</th>
+                                            <th>Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
@@ -154,8 +156,7 @@
                           <div class="form-group">
                             <label for="" class="col-sm-3 control-label" >Country</label>
                             <div class="col-sm-4">
-                                <input type="text" disabled class="form-control" name="country" v-model="approval.applicant_address.country">
-                                </input>
+                                <input type="text" disabled class="form-control" name="country" v-model="approval.applicant_address.country" />
                             </div>
                           </div>
                        </form>
@@ -179,7 +180,7 @@
                           <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Issue Date</label>
                             <div class="col-sm-6">
-                                <label for="" class="control-label pull-left">{{approval.issue_date | formatDate}}</label>
+                                <label for="" class="control-label pull-left">{{ formatDate(approval.issue_date) }}</label>
                             </div>
                         <!---    <div class="col-sm-6">
                                 <p>{{approval.issue_date | formatDate}}</p>
@@ -188,13 +189,13 @@
                           <div class="form-group">
                             <label for="" class="col-sm-3 control-label" >Start Date</label>
                             <div class="col-sm-6">
-                                <label for="" class="control-label pull-left">{{approval.start_date | formatDate}}</label>
+                                <label for="" class="control-label pull-left">{{ formatDate(approval.start_date) }}</label>
                             </div>
                           </div>
                           <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Expiry Date</label>
                             <div class="col-sm-3">
-                                <label for="" class="control-label pull-left">{{approval.expiry_date | formatDate}}</label>
+                                <label for="" class="control-label pull-left">{{ formatDate(approval.expiry_date) }}</label>
                             </div>
 
                           </div>
@@ -277,9 +278,7 @@
 </div>
 </template>
 <script>
-import $ from 'jquery'
-import Vue from 'vue'
-import datatable from '@vue-utils/datatable.vue'
+import { v4 as uuid } from 'uuid';
 import CommsLogs from '@common-utils/comms_logs.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
 import { api_endpoints, helpers } from '@/utils/hooks'
@@ -298,10 +297,10 @@ export default {
 
         },
         DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-        adBody: 'adBody'+vm._uid,
-        pBody: 'pBody'+vm._uid,
-        cBody: 'cBody'+vm._uid,
-        oBody: 'oBody'+vm._uid,
+        adBody: 'adBody'+uuid(),
+        pBody: 'pBody'+uuid(),
+        cBody: 'cBody'+uuid(),
+        oBody: 'oBody'+uuid(),
         org: {
             address: {}
         },
@@ -313,12 +312,7 @@ export default {
     }
   },
   watch: {},
-  filters: {
-    formatDate: function(data){
-        return moment(data).format('DD/MM/YYYY');
-    }
-  },
-    props: {
+  props: {
         approvalId: {
             type: Number,
         },
@@ -343,7 +337,6 @@ export default {
   },
   components: {
         SectionAnnualRentalFee,
-        datatable,
         CommsLogs,
         FormSection,
         OnSiteInformation,
@@ -351,6 +344,9 @@ export default {
         ComponentSiteSelection,
   },
   computed: {
+    formatDate: function(data){
+        return moment(data).format('DD/MM/YYYY');
+    },
     isLoading: function () {
       return this.loading.length > 0;
     },
@@ -394,7 +390,6 @@ export default {
 
   },
   mounted: function () {
-    let vm = this;
   }
 }
 </script>

@@ -17,19 +17,16 @@
 </template>
 <script>
 
-import datatable from '@/utils/vue/datatable.vue'
 import ProposalDashTable from '@common-utils/proposals_dashboard.vue'
 import ApprovalDashTable from '@common-utils/approvals_dashboard.vue'
 import ComplianceDashTable from '@common-utils/compliances_dashboard.vue'
 import {
   api_endpoints,
-  helpers
 }
 from '@/utils/hooks'
 export default {
     name: 'ExternalDashboard',
     data() {
-        let vm = this;
         return {
             proposals_url: api_endpoints.proposals_paginated_external,
             approvals_url: api_endpoints.approvals_paginated_external,
@@ -70,19 +67,21 @@ export default {
     mounted: function () {
     },
     created: function() {
+        let vm=this;
         // retrieve template group
-        this.$http.get('/template_group',{
+        fetch('/template_group',{
             emulateJSON:true
-            }).then(res=>{
-                //this.template_group = res.body.template_group;
-                if (res.body.template_group === 'apiary') {
-                    this.apiaryTemplateGroup = true;
-                } else {
-                    this.dasTemplateGroup = true;
-                }
-        },err=>{
-        console.log(err);
-        });
+            }).then(
+                async res=>{
+                    let template_group_res = await res.json();
+                    if (template_group_res.template_group === 'apiary') {
+                        vm.apiaryTemplateGroup = true;
+                    } else {
+                        vm.dasTemplateGroup = true;
+                    }
+            },err=>{
+                console.log(err);
+            });
     },
 
 }

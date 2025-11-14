@@ -6,10 +6,13 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import {
     api_endpoints,
-    helpers
+    helpers,
+    constants
 }from '@/utils/hooks'
+
 export default {
     name: 'ApiaryReferrals',
     props: {
@@ -38,7 +41,7 @@ export default {
             datatable_url: '',
             datatable_options: {
                 language: {
-                    processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 deferRender: true, 
@@ -138,66 +141,99 @@ export default {
         remindReferral:function(_id,user){
             let vm = this;
             
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.apiary_referrals,_id+'/remind')).then(response => {
-                vm.$emit('refreshFromResponse',response);
-                vm.table.ajax.reload();
-                swal(
-                    'Referral Reminder',
-                    'A reminder has been sent to '+user,
-                    'success'
-                )
-            },
-            error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
+            fetch(helpers.add_endpoint_json(api_endpoints.apiary_referrals,_id+'/remind')).then(
+                async (response) => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err });
+                    }
+                    let referrals_remind_res = await response.json();
+                    vm.$emit('refreshFromResponse',referrals_remind_res);
+                    vm.table.ajax.reload();
+                    swal.fire({
+                        title: 'Referral Reminder',
+                        text: 'A reminder has been sent to '+user,
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
+                }).catch(error => {
+                    swal.fire({
+                        title: 'Proposal Error',
+                        text: error,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
+                }
+            );
         },
         resendReferral:function(_id,user){
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.apiary_referrals,_id+'/resend')).then(response => {
-                vm.$emit('refreshFromResponse',response);
-                vm.table.ajax.reload();
-                swal(
-                    'Referral Resent',
-                    'The referral has been resent to '+user,
-                    'success'
-                )
-            },
-            error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
+            fetch(helpers.add_endpoint_json(api_endpoints.apiary_referrals,_id+'/resend')).then(
+                async (response) => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err });
+                    }
+                    let referrals_resend_res = await response.json();
+                    vm.$emit('refreshFromResponse',referrals_resend_res);
+                    vm.table.ajax.reload();
+                    swal.fire({
+                        title: 'Referral Resent',
+                        text: 'The referral has been resent to '+user,
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
+                }).catch(error => {
+                    swal.fire({
+                        title: 'Proposal Error',
+                        text: error,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
+                }
+            );
         },
         recallReferral:function(_id,user){
             let vm = this;
             
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.apiary_referrals,_id+'/recall')).then(response => {
-                vm.$emit('refreshFromResponse',response);
-                vm.table.ajax.reload();
-                swal(
-                    'Referral Recall',
-                    'The referall has been recalled from '+user,
-                    'success'
-                )
-            },
-            error => {
-                swal(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
+            fetch(helpers.add_endpoint_json(api_endpoints.apiary_referrals,_id+'/recall')).then(
+                async (response) => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err });
+                    }
+                    let ref_recall_res = await response.json()
+                    vm.$emit('refreshFromResponse',ref_recall_res);
+                    vm.table.ajax.reload();
+                    swal.fire({
+                        title: 'Referral Recall',
+                        text: 'The referral has been recalled from '+user,
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
+                }).catch(error => {
+                    swal.fire({
+                        title: 'Proposal Error',
+                        text: error,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    })
+                }
+            );
         },
         initialiseTable: function(){
             let vm = this;
-            let table_id = 'apiary-referrals-table'+vm._uid;
-            let popover_name = 'popover-'+ vm._uid;
+            let table_id = 'apiary-referrals-table'+uuid();
+            let popover_name = 'popover-'+ uuid();
             $(vm.$refs.showRef).popover({
                 content: function() {
                     return ` 
@@ -243,18 +279,18 @@ export default {
                 });
             }).on('shown.bs.popover', function () {
                 var el = vm.$refs.showRef;
-                var popoverheight = parseInt($('.'+popover_name).height());
+                // var popoverheight = parseInt($('.'+popover_name).height());
 
                 var popover_bounding_top = parseInt($('.'+popover_name)[0].getBoundingClientRect().top);
-                var popover_bounding_bottom = parseInt($('.'+popover_name)[0].getBoundingClientRect().bottom);
+                // var popover_bounding_bottom = parseInt($('.'+popover_name)[0].getBoundingClientRect().bottom);
 
                 var el_bounding_top = parseInt($(el)[0].getBoundingClientRect().top);
-                var el_bounding_bottom = parseInt($(el)[0].getBoundingClientRect().top);
+                // var el_bounding_bottom = parseInt($(el)[0].getBoundingClientRect().top);
                 
                 var diff = el_bounding_top - popover_bounding_top;
 
-                var position = parseInt($('.'+popover_name).position().top);
-                var pos2 = parseInt($(el).position().top) - 5;
+                // var position = parseInt($('.'+popover_name).position().top);
+                // var pos2 = parseInt($(el).position().top) - 5;
 
                 var x = diff + 5;
                 $('.'+popover_name).children('.arrow').css('top', x + 'px');

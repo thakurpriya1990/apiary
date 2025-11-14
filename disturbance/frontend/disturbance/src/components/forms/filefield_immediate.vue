@@ -16,7 +16,7 @@
             /-->
 
         <template v-if="files">
-            <template v-for="v in documents">
+            <template v-for="v in documents" :key="v.id">
                 <div>
                     File: <a :href="v.file" target="_blank">{{v.name}}</a> &nbsp;
                     <span v-if="!readonly">
@@ -26,17 +26,19 @@
             </template>
             <div v-if="show_spinner"><i class='fa fa-2x fa-spinner fa-spin'></i></div>
         </template>
-        <template v-if="!readonly" v-for="n in repeat">
-            <template v-if="isRepeatable || (!isRepeatable && num_documents()==0) && !show_spinner">
-                <input 
-                    :id="name + n" 
-                    :name="name" type="file" 
-                    :data-que="n" 
-                    :accept="fileTypes" 
-                    @change="handleChangeWrapper" 
-                    :class="ffu_input_element_classname" />
-                <template v-if="replace_button_by_text">
-                    <span :id="'button-' + name + n" @click="button_clicked(name + n)" class="ffu-input-text">{{ text_string }}</span>
+        <template v-if="!readonly">
+            <template v-for="n in repeat" :key="n">
+                <template v-if="isRepeatable || (!isRepeatable && num_documents()==0) && !show_spinner">
+                    <input 
+                        :id="name + n" 
+                        :name="name" type="file" 
+                        :data-que="n" 
+                        :accept="fileTypes" 
+                        @change="handleChangeWrapper" 
+                        :class="ffu_input_element_classname" />
+                    <template v-if="replace_button_by_text">
+                        <span :id="'button-' + name + n" @click="button_clicked(name + n)" class="ffu-input-text">{{ text_string }}</span>
+                    </template>
                 </template>
             </template>
         </template>
@@ -50,8 +52,6 @@ import {
 }
 from '@/utils/hooks';
 //import CommentBlock from './comment_block.vue';
-//import HelpText from './help_text.vue';
-import Vue from 'vue';
 //import { mapGetters } from 'vuex';
 export default {
     name: "FileField",
@@ -183,10 +183,24 @@ export default {
                 }
                 formData.append('input_name', this.name);
                 formData.append('csrfmiddlewaretoken', this.csrf_token);
-                let res = await Vue.http.post(this.document_action_url, formData)
-                //let res = await Vue.http.post(this.documentActionUrl, formData)
-                this.documents = res.body.filedata;
-                this.commsLogId = res.body.comms_instance_id;
+                try {
+                    const response = await fetch(this.document_action_url, {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'same-origin' // Ensures cookies like CSRF token are sent
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    this.documents = data.filedata;
+                    this.commsLogId = data.comms_instance_id;
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                    // Optionally handle error state here
+                }
             }
             this.show_spinner = false;
 
@@ -204,16 +218,30 @@ export default {
             formData.append('document_id', file.id);
             formData.append('csrfmiddlewaretoken', this.csrf_token);
             if (this.document_action_url) {
-                let res = await Vue.http.post(this.document_action_url, formData)
-                this.documents = res.body.filedata;
-                //this.documents = await this.get_documents()
-                this.commsLogId = res.body.comms_instance_id;
+                 try {
+                    const response = await fetch(this.document_action_url, {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'same-origin'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    this.documents = data.filedata;
+                    this.commsLogId = data.comms_instance_id;
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                    // Optionally handle error state here
+                }
             }
             //vm.documents = res.body;
             this.show_spinner = false;
 
         },
-        cancel: async function(file) {
+        cancel: async function() {
             this.show_spinner = true;
 
             let formData = new FormData();
@@ -224,7 +252,20 @@ export default {
             }
             formData.append('csrfmiddlewaretoken', this.csrf_token);
             if (this.document_action_url) {
-                let res = await Vue.http.post(this.document_action_url, formData)
+                 try {
+                    const response = await fetch(this.document_action_url, {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'same-origin'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                }
             }
             this.show_spinner = false;
         },
@@ -246,19 +287,31 @@ export default {
         handleChangeWrapper: async function(e) {
             if (this.documentActionUrl === 'temporary_document' && !this.temporary_document_collection_id) {
                 // If temporary_document, create TemporaryDocumentCollection object and allow document_action_url to update
-                let res = await Vue.http.post(this.document_action_url)
-                this.temporary_document_collection_id = res.body.id
-                await this.$emit('update-temp-doc-coll-id',
-                    {
-                        "temp_doc_id": this.temporary_document_collection_id,
-                        "input_name": this.name,
+                try {
+                    const response = await fetch(this.document_action_url, {
+                        method: 'POST',
+                        credentials: 'same-origin'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
                     }
-                );
-                //this.$parent.temporary_document_collection_id = this.temporary_document_collection_id
-                this.$nextTick(async () => {
-                    // must emit event here
-                    this.handleChange(e);
-                });
+
+                    const data = await response.json();
+                    this.temporary_document_collection_id = data.id;
+
+                    await this.$emit('update-temp-doc-coll-id', {
+                        temp_doc_id: this.temporary_document_collection_id,
+                        input_name: this.name,
+                    });
+
+                    this.$nextTick(async () => {
+                        this.handleChange(e);
+                    });
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                    // Optionally handle error state here
+                }
             } else {
                 this.handleChange(e);
             }
@@ -280,18 +333,33 @@ export default {
                 formData.append('filename', e.target.files[0].name);
                 formData.append('_file', this.uploadFile(e));
                 formData.append('csrfmiddlewaretoken', this.csrf_token);
-                let res = await Vue.http.post(this.document_action_url, formData)
+                 try {
+                    const response = await fetch(this.document_action_url, {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'same-origin'
+                    });
 
-                if (this.replace_button_by_text){
-                    let button_name = 'button-' + this.name + e.target.dataset.que
-                    let elem_to_remove = document.getElementById(button_name)
-                    if (elem_to_remove){
-                        elem_to_remove.remove()
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
                     }
+
+                    const data = await response.json();
+
+                    if (this.replace_button_by_text) {
+                        const button_name = 'button-' + this.name + e.target.dataset.que;
+                        const elem_to_remove = document.getElementById(button_name);
+                        if (elem_to_remove) {
+                            elem_to_remove.remove();
+                        }
+                    }
+
+                    this.documents = data.filedata;
+                    this.commsLogId = data.comms_instance_id;
+
+                } catch (error) {
+                    console.error('Fetch error:', error);
                 }
-                
-                this.documents = res.body.filedata;
-                this.commsLogId = res.body.comms_instance_id;
                 this.show_spinner = false;
             } else {
                 console.log("no documentActionUrl");
@@ -333,9 +401,6 @@ export default {
 <style lang="css">
     input {
         box-shadow:none;
-    }
-    .ffu-wrapper {
-
     }
     .ffu-input-elem {
         display: none !important;
