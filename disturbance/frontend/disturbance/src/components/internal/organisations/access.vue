@@ -301,7 +301,6 @@ export default {
         commsTable : null,
     }
   },
-  watch: {},
   beforeRouteEnter: function(to, from, next){
     Vue.http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,to.params.access_id)).then((response) => {
         next(vm => {

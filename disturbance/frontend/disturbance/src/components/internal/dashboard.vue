@@ -24,7 +24,6 @@ export default {
         }
     
     },
-    watch: {},
     components: {
         ProposalDashTable,
         ReferralDashTable

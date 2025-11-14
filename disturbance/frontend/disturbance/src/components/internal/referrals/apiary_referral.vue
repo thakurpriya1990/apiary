@@ -431,8 +431,6 @@ export default {
                 type:Number,
             },
     },
-    watch: {
-    },
     computed: {
         canAssign: function() {
             let assign = false;

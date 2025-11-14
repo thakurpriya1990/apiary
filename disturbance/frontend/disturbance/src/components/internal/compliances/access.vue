@@ -137,7 +137,6 @@ export default {
       
     }
   },
-  watch: {},
   beforeRouteEnter: function(to, from, next){
     Vue.http.get(helpers.add_endpoint_json(api_endpoints.compliances,to.params.compliance_id)).then((response) => {
         next(vm => {

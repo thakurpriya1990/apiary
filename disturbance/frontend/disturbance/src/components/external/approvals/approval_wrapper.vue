@@ -31,7 +31,6 @@ export default {
     components:{
         ApiaryApproval,
     },
-    watch: {},
     computed: {
     },
     methods: {

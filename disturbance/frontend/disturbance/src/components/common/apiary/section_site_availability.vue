@@ -91,9 +91,6 @@
             },
             */
         },
-        watch:{
-
-        },
         methods:{
             _get_basic_data: function(){
                 let data = {

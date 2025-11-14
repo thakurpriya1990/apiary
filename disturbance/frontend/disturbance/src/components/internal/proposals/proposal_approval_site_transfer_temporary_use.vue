@@ -166,8 +166,6 @@ export default {
             component_site_selection_key: '',
         }
     },
-    watch:{
-    },
     components:{
         FormSection,
         SectionsProposalTemporaryUse,

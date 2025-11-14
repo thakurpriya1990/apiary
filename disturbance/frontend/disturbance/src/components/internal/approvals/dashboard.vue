@@ -19,7 +19,6 @@ export default {
         }
     
     },
-    watch: {},
     components: {
         ApprovalDashTable,
     },

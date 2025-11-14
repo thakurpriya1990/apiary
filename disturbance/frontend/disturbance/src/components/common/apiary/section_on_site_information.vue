@@ -266,9 +266,6 @@
                 return enabled;
             }
         },
-        watch:{
-
-        },
         methods:{
             get_content: function(data){
                 let hives_loc = '<tr><td><strong>The proposed location of the hives</strong></td><td>' + data.hives_loc + '</td></tr>'

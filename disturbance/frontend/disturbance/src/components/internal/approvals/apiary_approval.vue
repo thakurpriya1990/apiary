@@ -311,7 +311,6 @@ export default {
         comms_add_url: helpers.add_endpoint_json(api_endpoints.approvals,vm.$route.params.approval_id+'/add_comms_log'),
     }
   },
-  watch: {},
   props: {
         approvalId: {
             type: Number,

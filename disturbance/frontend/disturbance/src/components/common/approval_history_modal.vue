@@ -95,9 +95,6 @@ export default {
             },
         }
     },
-    watch:{
-
-    },
     computed: {
         dtHeadersApprovalHistory: function() {
             if (this.apiaryTemplateGroup) {

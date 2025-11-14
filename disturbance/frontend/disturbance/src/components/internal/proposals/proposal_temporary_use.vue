@@ -427,9 +427,6 @@ export default {
             type: Number,
         },
     },
-    watch: {
-
-    },
     computed: {
         contactsURL: function(){
             return this.proposal!= null ? helpers.add_endpoint_json(api_endpoints.organisations,this.proposal.applicant.id+'/contacts') : '';
