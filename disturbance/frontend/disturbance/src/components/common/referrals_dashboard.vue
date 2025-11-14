@@ -15,13 +15,13 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="">Region</label>
-                                    <template v-show="select2Applied">
+                                    <div v-show="select2Applied">
                                         <select style="width:100%" class="form-control input-sm" id="region_dropdown">
                                             <template v-if="select2Applied">
-                                                <option v-for="r in proposal_regions" :value="r">{{r}}</option>
+                                                <option v-for="r in proposal_regions" :value="r" :key="r">{{r}}</option>
                                             </template>
                                         </select>
-                                    </template>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -29,7 +29,7 @@
                                     <label for="">Activity</label>
                                     <select class="form-control" v-model="filterProposalActivity">
                                         <option value="All">All</option>
-                                        <option v-for="a in proposal_activityTitles" :value="a">{{a}}</option>
+                                        <option v-for="a in proposal_activityTitles" :value="a" :key="a">{{a}}</option>
                                     </select>
                                 </div>
                             </div>
@@ -40,7 +40,7 @@
                                     <label for="">Application Type</label>
                                     <select class="form-control" v-model="filterProposalApplicationType">
                                         <option value="All">All</option>
-                                        <option v-for="a in proposal_applicationTypes" :value="a">{{a}}</option>
+                                        <option v-for="a in proposal_applicationTypes" :value="a" :key="a">{{a}}</option>
                                     </select>
                                 </div>
                             </div>
@@ -52,7 +52,7 @@
                                 <label for="">Status</label>
                                 <select class="form-control" v-model="filterProposalStatus">
                                     <option value="All">All</option>
-                                    <option v-for="s in proposal_status" :value="s.value">{{s.name}}</option>
+                                    <option v-for="s in proposal_status" :value="s.value" :key="s.value">{{s.name}}</option>
                                 </select>
                             </div>
                         </div>
@@ -81,7 +81,7 @@
                                 <label for="">Submitter</label>
                                 <select class="form-control" v-model="filterProposalSubmitter">
                                     <option value="All">All</option>
-                                    <option v-for="s in proposal_submitters" :value="s.email">{{s.search_term}}</option>
+                                    <option v-for="s in proposal_submitters" :value="s.email" :key="s.email">{{s.search_term}}</option>
                                 </select>
                             </div>
                         </div>
@@ -214,7 +214,7 @@ export default {
                     },
                     {
                         data: "submitter",
-                        mRender:function (data,type,full) {
+                        mRender:function (data) {
                             if (data) {
                                 return `${data.first_name} ${data.last_name}`;
                             }
@@ -251,7 +251,7 @@ export default {
                     {
                         data: "assigned_officer",
                         name: "assigned_officer",
-                        mRender:function (data,type,full) {
+                        mRender:function (data) {
                             if (data) {
                                 return `${data.first_name} ${data.last_name}`;
                             }
@@ -264,7 +264,7 @@ export default {
                     },
                     {
                         data: "proposal_lodgement_date",
-                        mRender:function (data,type,full) {
+                        mRender:function (data) {
                             return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
                         },
                         name: "proposal__lodgement_date",

@@ -67,7 +67,7 @@
                                         <label class="control-label pull-left"  for="Name">Attachments</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <template v-for="(f,i) in files">
+                                        <template v-for="(f,i) in files" :key="i">
                                             <div :class="'row top-buffer file-row-'+i">
                                                 <div class="col-sm-4">
                                                     <span v-if="f.file == null" class="btn btn-info btn-file pull-left">
@@ -106,7 +106,7 @@
 //import $ from 'jquery'
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
-import {helpers,api_endpoints} from "@/utils/hooks.js"
+import {helpers} from "@/utils/hooks.js"
 export default {
     name:'Add-Comms',
     components:{
@@ -120,7 +120,6 @@ export default {
         }
     },
     data:function () {
-        let vm = this;
         return {
             isModalOpen:false,
             form:null,
@@ -164,7 +163,6 @@ export default {
             }
         },
         uploadFile(target,file_obj){
-            let vm = this;
             let _file = null;
             var input = $('.'+target)[0];
             if (input.files && input.files[0]) {

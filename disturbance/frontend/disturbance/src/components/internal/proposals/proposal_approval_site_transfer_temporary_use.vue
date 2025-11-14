@@ -267,11 +267,14 @@ export default {
                 vm.$emit('refreshFromResponse',res);
 
                 },err=>{
-                swal(
-                    'Submit Error',
-                    helpers.apiVueResourceError(err),
-                    'error'
-                )
+                swal.fire({
+                    title:'Submit Error',
+                    text:helpers.apiVueResourceError(err),
+                    icon:'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
             });
 
 
@@ -284,20 +287,25 @@ export default {
         },
         removeRequirement(_id){
             let vm = this;
-            swal({
+            swal.fire({
                 title: "Remove Requirement",
                 text: "Are you sure you want to remove this requirement?",
-                type: "warning",
+                icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Requirement',
-                confirmButtonColor:'#d9534f'
-            }).then(() => {
-                vm.$http.delete(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
-                .then((response) => {
-                    vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
-                }, (error) => {
-                    console.log(error);
-                });
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then((swalResult) => {
+                if(swalResult.isConfirmed){
+                    vm.$http.delete(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
+                    .then((response) => {
+                        vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
+                    }, (error) => {
+                        console.log(error);
+                    });
+                }
             },(error) => {
                 console.log(error)
             });

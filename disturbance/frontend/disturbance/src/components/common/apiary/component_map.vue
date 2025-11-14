@@ -28,13 +28,13 @@
                     </div-->
                     <div style="position:relative">
                         <transition v-if="optionalLayers.length">
-                            <div class="optional-layers-button" @mouseover="hover=true">
+                            <div v-if="optionalLayers.length" class="optional-layers-button" @mouseover="hover=true">
                                 <img src="../../../assets/layers.svg" />
                             </div>
                         </transition>
                         <transition v-if="optionalLayers.length">
                             <div div class="layer_options" v-show="hover" @mouseleave="hover=false" >
-                                <div v-for="layer in optionalLayers">
+                                <div v-for="layer in optionalLayers" :key="layer.ol_uid">
                                     <input
                                         type="checkbox"
                                         :id="layer.ol_uid"
@@ -74,25 +74,25 @@
 
     import Map from 'ol/Map';
     import View from 'ol/View';
-    import WMTSCapabilities from 'ol/format/WMTSCapabilities';
+    // import WMTSCapabilities from 'ol/format/WMTSCapabilities';
     import TileLayer from 'ol/layer/Tile';
     import OSM from 'ol/source/OSM';
     import TileWMS from 'ol/source/TileWMS';
-    import WMTS, {optionsFromCapabilities} from 'ol/source/WMTS';
-    import Collection from 'ol/Collection';
-    import { Draw, Modify, Snap } from 'ol/interaction';
+    // import WMTS, {optionsFromCapabilities} from 'ol/source/WMTS';
+    // import Collection from 'ol/Collection';
+    import { Draw, Modify } from 'ol/interaction';
     import VectorLayer from 'ol/layer/Vector';
     import VectorSource from 'ol/source/Vector';
-    import { Circle as CircleStyle, Fill, Stroke, Style, Text, RegularShape } from 'ol/style';
+    import { Circle as CircleStyle, Fill, Style } from 'ol/style';
     import { FullScreen as FullScreenControl, MousePosition as MousePositionControl } from 'ol/control';
-    import { Feature } from 'ol';
+    // import { Feature } from 'ol';
     import { LineString, Point } from 'ol/geom';
-    import { getDistance } from 'ol/sphere';
-    import { circular} from 'ol/geom/Polygon';
+    // import { getDistance } from 'ol/sphere';
+    // import { circular} from 'ol/geom/Polygon';
     import GeoJSON from 'ol/format/GeoJSON';
     import Overlay from 'ol/Overlay';
     import { getDisplayNameFromStatus, getDisplayNameOfCategory, getStatusForColour, getApiaryFeatureStyle, zoomToCoordinates, checkIfValidlatitudeAndlongitude } from '@/components/common/apiary/site_colours.js'
-    import { getArea, getLength } from 'ol/sphere'
+    // import { getArea, getLength } from 'ol/sphere'
     import MeasureStyles, { formatLength } from '@/components/common/apiary/measure.js'
     import Awesomplete from 'awesomplete'
     import { api_endpoints } from '@/utils/hooks'
@@ -128,7 +128,6 @@
             }
         },
         data: function(){
-            let vm = this
             return{
                 map: null,
                 apiarySitesQuerySource: null,
@@ -237,7 +236,7 @@
                             types: 'region,postcode,district,place,locality,neighborhood,address,poi'
                         }),
                         dataType: 'json',
-                        success: function(data, status, xhr) {
+                        success: function(data) {
                             vm.suggest_list = [];  // Clear the list first
                             if (data.features && data.features.length > 0){
                                 for (var i = 0; i < data.features.length; i++){
@@ -279,6 +278,7 @@
                 return styles
             },
             styleFunctionForMeasurement: function (feature, resolution){
+                console.log(resolution);
                 let vm = this
                 let for_layer = feature.get('for_layer', false)
 
@@ -449,7 +449,7 @@
                 vm.apiarySitesQuerySource = new VectorSource({ });
                 vm.apiarySitesQueryLayer = new VectorLayer({
                     source: vm.apiarySitesQuerySource,
-                    style: function(feature, resolution){
+                    style: function(feature){
                         let status = getStatusForColour(feature, false, vm.display_at_time_of_submitted)
                         return getApiaryFeatureStyle(status, feature.get('checked'))
                     },
@@ -471,13 +471,13 @@
                 })
                 // Set a custom listener to the Measure tool
                 vm.drawForMeasure.set('escKey', '')
-                vm.drawForMeasure.on('change:escKey', function(evt){
+                vm.drawForMeasure.on('change:escKey', function(){
                     //vm.drawForMeasure.finishDrawing()
                 })
-                vm.drawForMeasure.on('drawstart', function(evt){
+                vm.drawForMeasure.on('drawstart', function(){
                     vm.measuring = true
                 })
-                vm.drawForMeasure.on('drawend', function(evt){
+                vm.drawForMeasure.on('drawend', function(){
                     vm.measuring = false
                 })
 
@@ -528,7 +528,7 @@
 
                 vm.map.on('singleclick', function(evt){
                     if (vm.mode === 'layer'){
-                        let feature = vm.map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
+                        let feature = vm.map.forEachFeatureAtPixel(evt.pixel, function(feature, ) {
                             return feature;
                         });
                         if (feature){
@@ -594,7 +594,7 @@
                     let hit = vm.map.hasFeatureAtPixel(pixel);
                     vm.map.getTargetElement().style.cursor = hit ? 'pointer' : '';
                 });
-                vm.map.on('moveend', function(e){
+                vm.map.on('moveend', function(){
                     let extent = vm.map.getView().calculateExtent(vm.map.getSize());
                     let features = vm.apiarySitesQuerySource.getFeaturesInExtent(extent)
                     vm.$emit('featuresDisplayed', features)
@@ -605,6 +605,7 @@
                     });
                     modifyTool.on("modifystart", function(attributes){
                             attributes.features.forEach(function(feature){
+                                console.log(feature);
                         })
                     });
                     modifyTool.on("modifyend", function(attributes){
@@ -733,9 +734,9 @@
             },
             zoomToApiarySiteById: function(apiary_site_id){
                 let feature = this.apiarySitesQuerySource.getFeatureById(apiary_site_id)
-                let geometry = feature.getGeometry()
-                let coord = geometry.getCoordinates()
-                let view = this.map.getView()
+                // let geometry = feature.getGeometry()
+                // let coord = geometry.getCoordinates()
+                // let view = this.map.getView()
                 this.map.getView().animate({zoom: 16, center: feature['values_']['geometry']['flatCoordinates']})
                 this.showPopup(feature)
             },

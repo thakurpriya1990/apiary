@@ -17,7 +17,7 @@
                                     <label for="">Region</label>
                                     <select class="form-control" v-model="filterProposalRegion">
                                         <option value="All">All</option>
-                                        <option v-for="r in proposal_regions" :value="r">{{r}}</option>
+                                        <option v-for="r in proposal_regions" :value="r" :key="r">{{r}}</option>
                                     </select>
                                     <!--
                                     <select style="width:100%" class="form-control input-sm" multiple ref="filterRegion" >
@@ -31,7 +31,7 @@
                                     <label for="">Activity</label>
                                     <select class="form-control" v-model="filterProposalActivity">
                                         <option value="All">All</option>
-                                        <option v-for="a in proposal_activityTitles" :value="a">{{a}}</option>
+                                        <option v-for="a in proposal_activityTitles" :value="a" :key="a">{{a}}</option>
                                     </select>
                                 </div>
                             </div>
@@ -60,7 +60,7 @@
                                 <label for="">Status</label>
                                 <select class="form-control" v-model="filterProposalStatus">
                                     <option value="All">All</option>
-                                    <option v-for="s in approval_status" :value="s">{{s}}</option>
+                                    <option v-for="s in approval_status" :value="s" :key="s">{{s}}</option>
                                 </select>
                             </div>
                         </div>
@@ -389,7 +389,7 @@ export default {
                 },
                 {
                     data: "start_date",
-                    mRender:function (data,type,full) {
+                    mRender:function (data) {
                         return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
                     },
                     searchable: false,
@@ -397,7 +397,7 @@ export default {
                 },
                 {
                     data: "expiry_date",
-                    mRender:function (data,type,full) {
+                    mRender:function (data) {
                         return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
                     },
                     searchable: true,
@@ -823,7 +823,6 @@ export default {
             else
                 return false;
 
-            return false;
         },
 
         reissueApproval:function (proposal_id) {
@@ -925,7 +924,7 @@ export default {
 
         renewApproval:function (proposal_id) {
             let vm = this;
-            let status= 'with_approver'
+            // let status= 'with_approver'
             //let data = {'status': status}
             swal.fire({
                 title: "Renew Approval",
@@ -1085,7 +1084,6 @@ export default {
     mounted: function(){
 		this.fetchFilterLists();
         this.fetchProfile();
-        let vm = this;
         $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];
             window.setTimeout( function () {

@@ -13,7 +13,7 @@
     "@vue/compat": "^3.5.22",
     "awesomplete": "^1.1.7",
     "babel-polyfill": "^6.26.0",
-    "bootstrap": "^5.3.8",
+    "bootstrap": "^3.4.0",
     "datatables.net-bs": "^2.3.4",
     "datatables.net-buttons": "^3.2.5",
     "datatables.net-responsive-bs": "^3.0.7",

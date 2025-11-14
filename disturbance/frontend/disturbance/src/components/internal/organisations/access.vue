@@ -376,44 +376,56 @@ export default {
     },
     acceptRequest: function() {
         let vm = this;
-        swal({
+        swal.fire({
             title: "Accept Organisation Request",
             text: "Are you sure you want to accept this organisation request?",
-            type: "question",
+            icon: "question",
             showCancelButton: true,
-            confirmButtonText: 'Accept'
-        }).then(() => {
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/accept')))
-            .then((response) => {
-                console.log(response);
-                vm.access = response.body;
-            }, (error) => {
-                console.log(error);
-            });
+            confirmButtonText: 'Accept',
+            customClass: {
+                confirmButton: 'btn btn-primary',
+                cancelButton: 'btn btn-secondary',
+            },
+        }).then((swalResult) => {
+            if (swalResult.isConfirmed) {
+                vm.$http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/accept')))
+                .then((response) => {
+                    console.log(response);
+                    vm.access = response.body;
+                }, (error) => {
+                    console.log(error);
+                });
+            }
         },(error) => {
-            console.log(error);
+            console.log("Swal error"+error);
         });
 
     },
 
     declineRequest: function() {
         let vm = this;
-        swal({
+        swal.fire({
             title: "Decline Organisation Request",
             text: "Are you sure you want to decline this organisation request?",
-            type: "question",
+            icon: "question",
             showCancelButton: true,
-            confirmButtonText: 'Decline'
-        }).then(() => {
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/decline')))
-            .then((response) => {
-                console.log(response);
-                vm.access = response.body;
-            }, (error) => {
-                console.log(error);
-            });
+            confirmButtonText: 'Decline',
+            customClass: {
+                confirmButton: 'btn btn-primary',
+                cancelButton: 'btn btn-secondary',
+            },
+        }).then((swalResult) => {
+            if (swalResult.isConfirmed){
+                vm.$http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/decline')))
+                .then((response) => {
+                    console.log(response);
+                    vm.access = response.body;
+                }, (error) => {
+                    console.log(error);
+                });
+            }
         },(error) => {
-            console.log(error);
+            console.log("Swal error "+error);
         });
     },
 

@@ -30,7 +30,7 @@
 <script>
     import datatable from '@vue-utils/datatable.vue'
     import { v4 as uuid } from 'uuid';
-    import { api_endpoints, helpers, constants } from '@/utils/hooks'
+    import { helpers, constants } from '@/utils/hooks'
     import OnSiteInformationModal from './on_site_information_modal'
 
     export default {
@@ -95,9 +95,9 @@
                     },
                     rowCallback: function (row, obj){
                         return // We disable the expander for now
-                        console.log('in rowCallback')
-                        let row_jq = $(row)
-                        row_jq.children().first().addClass(vm.td_expand_class_name)
+                        // console.log('in rowCallback')
+                        // let row_jq = $(row)
+                        // row_jq.children().first().addClass(vm.td_expand_class_name)
                     },
                     responsive: true,
                     processing: true,
@@ -156,7 +156,7 @@
                         {
                             // 4
                             data: 'comments',
-                            mRender: function (data, type, full) {
+                            mRender: function (data, type) {
                                 var result= helpers.dtPopover(data);
                                 return type=='display' ? result : data;
                             },
@@ -166,7 +166,7 @@
                         {
                             // 5
                             data: 'hives_loc',
-                            render: function (data, type, full, meta) {
+                            render: function (data, type) {
                                 var result= helpers.dtPopover(data);
                                 return type=='display' ? result : data;
                             },
@@ -187,7 +187,7 @@
                         {
                             // 7
                             data: 'people_names',
-                            mRender: function (data, type, full) {
+                            mRender: function (data, type) {
                                 var result= helpers.dtPopover(data);
                                 return type=='display' ? result : data;
                             },
@@ -197,7 +197,7 @@
                         {
                             // 8
                             data: 'flora',
-                            mRender: function (data, type, full) {
+                            mRender: function (data, type) {
                                 var result= helpers.dtPopover(data);
                                 return type=='display' ? result : data;
                             },
@@ -262,7 +262,7 @@
                     if(this.approval_id && this.user_can_interact){
                         enabled = true
                     }
-                } catch(err) { }
+                } catch(err) { console.log(err)}
                 return enabled;
             }
         },
@@ -283,7 +283,7 @@
                 await this.loadOnSiteInformation(this.approval_id);
                 this.constructOnSiteInformationTable();
             },
-            openOnSiteInformationModalToAdd: async function(e){
+            openOnSiteInformationModalToAdd: async function(){
                 this.openOnSiteInformationModal({
                     id: null,
                     apiary_site: null,
@@ -341,7 +341,7 @@
 
                 // Listener for thr row
                 //let vm = this
-                vm.$refs.on_site_information_table.vmDataTable.on('click', 'td', function(e) {
+                vm.$refs.on_site_information_table.vmDataTable.on('click', 'td', function() {
                 //    return  // We disable the expander for now
                     let td_link = $(this)
 
@@ -427,7 +427,6 @@
             editOnSiteInformation: async function(e) {
                 console.log('in editOnSiteInformation')
 
-                let vm = this;
                 let on_site_information_id = e.target.getAttribute("data-on-site-information-id");
                 
                 console.log('on_site_information_id: ' + on_site_information_id)

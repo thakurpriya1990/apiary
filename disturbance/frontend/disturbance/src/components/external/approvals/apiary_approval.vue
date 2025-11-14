@@ -76,8 +76,7 @@
                         <div class="form-group">
                             <label for="" class="col-sm-3 control-label" >Country</label>
                             <div class="col-sm-4">
-                                <input type="text" disabled class="form-control" name="country" v-model="approval.applicant_address.country">
-                                </input>
+                                <input type="text" disabled class="form-control" name="country" v-model="approval.applicant_address.country" />
                             </div>
                         </div>
                     </form>
@@ -185,8 +184,8 @@
 </template>
 <script>
 import { v4 as uuid } from 'uuid';
-import datatable from '@vue-utils/datatable.vue'
-import CommsLogs from '@common-utils/comms_logs.vue'
+// import datatable from '@vue-utils/datatable.vue'
+// import CommsLogs from '@common-utils/comms_logs.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
 import { api_endpoints, helpers } from '@/utils/hooks'
 import OnSiteInformation from '@/components/common/apiary/section_on_site_information.vue'
@@ -278,8 +277,6 @@ export default {
     //},
     components: {
         SectionAnnualRentalFee,
-        datatable,
-        CommsLogs,
         FormSection,
         OnSiteInformation,
         SiteAvailability,
@@ -296,6 +293,7 @@ export default {
             try {
                 return this.approval.current_proposal.proposal_apiary.id;
             } catch(err) {
+                console.error(err);
                 return 0;
             }
         },
@@ -340,7 +338,6 @@ export default {
         },
     },
     mounted: function () {
-        let vm = this;
     }
 }
 </script>
