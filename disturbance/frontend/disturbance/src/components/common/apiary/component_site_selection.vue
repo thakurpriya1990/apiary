@@ -668,7 +668,7 @@
                 for (let i=0; i<this.apiary_sites_local.length; i++){
                     let apiarySite = Object.assign({}, this.apiary_sites_local[i])
                     apiarySite.checked = this.selectAllCheckboxes
-                    Vue.set(this.apiary_sites_local, i, apiarySite)
+                    this.apiary_sites_local[i] = apiarySite;
                     this.$refs.component_map.setApiarySiteSelectedStatus(this.apiary_sites_local[i].id, this.selectAllCheckboxes)
                 }
                 this.$emit('apiary_sites_updated', this.apiary_sites_local)

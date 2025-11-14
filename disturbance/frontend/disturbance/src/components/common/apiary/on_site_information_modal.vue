@@ -100,7 +100,7 @@
 
 <script>
     import modal from '@vue-utils/bootstrap-modal.vue';
-    import { api_endpoints, helpers, cache_helper } from "@/utils/hooks";
+    // import { api_endpoints, helpers, cache_helper } from "@/utils/hooks";
 
     export default {
         name: "OnSiteInformationAdd",
@@ -150,8 +150,6 @@
                 await this.$http.get('/api/approvals/' + this.approval_id + '/apiary_site/').then(
                     (accept)=>{
                         this.apiary_sites_options = accept.body
-                    },
-                    (reject)=>{
                     },
                 )
             },
@@ -269,7 +267,6 @@
                 this.close();
             },
             close: function () {
-                let vm = this;
                 this.isModalOpen = false;
             },
             sendData: async function () {

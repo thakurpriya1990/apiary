@@ -109,7 +109,7 @@
 
 <script>
     import { v4 as uuid } from 'uuid';
-    import datatable from '@vue-utils/datatable.vue'
+    // import datatable from '@vue-utils/datatable.vue'
     import { helpers, } from '@/utils/hooks'
     import FormSection from "@/components/forms/section_toggle.vue"
     import PeriodAndSites from "@/components/common/apiary/section_period_and_sites.vue"
@@ -134,7 +134,6 @@
             }
         },
         data:function () {
-            let vm=this;
 
             return{
                 period_and_sites_key: '',
@@ -153,7 +152,6 @@
             DeedPoll,
             FileField,
             FormSection,
-            datatable,
             PeriodAndSites,
             TemporaryOccupier,
         },

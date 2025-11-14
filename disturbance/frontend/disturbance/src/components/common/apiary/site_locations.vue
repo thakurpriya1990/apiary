@@ -85,13 +85,13 @@
                     </div>
                     <div style="position:relative">
                         <transition v-if="optionalLayers.length">
-                            <div class="optional-layers-button" @mouseover="hover=true">
+                            <div class="optional-layers-button" v-if="optionalLayers.length" @mouseover="hover=true">
                                 <img src="../../../assets/layers.svg" />
                             </div>
                         </transition>
                         <transition v-if="optionalLayers.length">
-                            <div div class="layer_options" v-show="hover" @mouseleave="hover=false" >
-                                <div v-for="layer in optionalLayers">
+                            <div class="layer_options" v-show="hover" @mouseleave="hover=false" >
+                                <div v-for="layer in optionalLayers" :key="layer.ol_uid">
                                     <input
                                         type="checkbox"
                                         :id="layer.ol_uid"
@@ -135,17 +135,17 @@
     import 'ol-layerswitcher/dist/ol-layerswitcher.css'
     import Map from 'ol/Map';
     import View from 'ol/View';
-    import WMTSCapabilities from 'ol/format/WMTSCapabilities';
+    // import WMTSCapabilities from 'ol/format/WMTSCapabilities';
     import TileLayer from 'ol/layer/Tile';
     import OSM from 'ol/source/OSM';
     import TileWMS from 'ol/source/TileWMS';
-    import Collection from 'ol/Collection';
-    import {Draw, Modify, Snap, Select} from 'ol/interaction';
+    // import Collection from 'ol/Collection';
+    import {Draw, Modify, Select} from 'ol/interaction';
     import {pointerMove} from 'ol/events/condition';
     import VectorLayer from 'ol/layer/Vector';
     import VectorSource from 'ol/source/Vector';
     import Cluster from 'ol/source/Cluster';
-    import {Circle as CircleStyle, Fill, Stroke, Style, Icon, Text, RegularShape} from 'ol/style';
+    import {Circle as CircleStyle, Fill, Stroke, Style, Text, RegularShape} from 'ol/style';
     import {FullScreen as FullScreenControl, MousePosition as MousePositionControl} from 'ol/control';
     import { Feature } from 'ol';
     import { Point, LineString } from 'ol/geom';
@@ -157,20 +157,20 @@
     import { getStatusForColour, getApiaryFeatureStyle,SiteColours, zoomToCoordinates, checkIfValidlatitudeAndlongitude } from '@/components/common/apiary/site_colours.js'
     import Overlay from 'ol/Overlay';
 
-    import WMTS, {optionsFromCapabilities} from 'ol/source/WMTS';
+    import WMTS from 'ol/source/WMTS';
     //import WMTSTileGrid from 'ol/source/WMTS';
     import WMTSTileGrid from 'ol/tilegrid/WMTS';
     import {get as getProjection} from 'ol/proj';
-    import {getTopLeft, getWidth} from 'ol/extent';
+    import {getTopLeft} from 'ol/extent';
     import MeasureStyles, { formatLength } from '@/components/common/apiary/measure.js'
-    import { getArea, getLength } from 'ol/sphere'
+    // import { getArea, getLength } from 'ol/sphere'
     import Awesomplete from 'awesomplete'
     import { api_endpoints, constants } from '@/utils/hooks'
 
     // create the WMTS tile grid in the google projection
     const projection = getProjection('EPSG:4326');
-    const tileSizePixels = 1024;
-    const tileSizeMtrs = getWidth(projection.getExtent()) / tileSizePixels;
+    // const tileSizePixels = 1024;
+    // const tileSizeMtrs = getWidth(projection.getExtent()) / tileSizePixels;
     //const resolutions = [];
     //for (let i = 0; i <= 17; ++i) {
     //      resolutions[i] = tileSizeMtrs / Math.pow(2, i);
@@ -214,7 +214,7 @@
     // because we want the printing rasters to contain as much detail as
     // possible, we rig it here to always round up.
     tileGrid.origGetZForResolution = tileGrid.getZForResolution
-    tileGrid.getZForResolution = function (resolution, optDirection) {
+    tileGrid.getZForResolution = function (resolution) {
         return tileGrid.origGetZForResolution(resolution*1.4, -1)
     }
     export default {
@@ -434,7 +434,7 @@
                                 let ret_str_delete = '<span class="delete_button action_link" data-site-location-guid="' + feature.getId() + '">Delete</span>'
                                 let ret_str_view = '<span class="view_on_map action_link" data-apiary-site-id="' + feature.getId() + '"/>View on map</span>';
 
-                                let status = feature.get('status')
+                                // let status = feature.get('status')
 
                                 action_list.push(ret_str_view)
                                 if (!vm.readonly && (!vm.is_proposal_type_renewal || vm.proposal.is_internal_user)){
@@ -765,7 +765,7 @@
                             types: 'region,postcode,district,place,locality,neighborhood,address,poi'
                         }),
                         dataType: 'json',
-                        success: function(data, status, xhr) {
+                        success: function(data) {
                             vm.suggest_list = [];  // Clear the list first
                             if (data.features && data.features.length > 0){
                                 for (var i = 0; i < data.features.length; i++){
@@ -822,8 +822,7 @@
                     this.overlay.setPosition(coord);
                 }
             },
-            styleFunctionForMouse: function(feature){
-                let vm = this
+            styleFunctionForMouse: function(){
                 //return this.style_for_new_apiary_site
 
                 let styles = []
@@ -876,6 +875,7 @@
                 return styles
             },
             styleFunctionForMeasurement: function (feature, resolution){
+                console.log(resolution)
                 let vm = this
                 let for_layer = feature.get('for_layer', false)
 
@@ -960,6 +960,7 @@
                         try{
                             layers.array_[i].refresh()
                         } catch (err){
+                            console.log(err)
                             console.log('Error: ' + layers.array_[i].get('title'))
                         }
                     }
@@ -1094,9 +1095,9 @@
             },
             zoomToApiarySiteById: function(apiary_site_id){
                 let feature = this.drawingLayerSource.getFeatureById(apiary_site_id)
-                let geometry = feature.getGeometry()
-                let coord = geometry.getCoordinates()
-                let view = this.map.getView()
+                // let geometry = feature.getGeometry()
+                // let coord = geometry.getCoordinates()
+                // let view = this.map.getView()
                 this.map.getView().animate({zoom: 16, center: feature['values_']['geometry']['flatCoordinates']})
                 //this.showPopup(feature)
             },
@@ -1146,7 +1147,7 @@
             },
             zoneForCoordinates: function(coords){
                 let zone = "remote";
-                this.swZoneSource.getFeaturesAtCoordinate(coords).forEach(function(feat) {
+                this.swZoneSource.getFeaturesAtCoordinate(coords).forEach(function() {
                     zone = "south_west";
                 });
                 return zone;
@@ -1196,9 +1197,9 @@
                 }
             },
             calculateRemainders: function(features){
-                let remainders = null;
+                // let remainders = null;
                 if (this.proposal.application_type === 'Apiary') {
-                    remainders = this.proposal.proposal_apiary.site_remainders;
+                    // remainders = this.proposal.proposal_apiary.site_remainders;
                 }
                 this.num_of_sites_south_west_applied_unpaid = 0
                 this.num_of_sites_remote_applied_unpaid = 0
@@ -1435,24 +1436,25 @@
 
                 vm.bufferedSites = [];
                 vm.map.on("moveend", function(attributes){
+                    console.log(attributes)
                     let zoom = vm.map.getView().getZoom();
                     if (zoom < 11) {
                         return;
                     }
 
-                    let fresh = 0;
-                    let cached = 0;
-
+                    
                     vm.apiarySitesQuerySource.forEachFeatureInExtent(vm.map.getView().calculateExtent(), function(feature) {
+                        // let fresh = 0;
+                        // let cached = 0;
                         let id = feature.getId();
                         if (vm.bufferedSites.indexOf(id) == -1) {
                             vm.createBufferForSite(feature);
                             vm.bufferedSites.push(id);
-                            fresh++;
+                            // fresh++;
                         }
-                        else {
-                            cached++;
-                        }
+                        // else {
+                        //     cached++;
+                        // }
                     });
                 });
                 vm.map.on('singleclick', function(evt){
@@ -1594,7 +1596,7 @@
                     });
                     vm.drawForApiarySite.on("drawstart", async function(attributes){
                         if (vm.mode === 'normal'){
-                            let coords = attributes.feature.getGeometry().getCoordinates()
+                            // let coords = attributes.feature.getGeometry().getCoordinates()
 
                             if (vm.vacant_site_being_selected){
                                 // Abort drawing, instead 'vacant' site is to be added
@@ -1641,12 +1643,12 @@
 
                     let modifyTool = new Modify({
                         source: vm.drawingLayerSource,
-                        condition: function(e){
+                        condition: function(){
                             return true
                         }
                     });
                     modifyTool.on("modifystart", function(attributes){
-
+                        console.log(attributes)
                     });
                     modifyTool.on("modifyend", function(attributes){
                         // this will list all features in layer, not so useful without cross referencing
@@ -1700,13 +1702,13 @@
 
                 // Set a custom listener to the Measure tool
                 vm.drawForMeasure.set('escKey', '')
-                vm.drawForMeasure.on('change:escKey', function(evt){
+                vm.drawForMeasure.on('change:escKey', function(){
                     //vm.drawForMeasure.finishDrawing()
                 })
-                vm.drawForMeasure.on('drawstart', function(evt){
+                vm.drawForMeasure.on('drawstart', function(){
                     vm.measuring = true
                 })
-                vm.drawForMeasure.on('drawend', function(evt){
+                vm.drawForMeasure.on('drawend', function(){
                     vm.measuring = false
                 })
 
@@ -1747,10 +1749,8 @@
                             let style_applied = getApiaryFeatureStyle(vm.vacant_site_being_selected.get('status'), true, 5)
                             vm.vacant_site_being_selected.setStyle(style_applied)
                         }
-                        else {
-                        }
-                        if (vm.$route.query.debug === 'true'){
-                        }
+                        // if (vm.$route.query.debug === 'true'){
+                        // }
                     } else {
                         // Mouse hover out
                         if (vm.vacant_site_being_selected){
@@ -1852,7 +1852,9 @@
                         vm.proposal_vacant_draft_loaded = true
                         vm.display_duration('proposal vacant draft (' + num_sites + ' sites)')
                     },
-                    err => {}
+                    err => {
+                        console.log(err)
+                    }
                 )
                 this.$http.get('/api/apiary_site/list_existing_proposal_vacant_processed/?proposal_id=' + this.proposal.id).then(
                     res => {
@@ -1864,7 +1866,9 @@
                         vm.proposal_vacant_processed_loaded = true
                         vm.display_duration('proposal vacant processed (' + num_sites + ' sites)')
                     },
-                    err => {}
+                    err => {
+                        console.log(err)
+                    }
                 )
                 this.$http.get('/api/apiary_site/list_existing_approval_vacant/?proposal_id=' + this.proposal.id).then(
                     res => {
@@ -1876,7 +1880,9 @@
                         vm.approval_vacant_loaded = true
                         vm.display_duration('approval vacant (' + num_sites + ' sites)')
                     },
-                    err => {}
+                    err => {
+                        console.log(err)
+                    }
                 )
                 this.$http.get('/api/apiary_site/list_existing_proposal_draft/?proposal_id=' + this.proposal.id).then(
                     res => {
@@ -1888,7 +1894,9 @@
                         vm.proposal_draft_loaded = true
                         vm.display_duration('proposal draft (' + num_sites + ' sites)')
                     },
-                    err => {}
+                    err => {
+                        console.log(err)
+                    }
                 )
                 this.$http.get('/api/apiary_site/list_existing_proposal_processed/?proposal_id=' + this.proposal.id).then(
                     res => {
@@ -1901,6 +1909,7 @@
                         vm.display_duration('proposal processed (' + num_sites + ' sites)')
                     },
                     err => {
+                        console.log(err)
                     }
                 )
                 this.$http.get('/api/apiary_site/list_existing_approval/?proposal_id=' + this.proposal.id).then(
@@ -1913,7 +1922,9 @@
                         vm.approval_loaded = true
                         vm.display_duration('approval (' + num_sites + ' sites)')
                     },
-                    err => {}
+                    err => {
+                        console.log(err)
+                    }
                 )
             }
         },
@@ -1989,9 +2000,9 @@
         filter: brightness(1.0);
         border: 2px white solid;
     }
-    #basemap_sat,#basemap_osm {
-    /* border-radius: 5px; */
-    }
+    /* #basemap_sat,#basemap_osm {
+     border-radius: 5px; 
+    } */
     #basemap-button:hover,.optional-layers-button:hover {
         cursor: pointer;
         -moz-filter: brightness(0.9);

@@ -17,14 +17,14 @@
                         <div v-if="!apiaryTemplateGroup">
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <template v-show="select2Applied">
+                                    <div v-show="select2Applied">
                                         <label for="">Region</label>
                                         <select style="width:100%" class="form-control input-sm" ref="filterRegion" >
                                             <template v-if="select2Applied">
-                                                <option v-for="r in proposal_regions" :value="r">{{r}}</option>
+                                                <option v-for="r in proposal_regions" :value="r" :key="r">{{r}}</option>
                                             </template>
                                         </select>
-                                    </template>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -33,7 +33,7 @@
                                 <label for="">{{ activityFilterLabel }}</label>
                                 <select class="form-control" v-model="filterProposalActivity">
                                     <option value="All">All</option>
-                                    <option v-for="a in proposal_activityTitles" :value="a">{{a}}</option>
+                                    <option v-for="a in proposal_activityTitles" :value="a" :key="a">{{a}}</option>
                                 </select>
                             </div>
                         </div>
@@ -42,7 +42,7 @@
                                 <label for="">Status</label>
                                 <select class="form-control" v-model="filterProposalStatus">
                                     <option value="All">All</option>
-                                    <option v-for="s in proposal_status" :value="s.value">{{s.name}}</option>
+                                    <option v-for="s in proposal_status" :value="s.value" :key="s.value">{{s.name}}</option>
                                 </select>
                             </div>
                         </div>
@@ -74,7 +74,7 @@
                                 <label for="">Submitter</label>
                                 <select class="form-control" v-model="filterProposalSubmitter">
                                     <option value="All">All</option>
-                                    <option v-for="s in proposal_submitters" :value="s.email">{{s.search_term}}</option>
+                                    <option v-for="s in proposal_submitters" :value="s.email" :key="s.email">{{s.search_term}}</option>
                                 </select>
                             </div>
                         </div>
@@ -120,7 +120,6 @@ export default {
         },
     },
     data() {
-        let vm = this;
 
         return {
             assigned_officer_column_name: "assigned_officer__first_name, assigned_officer__last_name, assigned_officer__email",
@@ -333,7 +332,7 @@ export default {
             columnList.push({
                     // 4. Submitter
                     data: "submitter",
-                    mRender:function (data,type,full) {
+                    mRender:function (data) {
                         if (data) {
                             return `${data.first_name} ${data.last_name}`;
                         }
@@ -367,7 +366,7 @@ export default {
                 {
                     // 7. Lodged on
                     data: "lodgement_date",
-                    mRender:function (data,type,full) {
+                    mRender:function (data) {
                         return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
                     },
                     searchable: true,
@@ -820,7 +819,6 @@ export default {
         console.log('in mounted')
         this.fetchFilterLists();
         this.fetchProfile();
-        let vm = this;
         $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];
             window.setTimeout( function () {

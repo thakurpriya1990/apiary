@@ -82,7 +82,7 @@ export default {
                     "<'row'<'col-sm-5'i><'col-sm-7'p>>",
                 processing: true,
                 data: this.lodgement_revisions_actions,
-                data: this.lodgement_revisions_view_actions,
+                // data: this.lodgement_revisions_view_actions,
                 columns: [
                     { data: 'id' },
                     { data: 'date' },
@@ -101,6 +101,12 @@ export default {
     },
     computed: {
         console: () => console,
+        
+        showLoader: function() {
+            return this.isLoadingData;
+        }
+    },
+    methods:{
         formatDateNoTime: function(data){
             return data ? moment(data).format('DD/MM/YY'): '';
         },
@@ -128,11 +134,6 @@ export default {
                 index += 1
             }
         },
-        showLoader: function() {
-            return this.isLoadingData;
-        }
-    },
-    methods:{
         getCompareVersions: async function (compare_version, lodgement_date) {
             /*  Updates the history panel to show which item is being compared against
                 Then emits to the component above to process the compare.
@@ -220,21 +221,21 @@ export default {
                                          })
                 }
                 datatable_options.data = data_for_table
-                let table = $('#'+actionLogId).DataTable(datatable_options);
+                // let table = $('#'+actionLogId).DataTable(datatable_options);
             }).on('shown.bs.popover', function () {
                 var el = ref;
-                var popoverheight = parseInt($('.'+popover_name).height());
+                // var popoverheight = parseInt($('.'+popover_name).height());
 
                 var popover_bounding_top = parseInt($('.'+popover_name)[0].getBoundingClientRect().top);
-                var popover_bounding_bottom = parseInt($('.'+popover_name)[0].getBoundingClientRect().bottom);
+                // var popover_bounding_bottom = parseInt($('.'+popover_name)[0].getBoundingClientRect().bottom);
 
                 var el_bounding_top = parseInt($(el)[0].getBoundingClientRect().top);
-                var el_bounding_bottom = parseInt($(el)[0].getBoundingClientRect().top);
+                // var el_bounding_bottom = parseInt($(el)[0].getBoundingClientRect().top);
                 
                 var diff = el_bounding_top - popover_bounding_top;
 
-                var position = parseInt($('.'+popover_name).position().top);
-                var pos2 = parseInt($(el).position().top) - 5;
+                // var position = parseInt($('.'+popover_name).position().top);
+                // var pos2 = parseInt($(el).position().top) - 5;
 
                 var x = diff + 5;
                 $('.'+popover_name).children('.arrow').css('top', x + 'px');

@@ -26,7 +26,7 @@
 
 <script>
     import { v4 as uuid } from 'uuid';
-    import { api_endpoints, helpers, } from '@/utils/hooks'
+    // import { api_endpoints, helpers, } from '@/utils/hooks'
     import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
 
     export default {
@@ -51,7 +51,6 @@
             }
         },
         data:function () {
-            let vm=this;
             return{
                 component_site_selection_key: '',
                 proposal_apiary: null,
@@ -77,7 +76,7 @@
                     if(this.proposal_apiary.apiary_sites.length > 0){
                         enabled = true
                     }
-                } catch(err) { }
+                } catch(err) { console.log(err)}
                 return enabled;
             },
             /*
