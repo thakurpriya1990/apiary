@@ -968,36 +968,43 @@
             },
             addOptionalLayers: function(){
                 let vm = this
-                this.$http.get('/api/map_layers/').then(response => {
-                    let layers = response.body
-                    for (var i = 0; i < layers.length; i++){
-                        let l = new TileWMS({
-                            //url: 'https://kmi.dpaw.wa.gov.au/geoserver/' + layers[i].layer_group_name + '/wms',
-                            url: env['kmi_server_url'] + '/geoserver/' + layers[i].layer_group_name + '/wms',
+                fetch('/api/map_layers/')
+                .then(async response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    const layers = await response.json();
+
+                    for (let i = 0; i < layers.length; i++) {
+                        const layer = layers[i];
+
+                        const wmsSource = new TileWMS({
+                            url: `${env['kmi_server_url']}/geoserver/${layer.layer_group_name}/wms`,
                             params: {
                                 'FORMAT': 'image/png',
                                 'VERSION': '1.1.1',
                                 tiled: true,
                                 STYLES: '',
-                                LAYERS: layers[i].layer_full_name,
-                                //LAYERS: 'public:mapbox-satellite'
+                                LAYERS: layer.layer_full_name,
                             }
                         });
 
-                        let tileLayer= new TileLayer({
-                            title: layers[i].display_name.trim(),
+                        const tileLayer = new TileLayer({
+                            title: layer.display_name.trim(),
                             visible: false,
-                            source: l,
-                        })
+                            source: wmsSource,
+                        });
 
-                        // Set additional attributes to the layer
-                        tileLayer.set('columns', layers[i].columns)
-                        tileLayer.set('display_all_columns', layers[i].display_all_columns)
+                        tileLayer.set('columns', layer.columns);
+                        tileLayer.set('display_all_columns', layer.display_all_columns);
 
-                        vm.optionalLayers.push(tileLayer)
-                        vm.map.addLayer(tileLayer)
+                        vm.optionalLayers.push(tileLayer);
+                        vm.map.addLayer(tileLayer);
                     }
                 })
+                .catch(error => {
+                    console.error('Error fetching map layers:', error);
+                });
             },
             setBaseLayer: function(selected_layer_name){
                 let vm = this
