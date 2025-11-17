@@ -353,7 +353,7 @@
                 endTime: null,
 
                 dtHeaders: [
-                    'Id',
+                    'Site',
                     'Latitude',
                     'Longitude',
                     'Category',
@@ -375,12 +375,12 @@
                     columns: [
                         {
                             // id
-                            visible: false,
+                            visible: true,
                             mRender: function (data, type, full) {
-                                if (full.id) {
-                                    return full.id;
+                                if (full.id_) {
+                                    return 'site: ' + full.getId();
                                 } else {
-                                    return '';
+                                    return '---';
                                 }
                             },
                             defaultContent: '',
