@@ -54,13 +54,18 @@ class ApiaryAnnualRentalFeePeriodStartDateAdmin(admin.ModelAdmin):
             del actions['delete_selected']
         return actions
 
+
+@admin.register(models.ProposalApiary)
+class ProposalApiaryAdmin(VersionAdmin):
+    list_display = ['id', 'proposal']
+
+
 #TODO show apiary only (?)
 @admin.register(models.Proposal)
 class ProposalAdmin(VersionAdmin):
     inlines =[ProposalDocumentInline,]
-    list_display = ['lodgement_number', 'application_type', 'proposal_type', 'processing_status', 'approval',  'previous_app_lodgement_number', 'proxy_applicant', 'submitter', 'applicant']
+    list_display = ['lodgement_number', 'application_type', 'proposal_type', 'processing_status', 'proposal_apiary', 'approval', 'previous_app_lodgement_number', 'proxy_applicant', 'submitter', 'applicant']
     search_fields = ['lodgement_number', 'application_type__name', 'proposal_type', 'processing_status']
-    #raw_id_fields = ('applicant','proxy_applicant','submitter','previous_application', 'assigned_officer', 'assigned_approver')
     raw_id_fields = ('applicant','proxy_applicant','submitter','previous_application', 'assigned_officer', 'assigned_approver', 'approval')
     readonly_fields = ['approval_level_document']
 
