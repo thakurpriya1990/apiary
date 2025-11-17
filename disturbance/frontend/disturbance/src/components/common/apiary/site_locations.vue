@@ -377,10 +377,11 @@
                             // id
                             visible: true,
                             mRender: function (data, type, full) {
-                                if (full.id_) {
-                                    return 'site: ' + full.getId();
-                                } else {
+                                const siteId = full.getId()
+                                if (isNaN(siteId)){
                                     return '---';
+                                } else {
+                                    return 'site: ' + siteId;
                                 }
                             },
                             defaultContent: '',
