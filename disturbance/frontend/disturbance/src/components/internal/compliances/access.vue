@@ -138,14 +138,17 @@ export default {
     }
   },
   beforeRouteEnter: function(to, from, next){
-    Vue.http.get(helpers.add_endpoint_json(api_endpoints.compliances,to.params.compliance_id)).then((response) => {
-        next(vm => {
-            vm.compliance = response.body
-            vm.members = vm.compliance.allowed_assessors
-        })
-    },(error) => {
-        console.log(error);
-    })
+    fetch(helpers.add_endpoint_json(api_endpoints.compliances,to.params.compliance_id)).then(
+        async (response) => {
+            if (!response.ok) { return response.json().then(err => { throw err }); }
+            let data = await response.json();
+            next(vm => {
+                vm.compliance = data;
+                vm.members = vm.compliance.allowed_assessors
+            })
+        }).catch((error) => {
+            console.log(error);
+        });
   },
   components: {
     CommsLogs,
@@ -169,34 +172,44 @@ export default {
   
     assignMyself: function(){
         let vm = this;
-        vm.$http.get(helpers.add_endpoint_json(api_endpoints.compliances,(vm.compliance.id+'/assign_request_user')))
-        .then((response) => {            
-            vm.compliance = response.body;
-        }, (error) => {
-            console.log(error);
-        });
+        fetch(helpers.add_endpoint_json(api_endpoints.compliances,(vm.compliance.id+'/assign_request_user'))).then(
+            async (response) => { 
+                if (!response.ok) { return response.json().then(err => { throw err }); }           
+                vm.compliance = await response.json();
+            }).catch((error) => {
+                console.log(error);
+            });
     },
     assignTo: function(){
         let vm = this;
         if ( vm.compliance.assigned_to != 'null'){
             let data = {'user_id': vm.compliance.assigned_to};
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.compliances,(vm.compliance.id+'/assign_to')),JSON.stringify(data),{
-                emulateJSON:true
-            }).then((response) => {                
-                vm.compliance = response.body;
-            }, (error) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.compliances,(vm.compliance.id+'/assign_to')),{
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }).then(async (response) => {  
+                const res = await response.json();            
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                vm.compliance = res;
+            }).catch((error) => {
                 console.log(error);
             });
-            
         }
         else{
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.compliances,(vm.compliance.id+'/unassign')))
-            .then((response) => {
-                console.log(response);
-                vm.compliance = response.body;
-            }, (error) => {
-                console.log(error);
-            });
+            fetch(helpers.add_endpoint_json(api_endpoints.compliances,(vm.compliance.id+'/unassign'))).then(
+                async (response) => {
+                    if (!response.ok) { return response.json().then(err => { throw err }); }
+                    console.log(response);
+                    vm.compliance = await response.json();
+                }).catch((error) => {
+                    console.log(error);
+                }
+            );
         }
     },
     acceptCompliance: function() {
@@ -216,7 +229,7 @@ export default {
                 fetch(helpers.add_endpoint_json(api_endpoints.compliances,(vm.compliance.id+'/accept'))).then(
                     async (response) => {
                         if (!response.ok) { return response.json().then(err => { throw err }); }
-                        console.log(response);
+                        // console.log(response);
                         vm.compliance = await response.json();
                     }).catch((error) => {
                         console.log(error);

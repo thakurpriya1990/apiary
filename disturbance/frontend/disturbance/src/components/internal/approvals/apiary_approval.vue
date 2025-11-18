@@ -320,19 +320,16 @@ export default {
     let url_approval = helpers.add_endpoint_json(api_endpoints.approvals,this.approvalId)
     url_approval = url_approval + '?with_apiary_sites=false'
 
-    //Vue.http.get(helpers.add_endpoint_json(api_endpoints.approvals,this.approvalId)).then((response) => {
-    Vue.http.get(url_approval).then(
-        (response) => {
-            this.approval = response.body;
-            this.approval.applicant_id = response.body.applicant_id;
-            if (this.approval.organisation_abn) {
-                this.fetchOrganisation(this.approval.applicant_id)
-            }
-        },
-        (error) => {
+    fetch(url_approval).then(
+        async (response) => {
+            if (!response.ok) { return response.json().then(err => { throw err }); }
+            let data = await response.json();
+            this.approval = data;
+            this.approval.applicant_id = data.applicant_id;
+            this.fetchOrganisation(this.approval.applicant_id)
+        }).catch((error) => {
             console.log(error);
-        }
-    )
+        });
   },
   components: {
         SectionAnnualRentalFee,
@@ -343,9 +340,6 @@ export default {
         ComponentSiteSelection,
   },
   computed: {
-    formatDate: function(data){
-        return moment(data).format('DD/MM/YYYY');
-    },
     isLoading: function () {
       return this.loading.length > 0;
     },
@@ -359,28 +353,31 @@ export default {
 
   },
   methods: {
+    formatDate: function(data){
+        return moment(data).format('DD/MM/YYYY');
+    },
     commaToNewline(s){
         return s.replace(/[,;]/g, '\n');
     },
     fetchOrganisation(applicant_id){
         let vm=this;
-        Vue.http.get(helpers.add_endpoint_json(api_endpoints.organisations,applicant_id)).then((response) => {
-
-            vm.org = response.body;
-            vm.org.address = response.body.address;
-    },(error) => {
-        console.log(error);
-    })
-
+        fetch(helpers.add_endpoint_json(api_endpoints.organisations,applicant_id)).then(
+            async (response) => {
+                if (!response.ok) { return response.json().then(err => { throw err }); }
+                let data = await response.json();
+                vm.org = data;
+                vm.org.address = data.address;
+            }).catch((error) => {
+                console.log(error);
+            });
     },
     viewApprovalPDF: function(id,media_link){
-            let vm=this;
             //console.log(approval);
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.approvals,(id+'/approval_pdf_view_log')),{
+            fetch(helpers.add_endpoint_json(api_endpoints.approvals,(id+'/approval_pdf_view_log')),{
                 })
-                .then((response) => {
-                    //console.log(response)
-                }, (error) => {
+                .then(async (response) => {  
+                    if (!response.ok) { return response.json().then(err => { throw err }); }
+                }).catch((error) => {
                     console.log(error);
                 });
             window.open(media_link, '_blank');
