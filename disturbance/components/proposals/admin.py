@@ -54,15 +54,21 @@ class ApiaryAnnualRentalFeePeriodStartDateAdmin(admin.ModelAdmin):
             del actions['delete_selected']
         return actions
 
+
+@admin.register(models.ProposalApiary)
+class ProposalApiaryAdmin(VersionAdmin):
+    list_display = ['id', 'proposal']
+
+
 #TODO show apiary only (?)
 @admin.register(models.Proposal)
 class ProposalAdmin(VersionAdmin):
     inlines =[ProposalDocumentInline,]
-    list_display = ['lodgement_number', 'application_type', 'proposal_type', 'processing_status', 'approval',  'previous_app_lodgement_number', 'proxy_applicant', 'submitter', 'applicant']
+    list_display = ['lodgement_number', 'application_type', 'proposal_type', 'processing_status', 'proposal_apiary', 'approval', 'previous_app_lodgement_number', 'proxy_applicant', 'submitter', 'applicant']
     search_fields = ['lodgement_number', 'application_type__name', 'proposal_type', 'processing_status']
-    #raw_id_fields = ('applicant','proxy_applicant','submitter','previous_application', 'assigned_officer', 'assigned_approver')
     raw_id_fields = ('applicant','proxy_applicant','submitter','previous_application', 'assigned_officer', 'assigned_approver', 'approval')
     readonly_fields = ['approval_level_document']
+    list_filter = ['application_type',]
 
     @admin.display(description='Prev. App No.')
     def previous_app_lodgement_number(self, obj):
@@ -73,8 +79,10 @@ class ProposalAdmin(VersionAdmin):
 
 @admin.register(models.ApiarySite)
 class ApiarySite(admin.ModelAdmin):
-    list_display = ['id', 'site_guid','is_vacant']
+    list_display = ['id', 'site_guid', 'latest_proposal_link', 'latest_approval_link', 'is_vacant', 'exempt_from_radius_restriction',]
     readonly_fields = ['site_guid','is_vacant','latest_proposal_link','latest_approval_link','proposal_link_for_vacant','approval_link_for_vacant', 'coordinates']
+    search_fields = ['id']
+    list_filter = ['is_vacant', 'exempt_from_radius_restriction',]
 
 
 @admin.register(models.ApiarySiteOnProposal)
