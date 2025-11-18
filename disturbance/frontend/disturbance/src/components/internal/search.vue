@@ -261,9 +261,6 @@ export default {
     }
     
   },
-    watch: {
-      
-    },
     components: {
         datatable,
         searchSection,

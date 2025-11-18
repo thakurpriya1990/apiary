@@ -56,9 +56,6 @@
                 default: 'index',
             },
         },
-        watch: {
-
-        },
         data: function(){
             return{
 

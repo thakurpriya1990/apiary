@@ -96,9 +96,6 @@ export default {
     components:{
 
     },
-    watch:{
-
-    },
     computed: {
         console: () => console,
         

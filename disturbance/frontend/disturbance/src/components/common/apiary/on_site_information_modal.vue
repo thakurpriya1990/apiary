@@ -146,12 +146,15 @@
             openMe: function () {
                 this.isModalOpen = true
             },
-            loadApiarySites: async function(){
-                await this.$http.get('/api/approvals/' + this.approval_id + '/apiary_site/').then(
-                    (accept)=>{
-                        this.apiary_sites_options = accept.body
-                    },
-                )
+            loadApiarySites: function(){
+                fetch('/api/approvals/' + this.approval_id + '/apiary_site/')
+                .then(async (response)=>{
+                    if (!response.ok) { return response.json().then(err => { throw err }); }
+                    const data = await response.json();
+                    this.apiary_sites_options = data
+                }).catch((error) => {
+                    console.log(error);
+                });
             },
             addEventListeners: function () {
                 let vm = this;
@@ -225,7 +228,7 @@
 
                     // Update django database
                     const response = await this.sendData();
-
+                    console.log('Response from server:', response);
                     // Inform the parent component that the database has been updated
                     // so that the parent component can update a table
                     this.$emit('on_site_information_added');
@@ -277,14 +280,40 @@
                 payload.approval_id = this.approval_id
 
                 let res = '';
-                if (this.on_site_information.id){
-                    // Update existing on-site-information
-                    res = await Vue.http.put(base_url + this.on_site_information.id + '/', payload);
-                } else {
-                    // Create new on-site-information
-                    res = await Vue.http.post(base_url, payload);
+                try {
+                    if (this.on_site_information.id) {
+                        // Update existing on-site-information
+                        res = await fetch(base_url + this.on_site_information.id + '/', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+                    } else {
+                        // Create new on-site-information
+                        res = await fetch(base_url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+                    }
+
+                    if (!res.ok) {
+                        const errorText = await res.text();
+                        throw new Error(`Request failed with status ${res.status}: ${errorText}`);
+                    }
+
+                    const data = await res.json();
+                    return data; // Return parsed JSON instead of raw response
+
+                } catch (error) {
+                    console.error('Error occurred:', error.message);
+                    return { error: error.message }; // Return an error object for handling in UI
                 }
-                return res
+
             },
         },
     }

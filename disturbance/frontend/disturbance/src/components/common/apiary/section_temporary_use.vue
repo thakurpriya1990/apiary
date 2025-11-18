@@ -157,9 +157,6 @@
         computed:{
 
         },
-        watch:{
-
-        },
         methods:{
             loadTemporaryUses: async function(){
 
@@ -168,7 +165,6 @@
                         if (!response.ok) {
                             return response.json().then(err => { throw err });
                         }
-                        console.log(response.json())
                         this.temporary_uses = await response.json();
                         this.constructTemporaryUseTable()
                    }).catch((error) => {

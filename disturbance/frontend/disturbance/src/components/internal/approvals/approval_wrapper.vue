@@ -27,7 +27,6 @@ export default {
     components:{
         ApiaryApproval,
     },
-    watch: {},
     computed: {
     },
     methods: {
@@ -35,13 +34,15 @@ export default {
     mounted: function () {
     },
     beforeRouteEnter: function(to, from, next) {
-          Vue.http.get(`/api/approvals/${to.params.approval_id}/approval_wrapper.json`).then(res => {
-              next(vm => {
-                  vm.approvalId = res.body.id;
-                  vm.apiaryApproval = res.body.apiary_approval;
-              });
-            },
-            err => {
+          fetch(`/api/approvals/${to.params.approval_id}/approval_wrapper.json`).then(
+            async (res) => {
+                if (!res.ok) { return res.json().then(err => { throw err }); }
+                let data = await res.json();
+                next(vm => {
+                  vm.approvalId = data.id;
+                  vm.apiaryApproval = data.apiary_approval;
+                });
+            }).catch(err => {
               console.log(err);
             });
     },

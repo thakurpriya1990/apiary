@@ -36,9 +36,6 @@
                 default: '',
             }
         },
-        watch: {
-
-        },
         data: function(){
             return{
                 deed_poll_url: '',

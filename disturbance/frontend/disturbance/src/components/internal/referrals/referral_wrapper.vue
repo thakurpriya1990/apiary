@@ -38,7 +38,6 @@ export default {
         */
         ApiaryReferral
     },
-    watch: {},
     computed: {
         /*
         apiaryReferral: function() {
