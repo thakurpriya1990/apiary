@@ -4375,7 +4375,8 @@ class ApiaryApproverGroupMember(models.Model):
 
 #TODO consider replacing with System Group
 class ApiaryApproverGroup(models.Model):
-    members = models.ManyToManyField(EmailUser, through=ApiaryApproverGroupMember, through_fields=('apiaryapprovergroup', 'emailuser'))
+    # members = models.ManyToManyField(EmailUser, through=ApiaryApproverGroupMember, through_fields=('apiaryapprovergroup', 'emailuser'))
+    members = models.ManyToManyField(EmailUser, through=ApiaryApproverGroupMember)
     # members = models.ManyToManyField(EmailUser)
 
     def __str__(self):
