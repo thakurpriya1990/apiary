@@ -4375,16 +4375,43 @@ class ApiaryApproverGroup(models.Model):
 
     def __str__(self):
         return 'Apiary Approvers Group'
+    
+    @property
+    def resolved_members(self):
+        """
+        Manually fetches related EmailUserRO objects to correctly handle the
+        cross-database relationship.
+
+        Background:
+        The 'members' ManyToManyField links to the 'EmailUserRO' model, which our 'LedgerDBRouter' correctly routes
+        to the 'ledger_db' because the 'EmailUserRO's db_table is set to 'accounts_emailuser'. However,
+        when accessing 'self.members.all()' directly, the ORM's query resolution is biased by the target model's database ('ledger_db').
+        This causes the entire query, including the intermediate table lookup, to be executed against 'ledger_db',
+        resulting in stale or incorrect data (i.e., fetching old member records from a snapshot database).
+
+        This property bypasses that issue by performing a two-step query:
+        1. Explicitly query the intermediate table ('ApiaryApproverGroupMember')
+           in the 'default' database to get the correct, up-to-date list of member IDs.
+        2. Explicitly query the 'EmailUserRO' model in the 'ledger_db' using those IDs.
+
+        Use this property instead of 'self.members' for all read operations.
+        """
+        member_ids = ApiaryApproverGroupMember.objects.filter(
+            apiaryapprovergroup=self
+        ).values_list('emailuser_id', flat=True)
+        
+        # return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+        return EmailUser.objects.filter(pk__in=list(member_ids))
 
     @property
     def all_members(self):
         all_members = []
-        all_members.extend(self.members.all())
+        all_members.extend(self.resolved_members)
         return all_members
 
     @property
     def filtered_members(self):
-        return self.members.all()
+        return self.resolved_members
 
     class Meta:
         app_label = 'disturbance'
@@ -4392,8 +4419,9 @@ class ApiaryApproverGroup(models.Model):
 
     @property
     def members_email(self):
-        return [i.email for i in self.members.all()]
+        return [i.email for i in self.resolved_members]
     
+
 #TODO consider replacing with System Group
 class ApiaryReferral(RevisionedMixin):
 
