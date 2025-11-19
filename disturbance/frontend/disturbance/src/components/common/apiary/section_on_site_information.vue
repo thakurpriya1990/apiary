@@ -93,7 +93,7 @@
                     language: {
                         processing: constants.DATATABLE_PROCESSING_HTML,
                     },
-                    rowCallback: function (row, obj){
+                    rowCallback: function (){
                         return // We disable the expander for now
                         // console.log('in rowCallback')
                         // let row_jq = $(row)
@@ -265,9 +265,6 @@
                 } catch(err) { console.log(err)}
                 return enabled;
             }
-        },
-        watch:{
-
         },
         methods:{
             get_content: function(data){

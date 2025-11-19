@@ -348,19 +348,23 @@
             },
             addOptionalLayers: function(){
                 let vm = this
-                this.$http.get('/api/map_layers/').then(response => {
-                    let layers = response.body
-                    for (var i = 0; i < layers.length; i++){
-                        let l = new TileWMS({
-                            url: env['kmi_server_url'] + '/geoserver/' + layers[i].layer_group_name + '/wms',
-                            params: {
-                                'FORMAT': 'image/png',
-                                'VERSION': '1.1.1',
-                                tiled: true,
-                                STYLES: '',
-                                LAYERS: layers[i].layer_full_name
-                            }
-                        });
+                fetch('/api/map_layers/').then(
+                    async response => {
+                        if (!response.ok) { return response.json().then(err => { throw err }); }
+                        let layers = await response.json();
+                        for (var i = 0; i < layers.length; i++){
+                            let l = new TileWMS({
+                                url: env['kmi_server_url'] + '/geoserver/' + layers[i].layer_group_name + '/wms',
+                                //url: '/kb-proxy/geoserver/' + layers[i].layer_group_name + '/wms',
+                                // url: layers[i].layer_group_name ? '/kb-proxy/geoserver/' + layers[i].layer_group_name + '/wms' : '/kb-proxy/geoserver/wms',
+                                params: {
+                                    'FORMAT': 'image/png',
+                                    'VERSION': '1.1.1',
+                                    tiled: true,
+                                    STYLES: '',
+                                    LAYERS: layers[i].layer_full_name
+                                }
+                            });
 
                         let tileLayer= new TileLayer({
                             title: layers[i].display_name.trim(),
@@ -375,7 +379,9 @@
                         vm.optionalLayers.push(tileLayer)
                         vm.map.addLayer(tileLayer)
                     }
-                })
+                }).catch((error) => {
+                    console.log(error);
+                });
             },
             setBaseLayer: function(selected_layer_name){
                 let vm = this
@@ -577,7 +583,7 @@
                                     })
 
                                     //p.then(res => res.text()).then(function(data){
-                                    p.then(res => res.json()).then(function(data){
+                                    p.then(async (res) => await res.json()).then(function(data){
                                         //vm.showPopupForLayersHTML(data, evt.coordinate, column_names, display_all_columns)
                                         vm.showPopupForLayersJson(data, evt.coordinate, column_names, display_all_columns, vm.optionalLayers[i])
                                     })

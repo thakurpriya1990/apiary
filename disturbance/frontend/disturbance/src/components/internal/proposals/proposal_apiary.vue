@@ -620,8 +620,6 @@ export default {
             type: Number,
         },
     },
-    watch: {
-    },
     computed: {
         referralListURL: function(){
             return this.proposal!= null ? helpers.add_endpoint_json(api_endpoints.apiary_referrals,'datatable_list')+'?proposal='+this.proposal.id : '';

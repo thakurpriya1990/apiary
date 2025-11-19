@@ -54,7 +54,6 @@ export default {
         ProposalApiary,
         ProposalTemporaryUse,
     },
-    watch: {},
     computed: {
         apiaryGroupApplication: function() {
             let retVal = false;

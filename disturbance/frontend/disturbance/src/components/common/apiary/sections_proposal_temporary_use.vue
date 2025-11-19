@@ -189,9 +189,6 @@
                 return readonlyStatus
             }
         },
-        watch:{
-
-        },
         methods:{
             occupierDataChanged: function(value){
                 this.proposal.apiary_temporary_use.temporary_occupier_name = value.occupier_name

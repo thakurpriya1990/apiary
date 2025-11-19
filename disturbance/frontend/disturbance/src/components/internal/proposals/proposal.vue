@@ -509,9 +509,6 @@ export default {
             type: Number,
         },
     },
-    watch: {
-
-    },
     computed: {
         console: () => console,
         contactsURL: function(){

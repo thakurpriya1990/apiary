@@ -559,9 +559,6 @@ export default {
         },
 
     },
-    watch: {
-
-    },
     methods:{
 
         //detailsInfo: function(site){

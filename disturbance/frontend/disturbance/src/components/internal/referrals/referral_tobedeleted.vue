@@ -353,8 +353,6 @@ export default {
                 type:Number,
             },
     },
-    watch: {
-    },
     computed: {
         proposal: function(){
             return this.referral != null && this.referall != 'undefined' ? this.referral.proposal : null;

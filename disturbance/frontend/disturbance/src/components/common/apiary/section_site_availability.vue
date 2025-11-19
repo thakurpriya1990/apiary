@@ -91,9 +91,6 @@
             },
             */
         },
-        watch:{
-
-        },
         methods:{
             _get_basic_data: function(){
                 let data = {
@@ -180,7 +177,7 @@
                          if (!response.ok) {
                             return response.json().then(err => { throw err });
                         }
-                        console.log(response.json())
+                        // console.log(response.json())
                         this.apiary_sites = await response.json();
                         this.component_site_selection_key = uuid()
                     }).catch((error) => {

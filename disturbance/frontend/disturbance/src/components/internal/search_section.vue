@@ -293,9 +293,6 @@ export default {
     }
     
   },
-    watch: {
-      
-    },
     components: {
         datatable,
     },

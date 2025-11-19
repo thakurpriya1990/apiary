@@ -41,9 +41,6 @@
         props: {
 
         },
-        watch: {
-
-        },
         computed: {
 
         },
