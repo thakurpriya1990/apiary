@@ -161,8 +161,7 @@ class ProposalAssessorGroupMember(models.Model):
 
 class ProposalAssessorGroup(models.Model):
     name = models.CharField(max_length=255)
-    members = models.ManyToManyField(EmailUser, through=ProposalAssessorGroupMember, through_fields=('proposalassessorgroup','emailuser'))
-    # members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=ProposalAssessorGroupMember,)
     region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.CASCADE)
     default = models.BooleanField(default=False)
 
@@ -233,8 +232,7 @@ class ProposalApproverGroupMember(models.Model):
 
 class ProposalApproverGroup(models.Model):
     name = models.CharField(max_length=255)
-    members = models.ManyToManyField(EmailUser, through=ProposalApproverGroupMember, through_fields=('proposalapprovergroup','emailuser'))
-    # members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=ProposalApproverGroupMember,)
     region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.CASCADE)
     default = models.BooleanField(default=False)
 
@@ -2233,8 +2231,7 @@ class ApiaryReferralGroupMember(models.Model):
 
 class ApiaryReferralGroup(models.Model):
     name = models.CharField(max_length=30, unique=True)
-    members = models.ManyToManyField(EmailUser, through=ApiaryReferralGroupMember, through_fields=('apiaryreferralgroup','emailuser'))
-    # members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=ApiaryReferralGroupMember,)
     region = models.ForeignKey(Region, blank=True, null=True, on_delete=models.PROTECT)
     district = ChainedForeignKey(
         District,

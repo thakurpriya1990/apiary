@@ -810,8 +810,7 @@ class ApiaryOrganisationAccessGroupMember(models.Model):
 
 class ApiaryOrganisationAccessGroup(models.Model):
     site = models.OneToOneField(Site, default='1', on_delete=models.CASCADE) 
-    members = models.ManyToManyField(EmailUser, through=ApiaryOrganisationAccessGroupMember, through_fields=('apiaryorganisationaccessgroup','emailuser'))
-    # members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=ApiaryOrganisationAccessGroupMember,)
 
     def __str__(self):
         return 'Apiary Organisation Access Group'
@@ -853,7 +852,7 @@ class OrganisationAccessGroupMember(models.Model):
 
 class OrganisationAccessGroup(models.Model):
     site = models.OneToOneField(Site, default='1', on_delete=models.CASCADE) 
-    members = models.ManyToManyField(EmailUser, through=OrganisationAccessGroupMember, through_fields=('organisationaccessgroup','emailuser'))
+    members = models.ManyToManyField(EmailUser, through=OrganisationAccessGroupMember,)
     # members = models.ManyToManyField(EmailUser)
 
     def __str__(self):
