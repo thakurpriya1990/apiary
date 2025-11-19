@@ -1515,10 +1515,24 @@
                 //vm.drawingLayerSource = new VectorSource();
                 vm.drawingLayerSource.on('addfeature', async function(e){
                     let coords = e.feature.getGeometry().getCoordinates()
-                    let ret = await vm.$http.get('/gisdata/?layer=wa_coast_smoothed&lat=' + coords[1] + '&lng=' + coords[0])
-                    if (!Object.prototype.hasOwnProperty.call(ret.body,'id')) {
-                        vm.removeBufferForSite(e.feature)
+                    // Construct the URL with query parameters
+                    const url = `/gisdata/?layer=wa_coast_smoothed&lat=${coords[1]}&lng=${coords[0]}`;
+
+                    try {
+                    const response = await fetch(url, {
+                        method: 'GET'
+                    });
+
+                    // Parse JSON body
+                    const body = await response.json();
+
+                    // Check if 'id' property exists
+                    if (!Object.prototype.hasOwnProperty.call(body, 'id')) {
+                        vm.removeBufferForSite(e.feature);
                         vm.drawingLayerSource.removeFeature(e.feature);
+                    }
+                    } catch (error) {
+                    console.error('Fetch error:', error);
                     }
                     vm.constructSiteLocationsTable()
                 });
@@ -1677,8 +1691,10 @@
                                     modifyInProgressList.splice(index, 1);
                                 }
                                 else {
-                                    let ret = await vm.$http.get('/gisdata/?layer=wa_coast_smoothed&lat=' + coords[1] + '&lng=' + coords[0])
-                                    if (!Object.prototype.hasOwnProperty.call(ret.body, 'id')) {
+                                    const url = `/gisdata/?layer=wa_coast_smoothed&lat=${coords[1]}&lng=${coords[0]}`;
+                                    const response = await fetch(url, { method: 'GET' });
+                                    const body = await response.json();
+                                    if (!Object.prototype.hasOwnProperty.call(body, 'id')) {
                                         // rollback proposed modification
                                         let c = feature.get("stable_coords");
                                         feature.getGeometry().setCoordinates(c);
@@ -1849,90 +1865,111 @@
             },
             load_existing_sites: function(){
                 let vm = this
-                this.$http.get('/api/apiary_site/list_existing_proposal_vacant_draft/?proposal_id=' + this.proposal.id).then(
-                    res => {
-                        let num_sites = 0
-                        if(res.body.features){
-                            vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(res.body))
-                            num_sites = res.body.features.length
-                        }
-                        vm.proposal_vacant_draft_loaded = true
-                        vm.display_duration('proposal vacant draft (' + num_sites + ' sites)')
-                    },
-                    err => {
-                        console.log(err)
+                const url = `/api/apiary_site/list_existing_proposal_vacant_draft/?proposal_id=${this.proposal.id}`;
+                fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                )
-                this.$http.get('/api/apiary_site/list_existing_proposal_vacant_processed/?proposal_id=' + this.proposal.id).then(
-                    res => {
-                        let num_sites = 0
-                        if(res.body.features){
-                            vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(res.body))
-                            num_sites = res.body.features.length
-                        }
-                        vm.proposal_vacant_processed_loaded = true
-                        vm.display_duration('proposal vacant processed (' + num_sites + ' sites)')
-                    },
-                    err => {
-                        console.log(err)
+                    return response.json();
+                })
+                .then(body => {
+                    let num_sites = 0;
+                    if (body.features) {
+                    vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                    num_sites = body.features.length;
                     }
-                )
-                this.$http.get('/api/apiary_site/list_existing_approval_vacant/?proposal_id=' + this.proposal.id).then(
-                    res => {
-                        let num_sites = 0
-                        if(res.body.features){
-                            vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(res.body))
-                            num_sites = res.body.features.length
-                        }
-                        vm.approval_vacant_loaded = true
-                        vm.display_duration('approval vacant (' + num_sites + ' sites)')
-                    },
-                    err => {
-                        console.log(err)
-                    }
-                )
-                this.$http.get('/api/apiary_site/list_existing_proposal_draft/?proposal_id=' + this.proposal.id).then(
-                    res => {
-                        let num_sites = 0
-                        if(res.body.features){
-                            vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(res.body))
-                            num_sites = res.body.features.length
-                        }
-                        vm.proposal_draft_loaded = true
-                        vm.display_duration('proposal draft (' + num_sites + ' sites)')
-                    },
-                    err => {
-                        console.log(err)
-                    }
-                )
-                this.$http.get('/api/apiary_site/list_existing_proposal_processed/?proposal_id=' + this.proposal.id).then(
-                    res => {
-                        let num_sites = 0
-                        if(res.body.features){
-                            vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(res.body))
-                            num_sites = res.body.features.length
-                        }
-                        vm.proposal_processed_loaded = true
-                        vm.display_duration('proposal processed (' + num_sites + ' sites)')
-                    },
-                    err => {
-                        console.log(err)
-                    }
-                )
-                this.$http.get('/api/apiary_site/list_existing_approval/?proposal_id=' + this.proposal.id).then(
-                    res => {
-                        let num_sites = 0
-                        if(res.features){
-                            vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(res))
-                            num_sites = res.features.length
-                        }
-                        vm.approval_loaded = true
-                        vm.display_duration('approval (' + num_sites + ' sites)')
-                    },
-                    err => {
-                        console.log(err)
-                    }
-                )
+                    vm.proposal_vacant_draft_loaded = true;
+                    vm.display_duration(`proposal vacant draft (${num_sites} sites)`);
+                })
+                .catch(err => {
+                    console.log(err);
+                });
+                // proposal vacant processed
+            fetch(`/api/apiary_site/list_existing_proposal_vacant_processed/?proposal_id=${this.proposal.id}`)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
+            .then(body => {
+                let num_sites = 0;
+                if (body.features) {
+                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                num_sites = body.features.length;
+                }
+                vm.proposal_vacant_processed_loaded = true;
+                vm.display_duration(`proposal vacant processed (${num_sites} sites)`);
+            })
+            .catch(err => console.log(err));
+
+            // approval vacant
+            fetch(`/api/apiary_site/list_existing_approval_vacant/?proposal_id=${this.proposal.id}`)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
+            .then(body => {
+                let num_sites = 0;
+                if (body.features) {
+                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                num_sites = body.features.length;
+                }
+                vm.approval_vacant_loaded = true;
+                vm.display_duration(`approval vacant (${num_sites} sites)`);
+            })
+            .catch(err => console.log(err));
+
+            // proposal draft
+            fetch(`/api/apiary_site/list_existing_proposal_draft/?proposal_id=${this.proposal.id}`)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
+            .then(body => {
+                let num_sites = 0;
+                if (body.features) {
+                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                num_sites = body.features.length;
+                }
+                vm.proposal_draft_loaded = true;
+                vm.display_duration(`proposal draft (${num_sites} sites)`);
+            })
+            .catch(err => console.log(err));
+
+            // proposal processed
+            fetch(`/api/apiary_site/list_existing_proposal_processed/?proposal_id=${this.proposal.id}`)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
+            .then(body => {
+                let num_sites = 0;
+                if (body.features) {
+                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                num_sites = body.features.length;
+                }
+                vm.proposal_processed_loaded = true;
+                vm.display_duration(`proposal processed (${num_sites} sites)`);
+            })
+            .catch(err => console.log(err));
+
+            // approval
+            fetch(`/api/apiary_site/list_existing_approval/?proposal_id=${this.proposal.id}`)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
+            .then(body => {
+                let num_sites = 0;
+                if (body.features) {
+                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                num_sites = body.features.length;
+                }
+                vm.approval_loaded = true;
+                vm.display_duration(`approval (${num_sites} sites)`);
+            })
+            .catch(err => console.log(err));
+
             }
         },
         created: async function() {

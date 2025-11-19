@@ -61,10 +61,13 @@
         methods: {
             fetchDeedPollUrl: function(){
                 let vm = this;
-                vm.$http.get('/api/deed_poll_url').then((response) => {
-                    vm.deed_poll_url = response.body;
-                },(error) => {
-                    console.log(error);
+                fetch('/api/deed_poll_url')
+                .then((response) => response.json())
+                .then((data) => {
+                    vm.deed_poll_url = data;
+                })
+                .catch((error) => {
+                    console.error(error);
                 });
             },
             addEventListeners: function () {
