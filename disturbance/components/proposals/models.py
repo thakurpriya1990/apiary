@@ -2244,24 +2244,34 @@ class ApiaryReferralGroup(models.Model):
 
     def __str__(self):
         return self.name
+    
+    @property
+    def resolved_members(self):
+        """
+        Manually fetches related EmailUser objects to correctly handle the
+        cross-database relationship, bypassing issues with the LedgerDBRouter.
+        """
+        member_ids = ApiaryReferralGroupMember.objects.filter(
+            apiaryreferralgroup=self
+        ).values_list('emailuser_id', flat=True)
+
+        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
 
     @property
     def all_members(self):
-        all_members = []
-        all_members.extend(self.members.all())
-        return all_members
+        return list(self.resolved_members)
 
     @property
     def filtered_members(self):
-        return self.members.all()
+        return self.resolved_members
 
     @property
     def members_list(self):
-            return list(self.members.all().values_list('email', flat=True))
+        return list(self.resolved_members.values_list('email', flat=True))
 
     @property
     def members_email(self):
-        return [i.email for i in self.members.all()]
+        return [i.email for i in self.resolved_members]
 
     class Meta:
         app_label = 'disturbance'
@@ -4331,15 +4341,24 @@ class ApiaryAssessorGroup(models.Model):
         return 'Apiary Assessors Group'
 
     @property
+    def resolved_members(self):
+        """
+        Manually fetches related EmailUser objects to correctly handle the
+        cross-database relationship, bypassing issues with the LedgerDBRouter.
+        """
+        member_ids = ApiaryAssessorGroupMember.objects.filter(
+            apiaryassessorgroup=self
+        ).values_list('emailuser_id', flat=True)
+
+        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+
+    @property
     def all_members(self):
-        all_members = []
-        all_members.extend(self.members.all())
-        member_ids = [m.id for m in self.members.all()]
-        return all_members
+        return list(self.resolved_members)
 
     @property
     def filtered_members(self):
-        return self.members.all()
+        return self.resolved_members
 
     class Meta:
         app_label = 'disturbance'
@@ -4347,7 +4366,7 @@ class ApiaryAssessorGroup(models.Model):
 
     @property
     def members_email(self):
-        return [i.email for i in self.members.all()]
+        return [i.email for i in self.resolved_members]
 
 
 class ApiaryApproverGroupMember(models.Model):

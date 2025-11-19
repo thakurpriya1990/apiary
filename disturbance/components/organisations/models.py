@@ -835,15 +835,11 @@ class ApiaryOrganisationAccessGroup(models.Model):
 
     @property
     def all_members(self):
-        all_members = []
-        all_members.extend(self.members.all())
-        member_ids = [m.id for m in self.members.all()]
-        #all_members.extend(EmailUser.objects.filter(is_superuser=True,is_staff=True,is_active=True).exclude(id__in=member_ids))
-        return all_members
+        return list(self.resolved_members)
 
     @property
     def filtered_members(self):
-        return self.members.all()
+        return self.resolved_members
 
     class Meta:
         app_label = 'disturbance'
