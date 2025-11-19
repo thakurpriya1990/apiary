@@ -7,7 +7,7 @@ class ApprovalAdmin(admin.ModelAdmin):
     list_display = [
         'lodgement_number',
         'status',
-        'applicant',
+        'applicant_name',
         'proxy_applicant',
         'current_proposal',
         'issue_date',
@@ -23,7 +23,13 @@ class ApprovalAdmin(admin.ModelAdmin):
     ]
     raw_id_fields = ('applicant','proxy_applicant','current_proposal')
     readonly_fields = ['replaced_by', 'licence_document', 'cover_letter_document','renewal_document']
-    search_fields = ['lodgement_number', 'current_proposal__lodgement_number', 'applicant__organisation__name', 'proxy_applicant__first_name', 'proxy_applicant__last_name']
+    search_fields = [
+        'lodgement_number',
+        'current_proposal__lodgement_number',
+        # 'applicant__organisation_name',
+        'proxy_applicant__first_name',
+        'proxy_applicant__last_name'
+    ]
     list_filter = [
         'set_to_cancel',
         'set_to_suspend',
@@ -31,6 +37,18 @@ class ApprovalAdmin(admin.ModelAdmin):
         'reissued',
         'migrated',
     ]
+
+    @admin.display(description='Applicant', ordering='applicant')
+    def applicant_name(self, obj):
+        """
+        Custom method to display only the organisation_name from the applicant JSON field.
+        Handles cases where the applicant data might be missing or not a dict.
+        """
+        applicant_data = obj.applicant
+
+        if isinstance(applicant_data.organisation, dict) and 'organisation_name' in applicant_data.organisation:
+            return applicant_data.organisation['organisation_name']
+        return '---'
 
 @admin.register(ApiarySiteOnApproval)
 class ApiarySiteOnApprovalAdmin(admin.ModelAdmin):
