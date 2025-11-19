@@ -123,6 +123,5 @@ window.fetch = ((originalFetch) => {
         return response;
     };
 })(fetch);
-
 app.use(router);
 router.isReady().then(() => app.mount('#app'));
