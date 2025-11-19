@@ -814,6 +814,24 @@ class ApiaryOrganisationAccessGroup(models.Model):
 
     def __str__(self):
         return 'Apiary Organisation Access Group'
+    
+    @property
+    def resolved_members(self):
+        """
+        Manually fetches related EmailUser objects to correctly handle the
+        cross-database relationship.
+
+        This property bypasses the ORM's default ManyToMany query, which
+        incorrectly queries the 'ledger_db' due to the LedgerDBRouter's
+        behavior with the EmailUserRO model.
+        """
+        # 1. Get member IDs from the intermediate table in the 'default' database.
+        member_ids = ApiaryOrganisationAccessGroupMember.objects.filter(
+            apiaryorganisationaccessgroup=self
+        ).values_list('emailuser_id', flat=True)
+
+        # 2. Use the IDs to fetch EmailUser objects from the 'ledger_db'.
+        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
 
     @property
     def all_members(self):
@@ -860,15 +878,11 @@ class OrganisationAccessGroup(models.Model):
 
     @property
     def all_members(self):
-        all_members = []
-        all_members.extend(self.members.all())
-        member_ids = [m.id for m in self.members.all()]
-        #all_members.extend(EmailUser.objects.filter(is_superuser=True,is_staff=True,is_active=True).exclude(id__in=member_ids))
-        return all_members
+        return list(self.resolved_members)
 
     @property
     def filtered_members(self):
-        return self.members.all()
+        return self.resolved_members
 
     class Meta:
         app_label = 'disturbance'
