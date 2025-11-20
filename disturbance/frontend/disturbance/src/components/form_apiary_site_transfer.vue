@@ -650,17 +650,27 @@
                 this.lookupNotification = '';
                 console.log(this.transfereeEmail);
                 //let url = `/api/proposal_apiary/${this.proposal.proposal_apiary.id}/get_apiary_approvals.json`
-                Vue.http.post(helpers.add_endpoint_json(
+                fetch(helpers.add_endpoint_json(
                     api_endpoints.proposal_apiary,this.proposal.proposal_apiary.id+'/get_licence_holders'),
-                    //data,{
                     {
-                        'user_email': this.transfereeEmail,
-                        'originating_approval_id': this.proposal.proposal_apiary.originating_approval_id,
-                    }).then(res => {
-                        console.log(res.body);
-                        if (res.body && res.body.licence_holders) {
-                            this.licenceHolders = res.body.licence_holders.licence_holders;
-                            //this.apiaryApprovals = res.body.apiary_approvals.approvals;
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            'user_email': this.transfereeEmail,
+                            'originating_approval_id': this.proposal.proposal_apiary.originating_approval_id,
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(res => {
+                        if (!res.ok) {
+                            throw new Error(`HTTP error! Status: ${res.status}`);
+                        }
+                        console.log(res);
+                        if (res && res.licence_holders) {
+                            this.licenceHolders = res.licence_holders.licence_holders;
+                            //this.apiaryApprovals = res.apiary_approvals.approvals;
                             /*
                             if (this.licenceHolders.length < 1) {
                                 //this.lookupErrorText = 'No current licence for the transferee';
@@ -668,12 +678,14 @@
                             }
                             */
                         } else {
-                            this.lookupErrorText = res.body;
+                            this.lookupErrorText = res || 'Error looking up transferee details';
                         }
-                },
-                err => {
-                  console.log(err);
-                });
+                
+                    })
+                    .catch(err => {
+                        console.error(err);
+                    });
+
 
             },
 
@@ -691,15 +703,18 @@
                     }
                 }
             }
-            Vue.http.get(api_endpoints.apiary_site_transfer_fees)
-                .then(res => {
-                    for (let fee of res.body) {
-                        this.siteTransferFees.push(fee)
-                    }
-            },
-            err => {
-              console.log(err);
-            });
+            fetch(api_endpoints.apiary_site_transfer_fees)
+            .then(async (response) => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err });
+                }
+                const data = await response.json();
+                for (let fee of data) {
+                    this.siteTransferFees.push(fee)
+                }
+            }).catch(err => {
+                console.error(err);
+            })
             // update transferreeEmail
             if (this.proposal && this.proposal.proposal_apiary) {
                 this.transfereeEmail = this.proposal.proposal_apiary.transferee_email_text;
