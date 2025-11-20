@@ -13,7 +13,7 @@ def can_manage_org(organisation,user):
     try:
         group = OrganisationAccessGroup.objects.first()
         if group:
-            group.members.get(id=user.id)
+            group.filtered_members.get(id=user.id)
         return True
     except EmailUser.DoesNotExist:
         pass

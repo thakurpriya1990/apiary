@@ -161,8 +161,7 @@ class ProposalAssessorGroupMember(models.Model):
 
 class ProposalAssessorGroup(models.Model):
     name = models.CharField(max_length=255)
-    members = models.ManyToManyField(EmailUser, through=ProposalAssessorGroupMember, through_fields=('proposalassessorgroup','emailuser'))
-    # members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=ProposalAssessorGroupMember,)
     region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.CASCADE)
     default = models.BooleanField(default=False)
 
@@ -171,6 +170,17 @@ class ProposalAssessorGroup(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def resolved_members(self):
+        """
+        Manually fetches related EmailUser objects to correctly handle the cross-database relationship.
+        """
+        member_ids = ProposalAssessorGroupMember.objects.filter(
+            proposalassessorgroup=self
+        ).values_list('emailuser_id', flat=True)
+
+        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
 
     def clean(self):
         try:
@@ -198,7 +208,7 @@ class ProposalAssessorGroup(models.Model):
 
     @property
     def members_email(self):
-        return [i.email for i in self.members.all()]
+        return [i.email for i in self.resolved_members]
 
 class TaggedProposalApproverGroupRegions(TaggedItemBase):
     content_object = models.ForeignKey("ProposalApproverGroup", on_delete=models.CASCADE)
@@ -233,8 +243,7 @@ class ProposalApproverGroupMember(models.Model):
 
 class ProposalApproverGroup(models.Model):
     name = models.CharField(max_length=255)
-    members = models.ManyToManyField(EmailUser, through=ProposalApproverGroupMember, through_fields=('proposalapprovergroup','emailuser'))
-    # members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=ProposalApproverGroupMember,)
     region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.CASCADE)
     default = models.BooleanField(default=False)
 
@@ -243,6 +252,17 @@ class ProposalApproverGroup(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def resolved_members(self):
+        """
+        Manually fetches related EmailUser objects to correctly handle the cross-database relationship.
+        """
+        member_ids = ProposalApproverGroupMember.objects.filter(
+            proposalapprovergroup=self
+        ).values_list('emailuser_id', flat=True)
+
+        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
 
     def clean(self):
         try:
@@ -270,7 +290,7 @@ class ProposalApproverGroup(models.Model):
 
     @property
     def members_email(self):
-        return [i.email for i in self.members.all()]
+        return [i.email for i in self.resolved_members]
 
 class DefaultDocument(Document):
     input_name = models.CharField(max_length=255,null=True,blank=True)
@@ -661,19 +681,19 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             group = self.__approver_group()
         else:
             group = self.__assessor_group()
-        return group.members.all() if group else []
+        return group.resolved_members if group else []
 
     #Compliance and Approvals use assessor group to show/hide compliance/approvals actions on dashboard
     @property
     def compliance_assessors(self):
         group = self.__assessor_group()
-        return group.members.all() if group else []
+        return group.resolved_members if group else []
 
     #Approver group required to show/hide reissue actions on Approval dashboard
     @property
     def allowed_approvers(self):
         group = self.__approver_group()
-        return group.members.all() if group else []
+        return group.resolved_members if group else []
 
     @property
     def can_officer_process(self):
@@ -2233,8 +2253,7 @@ class ApiaryReferralGroupMember(models.Model):
 
 class ApiaryReferralGroup(models.Model):
     name = models.CharField(max_length=30, unique=True)
-    members = models.ManyToManyField(EmailUser, through=ApiaryReferralGroupMember, through_fields=('apiaryreferralgroup','emailuser'))
-    # members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=ApiaryReferralGroupMember,)
     region = models.ForeignKey(Region, blank=True, null=True, on_delete=models.PROTECT)
     district = ChainedForeignKey(
         District,
@@ -2247,24 +2266,34 @@ class ApiaryReferralGroup(models.Model):
 
     def __str__(self):
         return self.name
+    
+    @property
+    def resolved_members(self):
+        """
+        Manually fetches related EmailUser objects to correctly handle the
+        cross-database relationship, bypassing issues with the LedgerDBRouter.
+        """
+        member_ids = ApiaryReferralGroupMember.objects.filter(
+            apiaryreferralgroup=self
+        ).values_list('emailuser_id', flat=True)
+
+        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
 
     @property
     def all_members(self):
-        all_members = []
-        all_members.extend(self.members.all())
-        return all_members
+        return list(self.resolved_members)
 
     @property
     def filtered_members(self):
-        return self.members.all()
+        return self.resolved_members
 
     @property
     def members_list(self):
-            return list(self.members.all().values_list('email', flat=True))
+        return list(self.resolved_members.values_list('email', flat=True))
 
     @property
     def members_email(self):
-        return [i.email for i in self.members.all()]
+        return [i.email for i in self.resolved_members]
 
     class Meta:
         app_label = 'disturbance'
@@ -4328,22 +4357,30 @@ class ApiaryAssessorGroupMember(models.Model):
 
 
 class ApiaryAssessorGroup(models.Model):
-    members = models.ManyToManyField(EmailUser, through=ApiaryAssessorGroupMember, through_fields=('apiaryassessorgroup', 'emailuser'))
-    # members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=ApiaryAssessorGroupMember,)
 
     def __str__(self):
         return 'Apiary Assessors Group'
 
     @property
+    def resolved_members(self):
+        """
+        Manually fetches related EmailUser objects to correctly handle the
+        cross-database relationship, bypassing issues with the LedgerDBRouter.
+        """
+        member_ids = ApiaryAssessorGroupMember.objects.filter(
+            apiaryassessorgroup=self
+        ).values_list('emailuser_id', flat=True)
+
+        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+
+    @property
     def all_members(self):
-        all_members = []
-        all_members.extend(self.members.all())
-        member_ids = [m.id for m in self.members.all()]
-        return all_members
+        return list(self.resolved_members)
 
     @property
     def filtered_members(self):
-        return self.members.all()
+        return self.resolved_members
 
     class Meta:
         app_label = 'disturbance'
@@ -4351,7 +4388,7 @@ class ApiaryAssessorGroup(models.Model):
 
     @property
     def members_email(self):
-        return [i.email for i in self.members.all()]
+        return [i.email for i in self.resolved_members]
 
 
 class ApiaryApproverGroupMember(models.Model):
@@ -4375,21 +4412,47 @@ class ApiaryApproverGroupMember(models.Model):
 
 #TODO consider replacing with System Group
 class ApiaryApproverGroup(models.Model):
-    members = models.ManyToManyField(EmailUser, through=ApiaryApproverGroupMember, through_fields=('apiaryapprovergroup', 'emailuser'))
-    # members = models.ManyToManyField(EmailUser)
+    members = models.ManyToManyField(EmailUser, through=ApiaryApproverGroupMember)
 
     def __str__(self):
         return 'Apiary Approvers Group'
+    
+    @property
+    def resolved_members(self):
+        """
+        Manually fetches related EmailUserRO objects to correctly handle the
+        cross-database relationship.
+
+        Background:
+        The 'members' ManyToManyField links to the 'EmailUserRO' model, which our 'LedgerDBRouter' correctly routes
+        to the 'ledger_db' because the 'EmailUserRO's db_table is set to 'accounts_emailuser'. However,
+        when accessing 'self.members.all()' directly, the ORM's query resolution is biased by the target model's database ('ledger_db').
+        This causes the entire query, including the intermediate table lookup, to be executed against 'ledger_db',
+        resulting in stale or incorrect data (i.e., fetching old member records from a snapshot database).
+
+        This property bypasses that issue by performing a two-step query:
+        1. Explicitly query the intermediate table ('ApiaryApproverGroupMember')
+           in the 'default' database to get the correct, up-to-date list of member IDs.
+        2. Explicitly query the 'EmailUserRO' model in the 'ledger_db' using those IDs.
+
+        Use this property instead of 'self.members' for all read operations.
+        """
+        member_ids = ApiaryApproverGroupMember.objects.filter(
+            apiaryapprovergroup=self
+        ).values_list('emailuser_id', flat=True)
+        
+        # return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+        return EmailUser.objects.filter(pk__in=list(member_ids))
 
     @property
     def all_members(self):
         all_members = []
-        all_members.extend(self.members.all())
+        all_members.extend(self.resolved_members)
         return all_members
 
     @property
     def filtered_members(self):
-        return self.members.all()
+        return self.resolved_members
 
     class Meta:
         app_label = 'disturbance'
@@ -4397,8 +4460,9 @@ class ApiaryApproverGroup(models.Model):
 
     @property
     def members_email(self):
-        return [i.email for i in self.members.all()]
+        return [i.email for i in self.resolved_members]
     
+
 #TODO consider replacing with System Group
 class ApiaryReferral(RevisionedMixin):
 
@@ -4620,7 +4684,7 @@ class ApiaryReferral(RevisionedMixin):
     @property
     def allowed_assessors(self):
         group = self.referral_group
-        return group.members.all() if group else []
+        return group.resolved_members if group else []
 
 # --------------------------------------------------------------------------------------
 # Apiary Models End
