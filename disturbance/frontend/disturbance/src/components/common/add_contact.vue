@@ -116,40 +116,57 @@ export default {
         },
         fetchContact: function(id){
             let vm = this;
-            vm.$http.get(api_endpoints.contact(id)).then((response) => {
-                vm.contact = response.body; vm.isModalOpen = true;
-            },(error) => {
-                console.log(error);
-            } );
+            fetch(api_endpoints.contact(id)).then(
+                async (response) => {
+                    if (!response.ok) {
+                            return await response.json().then(err => { throw err });
+                    }
+                    vm.contact = await response.json(); 
+                    vm.isModalOpen = true;
+                }).catch((error) => {
+                    console.log(error);
+                }
+            );
         },
         sendData:function(){
             let vm = this;
             vm.errors = false;
             if (vm.contact.id){
                 let contact = vm.contact;
-                vm.$http.put(helpers.add_endpoint_json(api_endpoints.organisation_contacts,contact.id),JSON.stringify(contact),{
-                        emulateJSON:true,
-                    }).then((response)=>{
-                        vm.$parent.refreshDatatable();
-                        vm.close();
-                    },(error)=>{
-                        console.log(error);
-                        vm.errors = true;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    });
+                fetch(helpers.add_endpoint_json(api_endpoints.organisation_contacts,contact.id),{
+                    headers: { 'Content-Type': 'application/json' },
+                    method: 'PUT',
+                    body: JSON.stringify(contact),
+                }).then(async (response)=>{
+                    if (!response.ok) {
+                            return await response.json().then(err => { throw err });
+                    }
+                    //vm.$parent.loading.splice('processing contact',1);
+                    vm.$parent.refreshDatatable();
+                    vm.close();
+                }).catch((error)=>{
+                    console.log(error);
+                    vm.errors = true;
+                    vm.errorString = error;
+                });
             } else {
                 let contact = JSON.parse(JSON.stringify(vm.contact));
                 contact.organisation = vm.org_id;
                 contact.user_status = 'contact_form';
-                vm.$http.post(api_endpoints.organisation_contacts,JSON.stringify(contact),{
-                        emulateJSON:true,
-                    }).then((response)=>{
+                fetch(api_endpoints.organisation_contacts,{
+                        method: 'POST',
+                        body: JSON.stringify(contact),
+                    }).then(async (response)=>{
+                        if (!response.ok) {
+                            return await response.json().then(err => { throw err });
+                        }
+                        //vm.$parent.loading.splice('processing contact',1);
                         vm.close();
                         vm.$parent.addedContact();
-                    },(error)=>{
+                    }).catch((error)=>{
                         console.log(error);
                         vm.errors = true;
-                        vm.errorString = helpers.apiVueResourceError(error);
+                        vm.errorString = error;
                     });
                 
             }

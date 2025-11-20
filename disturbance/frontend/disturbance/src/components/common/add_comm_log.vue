@@ -214,16 +214,23 @@ export default {
             vm.errors = false;
             let comms = new FormData(vm.form); 
             vm.addingComms = true;
-            vm.$http.post(vm.url,comms,{
-                }).then((response)=>{
-                    vm.addingComms = false;
-                    vm.close();
-                    //vm.$emit('refreshFromResponse',response);
-                },(error)=>{
-                    vm.errors = true;
-                    vm.addingComms = false;
-                    vm.errorString = helpers.apiVueResourceError(error);
-                });
+             fetch(vm.url,{
+                method: 'POST',
+                body: comms,
+            }).then(async (response)=>{
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                vm.addingComms = false;
+                vm.close();
+                //vm.$emit('refreshFromResponse',response);
+            }).catch((error) => {
+                vm.errors = true;
+                vm.addingComms = false;
+                //TODO the apiVueResourceError need to be updated
+                // vm.errorString = helpers.apiVueResourceError(error);
+                vm.errorString = error;
+            });
             
         },
         addFormValidations: function() {

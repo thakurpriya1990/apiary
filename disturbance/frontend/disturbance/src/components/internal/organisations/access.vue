@@ -302,11 +302,13 @@ export default {
     }
   },
   beforeRouteEnter: function(to, from, next){
-    Vue.http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,to.params.access_id)).then((response) => {
+    fetch(helpers.add_endpoint_json(api_endpoints.organisation_requests,to.params.access_id)).then(async (response) => {
+        if (!response.ok) { return response.json().then(err => { throw err }); }
+        let data = await response.json();
         next(vm => {
-            vm.access = response.body
+            vm.access = data;
         })
-    },(error) => {
+    }).catch((error) => {
         console.log(error);
     })
   },
@@ -335,17 +337,19 @@ export default {
         if (this.apiaryTemplateGroup) {
             url = api_endpoints.apiary_organisation_access_group_members;
         }
-        const response = await this.$http.get(url)
-        this.members = response.body
+        const response = await fetch(url)
+        if (!response.ok) { return response.json().then(err => { throw err }); }
+        this.members = await response.json();
         this.loading.splice('Loading Access Group Members',1);
     },
     assignMyself: function(){
         let vm = this;
-        vm.$http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/assign_request_user')))
-        .then((response) => {
+        fetch(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/assign_request_user')))
+        .then(async (response) => {
+            if (!response.ok) { return response.json().then(err => { throw err }); }
             console.log(response);
-            vm.access = response.body;
-        }, (error) => {
+            vm.access = await response.json();;
+        }).catch((error) => {
             console.log(error);
         });
     },
@@ -353,22 +357,31 @@ export default {
         let vm = this;
         if ( vm.access.assigned_officer != 'null'){
             let data = {'user_id': vm.access.assigned_officer};
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/assign_to')),JSON.stringify(data),{
-                emulateJSON:true
-            }).then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/assign_to')),{
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }).then(async (response) => {
+                const data = await response.json();            
+                if (!response.ok) {
+                    throw new Error(`Assign To Failed: ${response.status}`);
+                }
                 console.log(response);
-                vm.access = response.body;
-            }, (error) => {
+                vm.access = data;
+            }).catch((error) => {
                 console.log(error);
             });
             console.log('there');
         }
         else{
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/unassign')))
-            .then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/unassign')))
+            .then(async (response) => {
+                if (!response.ok) { return response.json().then(err => { throw err }); }
                 console.log(response);
-                vm.access = response.body;
-            }, (error) => {
+                vm.access = await response.json();
+            }).catch((error) => {
                 console.log(error);
             });
         }
@@ -387,11 +400,12 @@ export default {
             },
         }).then((swalResult) => {
             if (swalResult.isConfirmed) {
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/accept')))
-                .then((response) => {
+                fetch(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/accept')))
+                .then(async (response) => {
+                    if (!response.ok) { return response.json().then(err => { throw err }); }
                     console.log(response);
-                    vm.access = response.body;
-                }, (error) => {
+                    vm.access = await response.json();
+                }).catch((error) => {
                     console.log(error);
                 });
             }
@@ -415,11 +429,12 @@ export default {
             },
         }).then((swalResult) => {
             if (swalResult.isConfirmed){
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/decline')))
-                .then((response) => {
+                fetch(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/decline')))
+                .then(async (response) => {
+                    if (!response.ok) { return response.json().then(err => { throw err }); }
                     console.log(response);
-                    vm.access = response.body;
-                }, (error) => {
+                    vm.access = await response.json();
+                }).catch((error) => {
                     console.log(error);
                 });
             }
@@ -429,8 +444,9 @@ export default {
     },
 
     fetchProfile: async function(){
-        const response = await Vue.http.get(api_endpoints.profile);
-        this.profile = response.body
+        const response = await fetch(api_endpoints.profile);
+        if (!response.ok) { return response.json().then(err => { throw err }); }
+        this.profile = await response.json(); 
     },
 
     check_assessor: function(){
@@ -457,10 +473,12 @@ export default {
   */
     created: async function() {
         // retrieve template group
-        const res = await this.$http.get('/template_group',{
+        const res = await fetch('/template_group',{
             emulateJSON:true
             })
-        if (res.body.template_group === 'apiary') {
+        if (!res.ok) { return res.json().then(err => { throw err }); }
+        const data = await res.json(); 
+        if (data.template_group === 'apiary') {
             this.apiaryTemplateGroup = true;
         } else {
             this.dasTemplateGroup = true;

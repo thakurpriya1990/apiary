@@ -29,7 +29,9 @@
                                 </div>
                             </div>
                             <div v-if="display_region_selectbox">
-                                <label for="" class="control-label" >Region  <a :href="region_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a> </label>
+                                <label for="" class="control-label" >Region  
+                                  <!-- <a :href="region_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a>  -->
+                                </label>
                                 <div >
                                     <div class="form-group">
                                         <select v-model="selected_region" class="form-control" style="width:40%" @change="chainedSelectDistricts(selected_region)">
@@ -43,7 +45,9 @@
                             </div>
 
                             <div v-if="display_region_selectbox">
-                                <label for="" class="control-label">District <a :href="district_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
+                                <label for="" class="control-label">District 
+                                  <!-- <a :href="district_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a> -->
+                                </label>
                                 <div >
                                     <div class="form-group">
                                         <select  v-model="selected_district" class="form-control" style="width:40%">
@@ -58,7 +62,9 @@
 
                             <div v-if="display_activity_matrix_selectbox">
                               <!--<div v-if="activities.length > 0">-->
-                                <label for="" class="control-label" >Activity Type  <a :href="activity_type_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
+                                <label for="" class="control-label" >Activity Type  
+                                  <!-- <a :href="activity_type_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a> -->
+                                </label>
                                 <div >
                                   <div class="form-group">
                                     <select v-model="selected_activity" class="form-control" style="width:40%">
