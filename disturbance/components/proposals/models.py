@@ -171,6 +171,17 @@ class ProposalAssessorGroup(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def resolved_members(self):
+        """
+        Manually fetches related EmailUser objects to correctly handle the cross-database relationship.
+        """
+        member_ids = ProposalAssessorGroupMember.objects.filter(
+            proposalassessorgroup=self
+        ).values_list('emailuser_id', flat=True)
+
+        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+
     def clean(self):
         try:
             default = ProposalAssessorGroup.objects.get(default=True)
@@ -197,7 +208,7 @@ class ProposalAssessorGroup(models.Model):
 
     @property
     def members_email(self):
-        return [i.email for i in self.members.all()]
+        return [i.email for i in self.resolved_members]
 
 class TaggedProposalApproverGroupRegions(TaggedItemBase):
     content_object = models.ForeignKey("ProposalApproverGroup", on_delete=models.CASCADE)
@@ -242,6 +253,17 @@ class ProposalApproverGroup(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def resolved_members(self):
+        """
+        Manually fetches related EmailUser objects to correctly handle the cross-database relationship.
+        """
+        member_ids = ProposalApproverGroupMember.objects.filter(
+            proposalapprovergroup=self
+        ).values_list('emailuser_id', flat=True)
+
+        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+
     def clean(self):
         try:
             default = ProposalApproverGroup.objects.get(default=True)
@@ -268,7 +290,7 @@ class ProposalApproverGroup(models.Model):
 
     @property
     def members_email(self):
-        return [i.email for i in self.members.all()]
+        return [i.email for i in self.resolved_members]
 
 class DefaultDocument(Document):
     input_name = models.CharField(max_length=255,null=True,blank=True)
@@ -659,19 +681,19 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             group = self.__approver_group()
         else:
             group = self.__assessor_group()
-        return group.members.all() if group else []
+        return group.resolved_members if group else []
 
     #Compliance and Approvals use assessor group to show/hide compliance/approvals actions on dashboard
     @property
     def compliance_assessors(self):
         group = self.__assessor_group()
-        return group.members.all() if group else []
+        return group.resolved_members if group else []
 
     #Approver group required to show/hide reissue actions on Approval dashboard
     @property
     def allowed_approvers(self):
         group = self.__approver_group()
-        return group.members.all() if group else []
+        return group.resolved_members if group else []
 
     @property
     def can_officer_process(self):
@@ -4662,7 +4684,7 @@ class ApiaryReferral(RevisionedMixin):
     @property
     def allowed_assessors(self):
         group = self.referral_group
-        return group.members.all() if group else []
+        return group.resolved_members if group else []
 
 # --------------------------------------------------------------------------------------
 # Apiary Models End

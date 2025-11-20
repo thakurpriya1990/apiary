@@ -867,7 +867,19 @@ class OrganisationAccessGroupMember(models.Model):
 class OrganisationAccessGroup(models.Model):
     site = models.OneToOneField(Site, default='1', on_delete=models.CASCADE) 
     members = models.ManyToManyField(EmailUser, through=OrganisationAccessGroupMember,)
-    # members = models.ManyToManyField(EmailUser)
+    
+    @property
+    def resolved_members(self):
+        """
+        Manually fetches related EmailUser objects to correctly handle the cross-database relationship.
+        """
+        # 1. Get member IDs from the intermediate table in the 'default' database.
+        member_ids = OrganisationAccessGroupMember.objects.filter(
+            organisationaccessgroup=self
+        ).values_list('emailuser_id', flat=True)
+
+        # 2. Use the IDs to fetch EmailUser objects from the 'ledger_db'.
+        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
 
     def __str__(self):
         return 'Organisation Access Group'
