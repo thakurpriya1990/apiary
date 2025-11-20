@@ -27,14 +27,13 @@ class ProposalAssessorGroupAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ProposalAssessorGroupAdminForm, self).__init__(*args, **kwargs)
         if self.instance:
-            #self.fields['members'].queryset = EmailUser.objects.filter(email__icontains='@dbca.wa.gov.au')
             self.fields['members'].queryset = EmailUser.objects.filter(is_staff=True)
 
     def clean(self):
         super(ProposalAssessorGroupAdminForm, self).clean()
         if self.instance and ProposalAssessorGroup.objects.all().exists():
             try:
-                original_members = ProposalAssessorGroup.objects.get(id=self.instance.id).members.all()
+                original_members = ProposalAssessorGroup.objects.get(id=self.instance.id).resolved_members
                 current_members = self.cleaned_data.get('members')
                 for o in original_members:
                     if o not in current_members:
@@ -59,7 +58,7 @@ class ProposalApproverGroupAdminForm(forms.ModelForm):
         super(ProposalApproverGroupAdminForm, self).clean()
         if self.instance:
             try:
-                original_members = ProposalApproverGroup.objects.get(id=self.instance.id).members.all()
+                original_members = ProposalApproverGroup.objects.get(id=self.instance.id).resolved_members
                 current_members = self.cleaned_data.get('members')
                 for o in original_members:
                     if o not in current_members:
@@ -84,7 +83,7 @@ class ApiaryReferralGroupAdminForm(forms.ModelForm):
         super(ApiaryReferralGroupAdminForm, self).clean()
         if self.instance:
             try:
-                original_members = ApiaryReferralGroup.objects.get(id=self.instance.id).members.all()
+                original_members = ApiaryReferralGroup.objects.get(id=self.instance.id).resolved_members
                 current_members = self.cleaned_data.get('members')
                 for o in original_members:
                     if o not in current_members:
