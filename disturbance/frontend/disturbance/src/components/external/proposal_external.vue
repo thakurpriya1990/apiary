@@ -562,41 +562,40 @@ export default {
             }
 
             console.log('http.post: ' + vm.proposal_form_url)
-            vm.$http.post(vm.proposal_form_url, formData).then(
-                res=>{
-                    if (confirmation_required){
-                        if (this.apiaryTemplateGroup) {
-                            swal.fire({
-                            title: 'Saved',
-                            text: 'Your application has been saved',
-                            icon: 'success',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                        });
-                        } else {
-                           swal.fire({
-                            title: 'Saved',
-                            text: 'Your proposal has been saved',
-                            icon: 'success',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                        });
-                        }
-                    }
-                    this.isSaving = false;
-                },
-                err=>{
-                    console.log('err')
-                    console.log(err)
-                    if(err.body.type && err.body.type[0] === 'site_no_longer_available'){
-                        vm.display_site_no_longer_available_modal(err)
-                    } else {
-                        helpers.processError(err)
-                    }
+            fetch(vm.proposal_form_url, {
+                method: 'POST',
+                body: formData,
+            })
+            .then(async response => {
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw { body: errorData };
                 }
-            );
+                const res = await response.json();
+
+                if (confirmation_required) {
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Your application has been saved',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                }
+
+                vm.isSaving = false;
+            })
+            .catch(err => {
+                console.log('err');
+                console.log(err);
+
+                if (err.body?.type && err.body.type[0] === 'site_no_longer_available') {
+                    vm.display_site_no_longer_available_modal(err);
+                } else {
+                    helpers.processError(err);
+                }
+            });
         },
         save_exit: async function() {
             let vm = this;
@@ -930,11 +929,26 @@ export default {
                             console.log('http.post(submit)')
                             console.log('http.post: ' + helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'))
 
-                            const res = await vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'),formData);
-                            vm.proposal = res.body;
+                            // const res = await vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'),formData);
+                            // vm.proposal = res.body;
+                            const response = await fetch(
+                                helpers.add_endpoint_json(api_endpoints.proposals, vm.proposal.id + '/submit'),
+                                {
+                                    method: 'POST',
+                                    body: formData,
+                                }
+                            );
+                            if (!response.ok) {
+                                const errorData = await response.json();
+                                throw errorData;
+                            }
+                            const resBody = await response.json();
+                            vm.proposal = resBody;
                             vm.$router.push({
                                 name: 'submit_proposal',
-                                params: { proposal: vm.proposal}
+                                //params: { proposal: vm.proposal}
+                                state:
+                                    { proposal: JSON.stringify(vm.proposal) }
                             });
                         } catch (err) {
                             swal.fire({
@@ -992,22 +1006,32 @@ export default {
                 let transfereeEmail = this.$refs.apiary_site_transfer.transfereeEmail
                 formData.append('transferee_email_text', transfereeEmail);
             }
-            vm.$http.post(vm.proposal_submit_url, formData).then(
-                res=>{
-                    /* after the above save, redirect to the Django post() method in ApplicationFeeView */
-                    vm.post_and_redirect(vm.application_fee_url, {'csrfmiddlewaretoken' : vm.csrf_token});
-                },
-                err=>{
-                    if (err.body.type && err.body.type[0] === 'site_no_longer_available'){
-                        console.log('1')
-                        vm.display_site_no_longer_available_modal(err)
-                    } else {
-                        console.log('2')
-                        helpers.processError(err)
-                        vm.submittingProposal = false
-                    }
+            fetch(vm.proposal_submit_url, {
+                method: 'POST',
+                body: formData,
+            })
+            .then(async response => {
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw { body: errorData };
                 }
-            );
+
+                // After successful save, redirect to Django's ApplicationFeeView
+                vm.post_and_redirect(vm.application_fee_url, {
+                    csrfmiddlewaretoken: vm.csrf_token
+                });
+            })
+            .catch(err => {
+                if (err.body?.type && err.body.type[0] === 'site_no_longer_available') {
+                    console.log('1');
+                    vm.display_site_no_longer_available_modal(err);
+                } else {
+                    console.log('2');
+                    helpers.processError(err);
+                    vm.submittingProposal = false;
+                }
+            });
+
             this.isSaving = false;
         },
         display_site_no_longer_available_modal: function(err){
@@ -1029,16 +1053,27 @@ export default {
                     vm.$refs.proposal_apiary.remove_apiary_site(apiary_site_id)
                     console.log('confirmed2')
                     // vm.save(false)
-                    vm.$http.post(vm.remove_apiary_site_url, {'apiary_site_id': apiary_site_id}).then(
-                        res => {
-                            console.log('res')
-                            console.log(res);
+                    fetch(vm.remove_apiary_site_url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
                         },
-                        err => {
-                            console.log('err')
-                            console.log(err);
-                        },
-                    )
+                        body: JSON.stringify({ apiary_site_id: apiary_site_id }),
+                    })
+                    .then(async response => {
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw errorData;
+                        }
+                        const res = await response.json();
+                        console.log('res');
+                        console.log(res);
+                    })
+                    .catch(err => {
+                        console.log('err');
+                        console.log(err);
+                    });
+
                 }
             });
         },
@@ -1092,39 +1127,47 @@ export default {
         let proposal_id = this.$route.params.proposal_id
 
         let vm = this;
-        Vue.http.get(`/api/proposal/${ proposal_id }.json`).then(
-            res => {
-                vm.loading.push('fetching proposal')
-                vm.proposal = res.body;
-                console.log('vm.proposal')
-                console.log(vm.proposal)
-                vm.loading.splice('fetching proposal', 1);
+        vm.loading.push('Loading Proposal')
+        fetch(`/api/proposal/${ proposal_id }.json`).then(
+            async (res) => {
+                //vm.loading.push('fetching proposal')
+                if (!res.ok) {
+                    return await res.json().then(err => { throw err });
+                }
+                vm.proposal = await res.json();
+                vm.loading.splice('Loading Proposal', 1);
                 vm.setdata(vm.proposal.readonly);
 
-                Vue.http.get(helpers.add_endpoint_json(api_endpoints.proposals, proposal_id + '/amendment_request')).then((res) => {
-                    vm.setAmendmentData(res.body);
-                },
-                err => {
-                    console.log(err);
-                });
-            },
-            err => {
+                fetch(helpers.add_endpoint_json(api_endpoints.proposals, proposal_id + '/amendment_request')).then(
+                    async (res) => {
+                        if (!res.ok) {
+                            return await res.json().then(err => { throw err });
+                        }
+                        let data = await res.json()
+                        vm.setAmendmentData(data);
+                    }).catch(err => {
+                        console.log(err);
+                        vm.loading.splice('Loading Proposal', 1);
+                    });
+            }).catch(err => {
                 console.log(err);
-            }
-        );
+            });
         // retrieve template group
-        this.$http.get('/template_group',{
-            emulateJSON:true
-            }).then(res=>{
+        fetch('/template_group',{ emulateJSON:true }).then(
+            async res=>{
+                if (!res.ok) {
+                    return await res.json().then(err => { throw err });
+                }
                 //this.template_group = res.body.template_group;
-                if (res.body.template_group === 'apiary') {
+                let data = await res.json();
+                if (data.template_group === 'apiary') {
                     this.apiaryTemplateGroup = true;
                 } else {
                     this.dasTemplateGroup = true;
                 }
-        },err=>{
-        console.log(err);
-        });
+            }).catch(err=>{
+                console.log(err);
+            });
     },
 
     beforeRouteEnter: function(to) {
