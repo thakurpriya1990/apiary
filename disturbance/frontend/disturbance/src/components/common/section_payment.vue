@@ -88,20 +88,32 @@ export default {
                 'invoice_reference': vm.invoice_reference,
                 'invoice_date': vm.invoice_date,
             }
-            vm.$http.post('/validate_invoice_details/', data).then(res => {
+            fetch('/validate_invoice_details/',{
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }).then(async response => {
+                if (!response.ok) {
+                    // Handle non-200 responses
+                    const errorData = await response.json();
+                    console.error(errorData);
+                    return;
+                }
+                const res = await response.json();
                 console.log('in post')
                 console.log(res)
                 // Invoice details are correct
                 // Go to the payment screen
-                if (res.body.unpaid_invoice_exists){
+                if (res.unpaid_invoice_exists){
                     vm.alert_message = ''
                     helpers.mimic_redirect('/invoice_payment/' + vm.invoice_reference + '/', {'csrfmiddlewaretoken' : vm.csrf_token});
                 } else {
-                    console.log(res.body)
-                    vm.alert_message = res.body.alert_message
+                    console.log(res)
+                    vm.alert_message = res.alert_message
                 }
-            },
-            err => {
+            }).catch( err => {
                 console.log(err);
             });
         },
