@@ -258,24 +258,34 @@ export default {
                 if (vm.proposal.approval_level_document) {
                     data.append('approval_level_document_name', vm.proposal.approval_level_document[0])
                 }
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/approval_level_document'),data,{
-                emulateJSON:true
-            }).then(res=>{
-                vm.proposal = res.body;
-                vm.$emit('refreshFromResponse',res);
-
-                },err=>{
-                swal.fire({
-                    title:'Submit Error',
-                    text:helpers.apiVueResourceError(err),
-                    icon:'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
+                fetch(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/approval_level_document'),{
+                    method: 'POST',
+                    body: data // FormData handles headers automatically
+                }).then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                    return response.json();
+                })
+                .then(res => {
+                    Object.assign(vm.proposal, res);
+                    vm.$emit('refreshFromResponse',res);
+                }).catch(async err => {
+                    console.log(err);
+                    let errorText = 'An unexpected error occurred.';
+                    try {
+                        const errData = await err.json();
+                        // errorText = helpers.apiVueResourceError(errData);
+                        errorText = errData;
+                    } catch { console.log('Error parsing error response'); }
+                    
+                    swal.fire({
+                        title:'Submit Error',
+                        text:errorText,
+                        icon:'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 });
-            });
-
-
         },
         uploadedFileName: function() {
             return this.uploadedFile != null ? this.uploadedFile.name: '';
@@ -297,10 +307,17 @@ export default {
                 },
             }).then((swalResult) => {
                 if(swalResult.isConfirmed){
-                    vm.$http.delete(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
-                    .then((response) => {
+                    fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id),{
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(async (response) => {
+                        if (!response.ok) { return response.json().then(err => { throw err }); }
+
                         vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
-                    }, (error) => {
+                    }).catch((error) => {
                         console.log(error);
                     });
                 }
