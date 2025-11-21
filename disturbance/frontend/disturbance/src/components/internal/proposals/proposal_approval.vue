@@ -314,10 +314,17 @@ export default {
                 },
             }).then((swalresult) => {
                 if(swalresult.isConfirmed){
-                    vm.$http.delete(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
-                    .then(() => {
+                    fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id),{
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(async (response) => {
+                        if (!response.ok) { return response.json().then(err => { throw err }); }
+                        
                         vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
-                    }, (error) => {
+                    }).catch((error) => {
                         console.log(error);
                     });
                 }

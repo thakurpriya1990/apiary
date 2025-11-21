@@ -664,19 +664,6 @@ export default {
             console.log(err);
         });
     },
-    /*
-    created: function() {
-        // retrieve template group
-        this.$http.get('/template_group',{
-            emulateJSON:true
-            }).then(res=>{
-                this.template_group = res.body.template_group;
-        },err=>{
-        console.log(err);
-        });
-
-    },
-    */
 }
 </script>
 <style scoped>

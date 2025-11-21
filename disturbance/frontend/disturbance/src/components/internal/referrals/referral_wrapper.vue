@@ -61,16 +61,18 @@ export default {
     mounted: function () {
     },
     beforeRouteEnter: function(to, from, next) {
-          Vue.http.get(`/api/referrals/${to.params.referral_id}/referral_wrapper.json`).then(res => {
-          //Vue.http.get(helpers.add_endpoint_json(api_endpoints.referrals,to.params.referral_id)).then(res => {
-              next(vm => {
-                  vm.referralId = res.body.id;
-                  vm.apiaryReferral = res.body.apiary_referral_exists;
-              });
-            },
-            err => {
-              console.log(err);
+        fetch(`/api/referrals/${to.params.referral_id}/referral_wrapper.json`)
+        .then(async (res) => {
+        if (!res.ok) { return res.json().then(err => { throw err }); }
+        const data = await res.json();
+        //fetch(helpers.add_endpoint_json(api_endpoints.referrals,to.params.referral_id)).then(res => {
+            next(vm => {
+                vm.referralId = data.id;
+                vm.apiaryReferral = data.apiary_referral_exists;
             });
+        }).catch(err => {
+            console.log(err);
+        });
     },
 
 }

@@ -218,11 +218,14 @@ export default {
         },
         fetchContact: function(id){
             let vm = this;
-            vm.$http.get(api_endpoints.contact(id)).then((response) => {
-                vm.contact = response.body; vm.isModalOpen = true;
-            },(error) => {
+           fetch(api_endpoints.contact(id))
+            .then(async (response) => {
+                if (!response.ok) { return response.json().then(err => { throw err }); }
+                vm.contact = await response.json(); 
+                vm.isModalOpen = true;
+            }).catch((error) => {
                 console.log(error);
-            } );
+            });
         },
         sendData:function(){
             let vm = this;
@@ -243,31 +246,64 @@ export default {
             }
             if (vm.requirement.id){
                 vm.updatingRequirement = true;
-                vm.$http.put(helpers.add_endpoint_json(api_endpoints.proposal_requirements,requirement.id),JSON.stringify(requirement),{
-                        emulateJSON:true,
-                    }).then((response)=>{
-                        vm.updatingRequirement = false;
-                        vm.$parent.updatedRequirements();
-                        vm.close();
-                    },(error)=>{
-                        vm.errors = true;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                        vm.updatingRequirement = false;
-                    });
+                fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements, requirement.id), {
+                    method: 'PUT',
+                    headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded' // emulateJSON
+                    },
+                    body: new URLSearchParams(requirement)
+                })
+                .then(response => {
+                    if (!response.ok) throw response;
+                    return response.json();
+                })
+                .then(() => {
+                    vm.updatingRequirement = false;
+                    vm.$parent.updatedRequirements();
+                    vm.close();
+                })
+                .catch(async error => {
+                    vm.errors = true;
+                    vm.updatingRequirement = false;
+
+                    try {
+                    const errData = await error.json();
+                    // vm.errorString = helpers.apiVueResourceError(errData);
+                    vm.errorString = errData;
+                    } catch {
+                    vm.errorString = 'An unexpected error occurred.';
+                    }
+                });
             } else {
                 vm.addingRequirement = true;
-                vm.$http.post(api_endpoints.proposal_requirements,JSON.stringify(requirement),{
-                        emulateJSON:true,
-                    }).then((response)=>{
-                        vm.addingRequirement = false;
-                        vm.close();
-                        vm.$parent.updatedRequirements();
-                    },(error)=>{
-                        vm.errors = true;
-                        vm.addingRequirement = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    });
-                
+                fetch(api_endpoints.proposal_requirements, {
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded' // emulateJSON
+                    },
+                    body: new URLSearchParams(requirement)
+                })
+                .then(response => {
+                    if (!response.ok) throw response;
+                    return response.json();
+                })
+                .then(() => {
+                    vm.addingRequirement = false;
+                    vm.$parent.updatedRequirements();
+                    vm.close();
+                    // vm.$parent.updatedRequirements();
+                })
+                .catch(async error => {
+                    vm.errors = true;
+                    vm.addingRequirement = false;
+
+                    try {
+                    const errData = await error.json();
+                    vm.errorString = helpers.apiVueResourceError(errData);
+                    } catch {
+                    vm.errorString = 'An unexpected error occurred.';
+                    }
+                });
             }
         },
         addFormValidations: function() {

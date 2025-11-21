@@ -86,14 +86,19 @@
         methods: {
             loadProposal: async function(proposal_id) {
                 let vm = this
-                Vue.http.get(`/api/proposal/${proposal_id}.json`).then(re => {
+                fetch(`/api/proposal/${proposal_id}.json`)
+                .then(async (response) => {
+
                     console.log('in loadProposal');
-                    console.log(re.body)
+                    const responseBody = await response.json();
+                    console.log(responseBody);
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err });
+                    }
 
-                    vm.proposal = re.body
-
+                    vm.proposal = responseBody;
                     //let temp_use = re.body.apiary_temporary_use
-                    vm.apiary_temporary_use = re.body.apiary_temporary_use
+                    vm.apiary_temporary_use = responseBody.apiary_temporary_use
                     if (vm.apiary_temporary_use.from_date){
                         console.log(vm.apiary_temporary_use.from_date);
                         vm.apiary_temporary_use.from_date = moment(vm.apiary_temporary_use.from_date, 'YYYY-MM-DD');
@@ -109,6 +114,8 @@
                     vm.period_and_sites_key = uuid();
                     // Update TemporaryOccupier component
                     vm.temporary_occupier_key = uuid();
+                }).catch((error) => {
+                    console.log(error);
                 });
             },
             save: function(){
@@ -174,18 +181,24 @@
                 let data = vm._get_basic_data();
                 let proposal_id = this.$route.params.proposal_id
 
-                this.$http.post('/api/proposal/' + proposal_id + '/submit/', data).then(
-                    res=>{
+                fetch('/api/proposal/' + proposal_id + '/submit/',{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                }).then(async (response)=>{
+                        if (!response.ok) {
+                            throw new Error(`Temporary Use ProposalSubmit error: ${response.status}`);
+                        }
                         console.log('success')
                         vm.perform_redirect('/external/proposal/' + proposal_id + '/submit_temp_use_success/', {
                             'csrfmiddlewaretoken': vm.csrf_token,
                             'proposal_id': proposal_id,
                         })
-                    },
-                    err=>{
+                    }).catch(err=>{
                         helpers.processError(err)
-                    }
-                );
+                    })
             },
             proposal_update: async function(){
                 console.log('in proposal_update');
@@ -194,8 +207,25 @@
                 let data = vm._get_basic_data();
                 let proposal_id = this.$route.params.proposal_id
 
-                await this.$http.post('/api/proposal/' + proposal_id + '/draft/', data).then(
-                    res=>{
+                try {
+                        const response = await fetch('/api/proposal/' + proposal_id + '/draft/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                        });
+
+                        if (!response.ok) {
+                            // Handle non-200 responses
+                            const errorData = await response.json();
+                            helpers.processError(errorData);
+                            return;
+                        }
+
+                        const res = await response.json();
+                        console.log('Proposal updated:', res);
+                        // Show success alert
                         swal.fire({
                             title: 'Saved',
                             text: 'Your proposal has been updated',
@@ -204,11 +234,12 @@
                                 confirmButton: 'btn btn-primary',
                             },
                         });
-                    },
-                    err=>{
-                        helpers.processError(err)
+
+                    } catch (err) {
+                        // Network or unexpected error
+                        helpers.processError(err);
                     }
-                );
+
             },
 
         }

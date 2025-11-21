@@ -260,11 +260,17 @@ export default {
         },
         fetchContact: function(id){
             let vm = this;
-            vm.$http.get(api_endpoints.contact(id)).then((response) => {
-                vm.contact = response.body; vm.isModalOpen = true;
-            },(error) => {
+            fetch(api_endpoints.contact(id))
+            .then(async (response) => {
+                if (!response.ok) { return response.json().then(err => { throw err }); }
+                const data = await response.json();
+                vm.contact = data;
+            })
+            .then(()=>{
+                vm.isModalOpen = true;
+            }).catch((error) => {
                 console.log(error);
-            } );
+            });
         },
         sendData:function(){
             let vm = this;
@@ -304,15 +310,19 @@ export default {
                 //vm.$http.put(helpers.add_endpoint_json(api_endpoints.proposal_requirements,requirement.id),JSON.stringify(requirement),{
                 requirement.update = true;
                 formData.append('data', JSON.stringify(requirement));
-                vm.$http.put(helpers.add_endpoint_json(api_endpoints.proposal_requirements,requirement.id), formData,{
-                        emulateJSON:true,
-                    }).then((response)=>{
+                fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements,requirement.id),{
+                        method: 'POST',
+                        body: formData,
+                    }).then(async (response)=>{
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
                         vm.updatingRequirement = false;
                         vm.$parent.updatedRequirements();
                         vm.close();
-                    },(error)=>{
+                    }).catch((error) => {
                         vm.errors = true;
-                        vm.errorString = helpers.apiVueResourceError(error);
+                        vm.errorString = error;
                         vm.updatingRequirement = false;
                     });
             } else {
@@ -320,16 +330,20 @@ export default {
                 //vm.$http.post(api_endpoints.proposal_requirements,JSON.stringify(requirement),{
                 requirement.update = false;
                 formData.append('data', JSON.stringify(requirement));
-                vm.$http.post(api_endpoints.proposal_requirements, formData,{
-                        emulateJSON:true,
-                    }).then((response)=>{
+                fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements),{
+                        method: 'POST',
+                        body: formData,
+                    }).then(async (response)=>{
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
                         vm.addingRequirement = false;
                         vm.close();
                         vm.$parent.updatedRequirements();
-                    },(error)=>{
+                    }).catch((error) => {
                         vm.errors = true;
                         vm.addingRequirement = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
+                        vm.errorString = error;
                     });
             }
         },

@@ -581,7 +581,7 @@ export default {
         fetchFilterLists: function(){
             let vm = this;
 
-            //vm.$http.get('/api/list_proposal/filter_list/').then((response) => {
+            //fetch('/api/list_proposal/filter_list/').then((response) => {
             fetch(api_endpoints.filter_list).then(
                 async (response) => {
                     if (!response.ok) {
@@ -824,17 +824,7 @@ export default {
                 $( chev ).toggleClass( "glyphicon-chevron-down glyphicon-chevron-up" );
             }, 100 );
         });
-        /*
-        // retrieve template group
-        vm.$http.get('/template_group',{
-            emulateJSON:true
-            }).then(res=>{
-                vm.template_group = res.body.template_group;
-        },err=>{
-        console.log(err);
-        });
-        */
-
+        
         this.$nextTick(() => {
             //vm.initialiseSearch();
             //vm.addEventListeners();

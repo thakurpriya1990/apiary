@@ -16,7 +16,7 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label class="control-label" for="Organisation">Search Organisation</label>
-                                    <select v-if="organisations == null" class="form-control" name="organisation" v-model="selected_organisation">
+                                    <select v-if="organisations == null" class="form-control" name="organisation">
                                         <option value="">Loading...</option>
                                     </select>
                                     <select v-else ref="searchOrg" class="form-control" name="organisation">
@@ -26,7 +26,7 @@
                                 </div>
                             </div>
                             <div class="col-md-12 text-center">
-                                <router-link :disabled="selected_organisation == ''" :to="{name:'internal-org-detail',params:{'org_id':parseInt(selected_organisation)}}" class="btn btn-primary">View Details</router-link>
+                                <router-link v-if="selected_organisation !== ''" :to="{name:'internal-org-detail',params:{'org_id':parseInt(selected_organisation)}}" class="btn btn-primary">View Details</router-link>
                             </div>
                         </form>
                     </div>
@@ -431,13 +431,9 @@ export default {
                 $( chev ).toggleClass( "glyphicon-chevron-down glyphicon-chevron-up" );
             }, 100 );
         } );
-    },
-    updated: function(){
-        let vm = this;
         this.$nextTick(() => {
             vm.addListeners();
         });
-        
-    }
+    },
 }
 </script>

@@ -51,12 +51,15 @@
             loadSites: async function() {
                 let vm = this
 
-                Vue.http.get('/api/apiary_site/transitable_sites/').then(re => {
-                    vm.apiary_sites = re.body.features
+                fetch('/api/apiary_site/transitable_sites/')
+                .then(async (res) => {
+                    if (!res.ok) { return res.json().then(err => { throw err }); }
+                    const data = await res.json();
+                    vm.apiary_sites = data.features
                     this.component_site_selection_key = uuid()
 
-                    ////let temp_use = re.body.apiary_temporary_use
-                    //vm.apiary_temporary_use = re.body.apiary_temporary_use
+                    ////let temp_use = data.apiary_temporary_use
+                    //vm.apiary_temporary_use = data.apiary_temporary_use
                     //if (vm.apiary_temporary_use.from_date){
                     //    console.log(vm.apiary_temporary_use.from_date);
                     //    vm.apiary_temporary_use.from_date = moment(vm.apiary_temporary_use.from_date, 'YYYY-MM-DD');
@@ -72,6 +75,8 @@
                     //vm.period_and_sites_key = uuid();
                     //// Update TemporaryOccupier component
                     //vm.temporary_occupier_key = uuid();
+                }).catch(err => {
+                    console.log(err);
                 });
             },
         },
