@@ -45,7 +45,7 @@ class DefaultDataManager(object):
 
     def __init__(self):
         # Groups
-        CUSTOM_GROUPS = [settings.ADMIN_GROUP, settings.APIARY_ADMIN_GROUP, settings.DAS_APIARY_ADMIN_GROUP, settings.APIARY_PAYMENTS_OFFICERS_GROUP,]
+        CUSTOM_GROUPS = [settings.APIARY_ADMIN_GROUP, settings.APIARY_PAYMENTS_OFFICERS_GROUP,]
         for group_name in CUSTOM_GROUPS:
             try:
                 group, created = Group.objects.get_or_create(name=group_name)

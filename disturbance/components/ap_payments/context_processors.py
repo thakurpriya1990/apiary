@@ -3,15 +3,15 @@ from disturbance import helpers
 
 
 def disturbance_url(request):
-    template_group = 'disturbance'
+    template_group = 'apiary'
+    is_apiary_admin = ''
     TERMS = "/know/online-disturbance-apiary-terms-and-conditions"
 
     is_officer = False
     is_admin = False
 
     if request.user.is_authenticated:
-         is_admin = helpers.is_disturbance_admin(request)
-         is_apiary_admin = helpers.is_disturbance_admin(request)
+        is_apiary_admin = helpers.is_apiary_admin(request)
 
     return {
         'APIARY_SEARCH': '/external/payment',

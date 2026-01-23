@@ -58,19 +58,16 @@
                         name="public-liability-insurance-documents"
                         :isRepeatable="false"
                         :documentActionUrl="publicLiabilityInsuranceDocumentUrl"
-                        :readonly="readonly"
+                        :readonly="is_readonly"
                         :replace_button_by_text="true"
                     />
                 </div>
-                <div class="grow1">
+                <div v-if="proposal && proposal.proposal_apiary" class="grow1">
                     <label>Expiry Date</label>
                 </div>
-                <div class="grow1">
+                <div v-if="proposal && proposal.proposal_apiary" class="grow1">
                     <div class="input-group date" ref="expiryDatePicker">
-                        <input type="text" class="form-control" placeholder="DD/MM/YYYY" id="expiry_date_input_element" :readonly="readonly"/>
-                        <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-calendar"></span>
-                        </span>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" :v-model="proposal.proposal_apiary.public_liability_insurance_expiry_date" id="expiry_date_input_element" :disabled="is_readonly"/>
                     </div>
                 </div>
             </div>
@@ -171,14 +168,12 @@
             },
             publicLiabilityInsuranceDocumentUrl: function() {
                 let url = '';
-                console.log('0: ' + this.proposal.apiary_temporary_use.id);
                 if (this.proposal && this.proposal.apiary_temporary_use) {
                     url = helpers.add_endpoint_join(
                         '/api/proposal_apiary/',
                         this.proposal.id + '/process_public_liability_insurance_document/'
                     )
                 }
-                console.log('1: ' + url);
                 return url;
             },
             is_readonly: function() {
@@ -211,56 +206,7 @@
                     temporary_use_apiary_site.apiary_site = apiary_sites[i]
                 }
             },
-            addEventListeners: function () {
-                let vm = this;
-                let el_fr = $(vm.$refs.expiryDatePicker);
-                let options = {
-                    format: "DD/MM/YYYY",
-                    showClear: true ,
-                    useCurrent: false,
-                };
-
-                el_fr.datetimepicker(options);
-
-                el_fr.on("dp.change", function(e) {
-                    if (e.date){
-                        // Date selected
-                        vm.expiry_date_local= e.date.format('DD/MM/YYYY')  // e.date is moment object
-                    } else {
-                        // Date not selected
-                        vm.expiry_date_local = null;
-                    }
-                    vm.$emit('expiry_date_changed', vm.expiry_date_local)
-                });
-
-                //***
-                // Set dates in case they are passed from the parent component
-                //***
-                let searchPattern = /^[0-9]{4}/
-
-                let expiry_date_passed = vm.proposal.proposal_apiary.public_liability_insurance_expiry_date;
-                console.log('passed')
-                console.log(expiry_date_passed)
-                if (expiry_date_passed) {
-                    // If date passed
-                    if (searchPattern.test(expiry_date_passed)) {
-                        // Convert YYYY-MM-DD to DD/MM/YYYY
-                        expiry_date_passed = moment(expiry_date_passed, 'YYYY-MM-DD').format('DD/MM/YYYY');
-                    }
-                    $('#expiry_date_input_element').val(expiry_date_passed);
-                }
-            },
-
         },
-        created: function() {
-
-        },
-        mounted: function() {
-            let vm = this;
-            this.$nextTick(() => {
-                vm.addEventListeners();
-            });
-        }
     }
 </script>
 

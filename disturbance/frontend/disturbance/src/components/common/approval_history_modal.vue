@@ -47,9 +47,6 @@ export default {
         return {
             isModalOpen: false,
             processingDetails: false,
-            apiaryTemplateGroup: false,
-            dasTemplateGroup: false,
-
             //approval_history_id: '0',
             approval_history_id: null,
             historyTable: null,
@@ -98,11 +95,7 @@ export default {
     },
     computed: {
         dtHeadersApprovalHistory: function() {
-            if (this.apiaryTemplateGroup) {
-                return  ["order","Date","Licence"]
-            } else {
-                return  ["order","Date","Approval"]
-            }
+            return  ["order","Date","Licence"]
         },
 
         is_external: function(){
@@ -115,13 +108,7 @@ export default {
             return this.isModalOpen
         },
         dashboardTitle: function() {
-            let title = ''
-            if (this.apiaryTemplateGroup) {
-                title = 'Licence History';
-            } else {
-                title = 'Approval History';
-            }
-            return title;
+            return 'Licence History';
         },
 
     },
@@ -140,22 +127,5 @@ export default {
             this.$refs.approval_history_table.vmDataTable.ajax.reload();
         }
     },
-    created: function() {
-        // retrieve template group
-        fetch('/template_group',{
-            emulateJSON:true
-            }).then(async res=>{
-                //this.template_group = res.body.template_group;
-                const template_group_res = await res.json();
-                if (template_group_res.template_group === 'apiary') {
-                    this.apiaryTemplateGroup = true;
-                } else {
-                    this.dasTemplateGroup = true;
-                }
-        }).catch(err=>{
-                console.log(err);
-        });
-    },
-
 }
 </script>

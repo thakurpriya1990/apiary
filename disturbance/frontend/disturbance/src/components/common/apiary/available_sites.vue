@@ -723,13 +723,13 @@
                                     throw new Error(errorText);
                                 }
                                 // Remove the row from the table
-                                // TODO: Update table
+                                // TODO fix for segregation: Update table
                                 $(e.target).closest('tr').fadeOut('slow', function(){
                                     // Remove the site table which the table is based on
                                     vm.removeApiarySiteById(apiary_site_id)
                                 })
 
-                                // TODO: Update map
+                                // TODO fix for segregation: Update map
                                 // Remove the site from the map
                                 this.$refs.component_map.removeApiarySiteById(apiary_site_id)
                             }).catch((error) => {

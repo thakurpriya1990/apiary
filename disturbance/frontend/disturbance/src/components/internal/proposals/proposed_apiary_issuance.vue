@@ -480,6 +480,7 @@ export default {
         preview_licence_url: function() {
           return (this.proposal_id) ? `/preview/licence-pdf/${this.proposal_id}` : '';
         },
+        //TODO fix for segregation do not get apiary sites from proposal, get them from their own endpoint
         apiary_sites_prop: function() {
             let apiary_sites = [];
             if (this.proposal.application_type === 'Site Transfer') {

@@ -990,7 +990,7 @@ export default {
         .then(async (res) => {
             if (!res.ok) { return res.json().then(err => { throw err }); }
             this.referral = await res.json();
-            // TODO: review this logic and modify for individual applicants
+            // TODO fix for segregation - review this logic and modify for individual applicants
             if (this.referral.proposal.applicant) {
                 this.referral.proposal.applicant.address = this.proposal.applicant.address != null ? this.proposal.applicant.address : {};
             }

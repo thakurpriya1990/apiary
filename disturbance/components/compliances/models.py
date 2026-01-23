@@ -21,11 +21,9 @@ from disturbance.components.proposals.models import ProposalRequirement, Amendme
 from disturbance.components.compliances.email import (
                         send_compliance_accept_email_notification,
                         send_amendment_email_notification,
-                        send_reminder_email_notification,
                         send_external_submit_email_notification,
                         send_submit_email_notification,
                         send_internal_reminder_email_notification,
-                        send_due_email_notification,
                         send_internal_due_email_notification,
                         send_apiary_amendment_email_notification,
                         send_apiary_external_submit_email_notification,
@@ -37,9 +35,7 @@ from disturbance.components.compliances.email import (
                         send_apiary_submit_email_notification,
                         )
 
-from django.conf import settings
-from django.core.files.storage import FileSystemStorage
-private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
+from disturbance.components.main.models import private_storage
 
 import logging
 logger = logging.getLogger(__name__)
@@ -97,7 +93,7 @@ class Compliance(RevisionedMixin):
 
     @property
     def holder(self):
-        return self.proposal.applicant
+        return self.approval.applicant
 
     @property
     def reference(self):
@@ -250,7 +246,7 @@ class Compliance(RevisionedMixin):
             try:
                 if self.processing_status =='due':
                     if self.due_date < today and self.lodgement_date==None and self.post_reminder_sent==False:
-                        send_reminder_email_notification(self)
+                        send_apiary_reminder_email_notification(self)
                         send_internal_reminder_email_notification(self)
                         self.post_reminder_sent=True
                         self.reminder_sent=True
@@ -259,7 +255,7 @@ class Compliance(RevisionedMixin):
                         logger.info('Post due date reminder sent for Compliance {} '.format(self.lodgement_number))
                     elif self.due_date >= today and today >= self.due_date - datetime.timedelta(days=14) and self.reminder_sent==False:
                         # second part: if today is with 14 days of due_date, and email reminder is not sent (deals with Compliances created with the reminder period)
-                        send_due_email_notification(self)
+                        send_apiary_due_email_notification(self)
                         send_internal_due_email_notification(self)
                         self.reminder_sent=True
                         self.save()

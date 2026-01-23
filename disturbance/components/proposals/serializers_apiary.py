@@ -816,11 +816,9 @@ class ApiarySiteOnProposalProcessedGeometrySaveSerializer(GeoFeatureModelSeriali
     For saving as 'processed'
     """
     def validate(self, attrs):
-        # TODO: validate 3km radius, etc
+        # TODO on cleanup: review (old comment) validate 3km radius, etc
         site_category = get_category(attrs['wkb_geometry_processed'])
         attrs['site_category_processed'] = site_category
-#        attrs['licensed_site'] = attrs['licensed_site']
-#        attrs['batch_no'] = attrs['batch_no']
         return attrs
 
     class Meta:
@@ -924,8 +922,8 @@ class SiteTransferApiarySiteSerializer(serializers.ModelSerializer):
         return ApiarySiteOnApprovalGeometrySerializer(obj.apiary_site_on_approval).data
 
     def validate(self, attrs):
-        # TODO: check if the site is not temporary used to another person for the period
-        # TODO: check if the licence is valid, etc
+        #TODO on cleanup (old comment) check if the site is not temporary used to another person for the period
+        #TODO on cleanup (old comment) check if the licence is valid, etc
         return attrs
 
     class Meta:
@@ -1330,8 +1328,8 @@ class TemporaryUseApiarySiteSerializer(serializers.ModelSerializer):
         return ApiarySiteOnApprovalGeometrySerializer(obj.apiary_site_on_approval).data
 
     def validate(self, attrs):
-        # TODO: check if the site is not temporary used to another person for the period
-        # TODO: check if the licence is valid, etc
+        #TODO on cleanup (old comment) check if the site is not temporary used to another person for the period
+        #TODO on cleanup (old comment) check if the licence is valid, etc
         return attrs
 
     class Meta:
@@ -1354,7 +1352,10 @@ class ProposalApiaryTemporaryUseSerializer(serializers.ModelSerializer):
     proposal_id = serializers.IntegerField(required=False)
     # loaning_approval_id = serializers.IntegerField(write_only=True, required=False)
     loaning_approval_id = serializers.IntegerField(required=False)
+
+    #TODO fix for segregation - do not do this
     temporary_use_apiary_sites = TemporaryUseApiarySiteSerializer(read_only=True, many=True)
+
     deed_poll_documents = serializers.SerializerMethodField()
     lodgement_number = serializers.CharField(source='proposal.lodgement_number', required=False, read_only=True)
     # customer_status = serializers.CharField(source='proposal.customer_status', required=False, read_only=True)
@@ -1613,7 +1614,8 @@ class ApiaryReferralGroupSerializer(serializers.ModelSerializer):
 
 
 class ApiaryProposalReferralSerializer(serializers.ModelSerializer):
-    referral = serializers.CharField(source='referral.get_full_name')
+    #TODO fix for segregation - referral name 
+    #referral = serializers.CharField(source='referral.get_full_name')
     processing_status = serializers.CharField(source='get_processing_status_display')
     apiary_referral = serializers.SerializerMethodField()
     class Meta:
@@ -1636,15 +1638,9 @@ class ApiaryInternalApprovalSerializer(serializers.ModelSerializer):
 
 # matches InternalProposalSerializer for apiary group proposals
 class ApiaryInternalProposalSerializer(BaseProposalSerializer):
-    # TODO next 3 commented lines - related to 'apply as an Org or as an individual'
-    #applicant = ApplicantSerializer()
-    #applicant = serializers.CharField(read_only=True)
-    #org_applicant = OrganisationSerializer()
-    #applicant = OrganisationSerializer() # for apply as Org only
     processing_status = serializers.SerializerMethodField(read_only=True)
     review_status = serializers.SerializerMethodField(read_only=True)
     customer_status = serializers.SerializerMethodField(read_only=True)
-    #submitter = EmailUserAppViewSerializer()
     submitter = serializers.CharField(source='submitter.get_full_name')
     submitter_email = serializers.CharField(source='submitter.email')
     proposaldeclineddetails = ProposalDeclinedDetailsSerializer()
@@ -1655,10 +1651,6 @@ class ApiaryInternalProposalSerializer(BaseProposalSerializer):
     allowed_assessors = EmailUserSerializer(many=True)
     approval_level_document = serializers.SerializerMethodField()
     application_type = serializers.CharField(source='application_type.name', read_only=True)
-    #region = serializers.CharField(source='region.name', read_only=True)
-    #district = serializers.CharField(source='district.name', read_only=True)
-    #assessor_assessment=ProposalAssessmentSerializer(read_only=True)
-    #referral_assessments=ProposalAssessmentSerializer(read_only=True, many=True)
     fee_invoice_url = serializers.SerializerMethodField()
     applicant = serializers.SerializerMethodField()
     applicant_type = serializers.SerializerMethodField()
@@ -1671,8 +1663,7 @@ class ApiaryInternalProposalSerializer(BaseProposalSerializer):
 
     proposal_apiary = ProposalApiarySerializer()
     
-    #TODO do this somewhere else
-    # apiary_temporary_use = ProposalApiaryTemporaryUseSerializer(many=False, read_only=True)
+    apiary_temporary_use = ProposalApiaryTemporaryUseSerializer(many=False, read_only=True)
     
     #apiary_site_transfer = ProposalApiarySiteTransferSerializer()
 
@@ -1741,7 +1732,7 @@ class ApiaryInternalProposalSerializer(BaseProposalSerializer):
                 'applicant',
                 'applicant_type',
                 'proposal_apiary',
-                #'apiary_temporary_use',
+                'apiary_temporary_use',
                 #'apiary_site_transfer',
                 'applicant_address',
 
@@ -1812,15 +1803,14 @@ class ApiaryInternalProposalSerializer(BaseProposalSerializer):
             return obj.approval_level_document
 
     def get_assessor_mode(self,obj):
-        # TODO check if the proposal has been accepted or declined
         request = self.context['request']
-        template_group = get_template_group(request)#self.context.get('template_group')
+        template_group = get_template_group(request)
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         assessor_can_assess = obj.can_assess(user) if template_group == 'apiary' else False
         return {
             'assessor_mode': True,
             'has_assessor_mode': obj.has_assessor_mode(user),
-            'assessor_can_assess': assessor_can_assess, #obj.can_assess(user),
+            'assessor_can_assess': assessor_can_assess,
             'assessor_level': 'assessor',
             'assessor_box_view': obj.assessor_comments_view(user)
         }
@@ -1918,7 +1908,6 @@ class FullApiaryReferralSerializer(serializers.ModelSerializer):
 
 class ApiaryReferralProposalSerializer(ApiaryInternalProposalSerializer):
     def get_assessor_mode(self,obj):
-        # TODO check if the proposal has been accepted or declined
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         try:

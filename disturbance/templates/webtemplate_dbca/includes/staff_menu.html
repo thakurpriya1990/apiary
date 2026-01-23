@@ -1,14 +1,13 @@
 {% load users %}
 {% is_internal as is_internal_login %}
-{% is_disturbance_admin as is_disturbance_admin_user %}
 {% is_apiary_admin as is_apiary_admin_user %}
 
-{% if is_disturbance_admin_user or is_apiary_admin_user or request.user.is_superuser %}
+{% if is_apiary_admin_user or request.user.is_superuser %}
     <li >
         <a class="dropdown-item" href="{% url 'admin:index' %}">Admin</a>
     </li>
 {% endif %}
 
-{% if is_disturbance_admin_user or request.user.is_superuser %}
+{% if request.user.is_superuser %}
     <li role="separator" class="divider"></li>
 {% endif %}

@@ -71,7 +71,7 @@ from disturbance.components.main.utils import get_template_group, handle_validat
 class OrganisationViewSet(viewsets.ModelViewSet):
     queryset = Organisation.objects.none()
     serializer_class = OrganisationSerializer
-    allow_external = False #TODO: review this - workaround for allowing organisations to be accessed when validating pins
+    allow_external = False #TODO fix for segregation review this - workaround for allowing organisations to be accessed when validating pins
 
     def get_queryset(self):
         user = self.request.user
@@ -503,7 +503,6 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
     
-
     @action(detail=False,methods=['POST',])
     def existence(self, request, *args, **kwargs):
         try:
@@ -524,59 +523,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-
-    @action(detail=True,methods=['POST',])
-    def update_details(self, request, *args, **kwargs):
-        #TODO fix for segregation
-        return
-        try:
-            org = self.get_object()
-            instance = org.organisation
-            serializer = DetailsSerializer(instance,data=request.data)
-            serializer.is_valid(raise_exception=True)
-            org.update_organisation(request)
-            instance = serializer.save()
-            serializer = self.get_serializer(org)
-            return Response(serializer.data);
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
-
-    @action(detail=True,methods=['POST',])
-    def update_address(self, request, *args, **kwargs):
-        try:
-            org = self.get_object()
-            instance = org.organisation
-            serializer = OrganisationAddressSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            address, created = OrganisationAddress.objects.get_or_create(
-                line1 = serializer.validated_data['line1'],
-                locality = serializer.validated_data['locality'],
-                state = serializer.validated_data['state'],
-                country = serializer.validated_data['country'],
-                postcode = serializer.validated_data['postcode'],
-                organisation = instance
-            )
-            instance.postal_address = address
-            org.update_address(request)
-            instance.save()
-            serializer = self.get_serializer(org)
-            return Response(serializer.data);
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        
     
 class OrganisationRequestsViewSet(viewsets.ModelViewSet):
     queryset = OrganisationRequest.objects.all()

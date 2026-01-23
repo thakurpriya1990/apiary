@@ -490,6 +490,7 @@
                 return UnansweredChecklistQuestions;
             },
             */
+            //TODO fix for segregation do not get apiary sites from proposal, get them from their own endpoint
             apiary_sites: function() {
                 let sites = []
                 if (this.proposal && this.proposal.proposal_apiary) {

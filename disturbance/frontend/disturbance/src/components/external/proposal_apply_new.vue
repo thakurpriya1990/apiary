@@ -209,27 +209,7 @@ export default {
     manyDistricts: function() {
       return this.districts.length > 1;
     },
-    proposal_type_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_proposal_type"
-    },
-    region_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_region"
-    },
-    district_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_district"
-    },
-    activity_type_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_activity_type"
-    },
-    sub_activity_1_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_sub_activity_1"
-    },
-    sub_activity_2_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_sub_activity_2"
-    },
-    category_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_category"
-    }
+
 
   },
   methods: {

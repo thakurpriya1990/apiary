@@ -1408,6 +1408,7 @@ export default {
     },
     created: async function() {
         try {
+            //TODO fix for segregation - make it so we NEVER load with apiary sites (always load separately)
             fetch(`/api/proposal/${this.proposalId}/internal_proposal.json/?with_apiary_sites=true`)
             .then(async (res) => {
                 if (!res.ok) { return res.json().then(err => { throw err }); }

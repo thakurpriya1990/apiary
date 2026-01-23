@@ -200,32 +200,34 @@
             initAwesomplete: function(){
                 var vm = this;
                 var element_search = document.getElementById(vm.search_input_id);
-                this.awe = new Awesomplete(element_search);
-                $(element_search).on('keyup', function(ev){
-                    var keyCode = ev.keyCode || ev.which;
-                    if ((48 <= keyCode && keyCode <= 90)||(96 <= keyCode && keyCode <= 105)||(keyCode===8)||(keyCode===46)){
-                        vm.search(ev.target.value);
-                        return false;
-                    }
-                }).on('awesomplete-selectcomplete', function(ev){
-                    ev.preventDefault();
-                    ev.stopPropagation();
-
-                    let currentZoomLevel = vm.map.getView().getZoom()
-                    let targetZoomLevel = 14
-                    if (targetZoomLevel < currentZoomLevel){
-                        targetZoomLevel = currentZoomLevel
-                    }
-
-                    /* User selected one of the search results */
-                    for (var i=0; i<vm.suggest_list.length; i++){
-                        if (vm.suggest_list[i].value == ev.target.value){
-                            var latlng = {lat: vm.suggest_list[i].feature.geometry.coordinates[1], lng: vm.suggest_list[i].feature.geometry.coordinates[0]};
-                            zoomToCoordinates(vm.map, [latlng.lng, latlng.lat], targetZoomLevel)
+                if (element_search) {
+                    this.awe = new Awesomplete(element_search);
+                    $(element_search).on('keyup', function(ev){
+                        var keyCode = ev.keyCode || ev.which;
+                        if ((48 <= keyCode && keyCode <= 90)||(96 <= keyCode && keyCode <= 105)||(keyCode===8)||(keyCode===46)){
+                            vm.search(ev.target.value);
+                            return false;
                         }
-                    }
-                    return false;
-                });
+                    }).on('awesomplete-selectcomplete', function(ev){
+                        ev.preventDefault();
+                        ev.stopPropagation();
+
+                        let currentZoomLevel = vm.map.getView().getZoom()
+                        let targetZoomLevel = 14
+                        if (targetZoomLevel < currentZoomLevel){
+                            targetZoomLevel = currentZoomLevel
+                        }
+
+                        /* User selected one of the search results */
+                        for (var i=0; i<vm.suggest_list.length; i++){
+                            if (vm.suggest_list[i].value == ev.target.value){
+                                var latlng = {lat: vm.suggest_list[i].feature.geometry.coordinates[1], lng: vm.suggest_list[i].feature.geometry.coordinates[0]};
+                                zoomToCoordinates(vm.map, [latlng.lng, latlng.lat], targetZoomLevel)
+                            }
+                        }
+                        return false;
+                    });
+                }
             },
             search: function(place){
                 var vm = this;
@@ -535,10 +537,12 @@
                     offest: [0, -10]
                 })
 
-                closer.onclick = function() {
-                    vm.closePopup()
-                    closer.blur()
-                    return false
+                if (closer) {
+                    closer.onclick = function() {
+                        vm.closePopup()
+                        closer.blur()
+                        return false
+                    }
                 }
 
                 vm.map.addOverlay(vm.overlay)

@@ -244,7 +244,6 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             return Approval.objects.all()
         elif self.request.user.is_authenticated:
             user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
-            #queryset =  Approval.objects.filter(applicant_id__in = user_orgs)
             queryset =  Approval.objects.filter(Q(applicant_id__in = user_orgs)|Q(proxy_applicant_id=self.request.user.id))
             return queryset
         return Approval.objects.none()
@@ -381,6 +380,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
 
         return Response({})
 
+    #TODO fix for segregation this still has performance issues, replace the serializer with something lighter
     # To solve the performance issue
     @action(detail=True,methods=['GET',])
     @basic_exception_handler

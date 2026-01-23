@@ -6,10 +6,7 @@ from disturbance.components.main.utils import custom_strftime
 from disturbance.components.proposals import models, forms
 from disturbance.components.main.models import SystemMaintenance, ApplicationType, ApiaryGlobalSettings
 from reversion.admin import VersionAdmin
-from django.urls import re_path
-from django.http import HttpResponseRedirect
-from disturbance.utils import create_helppage_object
-from disturbance.helpers import is_apiary_admin, is_disturbance_admin, is_das_apiary_admin
+from disturbance.helpers import is_apiary_admin
 
 
 @admin.register(models.ProposalType)
@@ -60,7 +57,7 @@ class ProposalApiaryAdmin(VersionAdmin):
     list_display = ['id', 'proposal']
 
 
-#TODO show apiary only (?)
+#TODO fix for segregation show apiary only (?)
 @admin.register(models.Proposal)
 class ProposalAdmin(VersionAdmin):
     inlines =[ProposalDocumentInline,]
@@ -116,7 +113,7 @@ class ProposalApproverGroupMembershipInline(admin.TabularInline):
     extra = 1
     raw_id_fields = ('emailuser',)
 
-#TODO check if need for apiary
+#TODO fix for segregation check if need for apiary
 @admin.register(models.ProposalApproverGroup)
 class ProposalApproverGroupAdmin(admin.ModelAdmin):
     list_display = ['name','default']
@@ -197,27 +194,23 @@ class ApiaryApproverGroupAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False 
 
-#TODO show apiary only
+#TODO fix for segregation show apiary only
 @admin.register(models.ProposalStandardRequirement)
 class ProposalStandardRequirementAdmin(admin.ModelAdmin):
     list_display = ['code','text','system','obsolete']
 
     def get_queryset(self, request):
         qs = super(ProposalStandardRequirementAdmin, self).get_queryset(request)
-        if request.user.is_superuser or is_das_apiary_admin(request):
+        if request.user.is_superuser:
             return qs
         group_list = []
         if is_apiary_admin(request):
             group_list.append('apiary')
-        if is_disturbance_admin(request):
-            group_list.append('disturbance')
         return qs.filter(system__in=group_list)
 
     def formfield_for_choice_field(self, db_field, request, **kwargs):
         if db_field.name == 'system':
-            if (request.user.is_superuser or is_das_apiary_admin(request) or 
-                    (is_apiary_admin(request) and is_disturbance_admin(request))
-                    ):
+            if (request.user.is_superuser or is_apiary_admin(request)):
                 # user will see both choices
                 kwargs["choices"] = (
                         ('apiary', 'Apiary'),
@@ -225,44 +218,7 @@ class ProposalStandardRequirementAdmin(admin.ModelAdmin):
                         )
             elif is_apiary_admin(request):
                 kwargs["choices"] = (('apiary', 'Apiary'),)
-            elif is_disturbance_admin(request):
-                kwargs["choices"] = (('disturbance', 'Disturbance'),)
         return super(ProposalStandardRequirementAdmin, self).formfield_for_choice_field(db_field, request, **kwargs)
-
-#TODO is this needed?
-@admin.register(models.HelpPage)
-class HelpPageAdmin(admin.ModelAdmin):
-    list_display = ['application_type','help_type', 'description', 'version']
-    form = forms.DisturbanceHelpPageAdminForm
-    change_list_template = "disturbance/help_page_changelist.html"
-    ordering = ('application_type', 'help_type', '-version')
-    list_filter = ('application_type', 'help_type')
-
-    def get_urls(self):
-        urls = super(HelpPageAdmin, self).get_urls()
-        my_urls = [
-            re_path('create_disturbance_help/', self.admin_site.admin_view(self.create_disturbance_help)),
-            re_path('create_apiary_help/', self.admin_site.admin_view(self.create_apiary_help)),
-            re_path('create_disturbance_help_assessor/', self.admin_site.admin_view(self.create_disturbance_help_assessor)),
-            re_path('create_apiary_help_assessor/', self.admin_site.admin_view(self.create_apiary_help_assessor)),
-        ]
-        return my_urls + urls
-
-    def create_disturbance_help(self, request):
-        create_helppage_object(application_type='Disturbance', help_type=models.HelpPage.HELP_TEXT_EXTERNAL)
-        return HttpResponseRedirect("../")
-
-    def create_apiary_help(self, request):
-        create_helppage_object(application_type='Apiary', help_type=models.HelpPage.HELP_TEXT_EXTERNAL)
-        return HttpResponseRedirect("../")
-
-    def create_disturbance_help_assessor(self, request):
-        create_helppage_object(application_type='Disturbance', help_type=models.HelpPage.HELP_TEXT_INTERNAL)
-        return HttpResponseRedirect("../")
-
-    def create_apiary_help_assessor(self, request):
-        create_helppage_object(application_type='Apiary', help_type=models.HelpPage.HELP_TEXT_INTERNAL)
-        return HttpResponseRedirect("../")
 
 
 @admin.register(SystemMaintenance)
@@ -272,7 +228,7 @@ class SystemMaintenanceAdmin(admin.ModelAdmin):
     readonly_fields = ('duration',)
     form = forms.SystemMaintenanceAdminForm
 
-#TODO show apiary only
+#TODO fix for segregation show apiary only
 @admin.register(ApplicationType)
 class ApplicationTypeAdmin(admin.ModelAdmin):
     list_display = ['name', 'order', 'visible', 'domain_used',]
@@ -311,12 +267,12 @@ class ApiaryGlobalSettingsAdmin(admin.ModelAdmin):
     list_display = ['key', 'value', '_file',]
     ordering = ('key',)
 
-#TODO determine where this is used
+#TODO on cleanup: review, remove/adjust
 @admin.register(models.ApiaryAnnualRentalFee)
 class ApiaryAnnualRentalFeeAdmin(admin.ModelAdmin):
     list_display = ['id', 'amount_south_west', 'amount_remote', 'date_from',]
 
-#TODO determine where this is used
+#TODO on cleanup: review, remove/adjust
 @admin.register(models.ApiaryAnnualRentalFeeRunDate)
 class ApiaryAnnualRentalFeeRunDateAdmin(admin.ModelAdmin):
     list_display = ['name', 'run_month_date', 'enabled', 'enabled_for_new_site', 'period_to_be_charged_for']
@@ -371,13 +327,13 @@ class ApiaryChecklistQuestionAdmin(admin.ModelAdmin):
     list_display = ['text', 'checklist_type', 'checklist_role',]
     ordering = ('order',)
 
-#TODO is this needed for apiary?
+#TODO fix for segregation is this needed for apiary?
 @admin.register(models.QuestionOption)
 class QuestionOptionAdmin(admin.ModelAdmin):
     list_display = ['label',]
     fields = ('label',)
 
-#TODO is this needed for apiary?
+#TODO fix for segregation is this needed for apiary?
 @admin.register(models.MasterlistQuestion)
 class MasterlistQuestionAdmin(admin.ModelAdmin):
     list_display = ['question',]

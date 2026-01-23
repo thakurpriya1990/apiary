@@ -6,8 +6,6 @@ from disturbance.settings import SYSTEM_NAME
 def _extract_email_headers(email_message, sender=None):
     print(sender)
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
-        # TODO this will log the plain text body, should we log the html
-        # instead
         text = email_message.body
         subject = email_message.subject
         fromm = smart_bytes(sender) if sender else smart_bytes(

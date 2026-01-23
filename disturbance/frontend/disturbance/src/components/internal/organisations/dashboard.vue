@@ -6,24 +6,6 @@
                 <div class="row">
                     <div class="col-md-3">
                         <div class="form-group">
-                            <label for="">Organisation</label>
-                            <select class="form-select" v-model="filterOrganisation">
-                                <option value="All">All</option>
-                                <option v-for="o in organisationChoices" :value="o" :key="o">{{o}}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="">Applicant</label>
-                            <select class="form-select" v-model="filterApplicant">
-                                <option value="All">All</option>
-                                <option v-for="a  in applicantChoices" :value="a" :key="a">{{a}}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
                             <label for="">Role</label>
                             <select class="form-select" v-model="filterRole">
                                 <option value="All">All</option>
@@ -70,8 +52,6 @@ export default {
   data() {
     let vm = this;
     return {
-        dasTemplateGroup: false,
-        apiaryTemplateGroup: false,
         // Filters
         pBody: 'pBody' + uuid(),
         filterOrganisation: 'All',
@@ -142,7 +122,6 @@ export default {
                                 else{
                                     column = "<a href='/internal/organisations/access/__ID__' >View </a>";
                                 }
-                                //var column = "<a href='/internal/organisations/access/__ID__'> Process </a>";
                             }
                             return column.replace(/__ID__/g, data);
                         },
@@ -239,16 +218,10 @@ export default {
     },
     methods: {
         fetchAccessGroupMembers: async function(){
-            //let vm = this;
-            //this.loading.push('Loading Access Group Members');
-            let url = api_endpoints.organisation_access_group_members;
-            if (this.apiaryTemplateGroup) {
-                url = api_endpoints.apiary_organisation_access_group_members;
-            }
+            let url = api_endpoints.apiary_organisation_access_group_members;
             const response = await fetch(url)
             if (!response.ok) { return response.json().then(err => { throw err }); }
             this.members = await response.json();
-            //this.loading.splice('Loading Access Group Members',1);
             this.table_id = uuid()
         },
         fetchProfile: async function(){
@@ -266,22 +239,7 @@ export default {
                 return false;
         },
     },
-    mounted: async function () {
-        //await this.fetchAccessGroupMembers();
-        //await this.fetchProfile();
-    },
     created: async function() {
-        // retrieve template group
-        const res = await fetch('/template_group',{
-            emulateJSON:true
-            })
-        if (!res.ok) { return res.json().then(err => { throw err }); }
-        const data = await res.json();
-        if (data.template_group === 'apiary') {
-            this.apiaryTemplateGroup = true;
-        } else {
-            this.dasTemplateGroup = true;
-        }
         await this.fetchProfile();
         await this.fetchAccessGroupMembers();
     },

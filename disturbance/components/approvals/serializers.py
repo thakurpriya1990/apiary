@@ -282,35 +282,29 @@ class ApprovalSerializerForLicenceDoc(serializers.ModelSerializer):
 
 from disturbance.components.proposals.serializers import ProposalSerializer
 class ApprovalSerializer(serializers.ModelSerializer):
-    #applicant = serializers.CharField(source='applicant.name')
-    #applicant_id = serializers.ReadOnlyField(source='applicant.id')
+
     applicant = serializers.SerializerMethodField(read_only=True)
-    applicant_type = serializers.SerializerMethodField(read_only=True)
     applicant_id = serializers.SerializerMethodField(read_only=True)
     licence_document = serializers.CharField(source='licence_document._file.url')
-    #renewal_document = serializers.CharField(source='renewal_document._file.url')
+
     renewal_document = serializers.SerializerMethodField(read_only=True)
     status = serializers.CharField(source='get_status_display')
     allowed_assessors = EmailUserSerializer(many=True)
     region = serializers.CharField(source='current_proposal.region.name', allow_null=True)
     district = serializers.CharField(source='current_proposal.district.name', allow_null=True)
-    #tenure = serializers.CharField(source='current_proposal.tenure.name')
-    #activity = serializers.CharField(source='current_proposal.activity')
+
     activity = serializers.SerializerMethodField(read_only=True)
     title = serializers.CharField(source='current_proposal.title')
-    #current_proposal = InternalProposalSerializer(many=False)
+
     can_approver_reissue = serializers.SerializerMethodField(read_only=True)
     application_type = serializers.SerializerMethodField(read_only=True)
 
-    # apiary_site_location = serializers.SerializerMethodField()
-    # current_proposal = ProposalSerializer()
-    current_proposal = serializers.SerializerMethodField()
     organisation_name = serializers.SerializerMethodField()
     organisation_abn = serializers.SerializerMethodField()
     applicant_first_name = serializers.SerializerMethodField()
     applicant_last_name = serializers.SerializerMethodField()
     applicant_address = serializers.SerializerMethodField()
-    # apiary_sites = ApiarySiteSerializer(many=True, read_only=True)
+
     apiary_sites = serializers.SerializerMethodField()
     annual_rental_fee_periods = serializers.SerializerMethodField()
     latest_apiary_licence_document = serializers.SerializerMethodField()
@@ -326,7 +320,6 @@ class ApprovalSerializer(serializers.ModelSerializer):
             'migrated',
             'licence_document',
             'replaced_by',
-            'current_proposal',
             'current_proposal_id',
             'activity',
             'region',
@@ -342,7 +335,6 @@ class ApprovalSerializer(serializers.ModelSerializer):
             'surrender_details',
             'suspension_details',
             'applicant',
-            'applicant_type',
             'applicant_id',
             'extracted_fields',
             'status',
@@ -360,7 +352,6 @@ class ApprovalSerializer(serializers.ModelSerializer):
             'can_amend',
             'can_reinstate', 
             'can_approver_reissue',
-            # 'apiary_site_location',
             'application_type',
             'current_proposal',
             'apiary_approval',
@@ -401,7 +392,6 @@ class ApprovalSerializer(serializers.ModelSerializer):
             'set_to_cancel',
             'set_to_suspend',
             'set_to_surrender',
-            'current_proposal',
             'current_proposal_id',
             'renewal_document',
             'renewal_sent',
@@ -412,8 +402,9 @@ class ApprovalSerializer(serializers.ModelSerializer):
             'template_group',
         )
 
-    def get_current_proposal(self, approval):
-        return ProposalSerializer(approval.current_proposal, context=self.context).data
+    #TODO fix for segregation was this ever needed? check and remove/adjust
+    #def get_current_proposal(self, approval):
+    #    return ProposalSerializer(approval.current_proposal, context=self.context).data
 
     def get_apiary_sites(self, approval):
         with_apiary_sites = True
@@ -493,22 +484,18 @@ class ApprovalSerializer(serializers.ModelSerializer):
         except:
             return None
 
-    def get_applicant_type(self,obj):
-        try:
-            return obj.applicant_type
-        except:
-            return None
-
     def get_applicant_id(self,obj):
         try:
             return obj.relevant_applicant_id
         except:
             return None
 
+    #TODO fix for segregation everytime we touch applicant we have to make a request to ledger - fix to use one object
     def get_organisation_name(self,obj):
         if obj.applicant:
             return obj.applicant.name
 
+    #TODO fix for segregation everytime we touch applicant we have to make a request to ledger - fix to use one object
     def get_organisation_abn(self,obj):
         if obj.applicant:
             return obj.applicant.abn
@@ -521,15 +508,7 @@ class ApprovalSerializer(serializers.ModelSerializer):
         if obj.proxy_applicant:
             return obj.proxy_applicant.last_name
 
-    #def get_relevant_applicant_address(self,obj):
-     #   return obj.relevant_applicant_address
-
     def get_applicant_address(self, obj):
-        # address_serializer = None
-        # if obj.relevant_applicant_address:
-        #     address_serializer = ApplicantAddressSerializer(obj.relevant_applicant_address)
-        #     return address_serializer.data
-        # return address_serializer
         if obj.applicant:
             address= obj.applicant.address
             address_serializer = OrgAddressSerializer(address)
@@ -557,13 +536,7 @@ class ApprovalSerializer(serializers.ModelSerializer):
 
     def get_template_group(self, obj):
         return self.context.get('template_group')
-
-    # def get_apiary_site_location(self, obj):
-    #     if hasattr(obj.current_proposal, 'apiary_site_location'):
-    #         pasl = obj.current_proposal.apiary_site_location
-    #         return ProposalApiarySiteLocationSerializer(pasl).data
-    #     else:
-    #         return ''
+    
 
 from disturbance.components.proposals.serializers import ApprovalDTProposalSerializer
 class DTApprovalSerializer(serializers.ModelSerializer):

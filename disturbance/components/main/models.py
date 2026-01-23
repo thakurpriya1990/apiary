@@ -15,6 +15,10 @@ from django.core.cache import cache
 
 from disturbance.components.main.utils import overwrite_regions_polygons, overwrite_districts_polygons
 
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
+
 class RevisionedMixin(models.Model):
     """
     A model tracked by reversion through the save method.

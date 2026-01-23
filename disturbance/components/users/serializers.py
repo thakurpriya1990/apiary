@@ -5,7 +5,6 @@ from disturbance.components.organisations.models import (
                                 )
 from disturbance.components.organisations.utils import can_admin_org, is_consultant
 from rest_framework import serializers
-from disturbance.helpers import user_in_dbca_domain
 from disturbance.components.approvals.models import Approval
 from disturbance.components.proposals.models import Proposal
 from disturbance.components.main.models import ApplicationType
@@ -124,7 +123,6 @@ class UserSerializer(serializers.ModelSerializer):
     address_details = serializers.SerializerMethodField()
     contact_details = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
-    is_department_user = serializers.SerializerMethodField()
     current_apiary_approval = serializers.SerializerMethodField()
     existing_record_text = serializers.SerializerMethodField()
 
@@ -142,7 +140,6 @@ class UserSerializer(serializers.ModelSerializer):
             'personal_details',
             'address_details',
             'contact_details',
-            'is_department_user',
             'full_name',
             'current_apiary_approval',
             'existing_record_text',
@@ -201,12 +198,6 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj):
         return obj.get_full_name()
-
-    def get_is_department_user(self, obj):
-        if obj.email:
-            return user_in_dbca_domain(obj)
-        else:
-            return False
 
     def get_disturbance_organisations(self, obj):
         request = self.context.get('request')

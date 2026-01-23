@@ -66,12 +66,9 @@ from disturbance.settings import SITE_STATUS_DRAFT, SITE_STATUS_PENDING, SITE_ST
     SITE_STATUS_CURRENT, RESTRICTED_RADIUS, SITE_STATUS_TRANSFERRED, PAYMENT_SYSTEM_ID, PAYMENT_SYSTEM_PREFIX, \
     SITE_STATUS_SUSPENDED, SITE_STATUS_NOT_TO_BE_REISSUED
 
-from django.conf import settings
-from django.core.files.storage import FileSystemStorage
-private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
+from disturbance.components.main.models import private_storage
 
 logger = logging.getLogger(__name__)
-
 
 def update_proposal_doc_filename(instance, filename):
     return 'proposals/{}/documents/{}'.format(instance.proposal.id,filename)
@@ -1124,13 +1121,11 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
         return differences_list
         
-    #TODO remove/replace - not needed
     def __assessor_group(self):
         group = ApiaryAssessorGroup.objects.first()
         if group:
             return group
 
-    #TODO remove/replace - not needed
     def __approver_group(self):
         group = ApiaryApproverGroup.objects.first()
         if group:
@@ -1208,7 +1203,6 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         else:
             return False
 
-    #TODO remove if not needed for apiary
     def assessor_comments_view(self,user):
 
         if self.processing_status == 'with_assessor' or self.processing_status == 'with_referral' or self.processing_status == 'with_assessor_requirements' or self.processing_status == 'with_approver' or self.processing_status == 'approved':
@@ -1756,7 +1750,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 if self.applicant:
                     self.applicant.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.lodgement_number), request)
 
-                # TODO: Email?
+                #TODO on cleanup: review (old comment) Email?
 
                 self.save()
 
@@ -1772,11 +1766,6 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     # For temporary Use Application, assessor approves it
                     raise ValidationError('You cannot approve the proposal if it is not with an assessor')
 
-                # TODO: Is it required to show a modal and get the reason of the delinature or so?  If so, we need following 4 lines
-                # proposal_decline, success = ProposalDeclinedDetails.objects.update_or_create(
-                #     proposal = self,
-                #     defaults={'officer':request.user,'reason':details.get('reason'),'cc_email':details.get('cc_email',None)}
-                # )
                 self.proposed_decline_status = True
                 self.processing_status = 'declined'
                 self.customer_status = 'declined'
@@ -1787,7 +1776,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 if self.applicant:
                     self.applicant.log_user_action(ProposalUserAction.ACTION_DECLINE.format(self.lodgement_number), request)
 
-                # TODO: Email?
+                #TODO on cleanup: review (old comment) Email?
                 # send_proposal_decline_email_notification(self,request, proposal_decline)
 
             except:
@@ -2318,7 +2307,7 @@ class ProposalRequirement(OrderedModel):
     # permanent location for apiary / site transfer approvals
     apiary_approval = models.ForeignKey('disturbance.Approval',null=True,blank=True, related_name='proposalrequirement_set', on_delete=models.CASCADE)
     # referral_group is no longer required for Apiary 
-    # #TODO remove (?)
+    #TODO on cleanup remove (?)
     referral_group = models.ForeignKey(ApiaryReferralGroup,null=True,blank=True,related_name='apiary_requirement_referral_groups', on_delete=models.CASCADE)
 
     class Meta:
@@ -2607,7 +2596,6 @@ def delete_documents(sender, instance, *args, **kwargs):
     for document in instance.documents.all():
         document.delete()
 
-#TODO remove if not needed for apiary
 def clone_proposal_with_status_reset(proposal):
         with transaction.atomic():
             try:
@@ -2710,7 +2698,7 @@ def clone_apiary_proposal_with_status_reset(original_proposal):
         except:
             raise
 
-#TODO improve or remove if not needed for apiary
+#TODO fix for segregation - improve or remove if not needed for apiary
 def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance, is_internal= True):
     from disturbance.utils import search, search_approval, search_compliance
     from disturbance.components.approvals.models import Approval
@@ -2774,7 +2762,7 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
                     raise
     return qs
 
-#TODO improve or remove if not needed for apiary
+#TODO fix for segregation - improve or remove if not needed for apiary
 def search_reference(reference_number):
     from disturbance.components.approvals.models import Approval
     from disturbance.components.compliances.models import Compliance
@@ -2804,7 +2792,7 @@ def search_reference(reference_number):
     else:
         raise ValidationError('Record with provided reference number does not exist')
 
-#TODO improve or remove if not needed for apiary
+#TODO fix for segregation - improve or remove if not needed for apiary
 def search_sections(application_type_name, section_label,question_id,option_label,is_internal= True, region=None,district=None,activity=None):
     from disturbance.utils import search_section
     qs = []
@@ -2842,7 +2830,7 @@ def search_sections(application_type_name, section_label,question_id,option_labe
 
     return qs
 
-#TODO remove if not needed for apiary
+#TODO on cleanup - remove if not needed for apiary
 from ckeditor.fields import RichTextField
 class HelpPage(models.Model):
     HELP_TEXT_EXTERNAL = 1
@@ -3074,7 +3062,7 @@ class ProposalApiary(RevisionedMixin):
                     apiary_referral_list = ApiaryReferral.objects.filter(referral_group=referral_group,referral__in=existing_referrals) if existing_referrals else None
                     if apiary_referral_list:
                         raise ValidationError('A referral has already been sent to this group')
-                    #TODO Create referral if it does not exist for referral_group
+                    #TODO fix for segregation (?) - Create referral if it does not exist for referral_group
                     else:
                         # Create Referral
                         referral = Referral.objects.create(
@@ -3134,7 +3122,7 @@ class ProposalApiary(RevisionedMixin):
                                             apiary_site=site.apiary_site
                                             )
 
-                        #TODO Create a log entry for the proposal
+                        #TODO fix for segregation - Create a log entry for the proposal
                         #self.log_user_action(ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(referral.id,self.id,'{}({})'.format(user.get_full_name(),user.email)),request)
                         self.proposal.log_user_action(
                                 ProposalUserAction.APIARY_ACTION_SEND_REFERRAL_TO.format(
@@ -3144,17 +3132,6 @@ class ProposalApiary(RevisionedMixin):
                                     ),
                                 request
                                 )
-                        #TODO Create a log entry for the organisation
-                        #self.applicant.log_user_action(ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(referral.id,self.id,'{}({})'.format(user.get_full_name(),user.email)),request)
-                        applicant_field=getattr(self.proposal, self.proposal.applicant_field)
-                        # applicant_field.log_user_action(
-                        #         ProposalUserAction.APIARY_ACTION_SEND_REFERRAL_TO.format(
-                        #             referral.id,
-                        #             self.proposal.lodgement_number,
-                        #             '{}'.format(referral_group.name)),
-                        #         request
-                        #         )
-                        # send email
                         recipients = referral_group.members_list
                         send_apiary_referral_email_notification(referral, recipients, request)
                 else:
@@ -3261,8 +3238,8 @@ class ProposalApiary(RevisionedMixin):
             checking_proposal.proposed_issuance_approval = self.proposal.proposed_issuance_approval
             checking_proposal.save()
 
+            #TODO fix for segregation - is this not needed?
             if self.proposal.proposal_type == 'amendment':
-                # TODO - fix for apiary approval
                 pass
             #    if self.proposal.previous_application:
             #        previous_approval = self.proposal.previous_application.approval
@@ -3296,6 +3273,7 @@ class ProposalApiary(RevisionedMixin):
             #            for site in self.apiary_sites.all():
             #                site.approval = approval
 
+            #TODO fix for segregation - is this not needed?
             if self.proposal.application_type.name == ApplicationType.SITE_TRANSFER:
                 # approval must already exist - we reissue with same start and expiry dates
                 # does thhis need to be reissued with self.reissue_approval() ?
@@ -3317,6 +3295,7 @@ class ProposalApiary(RevisionedMixin):
                     self.link_apiary_approval_requirements(originating_approval)
                     self.link_apiary_approval_requirements(target_approval)
             else:
+                #TODO fix for segregation - adjust the if statement block
                 # Apiary approval
                 from disturbance.components.approvals.models import ApprovalUserAction
                 if not approval:
@@ -4160,7 +4139,7 @@ class ProposalApiaryTemporaryUse(models.Model):
                 detail['reason'] = 'out_of_range_of_licence'
                 return valid, detail
 
-        # TODO: Check if the period submitted overlaps with the existing temprary use periods
+        #TODO on cleanup: review (old comment) Check if the period submitted overlaps with the existing temprary use periods
         #qs = TemporaryUseApiarySite.objects.filter(apiary_site=self, selected=True, proposal_apiary_temporary_use__proposal__processing_status=Proposal.PROCESSING_STATUS_APPROVED)
         #for temp_site in qs:
         #    valid = (period[0] <= period[1] < temp_site.proposal_apiary_temporary_use.from_date) or (temp_site.proposal_apiary_temporary_use.to_date < period[0] <= period[1])
@@ -4197,7 +4176,7 @@ class SiteTransferApiarySite(models.Model):
         app_label = 'disturbance'
 
 
-# TODO: remove if no longer required
+#TODO on cleanup: remove (old comment) remove if no longer required
 class ApiarySiteApproval(models.Model):
     """
     This is intermediate table between ApiarySite and Approval to hold an approved apiary site under a certain approval
@@ -4322,8 +4301,7 @@ class ApiaryChecklistAnswer(models.Model):
     apiary_referral = models.ForeignKey('ApiaryReferral', related_name="apiary_checklist_referral", blank=True, null=True, on_delete=models.CASCADE)
     text_answer = models.TextField(blank=True, null=True)
 
-    #TODO investigate below note...
-    # to delete
+    #TODO on cleanup (old comment) to delete
     site=models.ForeignKey(ApiarySiteOnProposal, blank=True, null=True, on_delete=models.CASCADE)
     apiary_site=models.ForeignKey(ApiarySite, blank=True, null=True, on_delete=models.CASCADE)
 
@@ -4410,7 +4388,7 @@ class ApiaryApproverGroupMember(models.Model):
         db_table = "disturbance_apiaryapprovergroup_members"
         unique_together=('apiaryapprovergroup','emailuser')
 
-#TODO consider replacing with System Group
+
 class ApiaryApproverGroup(models.Model):
     members = models.ManyToManyField(EmailUser, through=ApiaryApproverGroupMember)
 
@@ -4463,7 +4441,6 @@ class ApiaryApproverGroup(models.Model):
         return [i.email for i in self.resolved_members]
     
 
-#TODO consider replacing with System Group
 class ApiaryReferral(RevisionedMixin):
 
     referral = models.OneToOneField(Referral, related_name='apiary_referral', null=True, on_delete=models.CASCADE)
@@ -4500,7 +4477,7 @@ class ApiaryReferral(RevisionedMixin):
                 raise exceptions.ProposalNotAuthorized()
             self.referral.processing_status = 'recalled'
             self.referral.save()
-            # TODO Log proposal action
+
             self.referral.proposal.log_user_action(
                 ProposalUserAction.APIARY_RECALL_REFERRAL.format(
                     self.referral.id,
@@ -4508,25 +4485,12 @@ class ApiaryReferral(RevisionedMixin):
                     ),
                 request
                 )
-            # TODO log organisation action
-            applicant_field=getattr(
-                    self.referral.proposal,
-                    self.referral.proposal.applicant_field
-                    )
-            # applicant_field.log_user_action(
-            #     ProposalUserAction.APIARY_RECALL_REFERRAL.format(
-            #         self.referral.id,
-            #         self.referral.proposal.lodgement_number
-            #         ),
-            #     request
-            #     )
 
     def remind(self,request):
         with transaction.atomic():
             if not self.referral.proposal.can_assess(request.user):
                 raise exceptions.ProposalNotAuthorized()
-            #TODO Create a log entry for the proposal
-            #self.proposal.log_user_action(ProposalUserAction.ACTION_REMIND_REFERRAL.format(self.id,self.proposal.id,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
+
             self.referral.proposal.log_user_action(
                 ProposalUserAction.APIARY_ACTION_REMIND_REFERRAL.format(
                 self.referral.id,
@@ -4534,18 +4498,7 @@ class ApiaryReferral(RevisionedMixin):
                 ),
                 request
                 )
-            # Create a log entry for the organisation
-            applicant_field=getattr(
-                    self.referral.proposal,
-                    self.referral.proposal.applicant_field
-                    )
-            # applicant_field.log_user_action(
-            #     ProposalUserAction.APIARY_ACTION_REMIND_REFERRAL.format(
-            #     self.referral.id,
-            #     self.referral.proposal.lodgement_number,'{}'.format(self.referral_group.name)
-            #     ),
-            #     request
-            #     )
+
             # send email
             recipients = self.referral_group.members_list
             send_apiary_referral_email_notification(self.referral,recipients,request,reminder=True)
@@ -4559,30 +4512,14 @@ class ApiaryReferral(RevisionedMixin):
             self.referral.proposal.save()
             self.sent_from = 1
             self.save()
-            #TODO Create a log entry for the proposal
-            #self.proposal.log_user_action(ProposalUserAction.ACTION_RESEND_REFERRAL_TO.format(self.id,self.proposal.id,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
+
             self.referral.proposal.log_user_action(
                 ProposalUserAction.APIARY_ACTION_RESEND_REFERRAL_TO.format(
                     self.referral.id,
                     self.referral.proposal.lodgement_number,'{}'.format(self.referral_group.name)
                     ),
                 request)
-            #TODO Create a log entry for the organisation
-            #self.proposal.applicant.log_user_action(ProposalUserAction.ACTION_RESEND_REFERRAL_TO.format(self.id,self.proposal.id,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
-            applicant_field=getattr(
-                    self.referral.proposal,
-                    self.referral.proposal.applicant_field
-                    )
-            # applicant_field.log_user_action(
-            #         ProposalUserAction.APIARY_ACTION_RESEND_REFERRAL_TO.format(
-            #             self.referral.id,
-            #             self.referral.proposal.lodgement_number,
-            #             '{}'.format(
-            #                 self.referral_group.name)
-            #             ),
-            #         request
-            #         )
-            # send email
+
             recipients = self.referral_group.members_list
             send_apiary_referral_email_notification(self.referral,recipients,request)
 
@@ -4596,8 +4533,7 @@ class ApiaryReferral(RevisionedMixin):
                 self.referral.processing_status = 'completed'
                 self.referral.referral_text = request.user.get_full_name() + ': ' + request.data.get('referral_comment')
                 self.referral.save()
-                # TODO Log proposal action
-                #self.proposal.log_user_action(ProposalUserAction.CONCLUDE_REFERRAL.format(self.id,self.proposal.id,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
+
                 self.referral.proposal.log_user_action(
                         ProposalUserAction.APIARY_CONCLUDE_REFERRAL.format(
                             request.user.get_full_name(),
@@ -4608,21 +4544,6 @@ class ApiaryReferral(RevisionedMixin):
                             ),
                         request
                         )
-                # TODO log organisation action
-                #self.proposal.applicant.log_user_action(ProposalUserAction.CONCLUDE_REFERRAL.format(self.id,self.proposal.id,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
-                applicant_field=getattr(
-                        self.referral.proposal,
-                        self.referral.proposal.applicant_field
-                        )
-                # applicant_field.log_user_action(
-                #         ProposalUserAction.APIARY_CONCLUDE_REFERRAL.format(
-                #             request.user.get_full_name(),
-                #             self.referral.id,
-                #             self.referral.proposal.lodgement_number,
-                #             '{}'.format(self.referral_group.name)
-                #             ),
-                #         request
-                #         )
                 send_apiary_referral_complete_email_notification(self.referral, request, request.user)
             except:
                 raise
@@ -5105,7 +5026,7 @@ class SectionQuestion(models.Model):
 # Generate JSON schema models End
 # --------------------------------------------------------------------------------------
 
-#TODO keep for apiary only
+#TODO fix for segregation - keep for apiary only
 import reversion
 reversion.register(Proposal, follow=['proposal_apiary'])
 reversion.register(ProposalType)

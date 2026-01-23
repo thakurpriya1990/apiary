@@ -6,7 +6,6 @@
 {% load users %}
 {% load utils %}
 {% is_internal as is_internal_login %}
-{% is_disturbance_admin as is_disturbance_admin_user %}
 {% is_apiary_admin as is_apiary_admin_user %}
 {% system_maintenance_due as system_maintenance_due %}
 {% system_name_short as short_name %}
@@ -123,7 +122,7 @@
                                                     <span class="caret"></span>
                                                 </a>
                                                 <ul class="dropdown-menu">
-                                                    {% if is_disturbance_admin_user or is_apiary_admin_user or request.user.is_superuser %}
+                                                    {% if is_apiary_admin_user or request.user.is_superuser %}
                                                         <li><a href="{% url 'admin:index' %}">Admin</a></li>
                                                         <li role="separator" class="divider"></li>
                                                     {% endif %}
@@ -133,9 +132,7 @@
                                                     <li><a href="/ledger-ui/accounts">Manage Account</a></li>
                                                     {% for org in request.user.disturbance_organisations.all %}
                                                         {% if request.user.is_superuser or org.id|is_org_admin:request.user %}
-                                                            <!-- <li><a href="/external/organisations/manage/{{org.id}}">Manage {{org.organisation.organisation_name}}</a></li> -->
                                                              <li><a href="/ledger-ui/organisation/{{org.organisation_id}}/">Manage {{org.name}} </a></li>
-                                                            <!--<li><a href="/ledger-ui/organisation/{{org.organisation_id}}">Manage {{org.organisation.organisation_name}}</a></li> TODO ledgerui-->
                                                         {% endif %}
                                                     {% endfor %}
 

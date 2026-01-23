@@ -12,70 +12,31 @@
                                 </a>
                             </h3>
                         </div>
-                        <div class="panel-body collapse in" :id="pBody">
+                        <div class="panel-body panel-collapse in" :id="pBody">
 
                             <div class="col-sm-12">
                                 <div class="form-group" v-if="!isLoading">
-                                    <template v-if="apiaryTemplateGroup && !(profile.disturbance_organisations.length)">
+                                    <div v-if="!(profile.disturbance_organisations.length)">
                                         <div class="radio">
                                             <label :title="individualHasNoLicenceTitle()">
                                               <input :disabled="individualDisableApplyRadioButton()" type="radio" name="behalf_of_individual" v-model="behalf_of" value="individual"> On behalf of yourself
                                               <span v-html="individualExistingRecordText"></span>
                                             </label>
                                         </div>
-                                    </template>
-                                    <div v-if="profile.disturbance_organisations.length > 0">
+                                    </div>
+                                    <div v-else-if="profile.disturbance_organisations.length > 0">
                                         <div v-for="org in profile.disturbance_organisations" class="radio" :key="org.id">
                                             <label :title="orgHasNoLicenceTitle(org)">
                                               <input :disabled="orgDisableApplyRadioButton(org)" type="radio" name="behalf_of_org" v-model="behalf_of"  :value="org.id"> On behalf of {{org.name}}
                                               <span v-html="org.existing_record_text.notification"></span>
                                             </label>
                                         </div>
-                                        <!--
-                                        <div class="radio">
-                                            <label class="radio-inline">
-                                              <input type="radio" name="behalf_of_org" v-model="behalf_of"  value="other" > On behalf of an organisation (as an authorised agent)
-                                            </label>
-                                        </div>
-                                        -->
                                     </div>
-                                    <div v-else-if="behalf_of !== 'individual' && dasTemplateGroup">
+                                    <div v-else-if="behalf_of !== 'individual'">
                                         <p style="color:red"> You cannot add a New Disturbance because you do not have an associated Organisation. First add an Organisation. </p>
                                     </div>
                                 </div>
                             </div>
-                            <!--
-                            <div v-if="behalf_of == 'other'" class="col-sm-12">
-                                <div class="row">
-                                    <div class="form-group col-sm-5">
-                                        <label for="" class="control-label">Organisation</label>
-                                        <input type="text" class="form-control" name="first_name" placeholder="" v-model="agent.organisation">
-                                    </div>
-                                    <div class="form-group col-sm-1"></div>
-                                    <div class="form-group col-sm-5">
-                                        <label for="" class="control-label" >ABN / ACN</label>
-                                        <input type="text" class="form-control" name="last_name" placeholder="" v-model="agent.abn">
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="form-group col-sm-5">
-                                        <label for="" class="control-label" >Organisation contact given name(s)</label>
-                                        <input type="text" class="form-control" name="last_name" placeholder="" v-model="agent.given_names">
-                                    </div>
-                                    <div class="form-group col-sm-1"></div>
-                                    <div class="form-group col-sm-5">
-                                        <label for="" class="control-label" >Orgnisation contact surname</label>
-                                        <input type="text" class="form-control" name="last_name" placeholder="" v-model="agent.surname">
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="form-group col-sm-5">
-                                        <label for="" class="control-label" >Organisation contact email address</label>
-                                        <input type="text" class="form-control" name="last_name" placeholder="" v-model="agent.email">
-                                    </div>
-                                </div>
-                            </div>
-                            -->
                         </div>
                     </div>
 
@@ -87,9 +48,9 @@
                                 </a>
                             </h3>
                         </div>
-                        <div class="panel-body collapse in" :id="pBody2">
+                        <div class="panel-body panel-collapse in" :id="pBody2">
                             <div>
-                                <label for="" class="control-label" >{{ objectTypeLabel }}<a v-if="dasTemplateGroup" :href="proposal_type_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
+                                <label for="" class="control-label" >{{ objectTypeLabel }}</label>
                                 <div class="col-sm-12">
                                     <div class="form-group">
                                         <select class="form-select" style="width:40%" v-model="selected_application_id" @change="chainedSelectAppType(selected_application_id)">
@@ -187,13 +148,6 @@
 									</div>
 								</div>
                             </div>
-                            <!-- For Testing
-                            <div v-if="approval_level">
-                                <label>Approval level required: </label>  {{ approval_level }}
-                            </div>
-                            -->
-
-
                         </div>
                     </div>
 
@@ -248,26 +202,16 @@ export default {
         display_region_selectbox: false,
         display_activity_matrix_selectbox: false,
         site_url: (api_endpoints.site_url.endsWith("/")) ? (api_endpoints.site_url): (api_endpoints.site_url + "/"),
-        apiaryTemplateGroup: false,
-        dasTemplateGroup: false,
     }
   },
   components: {
   },
   computed: {
       objectTypeLabel: function() {
-          let returnStr = 'Proposal Type * ';
-          if (this.apiaryTemplateGroup) {
-              returnStr = 'Application Type';
-          }
-          return returnStr;
+        return 'Application Type';
       },
       objectTypeListLabel: function() {
-          let returnStr = 'Select proposal type* ';
-          if (this.apiaryTemplateGroup) {
-              returnStr = 'Select application type';
-          }
-          return returnStr;
+          return 'Select application type';
       },
       individualExistingRecordText: function() {
           let approvalText = '';
@@ -304,31 +248,22 @@ export default {
       applicationTypesList: function() {
           let returnList = [];
           for (let applicationType of this.application_types) {
-              // for individual applications, only Apiary should show
-              //if (this.behalf_of === 'individual') {
-              if (this.apiaryTemplateGroup) {
-                  if (applicationType.domain_used.toLowerCase() === "apiary") {
-                      if (applicationType.text.toLowerCase() === "apiary" && !this.currentApiaryButtonDisabled){
-                          applicationType.display_text = "Apiary Sites";
-                          returnList.push(applicationType);
-                      }
-                      // add Site Transfer if selected applicant has an associated current_apiary_approval
-                      if (applicationType.text.toLowerCase() === "site transfer" && this.currentApiaryApproval && !this.currentApiaryButtonDisabled){
-                          applicationType.display_text = "Transfer Apiary Sites";
-                          returnList.push(applicationType);
-                      }
-                      if (applicationType.text.toLowerCase() === "temporary use" && this.currentApiaryApproval){
-                          // always allow New Temp Use Applications
-                          applicationType.display_text = "Temporary Use of Apiary Sites";
-                          returnList.push(applicationType);
-                      }
-                  }
-              } else if (this.dasTemplateGroup){
-                  if (applicationType.domain_used === 'das') {
-                      applicationType.display_text = applicationType.text;
-                      returnList.push(applicationType);
-                  }
-              }
+            if (applicationType.domain_used.toLowerCase() === "apiary") {
+                if (applicationType.text.toLowerCase() === "apiary" && !this.currentApiaryButtonDisabled){
+                    applicationType.display_text = "Apiary Sites";
+                    returnList.push(applicationType);
+                }
+                // add Site Transfer if selected applicant has an associated current_apiary_approval
+                if (applicationType.text.toLowerCase() === "site transfer" && this.currentApiaryApproval && !this.currentApiaryButtonDisabled){
+                    applicationType.display_text = "Transfer Apiary Sites";
+                    returnList.push(applicationType);
+                }
+                if (applicationType.text.toLowerCase() === "temporary use" && this.currentApiaryApproval){
+                    // always allow New Temp Use Applications
+                    applicationType.display_text = "Temporary Use of Apiary Sites";
+                    returnList.push(applicationType);
+                }
+            } 
           }
           return returnList;
       },
@@ -349,28 +284,6 @@ export default {
     manyDistricts: function() {
       return this.districts.length > 1;
     },
-    proposal_type_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_proposal_type"
-    },
-    region_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_region"
-    },
-    district_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_district"
-    },
-    activity_type_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_activity_type"
-    },
-    sub_activity_1_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_sub_activity_1"
-    },
-    sub_activity_2_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_sub_activity_2"
-    },
-    category_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_category"
-    }
-
   },
   methods: {
     submit: function() {
@@ -384,7 +297,6 @@ export default {
 
         swal.fire({
             title: "Create " + vm.selected_application_name,
-            //text: "Are you sure you want to create " + this.alertText() + " proposal on behalf of "+vm.org+" ?",
             text: text,
             icon: "question",
             showCancelButton: true,
@@ -403,20 +315,15 @@ export default {
         return this.profile.current_apiary_approval===null && this.profile.existing_record_text.disable_radio_button;
     },
     orgDisableApplyRadioButton: function(org) {
-        //let org = this.profile.disturbance_organisations.find(item => item.id === _org.id)
         return org.current_apiary_approval===null && org.existing_record_text.disable_radio_button;
     },
     individualHasNoLicenceTitle: function() {
-      console.log(3);
       if (this.individualDisableApplyRadioButton()) {
-          //console.log(this.profile.full_name + ' has no current licence');
           return this.profile.full_name + ' has no current licence'
       }
     },
     orgHasNoLicenceTitle: function(org) {
-      console.log(1);
       if (this.orgDisableApplyRadioButton(org)) {
-          //console.log(this.name + ' has no current licence');
           return org.name + ' has no current licence'
       }
     },
@@ -848,27 +755,6 @@ export default {
     })
 
   },
-    created: function() {
-        // retrieve template group
-        fetch('/template_group',{
-            emulateJSON:true
-            }).then( async (res) => {
-                if (!res.ok) {
-                    return await res.json().then(err => { throw err });
-                }
-                 const respBody = await res.json();
-
-                //this.template_group = res.body.template_group;
-                if (respBody.template_group === 'apiary') {
-                    this.apiaryTemplateGroup = true;
-                } else {
-                    this.dasTemplateGroup = true;
-                }
-        },err=>{
-        console.log(err);
-        });
-    },
-
 }
 </script>
 

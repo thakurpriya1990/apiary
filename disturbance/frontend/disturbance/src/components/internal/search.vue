@@ -1,6 +1,7 @@
 <template>
 <div class="container" id="internalSearch">
-    <div class="row">
+    <!--TODO fix for segregation - Exclude until fixed -->
+    <!--<div class="row">
         <div class="col-sm-12">
             <FormSection :form-collapse="false" label="Search Organisations">
                 <div class="row">
@@ -26,43 +27,6 @@
                     </form>
                 </div>
             </FormSection>
-        </div>
-    </div>
-
-    <!--TODO There is no user details dashboard and no working search functionality below - commenting this block out until both are available -->
-    <!--<div class="row">
-        <div class="col-sm-12">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Search User
-                        <a :href="'#'+uBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="uBody">
-                            <span class="glyphicon glyphicon-chevron-up pull-right "></span>
-                        </a>
-                    </h3>
-                </div>
-                <div class="panel-body collapse in" :id="uBody">
-                    <div class="row">
-                        <form name="searchUserForm">
-                          <div class="">
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label class="control-label" for="User">Search User</label>
-
-                                    <TextFilteredField :url="filtered_url" name="User" id="id_holder"/>
-                                </div>
-                            </div>
-                            <div class="">
-                              <div class="col-md-12 text-center">
-                                <div >
-                                  <input type="button" @click.prevent="viewUserDetails" class="btn btn-primary" style="margin-bottom: 5px" value="View Details"/>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>-->
 
@@ -246,6 +210,7 @@ export default {
         FormSection,
     },
     beforeRouteEnter:function(to,from,next){
+        /* TODO fix for segregation - fix this or completely replace, takes near 30 seconds to load!
         utils.fetchOrganisations().then((response)=>{
             next(vm => {
                 vm.organisations = response;
@@ -254,6 +219,7 @@ export default {
         (error) =>{
             console.log(error);
         });
+        */
     },
     computed: {
         showError: function() {

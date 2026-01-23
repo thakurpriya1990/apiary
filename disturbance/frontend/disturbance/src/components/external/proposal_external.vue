@@ -26,10 +26,6 @@
                 </div>
               </div>
             </div>
-            <!--
-            <label for="region-label">Region(*)</label>
-            <input type="text" name="region-text"class="form-control" disabled="true">
-            -->
 
             <div id="error" v-if="missing_fields.length > 0" style="margin: 10px; padding: 5px; color: red; border:1px solid red;">
                 <b>Please answer the following mandatory question(s):</b>
@@ -184,68 +180,15 @@
                     </div>
                 </div>
             </template>
-            <!-- <template v-else>
-                <ProposalDisturbance v-if="proposal" :proposal="proposal" id="proposalStart" :showSections="sectionShow">
-                <NewApply v-if="proposal" :proposal="proposal" ref="proposal_apply"></NewApply>
-                <div>
-                    <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
-                    <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
-                    <input type='hidden' name="proposal_id" :value="1" />
-
-                    <div class="row" style="margin-bottom: 50px">
-                      <div class="navbar navbar-fixed-bottom" style="background-color: #f5f5f5 ">
-                      <div class="navbar-inner">
-                        <div v-if="proposal && !proposal.readonly" class="container">
-                            <template v-if="proposal && proposal.apiary_group_application_type">
-                            </template>
-                            <template v-else>
-                                <p class="pull-right" style="margin-top:5px;">
-                                    <button id="sectionHide" @click.prevent="sectionHide" class="btn btn-primary">Show/Hide sections</button>
-                                    <span v-if="!isSubmitting">
-                                        <input type="button" @click.prevent="save_exit" class="btn btn-primary" value="Save and Exit"/>
-                                        <input type="button" @click.prevent="save(true)" class="btn btn-primary" value="Save and Continue"/>
-                                        <span v-if="!isSaving">
-                                            <input type="button" @click.prevent="submit" class="btn btn-primary" value="Submit"/>
-                                        </span>
-                                    </span>
-                                    <span v-else-if="isSubmitting">
-                                        <button disabled class="btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Submitting</button>
-                                    </span>
-                                    <input id="save_and_continue_btn" type="hidden" @click.prevent="save_wo_confirm" class="btn btn-primary" value="Save Without Confirmation"/>
-                                </p>
-                            </template>
-                        </div>
-                        <div v-else class="container">
-                          <p class="pull-right" style="margin-top:5px;">
-                            <input
-                            id="sectionHide"
-                            v-if="proposal && !proposal.apiary_group_application_type"
-                            type="button"
-                            @click.prevent="sectionHide"
-                            class="btn btn-primary"
-                            value="Show/Hide Sections"/>
-
-                            <router-link class="btn btn-primary" :to="{name: 'external-proposals-dash'}">Back to Dashboard</router-link>
-                          </p>
-                        </div>
-                      </div>
-                      </div>
-                    </div>
-                </div>
-                </ProposalDisturbance>
-            </template> -->
-
-
         </form>
         <div v-if="isSubmitting" id="overlay">
         </div>
     </div>
 </template>
 <script>
-// import ProposalDisturbance from '../form.vue'
+
 import ProposalApiary from '../form_apiary.vue'
 import ApiarySiteTransfer from '../form_apiary_site_transfer.vue'
-// import NewApply from './proposal_apply_new.vue'
 import {
   api_endpoints,
   helpers
@@ -258,7 +201,6 @@ export default {
             "loading": [],
             form: null,
             amendment_request: [],
-            //isDataSaved: false,
             proposal_readonly: true,
             hasAmendmentRequest: false,
             submitting: false,
@@ -268,9 +210,7 @@ export default {
             pBody: 'pBody',
             missing_fields: [],
             sectionShow: true,
-            //submit_button_text: 'Pay and submit',
             submit_button_text: 'Submit',
-            //pay_button_disabled: true,
             selectedHolder: null,
 
             // Fee
@@ -288,9 +228,6 @@ export default {
             num_of_sites_remote_to_add_as_remainder: 0,
             num_of_sites_south_west_renewal_to_add_as_remainder: 0,
             num_of_sites_remote_renewal_to_add_as_remainder: 0,
-            // Template group
-            apiaryTemplateGroup: false,
-            dasTemplateGroup: false,
             siteTransferApplicationFee: "0.00",
             total_num_of_sites_on_map_unpaid: 0,
             total_num_of_sites_on_map: 0,
@@ -299,18 +236,12 @@ export default {
         }
     },
     components: {
-        // ProposalDisturbance,
         ProposalApiary,
-        // NewApply,
         ApiarySiteTransfer,
     },
     computed: {
         amendmentRequestText: function() {
-            let requestText = 'An amendment has been requested for this proposal';
-            if (this.apiaryTemplateGroup) {
-                requestText = 'An amendment has been requested for this application';
-            }
-            return requestText;
+            return 'An amendment has been requested for this application';
         },
         show_renewal_price_section: function(){
             if (this.fee_remote_renewal + this.fee_south_west_renewal > 0){
@@ -368,18 +299,10 @@ export default {
         },
         proposal_submit_url: function() {
           return (this.proposal) ? `/api/proposal/${this.proposal.id}/submit.json` : '';
-          //return this.submit();
         },
         remove_apiary_site_url: function() {
           return (this.proposal) ? `/api/proposal/${this.proposal.id}/remove_apiary_site.json` : '';
         },
-        //submit_button_text: function() {
-        //    if (!this.proposal.fee_paid && this.proposal.application_type=='Apiary') {
-        //        return 'Pay and submit'
-        //    } else {
-        //        return 'Submit'
-        //    }
-        //}
         sum_of_total_fees: function(){
             let sum = this.total_fee_south_west + this.total_fee_remote + this.total_fee_south_west_renewal + this.total_fee_remote_renewal
             return sum
@@ -431,13 +354,6 @@ export default {
                 this.submit_button_text = 'Submit'
             }
         },
-        //siteTransferApplicationFee: function(){
-        //    if (this.siteTransferApplicationFee> 0){
-        //        this.pay_button_disabled = false
-        //    } else {
-        //        this.pay_button_disabled = true
-        //    }
-        //}
     },
     methods: {
         update_fee_remote_renewal: function(value){
@@ -505,18 +421,6 @@ export default {
             console.log('button text updated: ' + button_text)
             this.submit_button_text = button_text
         },
-        //updateApiarySitesData: function() {
-        //    if (this.proposal && this.proposal.proposal_apiary){
-        //        this.$refs.proposal_apiary.$refs.apiary_site_locations.updateApiarySitesData()
-        //    }
-        //},
-        //getFeatures: function() {
-        //    let ret_obj = null
-        //    if (this.proposal && this.proposal.proposal_apiary){
-        //        ret_obj = this.$refs.proposal_apiary.$refs.apiary_site_locations.getFeatures()
-        //    }
-        //    return ret_obj
-        //},
         attach_apiary_sites_data: function(formData){
             try {
                 // Append apiary_sites edited data
@@ -898,13 +802,10 @@ export default {
 
             // remove the confirm prompt when navigating away from window (on button 'Submit' click)
             vm.submitting = true;
-            let swalTitle = "Submit Proposal";
-            let swalText = "Are you sure you want to submit this proposal?";
-            if (this.apiaryTemplateGroup) {
-                swalTitle = "Submit Application";
-                swalText = "Are you sure you want to submit this application?";
-            }
-             swal.fire({
+
+            let swalTitle = "Submit Application";
+            let swalText = "Are you sure you want to submit this application?";
+            swal.fire({
                 title: swalTitle,
                 text: swalText,
                 icon: "question",
@@ -1106,13 +1007,6 @@ export default {
         vm.form = document.forms.new_proposal;
         window.addEventListener('beforeunload', vm.leaving);
         window.addEventListener('onblur', vm.leaving);
-        // this.$nextTick(() => {
-        //   console.log("I am here1");
-        //         if(vm.hasAmendmentRequest){
-        //           console.log("I am here2");
-        //             vm.deficientFields();
-        //         }
-        //     });
     },
     updated: function(){
         let vm=this;
@@ -1130,51 +1024,29 @@ export default {
         let vm = this;
         vm.loading.push('Loading Proposal')
         fetch(`/api/proposal/${ proposal_id }.json`).then(
-            async (res) => {
-                //vm.loading.push('fetching proposal')
-                if (!res.ok) {
-                    return await res.json().then(err => { throw err });
-                }
-                vm.proposal = await res.json();
-                vm.loading.splice('Loading Proposal', 1);
-                vm.setdata(vm.proposal.readonly);
+        async (res) => {
+            if (!res.ok) {
+                return await res.json().then(err => { throw err });
+            }
+            vm.proposal = await res.json();
+            vm.loading.splice('Loading Proposal', 1);
+            vm.setdata(vm.proposal.readonly);
 
-                fetch(helpers.add_endpoint_json(api_endpoints.proposals, proposal_id + '/amendment_request')).then(
-                    async (res) => {
-                        if (!res.ok) {
-                            return await res.json().then(err => { throw err });
-                        }
-                        let data = await res.json()
-                        vm.setAmendmentData(data);
-                    }).catch(err => {
-                        console.log(err);
-                        vm.loading.splice('Loading Proposal', 1);
-                    });
-            }).catch(err => {
-                console.log(err);
-            });
-        // retrieve template group
-        fetch('/template_group',{ emulateJSON:true }).then(
-            async res=>{
-                if (!res.ok) {
-                    return await res.json().then(err => { throw err });
-                }
-                //this.template_group = res.body.template_group;
-                let data = await res.json();
-                if (data.template_group === 'apiary') {
-                    this.apiaryTemplateGroup = true;
-                } else {
-                    this.dasTemplateGroup = true;
-                }
-            }).catch(err=>{
-                console.log(err);
-            });
+            fetch(helpers.add_endpoint_json(api_endpoints.proposals, proposal_id + '/amendment_request')).then(
+                async (res) => {
+                    if (!res.ok) {
+                        return await res.json().then(err => { throw err });
+                    }
+                    let data = await res.json()
+                    vm.setAmendmentData(data);
+                }).catch(err => {
+                    console.log(err);
+                    vm.loading.splice('Loading Proposal', 1);
+                });
+        }).catch(err => {
+            console.log(err);
+        });
     },
-
-    beforeRouteEnter: function(to) {
-        console.log('in beforeRouteEnter')
-        console.log('id: ' + to.params.proposal_id)
-    }
 }
 </script>
 

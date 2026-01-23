@@ -410,7 +410,7 @@ class AnnualRentalFeeSuccessView(TemplateView):
                 del request.session['last_annual_rental_fee_id']
                 request.session.modified = True
 
-                # TODO: Display success screen
+                #TODO on cleanup: review, remove/adjust (old comment) Display success screen
                 to_email_addresses = annual_rental_fee.approval.relevant_applicant.email
                 can_access_invoice = False
                 if request.user == annual_rental_fee.approval.relevant_applicant or \

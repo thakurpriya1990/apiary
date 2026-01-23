@@ -160,6 +160,7 @@ export default {
         isApprovalLevel:function(){
             return this.proposal.approval_level != null ? true : false;
         },
+        //TODO fix for segregation do not get apiary sites from proposal, get them from their own endpoint
         apiary_sites: function() {
             if (this.proposal && this.proposal.proposal_apiary) {
                 return this.proposal.proposal_apiary.apiary_sites;

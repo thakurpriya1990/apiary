@@ -1,8 +1,7 @@
 import os
 from django.core.files.base import ContentFile
 import traceback
-from disturbance.components.main.models import TemporaryDocument
-from disturbance.components.approvals import models #TODO: improvable - this should be imported from a common source instead of one of many models
+from disturbance.components.main.models import TemporaryDocument, private_storage
 from django.conf import settings
 
 from disturbance.components.proposals.models import (
@@ -12,9 +11,7 @@ from disturbance.components.proposals.models import (
     PublicLiabilityInsuranceDocument,
     DeedPollDocument,
     SupportingApplicationDocument
-    )
-
-private_storage = models.private_storage
+)
 
 def process_generic_document(request, instance, document_type=None, *args, **kwargs):
     print("process_generic_document")

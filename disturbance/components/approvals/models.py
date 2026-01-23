@@ -28,10 +28,7 @@ from disturbance.settings import SITE_STATUS_CURRENT, SITE_STATUS_NOT_TO_BE_REIS
 from disturbance.utils import search_keys, search_multiple_keys
 from django_countries.fields import CountryField
 
-#TODO: improvable - these three lines are repeated throughout the models and ought to be set in one place
-from django.conf import settings
-from django.core.files.storage import FileSystemStorage
-private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
+from disturbance.components.main.models import private_storage
 
 import logging
 logger = logging.getLogger(__name__)
@@ -236,7 +233,18 @@ class Approval(RevisionedMixin):
         elif self.proxy_applicant:
             return self.proxy_applicant.email
         else:
-            return self.current_proposal.submitter.email
+            from disturbance.components.main.models import ApplicationType
+            if self.current_proposal and self.current_proposal.application_type and self.current_proposal.application_type.name != ApplicationType.SITE_TRANSFER:
+                return self.current_proposal.submitter.email if self.current_proposal.submitter else ""
+            else:
+                #find latest non-site_transfer proposal for Approval (unless the approval belongs to the transferer)
+                latest_proposal = Proposal.objects.filter(approval=self).filter(
+                    ~Q(application_type__name=ApplicationType.SITE_TRANSFER)|
+                    (Q(application_type__name=ApplicationType.SITE_TRANSFER)&Q(proposal_apiary__originating_approval=self))
+                ).filter(
+                    processing_status=Proposal.PROCESSING_STATUS_APPROVED
+                ).order_by("-id").first()
+                return latest_proposal.submitter.email if latest_proposal and latest_proposal.submitter else ""
 
     @property
     def relevant_applicant_name(self):

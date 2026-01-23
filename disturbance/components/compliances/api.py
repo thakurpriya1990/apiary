@@ -157,7 +157,7 @@ class ComplianceViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         return ComplianceSerializer
 
-    #TODO remove (check if used and replace first)
+    #TODO fix for segregation remove (check if used and replace first)
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         # Filter by org
@@ -167,7 +167,7 @@ class ComplianceViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    #TODO relocate to paginated viewset class (?)
+    #TODO fix for segregation relocate to paginated viewset class (?)
     @action(detail=False,methods=['GET',])
     def filter_list(self, request, *args, **kwargs):
         """ Used by the external dashboard filters """
@@ -204,14 +204,6 @@ class ComplianceViewSet(viewsets.ModelViewSet):
                 else:
                     instance.submit(request)
                 serializer = self.get_serializer(instance)
-                #TODO do we need this or not? if not, remove
-                # Save the files
-                '''for f in request.FILES:
-                    document = instance.documents.create()
-                    document.name = str(request.FILES[f])
-                    document._file = request.FILES[f]
-                    document.save()
-                # End Save Documents'''
                 return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -404,16 +396,19 @@ class ComplianceViewSet(viewsets.ModelViewSet):
 class ComplianceAmendmentRequestViewSet(viewsets.GenericViewSet):
     serializer_class = ComplianceAmendmentRequestSerializer
 
-    #TODO permissions
+    #TODO fix for segregation review permissions
     def create(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
-                serializer = self.get_serializer(data=request.data)
-                serializer.is_valid(raise_exception=True)
-                instance = serializer.save()
-                instance.generate_amendment(request)
-                serializer = self.get_serializer(instance)
-                return Response(serializer.data)
+                if is_internal(request):
+                    serializer = self.get_serializer(data=request.data)
+                    serializer.is_valid(raise_exception=True)
+                    instance = serializer.save()
+                    instance.generate_amendment(request)
+                    serializer = self.get_serializer(instance)
+                    return Response(serializer.data)
+                else:
+                    raise serializers.ValidationError("User not authorised to create a Compliance Amendment Request")
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

@@ -2,42 +2,16 @@
     <div class="row">
         <div class="col-sm-12">
             <div class="row">
-                <div v-if="!apiaryTemplateGroup">
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="">Region</label>
-                            <div v-show="select2Applied">
-                                <select style="width:100%" class="form-select input-sm" id="region_dropdown">
-                                    <template v-if="select2Applied">
-                                        <option v-for="r in proposal_regions" :value="r" :key="r">{{r}}</option>
-                                    </template>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="">Activity</label>
-                            <select class="form-select" v-model="filterProposalActivity">
-                                <option value="All">All</option>
-                                <option v-for="a in proposal_activityTitles" :value="a" :key="a">{{a}}</option>
-                            </select>
-                        </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Application Type</label>
+                        <select class="form-select" v-model="filterProposalApplicationType">
+                            <option value="All">All</option>
+                            <option v-for="a in proposal_applicationTypes" :value="a" :key="a">{{a}}</option>
+                        </select>
                     </div>
                 </div>
-                <div v-else>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="">Application Type</label>
-                            <select class="form-select" v-model="filterProposalApplicationType">
-                                <option value="All">All</option>
-                                <option v-for="a in proposal_applicationTypes" :value="a" :key="a">{{a}}</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Status</label>
@@ -47,8 +21,7 @@
                         </select>
                     </div>
                 </div>
-            </div>
-            <div class="row">
+
                 <div class="col-md-3">
                     <label for="">Lodged From</label>
                     <div class="input-group date" ref="proposalDateFromPicker">
@@ -83,15 +56,6 @@
                             >
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Submitter</label>
-                        <select class="form-select" v-model="filterProposalSubmitter">
-                            <option value="All">All</option>
-                            <option v-for="s in proposal_submitters" :value="s.email" :key="s.email">{{s.search_term}}</option>
-                        </select>
-                    </div>
-                </div>
             </div>
             <div class="row">
                 <div class="col-lg-12">
@@ -122,9 +86,6 @@ export default {
         return {
             pBody: 'pBody' + uuid(),
             datatable_id: 'proposal-datatable-'+uuid(),
-            //template_group: '',
-            dasTemplateGroup: false,
-            apiaryTemplateGroup: false,
             select2Applied: false,
             // Filters for Proposals
             filterProposalRegion: [],
@@ -151,7 +112,7 @@ export default {
                 },
                 responsive: true,
                 serverSide: true,
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
                 order: [
                     [0, 'desc']
                     ],
@@ -311,12 +272,7 @@ export default {
                     let regionColumn = vm.$refs.proposal_datatable.vmDataTable.column('region:name');
                     let titleColumn = vm.$refs.proposal_datatable.vmDataTable.column('proposal__title:name');
                     let assignedOfficerColumn = vm.$refs.proposal_datatable.vmDataTable.column('assigned_officer:name');
-                    if (vm.dasTemplateGroup) {
-                        regionColumn.visible(true);
-                        titleColumn.visible(true);
-                    } else {
-                        assignedOfficerColumn.visible(true);
-                    }
+                    assignedOfficerColumn.visible(true);
                 },
                 /*
                 initComplete: function () {
@@ -416,22 +372,6 @@ export default {
         }
     },
     computed: {
-        /*
-        apiaryTemplateGroup: function() {
-            let returnVal = false;
-            if (this.template_group == 'apiary'){
-                returnVal = true
-            }
-            return returnVal;
-        },
-        dasTemplateGroup: function() {
-            let returnVal = false;
-            if (this.template_group == 'das'){
-                returnVal = true
-            }
-            return returnVal;
-        },
-        */
        filterProposalLodgedFrom: {
             get() {
                 // If our internal date exists, convert it for submission, etc
@@ -454,28 +394,16 @@ export default {
             return `${this.proposal_lodged_from}|${this.proposal_lodged_to}`;
         },
         dashboardTitle: function() {
-            let title = ''
-            if (this.apiaryTemplateGroup) {
-                title = 'Applications referred to me';
-            } else {
-                title = 'Proposals referred to me';
-            }
-            return title;
+            return 'Applications referred to me';
         },
         proposal_headers: function() {
-            let activity_or_application_type = 'Activity'
-            let proponent_or_applicant = 'Proponent'
-            if (this.apiaryTemplateGroup) {
-                activity_or_application_type = 'Application Type'
-                proponent_or_applicant = 'Applicant'
-            }
             return [
                 "Number",
                 "Region",
-                activity_or_application_type,
+                "Application Type",
                 "Title",
                 "Submitter",
-                proponent_or_applicant,
+                "Applicant",
                 "Status",
                 "Assigned Officer",
                 "Lodged on",
@@ -507,49 +435,11 @@ export default {
 
         addEventListeners: function(){
             let vm = this;
-            // Initialise Proposal Date Filters
-            // $(vm.$refs.proposalDateToPicker).datetimepicker(vm.datepickerOptions);
-            // $(vm.$refs.proposalDateToPicker).on('dp.change', function(e){
-            //     if ($(vm.$refs.proposalDateToPicker).data('DateTimePicker').date()) {
-            //         vm.filterProposalLodgedTo =  e.date.format('DD/MM/YYYY');
-            //     }
-            //     else if ($(vm.$refs.proposalDateToPicker).data('date') === "") {
-            //         vm.filterProposaLodgedTo = "";
-            //     }
-            //  });
-            // $(vm.$refs.proposalDateFromPicker).datetimepicker(vm.datepickerOptions);
-            // $(vm.$refs.proposalDateFromPicker).on('dp.change',function (e) {
-            //     if ($(vm.$refs.proposalDateFromPicker).data('DateTimePicker').date()) {
-            //         vm.filterProposalLodgedFrom = e.date.format('DD/MM/YYYY');
-            //         $(vm.$refs.proposalDateToPicker).data("DateTimePicker").minDate(e.date);
-            //     }
-            //     else if ($(vm.$refs.proposalDateFromPicker).data('date') === "") {
-            //         vm.filterProposalLodgedFrom = "";
-            //     }
-            // });
-            // End Proposal Date Filters
-            // External Discard listener
             vm.$refs.proposal_datatable.vmDataTable.on('click', 'a[data-discard-proposal]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-proposal');
                 vm.discardProposal(id);
             });
-            //if (this.dasTemplateGroup) {
-            //    // Initialise select2 for region
-            //    $(vm.$refs.filterRegion).select2({
-            //        "theme": "bootstrap",
-            //        allowClear: true,
-            //        placeholder:"Select Region"
-            //    }).
-            //    on("select2:select",function (e) {
-            //        var selected = $(e.currentTarget);
-            //        vm.filterProposalRegion = selected.val();
-            //    }).
-            //    on("select2:unselect",function (e) {
-            //        var selected = $(e.currentTarget);
-            //        vm.filterProposalRegion = selected.val();
-            //    });
-            //}
         },
         initialiseSearch:function(){
             this.regionSearch();
@@ -577,32 +467,6 @@ export default {
                     return false;
                 }
             );
-        },
-        applySelect2: function(){
-            console.log('in applySelect2')
-            let vm = this
-
-            if (!vm.select2Applied){
-                console.log('select2 is being applied')
-                //$(vm.$refs.filterRegion).select2({
-                let target = $('#region_dropdown')
-                console.log(target)
-                target.select2({
-                    "theme": "bootstrap",
-                    allowClear: true,
-                    placeholder: "Select Region",
-                    multiple: true,
-                }).
-                on("select2:select",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.filterProposalRegion = selected.val();
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.filterProposalRegion = selected.val();
-                });
-            }
-            vm.select2Applied = true
         },
         submitterSearch:function(){
             let vm = this;
@@ -669,25 +533,6 @@ export default {
         this.$nextTick(() => {
             this.initialiseSearch();
             //this.addEventListeners();
-        });
-    },
-    created: function() {
-        // retrieve template group
-        fetch('/template_group',{ emulateJSON:true }).then(
-            async res=>{
-                if (!res.ok) {
-                    return await res.json().then(err => { throw err });
-                }
-                //this.template_group = res.body.template_group;
-                const template_group_res = await res.json();
-                if (template_group_res.template_group === 'apiary') {
-                    this.apiaryTemplateGroup = true;
-                } else {
-                    this.dasTemplateGroup = true;
-                    this.applySelect2()
-                }
-        }).catch(err=>{
-            console.log(err);
         });
     },
 }

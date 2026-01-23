@@ -363,7 +363,7 @@
                 dtOptions: {
                     serverSide: false,
                     searchDelay: 1000,
-                    lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                    lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
                     order: [
                         [0, 'desc']
                     ],
@@ -1187,9 +1187,6 @@
                     this.bufferLayerSource.removeFeature(buffer);
                 }
             },
-            existingSiteAvailableClicked: function() {
-                alert("TODO: open screen 45: External - Contact Holder of Available Site in a different tab page.");
-            },
             make_remainders_reactive: function(){
                 let remainders = null;
                 if (this.proposal.application_type === 'Apiary') {
@@ -1258,7 +1255,7 @@
                 }
 
                 let button_text = 'Pay and Submit'
-                // TODO: improve this logic
+                // TODO on cleanup: remove/review (old comment): improve this logic
                 if (this.num_of_sites_remain_south_west >= 0 && this.num_of_sites_remain_remote >=0 && !this.proposal.proposal_type === 'renewal'){
                     button_text = 'Submit'
                 }

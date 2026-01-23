@@ -95,14 +95,14 @@
             _get_basic_data: function(){
                 let data = {
                     'category': '',
-                    'profile': '', // TODO how to determine this?
+                    'profile': '', // TODO on cleanup: remove/review (old comment) how to determine this?
                     'district': '',
-                    //'application': '3',  // TODO Retrieve the id of the 'Temporary Use' type or handle it at the server side 
+                    //'application': '3',  // TODO on cleanup: remove/review (old comment) Retrieve the id of the 'Temporary Use' type or handle it at the server side 
                                          //      like if there is apiary_temporary_use attribute, it must be a temporary use application, or so.
                     'sub_activity2': '',
                     'region': '',
                     'approval_level': '',
-                    'behalf_of': '',  // TODO how to determine this?
+                    'behalf_of': '',  // TODO on cleanup: remove/review (old comment) how to determine this?
                     'activity': '',
                     'sub_activity1': '',
                     'application_type_str': 'site_transfer',

@@ -36,6 +36,7 @@ export default {
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
     },
+    //TODO fix for segregation - this appears to be some kind of debug function, should be changed or removed
     is_local: function(){
         if(location.host === 'localhost:8071'){
             return true

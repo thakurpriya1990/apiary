@@ -41,13 +41,8 @@ export default {
             proposals_url: api_endpoints.proposals_paginated_external,
             approvals_url: api_endpoints.approvals_paginated_external,
             compliances_url: api_endpoints.compliances_paginated_external,
-
             system_name: api_endpoints.system_name,
-            apiaryTemplateGroup: false,
-            dasTemplateGroup: false,
-            // from env var?
             apiarySystemName: 'Apiary System',
-            dasSystemName: 'Disturbance Approval System',
         }
     },
     components:{
@@ -59,41 +54,10 @@ export default {
     watch: {},
     computed: {
         welcomeMessage: function() {
-            let welcomeText = ``;
-            if (this.dasTemplateGroup) {
-                welcomeText = `Welcome to the ${this.dasSystemName} online system dashboard.<p/><p/>
-                    Here you can access your existing approvals, view any proposals in progress, lodge new
-                    proposals or submit information required to comply with requirements listed on your approval.`
-            } else if (this.apiaryTemplateGroup) {
-                welcomeText = `Welcome to the ${this.apiarySystemName} online dashboard.<p/><p/>
-                    Here you can access your existing apiary authorities, view any applications in progress, lodge new
-                    applications or submit information required to comply with requirements listed on your authority.`
-            }
-            return welcomeText;
+            return `Welcome to the ${this.apiarySystemName} online dashboard.<p/><p/>
+                Here you can access your existing apiary authorities, view any applications in progress, lodge new
+                applications or submit information required to comply with requirements listed on your authority.`
         },
-
     },
-    methods: {
-    },
-    mounted: function () {
-    },
-    created: function() {
-        let vm=this;
-        // retrieve template group
-        fetch('/template_group',{
-            emulateJSON:true
-            }).then(
-                async res=>{
-                    let template_group_res = await res.json();
-                    if (template_group_res.template_group === 'apiary') {
-                        vm.apiaryTemplateGroup = true;
-                    } else {
-                        vm.dasTemplateGroup = true;
-                    }
-            },err=>{
-                console.log(err);
-            });
-    },
-
 }
 </script>

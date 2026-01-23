@@ -200,19 +200,14 @@ def _get_vacant_apiary_site(search_text=''):
     qs_vacant_site = ApiarySite.objects.filter(queries).distinct()
     return qs_vacant_site
 
-
+#TODO fix for segregation fix this (does not support non int search)
 def get_qs_vacant_site(search_text=''):
     from disturbance.components.proposals.models import ApiarySiteOnProposal
     from disturbance.components.approvals.models import ApiarySiteOnApproval
 
     qs_vacant_site = _get_vacant_apiary_site(search_text)
-
-    # apiary_site_proposal_ids = qs_vacant_site.all().values('proposal_link_for_vacant__id')
-    # apiary_site_proposal_ids = qs_vacant_site.all().values('latest_proposal_link__id')
-    # When the 'vacant' site is selected, saved, deselected and then saved again, the latest_proposal_link gets None
-    # That's why we need following line too to pick up all the vacant sites
-    # apiary_site_proposal_ids2 = qs_vacant_site.filter(latest_proposal_link__isnull=True).values('proposal_link_for_vacant__id')
     apiary_site_proposal_ids = qs_vacant_site.all().values('proposal_link_for_vacant__id')
+    
     qs_vacant_site_proposal = ApiarySiteOnProposal.objects.select_related(
             'apiary_site', 
             'proposal_apiary', 
@@ -226,13 +221,11 @@ def get_qs_vacant_site(search_text=''):
             'site_category_processed', 
             'apiary_site__latest_proposal_link', 
             'apiary_site__proposal_link_for_vacant',
-            # ).filter(Q(id__in=apiary_site_proposal_ids) | Q(id__in=apiary_site_proposal_ids2))
             ).filter(Q(id__in=apiary_site_proposal_ids))
 
     # At any moment, either approval_link_for_vacant or proposal_link_for_vacant is True at most.  Never both are True.  (See make_vacant() method of the ApiarySite model)
     # Therefore qs_vacant_site_proposal and qs_vacant_site_approval shouldn't overlap each other
     apiary_site_approval_ids = qs_vacant_site.all().values('approval_link_for_vacant__id')
-    #qs_vacant_site_approval = ApiarySiteOnApproval.objects.filter(id__in=apiary_site_approval_ids)
     qs_vacant_site_approval = ApiarySiteOnApproval.objects.select_related(
             'apiary_site', 
             'approval', 
@@ -240,8 +233,7 @@ def get_qs_vacant_site(search_text=''):
             'apiary_site__latest_approval_link', 
             'apiary_site__approval_link_for_vacant',
             'approval__applicant',
-            #'approval__proxy_applicant', TODO fix for segregation (?)
-            # 'approval__lodgement_number',
+            #'approval__proxy_applicant', TODO fix for segregation fix (?)
             ).filter(id__in=apiary_site_approval_ids)
 
     return qs_vacant_site_proposal, qs_vacant_site_approval

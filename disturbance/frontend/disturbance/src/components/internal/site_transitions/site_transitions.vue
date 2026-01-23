@@ -10,7 +10,6 @@
                 :is_external="false"
                 :show_col_checkbox="false"
                 :show_col_status="true"
-                :show_col_previous_site_holder="true"
                 :show_action_make_vacant="true"
                 :key="component_site_selection_key"
                 @apiary_sites_updated="apiarySitesUpdated"

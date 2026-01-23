@@ -9,7 +9,7 @@ from six import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
 from django.db.models import JSONField
 from ledger_api_client.utils import get_organisation, get_search_organisation, create_organisation
-#from ledger.accounts.models import Organisation as ledger_organisation
+from rest_framework import status
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from disturbance.components.main.models import UserAction,CommunicationsLogEntry, LedgerDocument
 from disturbance.components.organisations.utils import random_generator
@@ -29,10 +29,7 @@ from disturbance.components.organisations.emails import (
 
             )
 
-from django.conf import settings
-from rest_framework import status
-from django.core.files.storage import FileSystemStorage
-private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
+from disturbance.components.main.models import private_storage
 
 from disturbance.components.main.utils import (
     get_first_name,
@@ -41,14 +38,10 @@ from disturbance.components.main.utils import (
 
 @python_2_unicode_compatible
 class Organisation(models.Model):
-    #organisation = models.ForeignKey(ledger_organisation)
     organisation_id = models.IntegerField(
         unique=True, verbose_name="Ledger Organisation ID"
     )
-    # TODO: business logic related to delegate changes.
     delegates = models.ManyToManyField(EmailUser, blank=True, through='UserDelegation', related_name='disturbance_organisations')
-    #pin_one = models.CharField(max_length=50,blank=True)
-    #pin_two = models.CharField(max_length=50,blank=True)
     admin_pin_one = models.CharField(max_length=50,blank=True)
     admin_pin_two = models.CharField(max_length=50,blank=True)
     user_pin_one = models.CharField(max_length=50,blank=True)
@@ -681,6 +674,8 @@ class OrganisationRequest(models.Model):
 
     def accept(self, request):
         with transaction.atomic():
+            #create_organisation
+            create_organisation(self.name, self.abn)
             self.status = 'approved'
             self.save()
             self.log_user_action(OrganisationRequestUserAction.ACTION_CONCLUDE_REQUEST.format(self.id),request)
@@ -688,29 +683,28 @@ class OrganisationRequest(models.Model):
             self.__accept(request)
 
     def __accept(self, request):
-        from disturbance.helpers import is_internal
-        from disturbance.components.organisations.models import ApiaryOrganisationAccessGroup
+        from disturbance.helpers import is_apiary_org_request_assessor
 
-        if is_internal(request): #TODO check if request user in ApiaryOrganisationAccessGroup (for site? investigate/modify as needed)
-            # Check if orgsanisation exists in ledger
+        if is_apiary_org_request_assessor(request):
+            # Check if organisation exists in ledger
             ledger_org = None
 
             organisation_response = get_search_organisation(self.name, self.abn)
             response_status = organisation_response.get("status", None)
 
             if response_status == status.HTTP_404_NOT_FOUND:
-                raise NotImplementedError(
+                raise serializers.ValidationError(
                     "Organisation does not exist in the ledger."
                 )
 
             if response_status != status.HTTP_200_OK:
-                raise ValidationError(
+                raise serializers.ValidationError(
                     "Failed to retrieve organisation details from the ledger."
                 )
 
             ledger_org = organisation_response.get("data", {})[0]
 
-            # Create Organisation in wildlifecompliance
+            # Create Organisation in apiary
             org, created = Organisation.objects.get_or_create(
                 organisation_id=ledger_org["organisation_id"])
             # org.generate_pins()
@@ -753,25 +747,11 @@ class OrganisationRequest(models.Model):
             # send email to requester
             send_organisation_request_accept_email_notification(self, org, request)
             # Notify other Organisation Access Group members of acceptance.
-
-            #TODO change below to send email to all members of ApiaryOrganisationAccessGroup
-            #groups = ActivityPermissionGroup.objects.filter(
-            #    permissions__codename='organisation_access_request'
-            #)
-            #for group in groups:
-            #    recipients = [member.email for member in group.members.exclude(
-            #                email=request.user.email)]
-            #    if recipients:
-            #        send_organisation_request_accept_admin_email_notification(
-            #            self, request, recipients)
+            recipients = list(ApiaryOrganisationAccessGroup.objects.last().resolved_members.values_list('email', flat=True))
+            if recipients:
+                send_org_access_group_request_accept_email_notification(self, request, recipients)
         else:
             raise serializers.ValidationError("User not authorised to approve organisation request")
-
-    def send_org_access_group_request_notification(self,request):
-        # user submits a new organisation request
-        # send email to organisation access group
-        org_access_recipients = [i.email for i in OrganisationAccessGroup.objects.last().all_members]
-        send_org_access_group_request_accept_email_notification(self, request, org_access_recipients)
 
     def assign_to(self, user,request):
         with transaction.atomic():

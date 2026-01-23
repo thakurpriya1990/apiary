@@ -755,7 +755,7 @@ export default {
         },
         refreshFromResponse:function(response_data){
             let vm = this;
-            // TODO  check the response_data if that's send in .json() wherever it's emitted as per new fetch calls.
+            // TODO fix for segregation - check the response_data if that's send in .json() wherever it's emitted as per new fetch calls.
             // vm.original_proposal = helpers.copyObject(response.body);
             // vm.proposal = helpers.copyObject(response.body);
             vm.original_proposal = helpers.copyObject(response_data);

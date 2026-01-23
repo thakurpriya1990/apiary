@@ -9,7 +9,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-#confy.read_environment_file(BASE_DIR+"/.env")
 os.environ.setdefault("BASE_DIR", BASE_DIR)
 
 from ledger_api_client.settings_base import *
@@ -53,40 +52,15 @@ ADD_REVERSION_ADMIN=True
 # maximum number of days allowed for a booking
 WSGI_APPLICATION = 'disturbance.wsgi.application'
 
-'''REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-        'disturbance.perms.OfficerPermission',
-    )
-}'''
-
-#REST_FRAMEWORK = {
-#    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-#    #'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-#        'PAGE_SIZE': 5
-#}
-
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
-        #'rest_framework.renderers.BrowsableAPIRenderer',
         'rest_framework_datatables.renderers.DatatablesRenderer',
     ),
     "EXCEPTION_HANDLER": "disturbance.exceptions.custom_exception_handler",
-    #'DEFAULT_FILTER_BACKENDS': (
-    #    'rest_framework_datatables.filters.DatatablesFilterBackend',
-    #),
-    #'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
-    #'PAGE_SIZE': 20,
 }
 
 USE_DJANGO_JQUERY= True
-# JQUERY_URL = True
-
-# MIDDLEWARE = (
-#     'django.contrib.sessions.middleware.SessionMiddleware',
-#     'django.contrib.auth.middleware.AuthenticationMiddleware',
-#     'django.contrib.messages.middleware.MessageMiddleware',
-# )
 
 MIDDLEWARE_CLASSES += [
     'disturbance.middleware.FirstTimeNagScreenMiddleware',
@@ -94,7 +68,6 @@ MIDDLEWARE_CLASSES += [
     'disturbance.middleware.CacheControlMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
-
 
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance', 'templates'))
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance', 'components','ap_payments', 'templates'))
@@ -104,19 +77,10 @@ TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance', 'components','
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance', 'components','organisations', 'templates'))
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance', 'components','proposals', 'templates'))
 TEMPLATES[0]['OPTIONS']['context_processors'].append('disturbance.context_processors.apiary_url')
+
 if 'css_url' in BOOTSTRAP3:
     del BOOTSTRAP3['css_url']
-#BOOTSTRAP3 = {
-#    'jquery_url': '//static.dpaw.wa.gov.au/static/libs/jquery/2.2.1/jquery.min.js',
-#    'base_url': '//static.dpaw.wa.gov.au/static/libs/twitter-bootstrap/3.3.6/',
-#    'css_url': None,
-#    'theme_url': None,
-#    'javascript_url': None,
-#    'javascript_in_head': False,
-#    'include_jquery': False,
-#    'required_css_class': 'required-form-field',
-#    'set_placeholder': False,
-#}
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
@@ -126,10 +90,6 @@ CACHES = {
 STATIC_ROOT=os.path.join(BASE_DIR, 'staticfiles_ds')
 STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, 'disturbance', 'static')))
 STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, 'disturbance', 'static', 'disturbance_vue')))
-# DEV_STATIC = env('DEV_STATIC',False)
-# DEV_STATIC_URL = env('DEV_STATIC_URL')
-# if DEV_STATIC and not DEV_STATIC_URL:
-#     raise ImproperlyConfigured('If running in DEV_STATIC, DEV_STATIC_URL has to be set')
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None
 STATIC_URL = '/static/'
 
@@ -152,16 +112,12 @@ SITE_URL = env('SITE_URL', 'https://' + '.'.join([SITE_PREFIX, SITE_DOMAIN]).str
 PUBLIC_URL=env('PUBLIC_URL', SITE_URL)
 EMAIL_FROM = env('EMAIL_FROM', 'no-reply@' + SITE_DOMAIN).lower()
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', 'no-reply@' + SITE_DOMAIN).lower()
-ADMIN_GROUP = env('ADMIN_GROUP', 'Disturbance Admin')
 APIARY_ADMIN_GROUP = 'Apiary Admin'
-DAS_APIARY_ADMIN_GROUP = 'DAS-Apiary Admin'
 APIARY_PAYMENTS_OFFICERS_GROUP = 'Apiary Payments Officers'
-APPROVED_DAS_EXTERNAL_USERS_GROUP = env('APPROVED_DAS_EXTERNAL_USERS_GROUP', 'Disturbance Approved External Users')
 APPROVED_APIARY_EXTERNAL_USERS_GROUP = env('APPROVED_APIARY_EXTERNAL_USERS_GROUP', 'Apiary Approved External Users')
 CRON_EMAIL = env('CRON_EMAIL', 'cron@' + SITE_DOMAIN).lower()
 TENURE_SECTION = env('TENURE_SECTION', None)
 ASSESSMENT_REMINDER_DAYS = env('ASSESSMENT_REMINDER_DAYS', 15)
-
 OSCAR_BASKET_COOKIE_OPEN = 'das_basket'
 PAYMENT_SYSTEM_ID = env('PAYMENT_SYSTEM_ID', 'S517')
 PS_PAYMENT_SYSTEM_ID = PAYMENT_SYSTEM_ID
@@ -181,7 +137,6 @@ CKEDITOR_CONFIGS = {
     'default': {
         'toolbar': 'full',
         'height': 300,
-        #'width': 300,
         'width': '100%',
     },
     'awesome_ckeditor': {
@@ -190,13 +145,11 @@ CKEDITOR_CONFIGS = {
 }
 
 BUILD_TAG = env('BUILD_TAG', hashlib.md5(os.urandom(32)).hexdigest())  # URL of the Dev app.js served by webpack & express
-# DEV_APP_BUILD_URL = env('DEV_APP_BUILD_URL')  # URL of the Dev app.js served by webpack & express
 GEOCODING_ADDRESS_SEARCH_TOKEN = env('GEOCODING_ADDRESS_SEARCH_TOKEN', 'ACCESS_TOKEN_NOT_FOUND')
 RESTRICTED_RADIUS = 3000  # unit: [m]
 DBCA_ABN = '38 052 249 024'
 if env('CONSOLE_EMAIL_BACKEND', False):
    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
 
 SITE_STATUS_DRAFT = 'draft'
 SITE_STATUS_PENDING = 'pending'
@@ -218,6 +171,7 @@ LOGGERS_TO_REMOVE = ['wildlifecompliance', 'wildlifelicensing', 'log', 'disturba
 for logger_name in LOGGERS_TO_REMOVE:
     if logger_name in LOGGING['loggers']:
         del LOGGING['loggers'][logger_name]
+
 # Prevent dictConfig from disabling existing (module) loggers that aren't
 # present in the LOGGING['loggers'] mapping. Some packages predefine
 # loggers (eg. 'disturbance.*') and removing their entry above would
@@ -231,10 +185,7 @@ LOGGING['handlers']['console']['level'] = 'DEBUG'
 LOGGING['handlers']['file']['formatter'] = 'verbose2'
 LOGGING['handlers']['file']['level'] = 'INFO'
 
-#print(json.dumps(LOGGING, indent=4))
-
 KMI_SERVER_URL = env('KMI_SERVER_URL', 'https://kmi.dbca.wa.gov.au')
-# DEV_APP_BUILD_URL = env('DEV_APP_BUILD_URL')  # URL of the Dev app.js served by webpack & express
 
 TEMPLATE_TITLE = "Apiary System"
 TEMPLATE_HEADER_LOGO = "/static/disturbance/img/logo-park-stay-trunc.gif"
@@ -286,7 +237,6 @@ LEDGER_UI_ORGANISATION_MANAGEMENT = [
 LEDGER_UI_ACCOUNTS_MANAGEMENT_KEYS = []
 for am in LEDGER_UI_ACCOUNTS_MANAGEMENT:
     LEDGER_UI_ACCOUNTS_MANAGEMENT_KEYS.append(list(am.keys())[0])
-# LEDGER_UI_CARDS_MANAGEMENT = env('LEDGER_UI_CARDS_MANAGEMENT', True)
 
 RUNNING_DEVSERVER = len(sys.argv) > 1 and sys.argv[1] == "runserver"
 
@@ -313,8 +263,7 @@ VUE3_ENTRY_SCRIPT = env(  # This is not a reserved keyword.
     "VUE3_ENTRY_SCRIPT",
     "src/main.js"  # This path will be auto prefixed with the static_url_prefix from DJANGO_VITE above
 )  # Path of the vue3 entry point script served by vite
-# CSRF_TRUSTED_ORIGINS_STRING = env("CSRF_TRUSTED_ORIGINS", default='[]')
-# CSRF_TRUSTED_ORIGINS = json.loads(str(CSRF_TRUSTED_ORIGINS_STRING))
+
 LEDGER_SYSTEM_ID = env('PAYMENT_INTERFACE_SYSTEM_PROJECT_CODE', 'PAYMENT_INTERFACE_SYSTEM_PROJECT_CODE not configured')
 LEDGER_USER = env('LEDGER_USER', '')
 LEDGER_PASS = env('LEDGER_PASS', '')

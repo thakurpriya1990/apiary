@@ -15,12 +15,6 @@ TIME_FORMAT = '%a %d-%b %Y %H:%M:%S' #'Fri 29-Oct 2021 08:30:33'
 
 
 @register.simple_tag(takes_context=True)
-def is_disturbance_admin(context):
-    # checks if user is an AdminUser
-    request = context['request']
-    return disturbance_helpers.is_disturbance_admin(request)
-
-@register.simple_tag(takes_context=True)
 def is_apiary_admin(context):
     # checks if user is an AdminUser
     request = context['request']

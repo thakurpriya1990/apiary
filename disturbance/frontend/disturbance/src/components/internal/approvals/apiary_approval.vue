@@ -151,7 +151,6 @@
             <FormSection :formCollapse="false" label="Site(s)" Index="site_avaiability">
                 <template v-if="approval && approval.id">
                     <ComponentSiteSelection
-                        :apiary_sites="approval.apiary_sites"
                         :show_col_checkbox="false"
                         :show_col_status="true"
                         :apiary_approval_id="approval.id"
@@ -172,6 +171,7 @@
                 </template>
             </FormSection>
             
+            <!--TODO fix for segregation - fix this to load the temporary use records after request resolved-->
             <FormSection :formCollapse="false" label="Temporary Use" Index="temporary_use">
                 <template v-if="approval && approval.id">
                     <TemporaryUse
@@ -238,6 +238,8 @@ export default {
     },
   created: function(){
     let url_approval = helpers.add_endpoint_json(api_endpoints.approvals,this.approvalId)
+
+    //TODO make it so we NEVER load with apiary sites (always load separately)
     url_approval = url_approval + '?with_apiary_sites=false'
 
     fetch(url_approval).then(

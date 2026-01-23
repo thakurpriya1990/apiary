@@ -111,10 +111,6 @@
                 type: Boolean,
                 default: false,
             },
-            show_col_previous_site_holder: {
-                type: Boolean,
-                default: false,
-            },
             show_col_action: {
                 type: Boolean,
                 default: true,
@@ -175,7 +171,7 @@
             let vm = this;
             return{
                 selectAllCheckboxes: false,
-                apiary_sites_local: JSON.parse(JSON.stringify(this.apiary_sites)),  // Deep copy the array
+                apiary_sites_local: [],//JSON.parse(JSON.stringify(this.apiary_sites)),  // Deep copy the array
                 component_map_key: '',
                 table_id: uuid(),
                 apiary_site_geojson_array: [],  // This is passed to the ComponentMap as props
@@ -196,14 +192,13 @@
                     'Vacant (current status)',  // current status of the 'is_vacant'
                     'Vacant (at time of submit)',  // status of the 'is_vacant' when the application submitted
                     'Decision',
-                    'Previous Site Holder<br>Applicant',
                     'Action',
                 ],
                 dtOptions: {
                     serverSide: false,
                     searching: false,
                     searchDelay: 1000,
-                    lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                    lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
                     order: [
                         [1, 'desc'], [0, 'desc'],
                     ],
@@ -396,14 +391,6 @@
                             defaultContent: '',
                         },
                         {
-                            // Previous Site Holder/Applicant
-                            visible: vm.show_col_previous_site_holder,
-                            mRender: function (data, type, apiary_site){
-                                return apiary_site.properties.previous_site_holder_or_applicant
-                            },
-                            defaultContent: '',
-                        },
-                        {
                             // Action
                             mRender: function (data, type, apiary_site) {
                                 let action_list = []
@@ -461,10 +448,10 @@
                         if (!response.ok) {
                             return response.json().then(err => { throw err });
                         }
-                        vm.apiary_sites = await response.json()
-                        vm.apiary_sites_local = JSON.parse(JSON.stringify(vm.apiary_sites)),  // Deep copy the array
-                        vm.constructApiarySitesTable(vm.apiary_sites);
-                        vm.addApiarySitesToMap(vm.apiary_sites)
+                        let apiary_sites_req = await response.json()
+                        vm.apiary_sites_local = JSON.parse(JSON.stringify(apiary_sites_req)),  // Deep copy the array
+                        vm.constructApiarySitesTable(vm.apiary_sites_local);
+                        vm.addApiarySitesToMap(vm.apiary_sites_local)
                         vm.ensureCheckedStatus();
                         vm.loading_sites = false
                     }).catch((error) => {
@@ -481,10 +468,10 @@
                             return response.json().then(err => { throw err });
                         }
                         const res = await response.json()
-                        vm.apiary_sites = res.features
-                        vm.apiary_sites_local = JSON.parse(JSON.stringify(vm.apiary_sites)),  // Deep copy the array
-                        vm.constructApiarySitesTable(vm.apiary_sites);
-                        vm.addApiarySitesToMap(vm.apiary_sites)
+                        let apiary_sites_req = res.features
+                        vm.apiary_sites_local = JSON.parse(JSON.stringify(apiary_sites_req)),  // Deep copy the array
+                        vm.constructApiarySitesTable(vm.apiary_sites_local);
+                        vm.addApiarySitesToMap(vm.apiary_sites_local)
                         vm.ensureCheckedStatus();
                         vm.loading_sites = false
                     }).catch((error) => {
@@ -492,6 +479,7 @@
                         vm.loading_sites = false
                     })
             }
+            
         },
         mounted: function(){
             let vm = this;
@@ -499,6 +487,7 @@
                 vm.addEventListeners();
                 if (!vm.apiary_approval_id && !vm.apiary_proposal_id){
                     // apiary_approval_id and apiary_proposal_id are not provided, which means apiary_sites have been already provided
+                    vm.apiary_sites_local = JSON.parse(JSON.stringify(vm.apiary_sites)),
                     vm.constructApiarySitesTable(vm.apiary_sites);
                     vm.addApiarySitesToMap(vm.apiary_sites)
                     vm.ensureCheckedStatus();
@@ -537,10 +526,10 @@
                 this.constructApiarySitesTable(apiary_sites_filtered)
             },
             ensureCheckedStatus: function() {
-                if (this.apiary_sites.length > 0){
-                    for(let i=0; i<this.apiary_sites.length; i++){
-                        if (!Object.prototype.hasOwnProperty.call(this.apiary_sites[i], 'checked')) {
-                            this.apiary_sites[i].checked = this.default_checkbox_checked
+                if (this.apiary_sites_local.length > 0){
+                    for(let i=0; i<this.apiary_sites_local.length; i++){
+                        if (!Object.prototype.hasOwnProperty.call(this.apiary_sites_local[i], 'checked')) {
+                            this.apiary_sites_local[i].checked = this.default_checkbox_checked
                         }
                     }
                 }

@@ -4,10 +4,7 @@
             <label class="col-sm-2">Period From</label>
             <div class="col-sm-4">
                 <div class="input-group date" ref="periodFromDatePicker">
-                    <input type="text" class="form-control" placeholder="DD/MM/YYYY" id="period_from_input_element" :readonly="is_readonly"/>
-                    <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                    </span>
+                    <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="period_from_input_element" :v-model="from_date" :disabled="is_readonly"/>
                 </div>
             </div>
         </div></div>
@@ -16,10 +13,7 @@
             <label class="col-sm-2">Period To</label>
             <div class="col-sm-4">
                 <div class="input-group date" ref="periodToDatePicker">
-                    <input type="text" class="form-control" placeholder="DD/MM/YYYY" id="period_to_input_element" :readonly="is_readonly"/>
-                    <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                    </span>
+                    <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="period_to_input_element" :v-model="to_date" :disabled="is_readonly"/>
                 </div>
             </div>
         </div></div>
@@ -53,7 +47,7 @@
                 type: Object, // Expect moment obj
                 default: null,
             },
-            // array of intermediate table, TemporaryUseApiarySite
+            // array of intermediate table, TemporaryUseApiarySite TODO fix for segregatin replace this for api call
             temporary_use_apiary_sites: {
                 type: Array,
                 default: function(){
@@ -120,6 +114,10 @@
                     this.period_to = null;
                 }
             }
+            //TODO fix for segregation - rework temporary_use_apiary_sites - do not load from proposal load separetly
+            //ideally with as few details as necessary
+            //and if possible, not necessarily all at once
+            //and post-draft, only load selected
             if (this.temporary_use_apiary_sites.length > 0){
                 for (let i=0; i<this.temporary_use_apiary_sites.length; i++){
                     //let site = this.temporary_use_apiary_sites[i].apiary_site
@@ -225,86 +223,7 @@
 
             //    this.$refs.apiary_sites_table.vmDataTable.row.add(temporary_use_apiary_site).draw();
             //},
-            addEventListeners: function () {
-            //    $("#apiary-sites-table").on("click", ".view_on_map", this.viewSiteOnMap);
-            //    $("#apiary-sites-table").on("click", ".site_checkbox", this.siteCheckboxClicked);
-
-                let vm = this;
-                let el_fr = $(vm.$refs.periodFromDatePicker);
-                let el_to = $(vm.$refs.periodToDatePicker);
-                let options = {
-                    format: "DD/MM/YYYY",
-                    showClear: true ,
-                    useCurrent: false,
-                };
-
-                el_fr.datetimepicker(options);
-                el_to.datetimepicker(options);
-
-                el_fr.on("dp.change", function(e) {
-                    let selected_date = null;
-                    if (e.date){
-                        // Date selected
-                        selected_date = e.date.format('DD/MM/YYYY')  // e.date is moment object
-                        vm.period_from = selected_date;
-                        el_to.data('DateTimePicker').minDate(selected_date);
-                    } else {
-                        // Date not selected
-                        vm.period_from = selected_date;
-                        el_to.data('DateTimePicker').minDate(false);
-                    }
-                    vm.$emit('from_date_changed', vm.period_from)
-                    //vm.constructApiarySitesTable();
-                });
-
-                el_to.on("dp.change", function(e) {
-                    let selected_date = null;
-                    if (e.date){
-                        selected_date = e.date.format('DD/MM/YYYY');
-                        vm.period_to = selected_date;
-                        el_fr.data('DateTimePicker').maxDate(selected_date);
-                    } else {
-                        vm.period_to = '';
-                        el_fr.data('DateTimePicker').maxDate(false);
-                    }
-                    vm.$emit('to_date_changed', vm.period_to)
-                    //vm.constructApiarySitesTable();
-                });
-
-                //***
-                // Set dates in case they are passed from the parent component
-                //***
-                let searchPattern = /^[0-9]{4}/
-
-                let period_from_passed = vm.period_from;
-                if (period_from_passed) {
-                    // If date passed
-                    if (searchPattern.test(period_from_passed)) {
-                        // Convert YYYY-MM-DD to DD/MM/YYYY
-                        period_from_passed = moment(period_from_passed, 'YYYY-MM-DD').format('DD/MM/YYYY');
-                    }
-                    $('#period_from_input_element').val(period_from_passed);
-                    el_to.data('DateTimePicker').minDate(period_from_passed);
-                }
-
-                let period_to_passed = vm.period_to;
-                if (period_to_passed) {
-                    // If date passed
-                    if (searchPattern.test(period_to_passed)) {
-                        // Convert YYYY-MM-DD to DD/MM/YYYY
-                        period_to_passed = moment(period_to_passed, 'YYYY-MM-DD').format('DD/MM/YYYY');
-                    }
-                    $('#period_to_input_element').val(period_to_passed);
-                    el_fr.data('DateTimePicker').maxDate(period_to_passed);
-                }
-            },
         },
-        mounted: function() {
-            let vm = this;
-            this.$nextTick(() => {
-                vm.addEventListeners();
-            });
-        }
     }
 </script>
 

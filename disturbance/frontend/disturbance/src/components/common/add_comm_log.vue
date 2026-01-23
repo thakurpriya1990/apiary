@@ -227,7 +227,7 @@ export default {
             }).catch((error) => {
                 vm.errors = true;
                 vm.addingComms = false;
-                //TODO the apiVueResourceError need to be updated
+                //TODO fix for segregation (?) - the apiVueResourceError need to be updated
                 // vm.errorString = helpers.apiVueResourceError(error);
                 vm.errorString = error;
             });

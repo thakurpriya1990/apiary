@@ -5,20 +5,6 @@
         </template>
         <div class="col-sm-12">
             <div class="row">
-                <div v-if="!apiaryTemplateGroup">
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <div v-show="select2Applied">
-                                <label for="">Region</label>
-                                <select style="width:100%" class="form-select input-sm" ref="filterRegion" >
-                                    <template v-if="select2Applied">
-                                        <option v-for="r in proposal_regions" :value="r" :key="r">{{r}}</option>
-                                    </template>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">{{ activityFilterLabel }}</label>
@@ -37,11 +23,8 @@
                         </select>
                     </div>
                 </div>
-                <div v-if="is_external" class="col-md-3">
-                    <router-link  style="margin-top:25px;" class="btn btn-primary pull-right" :to="{ name: 'apply_proposal' }">{{newProposalText}}</router-link>
-                </div>
-            </div>
-            <div class="row">
+                
+
                 <div class="col-md-3">
                     <label for="">Lodged From</label>
                     <!-- <div class="input-group date" ref="proposalDateFromPicker">
@@ -76,14 +59,10 @@
                             :min="proposal_lodged_from"
                         >
                 </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Submitter</label>
-                        <select class="form-select" v-model="filterProposalSubmitter">
-                            <option value="All">All</option>
-                            <option v-for="s in proposal_submitters" :value="s.email" :key="s.email">{{s.search_term}}</option>
-                        </select>
-                    </div>
+            </div>
+            <div class="row">
+                <div v-if="is_external" class="col-md-12">
+                    <router-link  style="margin-bottom:15px; margin-top:15px;" class="btn btn-primary pull-right" :to="{ name: 'apply_proposal' }">{{newProposalText}}</router-link>
                 </div>
             </div>
             <div class="row">
@@ -132,13 +111,7 @@ export default {
             //datatable_id: 'proposal-datatable-'+vm.uuid,
             //Profile to check if user has access to process Proposal
             profile: {},
-            //template_group: '',
-            apiaryTemplateGroup: false,
-            dasTemplateGroup: false,
-            templateGroupDetermined: false,
-            is_das_admin: false,
             is_apiary_admin: false,
-            is_das_apiary_admin: false,
             // Filters for Proposals
             filterProposalRegion: [],
             filterProposalActivity: 'All',
@@ -191,12 +164,6 @@ export default {
         datatable
     },
     watch:{
-        templateGroupDetermined: function(){
-            console.log('in templateGroupDetermined')
-            //this.showHideColumns()
-            this.set_dt_options();
-
-        },
         filterProposalRegion: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
             //let vm = this;
@@ -268,36 +235,20 @@ export default {
             return `${this.proposal_lodged_from}|${this.proposal_lodged_to}`;
         },
         activityFilterLabel: function() {
-            let label = ''
-            if (this.apiaryTemplateGroup) {
-                label = 'Application Type';
-            } else {
-                label = 'Activity';
-            }
-            return label;
+            return 'Application Type';
         },
         dt_headers: function(){
-            // Defautl DAS
-            let activity_or_application_type = this.dasTemplateGroup ? 'Activity' : 'Application Type';
-            let proponent_or_applicant = this.dasTemplateGroup ? 'Proponent' : 'Applicant';
-            let columnList = ["Number"];
-            if (this.dasTemplateGroup){
-                columnList.push("Region");
-            }
-            columnList.push(activity_or_application_type);
-            if (this.dasTemplateGroup){
-                columnList.push("Title");
-            }
-            columnList.push("Submitter",
-                    proponent_or_applicant,
-                    "Status",
-                    "Lodged on");
+            let columnList = [
+                "Number",
+                "Submitter",
+                "Applicant",
+                "Status",
+                "Lodged on"
+            ];
             if (!this.is_external){
                 columnList.push("Assigned Officer");
             }
-            if (this.apiaryTemplateGroup){
-                columnList.push("Invoice");
-            }
+            columnList.push("Invoice");
             columnList.push("Action");
             return columnList;
         },
@@ -319,20 +270,6 @@ export default {
                     defaultContent: '',
                 },
             ];
-            if (this.dasTemplateGroup) {
-                columnList.push({
-                    // 2. Region
-                    data: "region",
-                    'render': function (value) {
-                        return helpers.dtPopover(value);
-                    },
-                    'createdCell': helpers.dtPopoverCellFn,
-                    //visible: false,
-                    name: 'region__name',
-                    searchable: true,
-                    defaultContent: '',
-                });
-            };
             columnList.push({
                     // 3. Activity/Application Type
                     data: "activity",
@@ -340,22 +277,6 @@ export default {
                     name: 'activity',
                     defaultContent: '',
                 });
-            if (this.dasTemplateGroup) {
-                columnList.push({
-                    // 3.5 Title
-                    data: "title",
-                    'render': function (value, type) {
-                        //return helpers.dtPopover(value);
-                        var result= helpers.dtPopover(value);
-                        return type=='export' ? value : result;
-                    },
-                    'createdCell': helpers.dtPopoverCellFn,
-                    //visible: false,
-                    name: 'title',
-                    searchable: true,
-                    defaultContent: '',
-                });
-            };
             columnList.push({
                     // 4. Submitter
                     data: "submitter",
@@ -409,37 +330,28 @@ export default {
                     defaultContent: '',
                 });
             };
-            if (this.apiaryTemplateGroup) {
-                columnList.push({
-                    // 9. Invoice
-                    mRender:function (data, type, full) {
-                        //console.log(full)
-                        let links = '';
-                        //if (full.fee_paid) {
-                        //    links +=  `<a href='/payments/invoice-pdf/${full.fee_invoice_reference}.pdf' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i></a> &nbsp`;
-                        //    if (!vm.is_external){
-                        //        links +=  `<a href='/ledger/payments/invoice/payment?invoice=${full.fee_invoice_reference}' target='_blank'>View Payment</a><br/>`;
-                        //    }
-                        //}
-                        if (full.fee_invoice_references){
-                            for (let item of full.fee_invoice_references){
-                                links += '<div>'
-                                links +=  `<a href='/payments/invoice-pdf/${item}.pdf' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i> #${item}</a>`;
-                                if (!vm.is_external){
-                                    links +=  `&nbsp;&nbsp;&nbsp;<a href='/ledger-toolkit-api/invoice-pdf/${item}' target='_blank'>View Payment</a><br/>`;
-                                }
-                                links += '</div>'
+            columnList.push({
+                // 9. Invoice
+                mRender:function (data, type, full) {
+                    let links = '';
+                    if (full.fee_invoice_references){
+                        for (let item of full.fee_invoice_references){
+                            links += '<div>'
+                            //TODO fix for segregation - this link does not work (?), the other one does - investigate and adjust as needed (they both do the same thing, why is one only internal? should it be doing something else (ledger payment link)?)
+                            links +=  `<a href='/payments/invoice-pdf/${item}.pdf' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i> #${item}</a>`;
+                            if (!vm.is_external){
+                                links +=  `&nbsp;&nbsp;&nbsp;<a href='/ledger-toolkit-api/invoice-pdf/${item}' target='_blank'>View Payment</a><br/>`;
                             }
+                            links += '</div>'
                         }
-                        return links;
-                    },
-                    name: 'invoice_column',
-                    orderable: false,
-                    //visible: false,
-                    searchable: false,
-                    defaultContent: '',
-                });
-            };
+                    }
+                    return links;
+                },
+                name: 'invoice_column',
+                orderable: false,
+                searchable: false,
+                defaultContent: '',
+            });
             columnList.push({
                     // 10. Action
                     mRender:function (data,type,full) {
@@ -449,6 +361,9 @@ export default {
                                 links +=  `<a href='/internal/proposal/${full.id}'>Process</a><br/>`;
                             } else {
                                 links +=  `<a href='/internal/proposal/${full.id}'>View</a><br/>`;
+                            }
+                            if (full.can_user_edit) {
+                                links +=  `<a href='#${full.id}' data-discard-proposal='${full.id}'>Discard</a><br/>`;
                             }
                         }
                         else{
@@ -478,23 +393,6 @@ export default {
         is_referral: function(){
             return this.level == 'referral';
         },
-        /*
-        apiaryTemplateGroup: function() {
-            let returnVal = false;
-            if (this.template_group == 'apiary'){
-                returnVal = true
-            }
-            return returnVal;
-        },
-        dasTemplateGroup: function() {
-            let returnVal = false;
-            if (this.template_group == 'das'){
-                returnVal = true
-            }
-            return returnVal;
-        },
-        */
-
     },
     methods:{
         set_dt_options: function() {
@@ -511,7 +409,7 @@ export default {
                 },
                 responsive: true,
                 serverSide: true,
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
                 order: [
                     [0, 'desc']
                     ],
@@ -584,42 +482,16 @@ export default {
                 vm.addEventListeners();
             });
         },
-        /*
-        showHideColumns: function(){
-            console.log('in showHideColumns')
-            let vm = this
-            let regionColumn = vm.$refs.proposal_datatable.vmDataTable.column('region__name:name');
-            let titleColumn = vm.$refs.proposal_datatable.vmDataTable.column('title:name');
-            if (vm.dasTemplateGroup) {
-                regionColumn.visible(true);
-                titleColumn.visible(true);
-            }
-            let invoiceColumn = vm.$refs.proposal_datatable.vmDataTable.column('invoice_column:name');
-            if ((!vm.is_external && vm.dasTemplateGroup && vm.is_das_apiary_admin) || vm.apiaryTemplateGroup){
-                invoiceColumn.visible(true);
-            }
-            let assignedOfficerColumn = vm.$refs.proposal_datatable.vmDataTable.column(vm.assigned_officer_column_name + ':name')
-            if (!vm.is_external){
-                assignedOfficerColumn.visible(true)
-            }
-        },
-        */
+
         setDashboardText: function() {
-            if (this.apiaryTemplateGroup) {
-                this.dashboardTitle = 'Applications';
-                this.dashboardDescription = 'View existing applications and lodge new ones';
-                this.newProposalText = 'New Application';
-            } else {
-                this.dashboardTitle = 'Proposals';
-                this.dashboardDescription = 'View existing proposals and lodge new ones';
-                this.newProposalText = 'New Proposal';
-            }
+            this.dashboardTitle = 'Applications';
+            this.dashboardDescription = 'View existing applications and lodge new ones';
+            this.newProposalText = 'New Application';
         },
 
         fetchFilterLists: function(){
             let vm = this;
 
-            //fetch('/api/list_proposal/filter_list/').then((response) => {
             fetch(api_endpoints.filter_list).then(
                 async (response) => {
                     if (!response.ok) {
@@ -627,19 +499,15 @@ export default {
                     }
                     const filterListsProposal = await response.json();
                     vm.proposal_regions = filterListsProposal.regions;
-                    //vm.proposal_districts = filterListsProposal.districts;
 
                     vm.proposal_activityTitles = filterListsProposal.activities;
                     vm.proposal_applicationTypes = filterListsProposal.application_types;
-                    //vm.proposal_activityTitles.push('Apiary');
 
                     vm.proposal_submitters = filterListsProposal.submitters;
-                    //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                     vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
                 },(error) => {
                     console.log(error);
                 })
-            //console.log(vm.regions);
         },
 
         discardProposal:function (proposal_id) {
@@ -711,10 +579,6 @@ export default {
                 var id = $(this).attr('data-discard-proposal');
                 vm.discardProposal(id);
             });
-            //if (this.dasTemplateGroup) {
-            //    this.applySelect2()
-            //    // Initialise select2 for region
-            //}
         },
         applySelect2: function(){
             let vm = this
@@ -869,29 +733,8 @@ export default {
         });
     },
     created: function() {
-        console.log('in created')
-        // retrieve template group
-        fetch('/template_group',{ emulateJSON: true }).then(
-            async res=>{
-                if (!res.ok) {
-                    return res.json().then(err => { throw err });
-                }
-                //this.template_group = res.body.template_group;
-                const templateGroupResponse = await res.json();
-                if (templateGroupResponse.template_group === 'apiary') {
-                    this.apiaryTemplateGroup = true;
-                } else {
-                    this.dasTemplateGroup = true;
-                    this.applySelect2()
-                }
-                this.templateGroupDetermined = true;
-                this.setDashboardText();
-                this.is_das_admin = templateGroupResponse.is_das_admin
-                this.is_apiary_admin = templateGroupResponse.is_apiary_admin
-                this.is_das_apiary_admin = templateGroupResponse.is_das_apiary_admin
-            }).catch(err=>{
-                console.log(err);
-            });
+        this.set_dt_options();
+        this.setDashboardText();
     },
 }
 </script>
