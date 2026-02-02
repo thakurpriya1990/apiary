@@ -8,6 +8,7 @@
         <div class="col-md-9 sections-proposal-temporary-use">
             <div v-if="proposal">
                 <SectionsProposalTemporaryUse
+                    ref="section_proposal_temporary_use"
                     :is_internal="false"
                     :is_external="true"
                     :proposal="proposal"
@@ -150,8 +151,11 @@
                     'activity': '',
                     'sub_activity1': '',
                     'apiary_temporary_use': this.apiary_temporary_use,
+                    
                     'application_type_str': 'temporary_use',
                 }
+                //TODO fix for segregation - the full list should NOT be uploaded, find a way to only send what has changed
+                data['apiary_temporary_use']['temporary_use_apiary_sites'] = this.$refs.section_proposal_temporary_use.temporary_use_apiary_sites;
                 return data
             },
             perform_redirect: function(url, postData) {

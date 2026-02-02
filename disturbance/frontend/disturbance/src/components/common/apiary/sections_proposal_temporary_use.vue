@@ -203,7 +203,6 @@
                             for (let site of transfer_apiary_sites_req) {
                                 this.temporary_use_apiary_sites.push(site);
                             }
-                            console.log(this.temporary_use_apiary_sites)
                         }
                         this.loading_sites = false;
                     }
