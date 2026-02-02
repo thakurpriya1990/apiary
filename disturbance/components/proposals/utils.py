@@ -251,6 +251,73 @@ def annotate_site_transfer_apiary_site(qs):
 
     return annotated
 
+
+def annotate_temporary_use_apiary_site(qs):
+
+    annotated = qs.annotate(
+            lat=Func("apiary_site_on_approval__wkb_geometry", function="ST_Y", output_field=FloatField()),
+            lng=Func("apiary_site_on_approval__wkb_geometry", function="ST_X", output_field=FloatField()),
+        ).annotate(
+            stable_coords=JSONObject(
+                lng=F('lng'),
+                lat=F('lat'),
+            )
+        ).annotate(
+            site_guid=F("apiary_site_on_approval__apiary_site__site_guid")
+        ).annotate(
+            status=F("apiary_site_on_approval__site_status")
+        ).annotate(
+            is_vacant=F("apiary_site_on_approval__apiary_site__is_vacant")
+        ).annotate(
+            geometry=JSONObject(
+                type=Value("Point"), #we only serve points from here
+                coordinates=Func(
+                    Concat(F('lng'),Value(","),F('lat'),output_field=CharField()),
+                    Value(','),
+                    function='string_to_array',
+                    output_field=ArrayField(FloatField()),
+                )
+            )
+        ).annotate(
+            type=Value("Feature") #we are returning a list of features
+        ).annotate(
+            properties=JSONObject(
+                stable_coords=F('stable_coords'),
+                site_guid=F('site_guid'),
+                is_vacant=F('is_vacant'),
+                available=F('apiary_site_on_approval__available'),
+                wkb_geometry=F('apiary_site_on_approval__wkb_geometry'),
+                site_category=F('apiary_site_on_approval__site_category__name'),
+                status=F('status'),
+                licensed_site=F('apiary_site_on_approval__licensed_site'),
+                batch_no=F('apiary_site_on_approval__batch_no'),
+                approval_cpc_date=F('apiary_site_on_approval__approval_cpc_date'),
+                approval_minister_date=F('apiary_site_on_approval__approval_minister_date'),
+                map_ref=F('apiary_site_on_approval__map_ref'),
+                forest_block=F('apiary_site_on_approval__forest_block'),
+                cog=F('apiary_site_on_approval__cog'),
+                roadtrack=F('apiary_site_on_approval__roadtrack'),
+                zone=F('apiary_site_on_approval__zone'),
+                catchment=F('apiary_site_on_approval__catchment'),
+                dra_permit=F('apiary_site_on_approval__dra_permit'),
+            )
+        ).annotate(
+            apiary_site=JSONObject(
+                id=F('apiary_site_on_approval__id'),
+                type=F('type'),
+                geometry=F('geometry'),
+                properties=F('properties'),
+            )
+        ).values(
+            'id',
+            'proposal_apiary_temporary_use_id',
+            'apiary_site_on_approval_id',
+            'apiary_site',
+            'selected',
+        )
+
+    return annotated
+
 def create_data_from_form(schema, post_data, file_data, post_data_index=None,special_fields=[],assessor_data=False):
     data = {}
     special_fields_list = []

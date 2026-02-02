@@ -36,6 +36,7 @@ from disturbance.components.proposals.utils import (
     annotate_apiary_site_on_proposal_processed_geometry,
     annotate_apiary_site_on_proposal_draft_geometry,
     annotate_site_transfer_apiary_site,
+    annotate_temporary_use_apiary_site,
 )
 
 from disturbance.components.approvals.utils import annotate_apiary_site_on_approval_geometry
@@ -77,6 +78,7 @@ from disturbance.components.proposals.models import (
     ProposalTypeSection,
     SectionQuestion,
     MasterlistQuestion,
+    TemporaryUseApiarySite,
 )
 from disturbance.components.proposals.serializers import (
     SendReferralSerializer,
@@ -1116,8 +1118,7 @@ class ApiaryReferralViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-#TODO fix for segregation - determine why this is still used for apiary (internal only?)
-#If this is used it needs to be made secure
+
 class ProposalViewSet(viewsets.ModelViewSet):
     queryset = Proposal.objects.none()
     serializer_class = ProposalSerializer
@@ -1157,6 +1158,14 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
     def internal_serializer_class(self):
         return ApiaryInternalProposalSerializer
+
+    @action(detail=True,methods=['GET',])
+    def tempary_use_apiary_sites(self, request, *args, **kwargs):
+        instance = self.get_object()
+        qs = TemporaryUseApiarySite.objects.filter(proposal_apiary_temporary_use=instance.apiary_temporary_use)
+
+        data = annotate_temporary_use_apiary_site(qs)
+        return Response(data)
 
     @action(detail=True,methods=['POST',])
     def get_revision(self, request, *args, **kwargs):

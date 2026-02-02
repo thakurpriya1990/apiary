@@ -47,7 +47,7 @@
                 type: Object, // Expect moment obj
                 default: null,
             },
-            // array of intermediate table, TemporaryUseApiarySite TODO fix for segregatin replace this for api call
+            // array of intermediate table, TemporaryUseApiarySite
             temporary_use_apiary_sites: {
                 type: Array,
                 default: function(){
@@ -114,10 +114,6 @@
                     this.period_to = null;
                 }
             }
-            //TODO fix for segregation - rework temporary_use_apiary_sites - do not load from proposal load separetly
-            //ideally with as few details as necessary
-            //and if possible, not necessarily all at once
-            //and post-draft, only load selected
             if (this.temporary_use_apiary_sites.length > 0){
                 for (let i=0; i<this.temporary_use_apiary_sites.length; i++){
                     //let site = this.temporary_use_apiary_sites[i].apiary_site

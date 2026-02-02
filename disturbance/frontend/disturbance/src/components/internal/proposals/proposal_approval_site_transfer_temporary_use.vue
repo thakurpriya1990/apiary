@@ -275,36 +275,40 @@ export default {
         this.component_site_selection_key = uuid()
     },
     created: function(){
-        if (this.proposal.application_type === 'Site Transfer') {
-            let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/transfer_apiary_sites/'
-            fetch(url_sites).then(
-                async (response) => {
-                    if (response.ok) {
-                        let transfer_apiary_sites_req = await response.json();
-                        for (let site of transfer_apiary_sites_req) {
-                            this.apiary_sites_prop.push(site.apiary_site);
+        if (this.proposal && this.proposal.proposal_apiary) {
+            if (this.proposal.application_type === 'Site Transfer') {
+                let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/transfer_apiary_sites/'
+                fetch(url_sites).then(
+                    async (response) => {
+                        if (response.ok) {
+                            let transfer_apiary_sites_req = await response.json();
+                            for (let site of transfer_apiary_sites_req) {
+                                this.apiary_sites_prop.push(site.apiary_site);
+                            }
                         }
+                        this.loading_sites = false;
                     }
+                ).catch((error) => {
+                    console.log(error);
                     this.loading_sites = false;
-                }
-            ).catch((error) => {
-                console.log(error);
-                this.loading_sites = false;
-            })
+                })
+            } else {
+                let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/apiary_sites/'
+                fetch(url_sites).then(
+                    async (response) => {
+                        if (response.ok) {
+                            let apiary_sites_req = await response.json();
+                            this.apiary_sites_prop = JSON.parse(JSON.stringify(apiary_sites_req)).features
+                        }
+                        this.loading_sites = false;
+                    }
+                ).catch((error) => {
+                    console.log(error);
+                    this.loading_sites = false;
+                })
+            }
         } else {
-            let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/apiary_sites/'
-            fetch(url_sites).then(
-                async (response) => {
-                    if (response.ok) {
-                        let apiary_sites_req = await response.json();
-                        this.apiary_sites_prop = JSON.parse(JSON.stringify(apiary_sites_req)).features
-                    }
-                    this.loading_sites = false;
-                }
-            ).catch((error) => {
-                console.log(error);
-                this.loading_sites = false;
-            })
+            this.loading_sites = false;
         }
     }
 }
