@@ -12,7 +12,7 @@
             </div>
         </template>
 
-        <template v-if="proposal.proposal_apiary">
+        <template v-if="proposal.proposal_apiary && !loading_sites">
             <FormSection :formCollapse="false" label="Site(s)" Index="sites">
                 <ComponentSiteSelection
                     :apiary_sites="apiary_sites_prop"
@@ -49,7 +49,6 @@
                                 <span class="btn btn-info btn-file pull-left">
                                     Attach File <input type="file" ref="uploadedFile" @change="readFile()"/>
                                 </span>
-                            <!--<span class="pull-left" style="margin-left:10px;margin-top:10px;">{{uploadedFileName()}}</span>-->
                             </div>
                             <div class="row"><p></p></div>
                             <div class="row"><p></p></div>
@@ -115,7 +114,6 @@ import SectionsProposalTemporaryUse from '@/components/common/apiary/sections_pr
 export default {
     name: 'ApprovalScreenSiteTransferTemporaryUse',
     props: {
-        // proposal: Object
         proposal: {
             type: Object,
             default: function(){
@@ -129,6 +127,8 @@ export default {
             proposedLevel: "proposal-level-"+uuid(),
             uploadedFile: null,
             component_site_selection_key: '',
+            loading_sites: false,
+            apiary_sites_prop: [],
         }
     },
     components:{
@@ -159,29 +159,6 @@ export default {
         },
         isApprovalLevel:function(){
             return this.proposal.approval_level != null ? true : false;
-        },
-        //TODO fix for segregation do not get apiary sites from proposal, get them from their own endpoint
-        apiary_sites: function() {
-            if (this.proposal && this.proposal.proposal_apiary) {
-                return this.proposal.proposal_apiary.apiary_sites;
-            }
-            return [];
-        },
-        apiary_sites_prop: function() {
-            let apiary_sites = [];
-            if (this.proposal.application_type === 'Site Transfer') {
-                for (let site of this.proposal.proposal_apiary.transfer_apiary_sites) {
-                    apiary_sites.push(site.apiary_site);
-                    /*
-                    if (site.selected) {
-                        apiary_sites.push(site.apiary_site);
-                    }
-                    */
-                }
-            } else {
-                apiary_sites = this.proposal.apiary_temporary_use.apiary_sites;
-            }
-            return apiary_sites;
         },
         showColCheckbox: function() {
             let checked = true;
@@ -242,7 +219,6 @@ export default {
                     let errorText = 'An unexpected error occurred.';
                     try {
                         const errData = await err.json();
-                        // errorText = helpers.apiVueResourceError(errData);
                         errorText = errData;
                     } catch { console.log('Error parsing error response'); }
                     
@@ -297,6 +273,39 @@ export default {
     },
     mounted: function(){
         this.component_site_selection_key = uuid()
+    },
+    created: function(){
+        if (this.proposal.application_type === 'Site Transfer') {
+            let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/transfer_apiary_sites/'
+            fetch(url_sites).then(
+                async (response) => {
+                    if (response.ok) {
+                        let transfer_apiary_sites_req = await response.json();
+                        for (let site of transfer_apiary_sites_req) {
+                            this.apiary_sites_prop.push(site.apiary_site);
+                        }
+                    }
+                    this.loading_sites = false;
+                }
+            ).catch((error) => {
+                console.log(error);
+                this.loading_sites = false;
+            })
+        } else {
+            let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/apiary_sites/'
+            fetch(url_sites).then(
+                async (response) => {
+                    if (response.ok) {
+                        let apiary_sites_req = await response.json();
+                        this.apiary_sites_prop = JSON.parse(JSON.stringify(apiary_sites_req)).features
+                    }
+                    this.loading_sites = false;
+                }
+            ).catch((error) => {
+                console.log(error);
+                this.loading_sites = false;
+            })
+        }
     }
 }
 </script>

@@ -35,6 +35,7 @@ from disturbance.components.proposals.utils import (
     save_apiary_assessor_data, update_proposal_apiary_temporary_use,
     annotate_apiary_site_on_proposal_processed_geometry,
     annotate_apiary_site_on_proposal_draft_geometry,
+    annotate_site_transfer_apiary_site,
 )
 
 from disturbance.components.approvals.utils import annotate_apiary_site_on_approval_geometry
@@ -711,6 +712,20 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
         non_draft_apiary_sites = list(annotate_apiary_site_on_proposal_processed_geometry(non_draft_apiary_sites))
 
         data = {"features":draft_apiary_sites+non_draft_apiary_sites}
+
+        return Response(data)
+
+    @action(detail=True,methods=['GET',])
+    @basic_exception_handler
+    def transfer_apiary_sites(self, request, *args, **kwargs):
+        proposal_apiary = self.get_object()
+
+        if proposal_apiary.proposal.customer_status == 'draft':
+            sites = proposal_apiary.site_transfer_apiary_sites.all()
+        else:
+            sites = proposal_apiary.site_transfer_apiary_sites.filter(customer_selected=True)
+
+        data = list(annotate_site_transfer_apiary_site(sites))
 
         return Response(data)
 

@@ -880,43 +880,10 @@ class ApiarySiteSerializer(serializers.ModelSerializer):
         )
 
 
-#class ApiarySiteExportSerializer(GeoFeatureModelSerializer):
-#    site_category = serializers.CharField(source='latest_approval_link.site_category.name')
-#    address = serializers.CharField(source='latest_approval_link.relevant_applicant_address')
-#    name = serializers.CharField(source='latest_approval_link.relevant_applicant_name')
-#
-#    region = serializers.CharField(source='latest_approval_link.region')
-#    district = serializers.CharField(source='latest_approval_link.district')
-#    tenure = serializers.CharField(source='latest_approval_link.tenure')
-#
-#    class Meta:
-#        model = ApiarySite
-#        geo_field = 'wkb_geometry'
-#
-#        fields = (
-#            'id',
-#            'site_guid',
-#            'available',
-#            'wkb_geometry',
-#            'site_category',
-#            'status',
-#            'address',
-#            'region',
-#            'district',
-#            'tenure',
-#            'name',
-#        )
-
-
 class SiteTransferApiarySiteSerializer(serializers.ModelSerializer):
     proposal_apiary_id = serializers.IntegerField(write_only=True, required=False)
-    # apiary_site_id = serializers.IntegerField(write_only=True, required=False)
     apiary_site_on_approval_id = serializers.IntegerField(write_only=True, required=False)
-    # apiary_site = ApiarySiteSerializer(read_only=True)
     apiary_site = serializers.SerializerMethodField()
-    # apiary_site_approval = ApiarySiteApprovalSerializer(read_only=True)
-    # apiary_site_approval_id = serializers.IntegerField(write_only=True, required=False)
-    # apiary_site = serializers.SerializerMethodField()
 
     def get_apiary_site(self, obj):
         return ApiarySiteOnApprovalGeometrySerializer(obj.apiary_site_on_approval).data
@@ -932,9 +899,6 @@ class SiteTransferApiarySiteSerializer(serializers.ModelSerializer):
             'id',
             'proposal_apiary_id',
             'apiary_site_on_approval_id',
-            # 'apiary_site_approval',
-            # 'apiary_site_approval_id',
-            # 'apiary_site_id',
             'apiary_site',
             'customer_selected',
             'internal_selected',
