@@ -127,7 +127,7 @@ export default {
             proposedLevel: "proposal-level-"+uuid(),
             uploadedFile: null,
             component_site_selection_key: '',
-            loading_sites: false,
+            loading_sites: true,
             apiary_sites_prop: [],
         }
     },
