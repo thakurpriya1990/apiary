@@ -76,7 +76,6 @@ class ApprovalSerializerForLicenceDoc(serializers.ModelSerializer):
     approver = serializers.SerializerMethodField()
     apiary_sites = serializers.SerializerMethodField()
     apiary_licensed_sites = serializers.SerializerMethodField()
-    #apiary_sites = ApiarySiteLicenceDocSerializer(many=True)
     requirements = serializers.SerializerMethodField()
     map_ref = serializers.SerializerMethodField()
     batch_no = serializers.SerializerMethodField()
@@ -305,7 +304,6 @@ class ApprovalSerializer(serializers.ModelSerializer):
     applicant_last_name = serializers.SerializerMethodField()
     applicant_address = serializers.SerializerMethodField()
 
-    apiary_sites = serializers.SerializerMethodField()
     annual_rental_fee_periods = serializers.SerializerMethodField()
     latest_apiary_licence_document = serializers.SerializerMethodField()
     apiary_licence_document_history = serializers.SerializerMethodField()
@@ -360,7 +358,6 @@ class ApprovalSerializer(serializers.ModelSerializer):
             'applicant_first_name',
             'applicant_last_name',
             'applicant_address',
-            'apiary_sites',
             'annual_rental_fee_periods',
             'no_annual_rental_fee_until',
             'latest_apiary_licence_document',
@@ -401,24 +398,6 @@ class ApprovalSerializer(serializers.ModelSerializer):
             'latest_apiary_licence_document',
             'template_group',
         )
-
-    #TODO fix for segregation was this ever needed? check and remove/adjust
-    #def get_current_proposal(self, approval):
-    #    return ProposalSerializer(approval.current_proposal, context=self.context).data
-
-    def get_apiary_sites(self, approval):
-        with_apiary_sites = True
-        if 'request' in self.context:
-            request = self.context['request']
-            with_apiary_sites = request.GET.get('with_apiary_sites', True)
-            if with_apiary_sites in ['false', 'False', 'F', 'f', False]:
-                with_apiary_sites = False
-
-        ret = []
-        if with_apiary_sites:
-            for relation in approval.get_relations():
-                ret.append(ApiarySiteOnApprovalGeometrySerializer(relation).data)
-        return ret  ####
 
     def get_activity(self, approval):
         activity_text = None

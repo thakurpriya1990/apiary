@@ -493,19 +493,6 @@ class ApiarySiteOnProposalVacantDraftMinimalGeometrySerializer(GeoFeatureModelSe
             return ''
 
 
-class ApiarySiteOnProposalVacantDraftGeometrySerializer(ApiarySiteOnProposalDraftGeometrySerializer):
-    """
-    For vacant and 'draft'
-    """
-    application_fee_paid = serializers.SerializerMethodField()
-
-    def get_application_fee_paid(self, obj):
-        return False
-
-    class Meta(ApiarySiteOnProposalDraftGeometrySerializer.Meta):
-        pass
-
-
 class ApiarySiteOnProposalProcessedMinimalGeometrySerializer(GeoFeatureModelSerializer):
     """
     For reading as 'processed'
@@ -764,16 +751,6 @@ class ApiarySiteOnProposalVacantProcessedMinimalGeometrySerializer(GeoFeatureMod
             return ''
 
 
-class ApiarySiteOnProposalVacantProcessedGeometrySerializer(ApiarySiteOnProposalProcessedGeometrySerializer):
-    application_fee_paid = serializers.SerializerMethodField()
-
-    def get_application_fee_paid(self, obj):
-        return False
-
-    class Meta(ApiarySiteOnProposalProcessedGeometrySerializer.Meta):
-        pass
-
-
 class ApiarySiteOnProposalDraftGeometrySaveSerializer(GeoFeatureModelSerializer):
     """
     For saving as 'draft'
@@ -878,41 +855,10 @@ class ApiarySiteSerializer(serializers.ModelSerializer):
             'id',
             'site_guid',
         )
-
-
-class SiteTransferApiarySiteSerializer(serializers.ModelSerializer):
-    proposal_apiary_id = serializers.IntegerField(write_only=True, required=False)
-    apiary_site_on_approval_id = serializers.IntegerField(write_only=True, required=False)
-    apiary_site = serializers.SerializerMethodField()
-
-    def get_apiary_site(self, obj):
-        return ApiarySiteOnApprovalGeometrySerializer(obj.apiary_site_on_approval).data
-
-    def validate(self, attrs):
-        #TODO on cleanup (old comment) check if the site is not temporary used to another person for the period
-        #TODO on cleanup (old comment) check if the licence is valid, etc
-        return attrs
-
-    class Meta:
-        model = SiteTransferApiarySite
-        fields = (
-            'id',
-            'proposal_apiary_id',
-            'apiary_site_on_approval_id',
-            'apiary_site',
-            'customer_selected',
-            'internal_selected',
-        )
-
+        
 
 class ProposalApiarySerializer(serializers.ModelSerializer):
-    # apiary_sites = ApiarySiteSerializer(read_only=True, many=True)
-    apiary_sites = serializers.SerializerMethodField()
-    #site_transfer_apiary_sites = SiteTransferApiarySiteSerializer(read_only=True, many=True)
-    transfer_apiary_sites = serializers.SerializerMethodField()
-    # on_site_information_list = serializers.SerializerMethodField()  # This is used for displaying OnSite table at the frontend
 
-    #checklist_questions = serializers.SerializerMethodField()
     applicant_checklist_answers = serializers.SerializerMethodField()
     assessor_checklist_answers = serializers.SerializerMethodField()
     assessor_checklist_answers_per_site = serializers.SerializerMethodField()
@@ -941,14 +887,8 @@ class ProposalApiarySerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'proposal',
-            'apiary_sites',
-            # 'apiary_sites_2',
-            #'site_transfer_apiary_sites',
-            'transfer_apiary_sites',
             'longitude',
             'latitude',
-            # 'on_site_information_list',
-            #'checklist_questions',
             'applicant_checklist_answers',
             'assessor_checklist_answers',
             'assessor_checklist_answers_per_site',
@@ -1012,33 +952,6 @@ class ProposalApiarySerializer(serializers.ModelSerializer):
         if proposal_apiary.target_approval and proposal_apiary.target_approval.documents.count():
             url = proposal_apiary.target_approval.documents.order_by('-uploaded_date')[0]._file.url
         return url
-
-    def get_apiary_sites(self, proposal_apiary):
-        with_apiary_sites = True
-        if 'request' in self.context:
-            request = self.context['request']
-            with_apiary_sites = request.GET.get('with_apiary_sites', True)
-            if with_apiary_sites in ['false', 'False', 'F', 'f', False]:
-                with_apiary_sites = False
-
-        ret = []
-        if with_apiary_sites:
-            for apiary_site in proposal_apiary.apiary_sites.all().order_by('id'):
-                inter_obj = ApiarySiteOnProposal.objects.get(apiary_site=apiary_site, proposal_apiary=proposal_apiary)
-                if inter_obj.site_status == SITE_STATUS_DRAFT:
-                    serializer = ApiarySiteOnProposalDraftGeometrySerializer
-                else:
-                    serializer = ApiarySiteOnProposalProcessedGeometrySerializer
-                ret.append(serializer(inter_obj).data)
-        return ret
-
-    def get_transfer_apiary_sites(self, obj):
-        sites = None
-        if obj.proposal.customer_status == 'draft':
-            sites = obj.site_transfer_apiary_sites.all()
-        else:
-            sites = obj.site_transfer_apiary_sites.filter(customer_selected=True)
-        return SiteTransferApiarySiteSerializer(sites, many=True).data
 
     def get_transferee_name(self, obj):
         name = None
@@ -1312,17 +1225,10 @@ class TemporaryUseApiarySiteSerializer(serializers.ModelSerializer):
 
 
 class ProposalApiaryTemporaryUseSerializer(serializers.ModelSerializer):
-    # proposal_id = serializers.IntegerField(write_only=True, required=False)
     proposal_id = serializers.IntegerField(required=False)
-    # loaning_approval_id = serializers.IntegerField(write_only=True, required=False)
     loaning_approval_id = serializers.IntegerField(required=False)
-
-    #TODO fix for segregation - do not do this
-    temporary_use_apiary_sites = TemporaryUseApiarySiteSerializer(read_only=True, many=True)
-
     deed_poll_documents = serializers.SerializerMethodField()
     lodgement_number = serializers.CharField(source='proposal.lodgement_number', required=False, read_only=True)
-    # customer_status = serializers.CharField(source='proposal.customer_status', required=False, read_only=True)
     customer_status = serializers.SerializerMethodField()
     processing_status = serializers.SerializerMethodField()
 
@@ -1406,7 +1312,6 @@ class ProposalApiaryTemporaryUseSerializer(serializers.ModelSerializer):
             'temporary_occupier_email',
             'proposal_id',
             'loaning_approval_id',
-            'temporary_use_apiary_sites',
             'deed_poll_documents',
             'lodgement_number',
             'customer_status',

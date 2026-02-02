@@ -6,7 +6,7 @@
         </div>
 
         <div class="col-md-9 sections-proposal-temporary-use">
-            <div>
+            <div v-if="proposal">
                 <SectionsProposalTemporaryUse
                     :is_internal="false"
                     :is_external="true"

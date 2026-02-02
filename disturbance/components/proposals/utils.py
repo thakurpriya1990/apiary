@@ -971,6 +971,7 @@ def update_proposal_apiary_temporary_use(temp_use_obj, temp_use_data, action):
         item['selected'] = item['apiary_site']['checked']
         tuas_obj = TemporaryUseApiarySite.objects.get(id=item['id'])
 
+        #TODO fix for segregation - do not use serializer
         serializer = TemporaryUseApiarySiteSerializer(tuas_obj, data=item)
         serializer.is_valid(raise_exception=True)
         serializer.save()

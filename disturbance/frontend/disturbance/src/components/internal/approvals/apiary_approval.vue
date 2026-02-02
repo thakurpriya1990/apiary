@@ -238,10 +238,6 @@ export default {
     },
   created: function(){
     let url_approval = helpers.add_endpoint_json(api_endpoints.approvals,this.approvalId)
-
-    //TODO make it so we NEVER load with apiary sites (always load separately)
-    url_approval = url_approval + '?with_apiary_sites=false'
-
     fetch(url_approval).then(
         async (response) => {
             if (!response.ok) { return response.json().then(err => { throw err }); }

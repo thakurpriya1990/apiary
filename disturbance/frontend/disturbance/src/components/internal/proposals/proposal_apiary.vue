@@ -425,7 +425,6 @@
         :is_apiary_proposal="isApiaryProposal"
         @refreshFromResponse="refreshFromResponse"
         />
-        <!--TODO fix for segregation - modal does not appear to work properly-->
         <ProposedApiaryIssuance
             ref="proposed_approval"
             :processing_status="proposal.processing_status"
@@ -1406,17 +1405,17 @@ export default {
     },
     created: async function() {
         try {
-            //TODO fix for segregation - make it so we NEVER load with apiary sites (always load separately)
-            fetch(`/api/proposal/${this.proposalId}/internal_proposal.json/?with_apiary_sites=true`)
+            fetch(`/api/proposal/${this.proposalId}/internal_proposal.json`)
             .then(async (res) => {
                 if (!res.ok) { return res.json().then(err => { throw err }); }
                 const data = await res.json();
                 this.proposal = Object.assign({}, data);
-                //this.original_proposal = helpers.copyObject(res.body);
+
                 if (this.proposal.applicant && this.proposal.applicant.address) {
                     this.proposal.applicant.address = this.proposal.applicant.address != null ? this.proposal.applicant.address : {};
                 }
                 this.hasAmendmentRequest = this.proposal.hasAmendmentRequest;
+                
             }).catch(err => {
                 console.log(err);
             });

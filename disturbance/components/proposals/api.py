@@ -2132,6 +2132,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
                             'proposal_apiary_temporary_use_id': new_temp_use.id,
                             'apiary_site_on_approval_id': relation.id,
                         }
+                        #TODO fix for segregation - replace this (do not use serializer)
                         serializer = TemporaryUseApiarySiteSerializer(data=data_to_save)
                         serializer.is_valid(raise_exception=True)
                         serializer.save()

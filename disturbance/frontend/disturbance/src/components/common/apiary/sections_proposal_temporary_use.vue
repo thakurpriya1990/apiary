@@ -90,7 +90,6 @@
 
 <script>
     import { v4 as uuid } from 'uuid';
-    // import datatable from '@vue-utils/datatable.vue'
     import { helpers, } from '@/utils/hooks'
     import FormSection from "@/components/forms/section_toggle.vue"
     import PeriodAndSites from "@/components/common/apiary/section_period_and_sites.vue"
@@ -111,7 +110,7 @@
             },
             proposal: {
                 type: Object,
-                default: null,
+                required: true,
             }
         },
         data:function () {
@@ -204,6 +203,7 @@
                             for (let site of transfer_apiary_sites_req) {
                                 this.temporary_use_apiary_sites.push(site);
                             }
+                            console.log(this.temporary_use_apiary_sites)
                         }
                         this.loading_sites = false;
                     }
