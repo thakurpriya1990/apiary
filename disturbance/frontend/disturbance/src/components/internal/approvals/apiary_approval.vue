@@ -171,7 +171,6 @@
                 </template>
             </FormSection>
             
-            <!--TODO fix for segregation - fix this to load the temporary use records after request resolved-->
             <FormSection :formCollapse="false" label="Temporary Use" Index="temporary_use">
                 <template v-if="approval && approval.id">
                     <TemporaryUse
