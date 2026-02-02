@@ -1,8 +1,5 @@
 <template id="proposal_dashboard">
     <div class="row">
-        <template v-if="is_local">
-            proposals_dashboard.vue
-        </template>
         <div class="col-sm-12">
             <div class="row">
                 <div class="col-md-3">
@@ -154,7 +151,6 @@ export default {
             proposal_regions: [],
             proposal_submitters: [],
             proposal_status: [],
-            is_local: helpers.is_local(),
             select2Applied: false,
             dt_options: {},
             datatableReady: false,

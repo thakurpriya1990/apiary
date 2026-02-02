@@ -324,7 +324,6 @@ import ProposedDecline from './proposal_proposed_decline.vue'
 import AmendmentRequest from './amendment_request.vue'
 //import datatable from '@vue-utils/datatable.vue'
 import Requirements from './proposal_requirements.vue'
-// import ProposedApproval from './proposed_apiary_issuance.vue'
 import ApprovalScreen from './proposal_approval.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 //import MoreReferrals from '@common-utils/more_referrals.vue'
@@ -372,7 +371,12 @@ export default {
                 },
                 columns: [
                     {
+                        data: 'id',
+                        visible: false,
+                    },
+                    {
                         title: 'Name',
+                        data: 'id',
                         mRender:function (data,type,full) {
                             return full.first_name + " " + full.last_name;
                         }

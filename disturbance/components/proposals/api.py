@@ -35,9 +35,11 @@ from disturbance.components.proposals.utils import (
     save_apiary_assessor_data, update_proposal_apiary_temporary_use,
     annotate_apiary_site_on_proposal_processed_geometry,
     annotate_apiary_site_on_proposal_draft_geometry,
+    annotate_site_transfer_apiary_site,
+    annotate_temporary_use_apiary_site,
 )
 
-from disturbance.components.approvals.utils import annotate_apiary_site_on_approval_processed_geometry
+from disturbance.components.approvals.utils import annotate_apiary_site_on_approval_geometry
 
 from disturbance.components.proposals.models import ProposalDocument, searchKeyWords, search_reference, \
     OnSiteInformation, ApiarySite, ApiaryChecklistQuestion, ApiaryChecklistAnswer, \
@@ -76,6 +78,7 @@ from disturbance.components.proposals.models import (
     ProposalTypeSection,
     SectionQuestion,
     MasterlistQuestion,
+    TemporaryUseApiarySite,
 )
 from disturbance.components.proposals.serializers import (
     SendReferralSerializer,
@@ -124,12 +127,11 @@ from disturbance.components.proposals.serializers_apiary import (
     FullApiaryReferralSerializer,
     ProposalHistorySerializer,
     UserApiaryApprovalSerializer,
-    ApiarySiteOnProposalProcessedGeometrySerializer,
     ApiarySiteOnProposalProcessedMinimalGeometrySerializer,
     ApiarySiteOnProposalDraftMinimalGeometrySerializer,
     ApiarySiteFeeSerializer,
     ApiarySiteOnProposalVacantDraftMinimalGeometrySerializer,
-    ApiarySiteOnProposalVacantProcessedMinimalGeometrySerializer, ApiarySiteOnProposalDraftGeometrySerializer,
+    ApiarySiteOnProposalVacantProcessedMinimalGeometrySerializer,
 )
 from disturbance.components.approvals.models import Approval, ApiarySiteOnApproval
 from disturbance.components.approvals.serializers import ApprovalLogEntrySerializer
@@ -687,45 +689,11 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         qs_on_approval = self._not_to_be_reissued_sites_qs()
 
         proposal_data = annotate_apiary_site_on_proposal_processed_geometry(qs_on_proposal)
-        approval_data = annotate_apiary_site_on_approval_processed_geometry(qs_on_approval)
+        approval_data = annotate_apiary_site_on_approval_geometry(qs_on_approval)
 
         data = {"features":list(proposal_data)+list(approval_data)}
 
         return Response(data)
-
-    @basic_exception_handler
-    #TODO fix for segregation - investigate/modify, make sure the serializer is not being used for a bulk qs
-    def partial_update(self, request, *args, **kwargs):
-        with transaction.atomic():
-            apiary_site = self.get_object()
-            new_status = request.data.get('status', None)
-            new_availability = request.data.get('available', None)
-
-            if new_status:
-                if new_status == SITE_STATUS_VACANT:
-                    if apiary_site.latest_proposal_link.site_status == SITE_STATUS_DENIED:
-                        apiary_site.make_vacant(True, apiary_site.latest_proposal_link)
-                        # This apiary site must have been in the 'denied' status
-                        serializer = ApiarySiteOnProposalProcessedGeometrySerializer(apiary_site.latest_proposal_link)
-                        return Response(serializer.data)
-                    elif apiary_site.latest_approval_link.site_status == SITE_STATUS_NOT_TO_BE_REISSUED:
-                        apiary_site.make_vacant(True, apiary_site.latest_approval_link)
-                        # This apiary site must have been in the 'not_to_be_reissued' status
-                        serializer = ApiarySiteOnApprovalGeometrySerializer(apiary_site.latest_approval_link)
-                        return Response(serializer.data)
-                    else:
-                        # Should not reach here
-                        return Response({})
-                else:
-                    # For now, this function is only used to change the status to the 'vacant'
-                    return Response({})
-            else:
-                apiary_site_on_approval = apiary_site.latest_approval_link
-                if apiary_site_on_approval.site_status == SITE_STATUS_CURRENT:  # Make sure if the apiary site is 'current' status
-                    apiary_site_on_approval.available = new_availability
-                    apiary_site_on_approval.save()
-                serializer = ApiarySiteOnApprovalGeometrySerializer(apiary_site_on_approval)
-                return Response(serializer.data)
 
 
 class ProposalApiaryViewSet(viewsets.ModelViewSet):
@@ -746,6 +714,20 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
         non_draft_apiary_sites = list(annotate_apiary_site_on_proposal_processed_geometry(non_draft_apiary_sites))
 
         data = {"features":draft_apiary_sites+non_draft_apiary_sites}
+
+        return Response(data)
+
+    @action(detail=True,methods=['GET',])
+    @basic_exception_handler
+    def transfer_apiary_sites(self, request, *args, **kwargs):
+        proposal_apiary = self.get_object()
+
+        if proposal_apiary.proposal.customer_status == 'draft':
+            sites = proposal_apiary.site_transfer_apiary_sites.all()
+        else:
+            sites = proposal_apiary.site_transfer_apiary_sites.filter(customer_selected=True)
+
+        data = list(annotate_site_transfer_apiary_site(sites))
 
         return Response(data)
 
@@ -1136,8 +1118,7 @@ class ApiaryReferralViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-#TODO fix for segregation - determine why this is still used for apiary (internal only?)
-#If this is used it needs to be made secure
+
 class ProposalViewSet(viewsets.ModelViewSet):
     queryset = Proposal.objects.none()
     serializer_class = ProposalSerializer
@@ -1177,6 +1158,14 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
     def internal_serializer_class(self):
         return ApiaryInternalProposalSerializer
+
+    @action(detail=True,methods=['GET',])
+    def tempary_use_apiary_sites(self, request, *args, **kwargs):
+        instance = self.get_object()
+        qs = TemporaryUseApiarySite.objects.filter(proposal_apiary_temporary_use=instance.apiary_temporary_use)
+
+        data = list(annotate_temporary_use_apiary_site(qs))
+        return Response(data)
 
     @action(detail=True,methods=['POST',])
     def get_revision(self, request, *args, **kwargs):
@@ -2143,6 +2132,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
                             'proposal_apiary_temporary_use_id': new_temp_use.id,
                             'apiary_site_on_approval_id': relation.id,
                         }
+                        #TODO fix for segregation - replace this (do not use serializer)
                         serializer = TemporaryUseApiarySiteSerializer(data=data_to_save)
                         serializer.is_valid(raise_exception=True)
                         serializer.save()

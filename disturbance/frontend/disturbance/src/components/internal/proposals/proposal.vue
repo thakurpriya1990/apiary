@@ -1,9 +1,5 @@
 <template lang="html">
     <div v-if="proposal" class="container" id="internalProposal">
-
-        <template v-if="is_local">
-            proposal.vue
-        </template>
       <div class="row">
         <h3 v-if="proposal.migrated">Proposal: {{ proposal.lodgement_number }} (Migrated)</h3>
         <h3 v-else>Proposal: {{ proposal.lodgement_number }}</h3>
@@ -430,7 +426,6 @@ export default {
             requirementsComplete:true,
             state_options: ['requirements','processing'],
             contacts_table_id: uuid() +'contacts-table',
-            is_local: helpers.is_local(),
             contacts_options:{
                 language: {
                     processing: constants.DATATABLE_PROCESSING_HTML,

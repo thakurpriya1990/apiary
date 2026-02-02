@@ -1,8 +1,5 @@
 <template>
     <div class="container">
-        <template v-if="is_local">
-            site_transitions.vue
-        </template>
         <FormSection :formCollapse="false" label="Site(s)" Index="site_avaiability">
             <ComponentSiteSelection
                 :apiary_sites="apiary_sites"
@@ -30,7 +27,6 @@
             return {
                 component_site_selection_key: uuid(),
                 apiary_sites: [],
-                is_local: helpers.is_local(),
             }
         },
         components: {

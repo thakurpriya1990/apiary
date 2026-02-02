@@ -396,7 +396,6 @@ class ComplianceViewSet(viewsets.ModelViewSet):
 class ComplianceAmendmentRequestViewSet(viewsets.GenericViewSet):
     serializer_class = ComplianceAmendmentRequestSerializer
 
-    #TODO fix for segregation review permissions
     def create(self, request, *args, **kwargs):
         try:
             with transaction.atomic():

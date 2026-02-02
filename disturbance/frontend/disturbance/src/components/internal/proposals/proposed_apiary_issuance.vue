@@ -1,13 +1,9 @@
 <template lang="html">
     <div id="proposedIssuanceApproval">
         <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large>
-            <template v-if="is_local">
-                proposed_apiary_issuance.vue
-            </template>
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="approvalForm">
-                        <!-- <alert v-if="isApprovalLevelDocument" type="warning"><strong>{{warningString}}</strong></alert> -->
                         <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
 
@@ -24,11 +20,7 @@
                                             </template>
                                             <template v-else>
                                                 <div class="input-group date" ref="start_date" style="width: 70%;">
-                                                    <!-- <input type="text" class="form-control" name="start_date" placeholder="DD/MM/YYYY" v-model="approval.start_date"> -->
                                                     <input type="date" class="form-control" name="start_date" placeholder="DD/MM/YYYY" v-model="approval.start_date" :min="today">
-                                                    <!-- <span class="input-group-addon">
-                                                        <span class="glyphicon glyphicon-calendar"></span>
-                                                    </span> -->
                                                 </div>
                                             </template>
                                         </div>
@@ -50,11 +42,7 @@
                                             </template>
                                             <template v-else>
                                                 <div class="input-group date" ref="due_date" style="width: 70%;">
-                                                    <!-- <input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="approval.expiry_date" :readonly="is_amendment"> -->
                                                     <input type="date" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="approval.expiry_date" :readonly="is_amendment" :min="approval.start_date">
-                                                    <!-- <span class="input-group-addon">
-                                                        <span class="glyphicon glyphicon-calendar"></span>
-                                                    </span> -->
                                                 </div>
                                             </template>
                                         </div>
@@ -73,11 +61,7 @@
                                         </div>
                                         <div class="col-sm-9">
                                             <div class="input-group date" ref="start_date" style="width: 70%;">
-                                                <!-- <input type="text" class="form-control" name="start_date" placeholder="DD/MM/YYYY" v-model="approval.start_date"> -->
                                                 <input type="date" class="form-control" name="start_date" placeholder="DD/MM/YYYY" v-model="approval.start_date" :min="today">
-                                                <!-- <span class="input-group-addon">
-                                                    <span class="glyphicon glyphicon-calendar"></span>
-                                                </span> -->
                                             </div>
                                         </div>
                                     </div>
@@ -94,11 +78,7 @@
                                         </div>
                                         <div class="col-sm-9">
                                             <div class="input-group date" ref="due_date" style="width: 70%;">
-                                                <!-- <input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="approval.expiry_date"> -->
                                                 <input type="date" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="approval.expiry_date" :readonly="is_amendment" :min="approval.start_date">
-                                                <!-- <span class="input-group-addon">
-                                                    <span class="glyphicon glyphicon-calendar"></span>
-                                                </span> -->
                                             </div>
                                         </div>
                                     </div>
@@ -132,11 +112,6 @@
                                 </div>
                             </div>
 
-<!--
-                            <pre>{{ issuance_details }}</pre>
-                                    <pre>{{ site.properties }}</pre>
-                                    <pre>{{ site.properties.licensed_site }}</pre>
--->
                             <div v-for="(site) in apiary_sites_updated_ordered" :key="site">
                                 <div v-if="!site.properties.licensed_site">
 				                    <div class="col-md-12">
@@ -151,46 +126,17 @@
                                                                                             v-model="site.properties.batch_no"
                                                                                         >
                                                         </div>
-                <!--
-                                                                                        v-model="issuance_details[index].batch_no"
-                                                                                        v-model="site.properties.issuance_details.batch_no"
-                                                    <pre>{{ site.properties.issuance_details }}</pre>
-                                                <div class="col-sm-4">
-                                                    <label class="control-label pull-left"  for="name">Batch Number</label><br>
-                                                    <input type="text" class="form-control" name="approval_batch_no" style="width:100%;" ref="batch_no"
-                                                                                        v-model="issuance_details.batch_no"
-                                                                                    >
-                                                </div>
-                -->
-
-                <!--
-                                                <div class="col-sm-4">
-                                                <label class="control-label pull-left" style="text-align:left" for="name">Conservation and Parks Commission</label>
-                                                <div class="input-group date" ref="site_cpc_date" style="width: 70%;">
-                                                    <input type="text" class="form-control" name="site_cpc_date" placeholder="DD/MM/YYYY" v-model="site.properties.approval_cpc_date">
-                                                    <span class="input-group-addon">
-                                                    <span class="glyphicon glyphicon-calendar"></span>
-                                                    </span>
-                                                </div>
-                                                </div>
-                -->
 
                                                         <div class="col-sm-4">
                                                             <label class="control-label pull-left" style="text-align:left" for="name">Conservation and Parks Commission</label>
-                                                            <!-- <input type="text" class="form-control" name="site_cpc_date" placeholder="YYYY-MM-DD" style="width:100%;" ref="cpc_date" 
-                                                                                                v-model="site.properties.approval_cpc_date"> -->
                                                             <input type="date" class="form-control" name="site_cpc_date" placeholder="DD/MM/YYYY" style="width:100%;" ref="cpc_date" v-model="site.properties.approval_cpc_date">
                                                         </div>
                                                         <div class="col-sm-4">
                                                             <label class="control-label pull-left" style="text-align:left" for="name">Minister for Environment or Delegate</label>
-                                                            <!-- <input type="text" class="form-control" name="site_minister_date" placeholder="YYYY-MM-DD" style="width:100%;" ref="minister_date" 
-                                                                                                v-model="site.properties.approval_minister_date" > -->
                                                             <input type="date" class="form-control" name="site_minister_date" placeholder="DD/MM/YYYY" style="width:100%;" ref="minister_date"  v-model="site.properties.approval_minister_date">
                                                         </div>
                                                     </div>
 
-                <!--
-                -->
                                                     <div class="row mb-3">
                                                         <div class="col-sm-4">
                                                             <label class="control-label pull-left"  for="name">Map Reference</label><br>
@@ -229,25 +175,11 @@
                                                             <input type="checkbox" class="form-check-input" name="site_dra_permit" ref="dra_permit" v-model="site.properties.dra_permit">
                                                         </div>
                                                     </div>
-
-                                                    <!-- </div>
-                                                </div> -->
                                             </FormSection>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
-
-<!--
-                            <pre>{{ apiary_sites_updated }}</pre>
-                <div v-for="site in apiary_sites_updated">
-                    <div v-if="site.properties.licensed_site" style="border">
-                        {{ site.id }}: {{ site.properties.licensed_site}}
-                    </div>
-                </div>
--->
-
 
                             <div class="form-group">
                                 <div class="row mb-3">
@@ -268,7 +200,7 @@
                     </form>
                 </div>
 
-                <template v-if="proposal && proposal.proposal_apiary.apiary_sites">
+                <template v-if="proposal && !loading_sites">
                     <ComponentSiteSelection
                         :apiary_sites="apiary_sites_prop"
                         :is_internal="true"
@@ -302,16 +234,6 @@
                     Click <a href="#" @click.prevent="preview">here</a> to preview the licence letter.
                 </div>
             </div>
-
-<!--
-            <div>
-                <div v-for="site in apiary_sites_updated">
-                    <div v-if="site.properties.licensed_site">
-                        {{ site }}
-                    </div>
-                </div>
-            </div>
--->
 
             <template #footer>
                 <button type="button" v-if="issuingApproval" disabled class="btn btn-primary" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
@@ -371,12 +293,11 @@ export default {
         },
         applicant_email: {
             type: String,
-            //default: ''
         },
     },
     data:function () {
         return {
-            //furtherInfo: "further-info-"+uuid(),
+            loading_sites: true,
             isModalOpen:false,
             form:null,
             approval: {},
@@ -396,12 +317,12 @@ export default {
             warningString: 'Please attach Level of Approval document before issuing Approval',
             component_site_selection_key: '',
             num_of_sites_selected: 0,
-            is_local: helpers.is_local(),
+            apiary_sites_prop: [],
             issuance_details: [
-		{
+		        {
                     batch_no: null,
                 }
-	    ],
+	        ],
         }
     },
     computed: {
@@ -465,7 +386,6 @@ export default {
             return vm.startDateError;
         },
         title: function(){
-            //return this.processing_status == 'With Approver' ? 'Issue Application' : 'Propose to issue licence';
             return this.processing_status == 'With Approver' ? 'Issue Application' : 'Propose to Issue';
         },
         is_amendment: function(){
@@ -480,32 +400,6 @@ export default {
         preview_licence_url: function() {
           return (this.proposal_id) ? `/preview/licence-pdf/${this.proposal_id}` : '';
         },
-        //TODO fix for segregation do not get apiary sites from proposal, get them from their own endpoint
-        apiary_sites_prop: function() {
-            let apiary_sites = [];
-            if (this.proposal.application_type === 'Site Transfer') {
-                for (let site of this.proposal.proposal_apiary.transfer_apiary_sites) {
-                    /*
-                    if (site.selected) {
-                        apiary_sites.push(site.apiary_site);
-                    }
-                    */
-                    apiary_sites.push(site.apiary_site);
-                }
-            } else {
-                apiary_sites = this.proposal.proposal_apiary.apiary_sites;
-            }
-            return apiary_sites;
-        },
-        /*
-        showColCheckbox: function() {
-            let checked = true;
-            if (this.proposal.application_type === 'Site Transfer') {
-                checked = false;
-            }
-            return checked;
-        },
-        */
         siteTransferApplication: function() {
             let siteTransfer = false;
             if (this.proposal.application_type === 'Site Transfer') {
@@ -550,11 +444,6 @@ export default {
 
     },
     methods:{
-
-        //detailsInfo: function(site){
-        //    return 'details-info-' + site.id
-        //},
-
         featureGeometryUpdated: function(feature){
             for (let i=0; i<this.apiary_sites_updated.length; i++){
                 if (this.apiary_sites_updated[i].id == feature.id){
@@ -564,7 +453,6 @@ export default {
         },
         apiarySitesUpdated: function(apiary_sites) {
             this.apiary_sites_updated = apiary_sites
-            //this.proposal.proposal_apiary.apiary_sites = JSON.parse(JSON.stringify(apiary_sites))
 
             // Update this.num_of_sites_selected
             let temp = 0
@@ -582,7 +470,6 @@ export default {
             if(this.proposal && this.proposal.proposal_apiary){
                 for (let i=0; i<this.proposal.proposal_apiary.apiary_sites.length; i++){
                     this.proposal.proposal_apiary.apiary_sites[i].checked = (this.proposal.proposal_apiary.apiary_sites[i].properties.workflow_selected_status || this.proposal.proposal_apiary.apiary_sites[i].properties.status === 'approved')
-                    //this.proposal.proposal_apiary.apiary_sites[i].checked = (this.proposal.proposal_apiary.apiary_sites[i].properties.workflow_selected_status)
                 }
             }
         },
@@ -599,24 +486,7 @@ export default {
                 this.$refs.component_site_selection.forceToRefreshMap()
             }
         },
-        /*
         preview:function () {
-            let vm =this;
-            let formData = new FormData(vm.form)
-            if (this.proposal.approval && this.proposal.approval.start_date && this.proposal.approval.expiry_date) {
-                formData.append('start_date', moment(this.proposal.approval.start_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-                formData.append('due_date', moment(this.proposal.approval.expiry_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-            }
-            // convert formData to json
-            let jsonObject = {};
-            for (const [key, value] of formData.entries()) {
-                jsonObject[key] = value;
-            }
-            vm.post_and_redirect(vm.preview_licence_url, {'csrfmiddlewaretoken' : vm.csrf_token, 'formData': JSON.stringify(jsonObject)});
-        },
-        */
-        preview:function () {
-            //this.sendData(true);
             this.previewData();
         },
         preview_originating_approval:function () {
@@ -625,38 +495,6 @@ export default {
         preview_target_approval:function () {
             this.previewData('target')
         },
-        /*
-        preview_originating_approval:function () {
-            let vm =this;
-            let formData = new FormData(vm.form)
-            if (this.proposal.approval && this.proposal.approval.start_date && this.proposal.approval.expiry_date) {
-                formData.append('start_date', moment(this.proposal.approval.start_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-                formData.append('due_date', moment(this.proposal.approval.expiry_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-            }
-            // convert formData to json
-            let jsonObject = {};
-            for (const [key, value] of formData.entries()) {
-                jsonObject[key] = value;
-            }
-            jsonObject['originating_approval_id'] = this.proposal.proposal_apiary.originating_approval_id;
-            vm.post_and_redirect(vm.preview_licence_url, {'csrfmiddlewaretoken' : vm.csrf_token, 'formData': JSON.stringify(jsonObject)});
-        },
-        preview_target_approval:function () {
-            let vm =this;
-            let formData = new FormData(vm.form)
-            if (this.proposal.approval && this.proposal.approval.start_date && this.proposal.approval.expiry_date) {
-                formData.append('start_date', moment(this.proposal.approval.start_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-                formData.append('due_date', moment(this.proposal.approval.expiry_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-            }
-            // convert formData to json
-            let jsonObject = {};
-            for (const [key, value] of formData.entries()) {
-                jsonObject[key] = value;
-            }
-            jsonObject['target_approval_id'] = this.proposal.proposal_apiary.target_approval_id;
-            vm.post_and_redirect(vm.preview_licence_url, {'csrfmiddlewaretoken' : vm.csrf_token, 'formData': JSON.stringify(jsonObject)});
-        },
-        */
         post_and_redirect: function(url, postData) {
             /* http.post and ajax do not allow redirect from Django View (post method),
                this function allows redirect by mimicking a form submit.
@@ -675,9 +513,9 @@ export default {
         },
         ok:function () {
             let vm =this;
+            //TODO fix for segregation - better handling
             if($(vm.form).valid()){
                 vm.sendData();
-                //vm.$router.push({ path: '/internal' });
             }
         },
         cancel:function () {
@@ -690,12 +528,6 @@ export default {
             this.toDateError = false;
             this.startDateError = false;
             $('.has-error').removeClass('has-error');
-            // if (this.$refs.due_date) {
-            //     $(this.$refs.due_date).data('DateTimePicker').clear();
-            // }
-            // if (this.$refs.start_date) {
-            //     $(this.$refs.start_date).data('DateTimePicker').clear();
-            // }
             this.validation_form.resetForm();
         },
         fetchContact: function(id){
@@ -710,7 +542,6 @@ export default {
             });
         },
         previewData:function(originating_target=null){
-            //let previewWindow = window.open(' ', '_blank');
             let previewWindow = window.open();
 
             this.approval.preview = true;
@@ -736,23 +567,6 @@ export default {
 
             this.issuingApproval = true;
             if (this.state == 'final_approval'){
-                /*
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposal_apiary,vm.proposal_apiary_id+'/final_approval'),JSON.stringify(approval),{
-                        emulateJSON:true,
-                }).then((response) => {
-                        //const blob = new Blob([response.body],{type: 'image/pdf'});
-                        const pdfBlob = new Blob([response.body],{type: 'application/pdf'});
-                        const objectURL = window.URL.createObjectURL(pdfBlob);
-                        let link = document.createElement('a');
-                        link.href = objectURL;
-                        link.download="file.pdf";
-                        link.click();
-                    },(error)=>{
-                        vm.errors = true;
-                        //vm.issuingApproval = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    });
-                */
                 fetch(helpers.add_endpoint_json(api_endpoints.proposal_apiary,this.proposal_apiary_id+'/final_approval'), {
                     method: 'POST',
                     body: JSON.stringify(approval),
@@ -762,13 +576,6 @@ export default {
                         "X-CSRFToken": this.csrf_token,
                     },
                 })
-                    /*
-                    .then((response) => {
-                        previewWindow.document.write(response);
-                        previewWindow.focus();
-                    });
-                    */
-
                     .then(response => response.blob())
                     .then(function(myBlob) {
                         const objectURL = URL.createObjectURL(myBlob);
@@ -779,16 +586,9 @@ export default {
             this.approval.preview = false;
             this.issuingApproval = false;
         },
-        //sendData:function(preview=false,originating_target=null){
         sendData:function(preview=false){
             let vm = this;
             vm.errors = false;
-            /*
-            if (preview) {
-                vm.approval.preview = preview;
-            }
-            */
-            //vm.approval.apiary_sites = vm.proposal.proposal_apiary.apiary_sites
             vm.approval.apiary_sites = vm.apiary_sites_updated
             if (!this.startDateCanBeModified  && !this.siteTransferApplication){
                 // There is an existing licence. Therefore start_date and expiry_date are fixed to that dates
@@ -830,7 +630,6 @@ export default {
                     vm.issuingApproval = false;
                     try {
                         const errData = await error.json();
-                        //vm.errorString = helpers.apiVueResourceError(errData);
                         vm.errorString = errData;
                     } catch {
                         vm.errorString = 'An unexpected error occurred.';
@@ -838,27 +637,9 @@ export default {
                 });
             }
             else if (vm.state == 'final_approval' && preview){
-                /*
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposal_apiary,vm.proposal_apiary_id+'/final_approval'),JSON.stringify(approval),{
-                        emulateJSON:true,
-                }).then((response) => {
-                        //const blob = new Blob([response.body],{type: 'image/pdf'});
-                        const pdfBlob = new Blob([response.body],{type: 'application/pdf'});
-                        const objectURL = window.URL.createObjectURL(pdfBlob);
-                        let link = document.createElement('a');
-                        link.href = objectURL;
-                        link.download="file.pdf";
-                        link.click();
-                    },(error)=>{
-                        vm.errors = true;
-                        //vm.issuingApproval = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    });
-                */
                 fetch(helpers.add_endpoint_json(api_endpoints.proposal_apiary,vm.proposal_apiary_id+'/final_approval'), {
                     method: 'POST',
                     body: JSON.stringify(approval),
-                    //body: this.approval,
                     headers: {
                         "Content-Type": "application/json",
                         "X-CSRFToken": vm.csrf_token,
@@ -866,8 +647,6 @@ export default {
                 })
                     .then(response => response.blob())
                     .then(function(myBlob) {
-                        //const blob = new Blob([response.body],{type: 'image/pdf'});
-                        //const blob = new Blob([response.body],{type: 'application/pdf'});
                         const objectURL = URL.createObjectURL(myBlob);
                         let link = document.createElement('a');
                         link.href = objectURL;
@@ -898,7 +677,6 @@ export default {
                         vm.issuingApproval = false;
                         try {
                             const errData = await error.json();
-                            //vm.errorString = helpers.apiVueResourceError(errData);
                             vm.errorString = errData;
                         } catch {
                             vm.errorString = 'An unexpected error occurred.';
@@ -948,7 +726,7 @@ export default {
        eventListeners:function () {
            
        }
-   },
+    },
     mounted:function () {
         let vm =this;
         vm.form = document.forms.approvalForm;
@@ -962,6 +740,40 @@ export default {
             this.setApiarySiteCheckedStatuses();
         }
         this.component_site_selection_key = uuid()
+    },
+    created: function() {
+        if (this.proposal.application_type === 'Site Transfer') {
+            let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/transfer_apiary_sites/'
+            fetch(url_sites).then(
+                async (response) => {
+                    if (response.ok) {
+                        let transfer_apiary_sites_req = await response.json();
+                        for (let site of transfer_apiary_sites_req) {
+                            this.apiary_sites_prop.push(site.apiary_site);
+                        }
+                    }
+                    this.loading_sites = false;
+                }
+            ).catch((error) => {
+                console.log(error);
+                this.loading_sites = false;
+            })
+        } else {
+            //NOTE: this is how we should be loading sites from now on (not bundled with proposal, loaded separetely with a loading_sites boolean)
+            let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/apiary_sites/'
+            fetch(url_sites).then(
+                async (response) => {
+                    if (response.ok) {
+                        let apiary_sites_req = await response.json();
+                        this.apiary_sites_prop = JSON.parse(JSON.stringify(apiary_sites_req)).features
+                    }
+                    this.loading_sites = false;
+                }
+            ).catch((error) => {
+                console.log(error);
+                this.loading_sites = false;
+            })
+        }
     }
 }
 </script>
@@ -971,114 +783,3 @@ export default {
   border: 1px solid black ;
 }
 </style>
-
-<!--
-						<div class="col-sm-12">
-						    <div class="form-group">
-							<div class="row">
-							    <div class="col-sm-4">
-								<label class="control-label pull-left"  for="Name">Batch Number</label>
-							    </div>
-							    <div class="col-sm-8">
-								    <input type="text" class="form-control" name="approval_batch_no" style="width:70%;" ref="batch_no" v-model="approval.batch_no">
-							    </div>
-							</div>
-						    </div>
-
-						    <div class="form-group">
-							<div class="row">
-							    <div class="col-sm-4">
-								<label class="control-label pull-left" style="text-align:left" for="Name">Conservation and Parks Commission</label>
-							    </div>
-							    <div class="col-sm-8">
-								    <input type="text" class="form-control" name="approval_cpc_date" style="width:70%;" ref="cpc_date" v-model="approval.cpc_date">
-							    </div>
-							</div>
-						    </div>
-
-						    <div class="form-group">
-							<div class="row">
-							    <div class="col-sm-4">
-								<label class="control-label pull-left" style="text-align:left" for="Name">Minister for Environment or Delegate</label>
-							    </div>
-							    <div class="col-sm-8">
-								    <input type="text" class="form-control" name="approval_minister_date" style="width:70%;" ref="minister_date" v-model="approval.minister_date">
-							    </div>
-							</div>
-						    </div>
-
-
-						    <div class="form-group">
-							<div class="row">
-							    <div class="col-sm-4">
-								<label class="control-label pull-left"  for="Name">Map Reference</label>
-							    </div>
-							    <div class="col-sm-8">
-								    <input type="text" class="form-control" name="approval_map_ref" style="width:70%;" ref="map_ref" v-model="approval.map_ref">
-							    </div>
-							</div>
-						    </div>
-
-						    <div class="form-group">
-							<div class="row">
-							    <div class="col-sm-4">
-								<label class="control-label pull-left"  for="Name">Forest Block</label>
-							    </div>
-							    <div class="col-sm-8">
-								    <input type="text" class="form-control" name="approval_forest_block" style="width:70%;" ref="forest_block" v-model="approval.forest_block">
-							    </div>
-							</div>
-						    </div>
-
-						    <div class="form-group">
-							<div class="row">
-							    <div class="col-sm-4">
-								<label class="control-label pull-left"  for="Name">COG Map Reference</label>
-							    </div>
-							    <div class="col-sm-8">
-								    <input type="text" class="form-control" name="approval_cog" style="width:70%;" ref="cog" v-model="approval.cog">
-							    </div>
-							</div>
-						    </div>
-						    <div class="form-group">
-							<div class="row">
-							    <div class="col-sm-4">
-								<label class="control-label pull-left"  for="Name">Nearest Road/Track</label>
-							    </div>
-							    <div class="col-sm-8">
-								    <input type="text" class="form-control" name="approval_roadtrack" style="width:70%;" ref="roadtrack" v-model="approval.roadtrack">
-							    </div>
-							</div>
-						    </div>
-						    <div class="form-group">
-							<div class="row">
-							    <div class="col-sm-4">
-								<label class="control-label pull-left"  for="Name">Apiary Zone</label>
-							    </div>
-							    <div class="col-sm-8">
-								    <input type="text" class="form-control" name="approval_zone" style="width:70%;" ref="zone" v-model="approval.zone">
-							    </div>
-							</div>
-						    </div>
-						    <div class="form-group">
-							<div class="row">
-							    <div class="col-sm-4">
-								<label class="control-label pull-left"  for="Name">Water Catchment Area</label>
-							    </div>
-							    <div class="col-sm-8">
-								    <input type="text" class="form-control" name="approval_catchment" style="width:70%;" ref="catchment" v-model="approval.catchment">
-							    </div>
-							</div>
-						    </div>
-						    <div class="form-group">
-							<div class="row">
-							    <div class="col-sm-4">
-								<label class="control-label pull-left"  for="Name">DRA Permit Required</label>
-							    </div>
-							    <div class="col-sm-1">
-								    <input type="checkbox" class="form-control" name="approval_dra_permit" style="width:70%;" ref="dra_permit" v-model="approval.dra_permit">
-							    </div>
-							</div>
-						    </div>
--->
-

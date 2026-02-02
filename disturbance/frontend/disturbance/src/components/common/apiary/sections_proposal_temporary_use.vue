@@ -2,7 +2,7 @@
     <div>
 
         <FormSection :formCollapse="false" label="Period and Site(s)" Index="period_and_sites">
-            <template v-if="proposal && proposal.apiary_temporary_use">
+            <template v-if="proposal && proposal.apiary_temporary_use && !loading_sites">
                 <PeriodAndSites 
                     :is_external="is_external" 
                     :is_internal="is_internal" 
@@ -11,7 +11,7 @@
                     :processing_status="proposal.processing_status"
                     :from_date="proposal.apiary_temporary_use.from_date"
                     :to_date="proposal.apiary_temporary_use.to_date"
-                    :temporary_use_apiary_sites="proposal.apiary_temporary_use.temporary_use_apiary_sites"
+                    :temporary_use_apiary_sites="temporary_use_apiary_sites"
                     :existing_temporary_uses="existing_temporary_uses"
                     @from_date_changed="fromDateChanged"
                     @to_date_changed="toDateChanged"
@@ -84,29 +84,12 @@
                 />
             </template>
         </FormSection>
-<!--
-        <div style="margin-bottom: 50px">
-            <div class="navbar navbar-fixed-bottom" style="background-color: #f5f5f5 ">
-                <div class="navbar-inner">
-                    <div class="container">
-                        <p class="pull-right" style="margin-top:5px;">
-                            <input type="button" @click.prevent="save_exit" class="btn btn-primary" value="Save and Exit"/>
-                            <input type="button" @click.prevent="save" class="btn btn-primary" value="Save and Continue"/>
-                            <input v-if="!isSubmitting" type="button" @click.prevent="submit" class="btn btn-primary" value="Submit"/>
-                            <button v-else disabled class="btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Submitting</button>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
--->
 
     </div>
 </template>
 
 <script>
     import { v4 as uuid } from 'uuid';
-    // import datatable from '@vue-utils/datatable.vue'
     import { helpers, } from '@/utils/hooks'
     import FormSection from "@/components/forms/section_toggle.vue"
     import PeriodAndSites from "@/components/common/apiary/section_period_and_sites.vue"
@@ -127,7 +110,7 @@
             },
             proposal: {
                 type: Object,
-                default: null,
+                required: true,
             }
         },
         data:function () {
@@ -143,6 +126,8 @@
                 application: {},
                 apiary_sites_available: [],
                 existing_temporary_uses: [],
+                temporary_use_apiary_sites: [],
+                loading_sites: true,
             }
         },
         components: {
@@ -200,13 +185,35 @@
             apiarySitesUpdated: function(apiary_sites){
                 console.log('apiary_sites')
                 console.log(apiary_sites)
+                //TODO fix for segregation - investigate and adjust to ensure values are updated (without relying on the serialiser)
                 for (let i=0; i<apiary_sites.length; i++){
-                    let temporary_use_apiary_site = this.proposal.apiary_temporary_use.temporary_use_apiary_sites.find(element => element.apiary_site.id == apiary_sites[i].id)
+                    let temporary_use_apiary_site = this.temporary_use_apiary_sites.find(element => element.apiary_site.id == apiary_sites[i].id)
                     // Update temporary_use_apiary_site, which is sent to the backend when saving
                     temporary_use_apiary_site.apiary_site = apiary_sites[i]
                 }
             },
         },
+        created: function() {
+            if (this.proposal && this.proposal.apiary_temporary_use) {
+                let url_sites = '/api/proposal/' + this.proposal.id + '/tempary_use_apiary_sites/'
+                fetch(url_sites).then(
+                    async (response) => {
+                        if (response.ok) {
+                            let transfer_apiary_sites_req = await response.json();
+                            for (let site of transfer_apiary_sites_req) {
+                                this.temporary_use_apiary_sites.push(site);
+                            }
+                        }
+                        this.loading_sites = false;
+                    }
+                ).catch((error) => {
+                    console.log(error);
+                    this.loading_sites = false;
+                })
+            } else {
+                this.loading_sites = false;
+            }
+        }
     }
 </script>
 

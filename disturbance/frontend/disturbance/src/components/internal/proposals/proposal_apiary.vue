@@ -1,7 +1,5 @@
 <template lang="html">
     <div v-if="proposal" id="internalProposal">
-        <template v-if="is_local">
-        </template>
       <div class="row">
         <h3>Application: {{ proposal.lodgement_number }}</h3>
         <h4>Application Type: {{proposal.activity }}</h4>
@@ -538,7 +536,6 @@ export default {
             logs_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/action_log'),
             panelClickersInitialised: false,
             sendingReferral: false,
-            is_local: helpers.is_local(),
         }
     },
     components: {
@@ -1408,17 +1405,17 @@ export default {
     },
     created: async function() {
         try {
-            //TODO fix for segregation - make it so we NEVER load with apiary sites (always load separately)
-            fetch(`/api/proposal/${this.proposalId}/internal_proposal.json/?with_apiary_sites=true`)
+            fetch(`/api/proposal/${this.proposalId}/internal_proposal.json`)
             .then(async (res) => {
                 if (!res.ok) { return res.json().then(err => { throw err }); }
                 const data = await res.json();
                 this.proposal = Object.assign({}, data);
-                //this.original_proposal = helpers.copyObject(res.body);
+
                 if (this.proposal.applicant && this.proposal.applicant.address) {
                     this.proposal.applicant.address = this.proposal.applicant.address != null ? this.proposal.applicant.address : {};
                 }
                 this.hasAmendmentRequest = this.proposal.hasAmendmentRequest;
+                
             }).catch(err => {
                 console.log(err);
             });

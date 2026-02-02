@@ -1,8 +1,5 @@
 <template lang="html">
     <div class="container" >
-        <template v-if="is_local">
-            proposal_external.vue
-        </template>
         <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
             <div v-if="!proposal_readonly">
               <div v-if="hasAmendmentRequest" class="row" style="color:red;">
@@ -231,8 +228,6 @@ export default {
             siteTransferApplicationFee: "0.00",
             total_num_of_sites_on_map_unpaid: 0,
             total_num_of_sites_on_map: 0,
-
-            is_local: helpers.is_local(),
         }
     },
     components: {

@@ -54,7 +54,7 @@ from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.renderers import DatatablesRenderer
 from disturbance.components.main.utils import get_template_group, handle_validation_error
-
+from disturbance.components.approvals.utils import annotate_apiary_site_on_approval_geometry
 
 class ApprovalFilterBackend(DatatablesFilterBackend):
     """
@@ -380,38 +380,20 @@ class ApprovalViewSet(viewsets.ModelViewSet):
 
         return Response({})
 
-    #TODO fix for segregation this still has performance issues, replace the serializer with something lighter
-    # To solve the performance issue
     @action(detail=True,methods=['GET',])
     @basic_exception_handler
     def apiary_sites(self, request, *args, **kwargs):
         approval = self.get_object()
-        # ret = []
-        from disturbance.components.approvals.serializers_apiary import ApiarySiteOnApprovalGeometrySerializer
-        # for relation in approval.get_relations():
-        #     ret.append(ApiarySiteOnApprovalGeometrySerializer(relation).data)
-        # return ret
-        serializer = ApiarySiteOnApprovalGeometrySerializer(approval.get_relations(), many=True)
-        return Response(serializer.data)
+        approval_data = annotate_apiary_site_on_approval_geometry(approval.get_relations())
+        data = {"features":list(approval_data)}
+        return Response(data)
 
     @action(detail=True,methods=['GET',])
     @basic_exception_handler
     def apiary_site(self, request, *args, **kwargs):
-        instance = self.get_object()
-        # optimised = request.query_params.get('optimised', False)
-        # apiary_site_qs = instance.apiary_sites.all()
-
-        from disturbance.components.approvals.serializers_apiary import ApiarySiteOnApprovalGeometrySerializer
-        serializer = ApiarySiteOnApprovalGeometrySerializer(instance.get_relations(), many=True)
-        return Response(serializer.data['features'])
-
-        # if optimised:
-            # No on-site-information attached
-            # serializers = ApiarySiteOptimisedSerializer(apiary_site_qs, many=True)
-            # return Response(serializers.data)
-        # else:
-            # With on-site-information
-            # serializers = ApiarySiteSerializer(apiary_site_qs, many=True)
+        approval = self.get_object()
+        approval_data = annotate_apiary_site_on_approval_geometry(approval.get_relations())
+        return Response(list(approval_data))
 
     @action(detail=True,methods=['POST',])
     @basic_exception_handler

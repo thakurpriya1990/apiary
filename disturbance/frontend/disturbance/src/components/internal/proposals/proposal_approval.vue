@@ -128,6 +128,7 @@ export default {
             proposedLevel: "proposal-level-"+uuid(),
             uploadedFile: null,
             component_site_selection_key: '',
+            apiary_sites: {},
         }
     },
     components:{
@@ -160,13 +161,6 @@ export default {
         isApprovalLevel:function(){
             return this.proposal.approval_level != null ? true : false;
         },
-        //TODO fix for segregation do not get apiary sites from proposal, get them from their own endpoint
-        apiary_sites: function() {
-            if (this.proposal && this.proposal.proposal_apiary) {
-                return this.proposal.proposal_apiary.apiary_sites;
-            }
-            return [];
-        },
         apiary_sites_prop: function() {
             let apiary_sites = [];
             if (this.proposal.application_type === 'Site Transfer') {
@@ -193,6 +187,22 @@ export default {
 
     },
     methods:{
+        getApiarySites: function() {
+            if (this.proposal && this.proposal.proposal_apiary) {
+
+                let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/apiary_sites/'
+                fetch(url_sites).then(
+                    async (response) => {
+                        if (response.ok) {
+                            let apiary_sites_req = await response.json();
+                            this.apiary_sites = JSON.parse(JSON.stringify(apiary_sites_req))
+                        }
+                    }
+                ).catch((error) => {
+                    console.log(error);
+                })
+            }
+        },
         updateComponentSiteSelectionKey: function(){
             console.log('in updateComponentSiteSelectionKey')
             this.component_site_selection_key = uuid()
@@ -298,6 +308,10 @@ export default {
     },
     mounted: function(){
         this.updateComponentSiteSelectionKey()
+    },
+    created: function() {
+        let vm = this;
+        vm.getApiarySites();
     }
 }
 </script>

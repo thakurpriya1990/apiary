@@ -3,7 +3,7 @@ from django.db.models import CharField
 from django.contrib.postgres.fields import ArrayField
 from django.db.models.functions import JSONObject, Concat
 
-def annotate_apiary_site_on_approval_processed_geometry(qs):
+def annotate_apiary_site_on_approval_geometry(qs):
     
     annotated = qs.annotate(
             lat=Func("wkb_geometry", function="ST_Y", output_field=FloatField()),
