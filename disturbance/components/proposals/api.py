@@ -1164,7 +1164,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         qs = TemporaryUseApiarySite.objects.filter(proposal_apiary_temporary_use=instance.apiary_temporary_use)
 
-        data = annotate_temporary_use_apiary_site(qs)
+        data = list(annotate_temporary_use_apiary_site(qs))
         return Response(data)
 
     @action(detail=True,methods=['POST',])
