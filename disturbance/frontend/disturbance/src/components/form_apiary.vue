@@ -114,6 +114,7 @@
                             <label>Expiry Date</label>
                         </div>
                         <div class="grow1">
+                            <!--TODO fix for segregation - fix expiry date not saving...-->
                             <div class="input-group date" ref="expiryDatePicker"  style="width: 70%;">
                                 <input type="date" class="form-control" v-model="expiry_date_local" placeholder="DD/MM/YYYY" id="expiry_date_input_element" :readonly="readonly" />
                                 <span class="input-group-addon">
