@@ -4,7 +4,7 @@
             <label class="col-sm-2">Period From</label>
             <div class="col-sm-4">
                 <div class="input-group date" ref="periodFromDatePicker">
-                    <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="period_from_input_element" :v-model="from_date" :disabled="is_readonly"/>
+                    <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="period_from_input_element" v-model="period_from" :disabled="is_readonly"/>
                 </div>
             </div>
         </div></div>
@@ -13,7 +13,7 @@
             <label class="col-sm-2">Period To</label>
             <div class="col-sm-4">
                 <div class="input-group date" ref="periodToDatePicker">
-                    <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="period_to_input_element" :v-model="to_date" :disabled="is_readonly"/>
+                    <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="period_to_input_element" v-model="period_to" :disabled="is_readonly"/>
                 </div>
             </div>
         </div></div>
@@ -39,12 +39,12 @@
         props:{
             // If editing an existing proposal apiary temporary use, data is passed from the parent component
             from_date: {
-                type: Object, // Expect moment obj
+                type: Object,
                 default: null,
             },
             // If editing an existing proposal apiary temporary use, data is passed from the parent component
             to_date: {
-                type: Object, // Expect moment obj
+                type: Object,
                 default: null,
             },
             // array of intermediate table, TemporaryUseApiarySite
@@ -96,23 +96,13 @@
         },
         created: function() {
             // Copy the values from props (it is not allowd to change props' value)
+            console.log(this.from_date)
             if (this.from_date){
-                if (this.from_date instanceof moment) {
-                    this.period_from = this.from_date.format('DD/MM/YYYY');
-                } else {
-                    // Wrong type of object, clear it
-                    console.warn('The value passed to from_date is wrong type');
-                    this.period_from = null;
-                }
+                this.period_from = this.from_date.format('YYYY-MM-DD');
+                console.log(this.period_from)
             }
             if (this.to_date){
-                if (this.to_date instanceof moment) {
-                    this.period_to = this.to_date.format('DD/MM/YYYY');
-                } else {
-                    // Wrong type of object, clear it
-                    console.warn('The value passed to to_date is wrong type');
-                    this.period_to = null;
-                }
+                this.period_to = this.to_date.format('YYYY-MM-DD');
             }
             if (this.temporary_use_apiary_sites.length > 0){
                 for (let i=0; i<this.temporary_use_apiary_sites.length; i++){
@@ -147,6 +137,18 @@
                 this.$emit('apiary_sites_updated', apiary_sites)
             },
         },
+        watch: {
+            period_from: function() {
+                this.$nextTick(() => {
+                    this.$emit('from_date_changed',this.period_from)
+                });
+            },
+            period_to: function() {
+                this.$nextTick(() => {
+                    this.$emit('to_date_changed',this.period_to)
+                });
+            }
+        }
     }
 </script>
 

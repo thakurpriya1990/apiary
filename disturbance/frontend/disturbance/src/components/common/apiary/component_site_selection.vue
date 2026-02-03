@@ -229,7 +229,6 @@
                                     disabled_str = ' disabled '
                                 }
                                 if (apiary_site.checked){
-                                    console.log(apiary_site.id)
                                     return '<input type="checkbox" class="site_checkbox" data-apiary-site-id="' + apiary_site.id + '"' + disabled_str + ' checked/>'
                                 } else {
                                     return '<input type="checkbox" class="site_checkbox" data-apiary-site-id="' + apiary_site.id + '"' + disabled_str + '/>'

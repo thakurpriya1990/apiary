@@ -419,7 +419,7 @@ export default {
         attach_apiary_sites_data: function(formData){
             try {
                 // Append apiary_sites edited data
-                if (this.proposal && this.proposal.proposal_apiary){
+                if (this.proposal && this.proposal.proposal_apiary && this.$refs.proposal_apiary){
                     let allFeatures = this.$refs.proposal_apiary.$refs.apiary_site_locations.getFeatures()
                     let json_features = JSON.stringify(allFeatures)
                     formData.append('all_the_features', json_features)
@@ -840,6 +840,7 @@ export default {
                                     { proposal: JSON.stringify(vm.proposal) }
                             });
                         } catch (err) {
+                            //TODO fix for segregation - handle errors better (handle missing fields before sub or handle properly here...)
                             swal.fire({
                                 title: 'Submit Error',
                                 text: helpers.apiVueResourceError(err),

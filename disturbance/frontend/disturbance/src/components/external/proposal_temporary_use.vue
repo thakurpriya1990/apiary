@@ -101,14 +101,10 @@
                     //let temp_use = re.body.apiary_temporary_use
                     vm.apiary_temporary_use = responseBody.apiary_temporary_use
                     if (vm.apiary_temporary_use.from_date){
-                        console.log(vm.apiary_temporary_use.from_date);
                         vm.apiary_temporary_use.from_date = moment(vm.apiary_temporary_use.from_date, 'YYYY-MM-DD');
-                        console.log(vm.apiary_temporary_use.from_date);
                     }
                     if (vm.apiary_temporary_use.to_date){
-                        console.log(vm.apiary_temporary_use.to_date);
                         vm.apiary_temporary_use.to_date = moment(vm.apiary_temporary_use.to_date, 'YYYY-MM-DD');
-                        console.log(vm.apiary_temporary_use.to_date);
                     }
 
                     // Update PeriodAndSites component
@@ -156,6 +152,8 @@
                 }
                 //TODO fix for segregation - the full list should NOT be uploaded, find a way to only send what has changed
                 data['apiary_temporary_use']['temporary_use_apiary_sites'] = this.$refs.section_proposal_temporary_use.temporary_use_apiary_sites;
+                data['apiary_temporary_use']['to_date'] = this.$refs.section_proposal_temporary_use.to_date;
+                data['apiary_temporary_use']['from_date'] = this.$refs.section_proposal_temporary_use.from_date;
                 return data
             },
             perform_redirect: function(url, postData) {

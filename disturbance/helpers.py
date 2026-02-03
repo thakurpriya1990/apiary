@@ -112,15 +112,8 @@ def is_authorised_to_modify(request, instance):
         raise serializers.ValidationError('You are not authorised to modify this application.')
 
 def is_authorised_to_modify_draft(request, instance):
-    #import ipdb; ipdb.set_trace()
     authorised = True
-
-    # Getting Organisation is different in DAS and Apiary
-    if str(instance.application_type) == "Apiary":
-        # Get Organisation if in Apiary
-        applicant = instance.relevant_applicant
-    else:
-        applicant = instance.applicant.organisation if instance.applicant else None
+    applicant = instance.relevant_applicant
 
     applicantIsIndividual = isinstance(applicant, EmailUser)
     if instance.processing_status=='draft':
