@@ -143,7 +143,7 @@
         },
         methods:{
             apiarySitesUpdated: function(apiary_sites){
-                console.log(apiary_sites)
+                console.log(apiary_sites[0])
                 this.$emit('apiary_sites_updated', apiary_sites)
             },
         },

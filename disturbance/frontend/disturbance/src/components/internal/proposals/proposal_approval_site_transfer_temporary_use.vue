@@ -293,7 +293,7 @@ export default {
                     this.loading_sites = false;
                 })
             } else if (this.proposal.application_type === 'Temporary Use') {
-                let url_sites = '/api/proposal/' + this.proposal.id + '/tempary_use_apiary_sites/'
+                let url_sites = '/api/proposal/' + this.proposal.id + '/temporary_use_apiary_sites/'
                 fetch(url_sites).then(
                     async (response) => {
                         if (response.ok) {

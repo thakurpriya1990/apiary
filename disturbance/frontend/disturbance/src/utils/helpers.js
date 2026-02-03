@@ -187,19 +187,19 @@ export default {
   processError: async function(err){
       console.log(err)
       let errorText = '';
-      if (err.body.non_field_errors) {
+      if (err.body && err.body.non_field_errors) {
           console.log('non_field_errors')
           // When non field errors raised
           for (let i=0; i<err.body.non_field_errors.length; i++){
               errorText += err.body.non_field_errors[i] + '<br />';
           }
-      } else if(Array.isArray(err.body)) {
+      } else if(err.body && Array.isArray(err.body)) {
           console.log('isArray')
           // When serializers.ValidationError raised
           for (let i=0; i<err.body.length; i++){
               errorText += err.body[i] + '<br />';
           }
-      } else {
+      } else if (err.body) {
           console.log('else')
           // When field errors raised
           for (let field_name in err.body){

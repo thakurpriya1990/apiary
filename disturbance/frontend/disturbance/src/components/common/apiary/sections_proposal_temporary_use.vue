@@ -195,8 +195,8 @@
         },
         created: function() {
             if (this.proposal && this.proposal.apiary_temporary_use) {
-                let url_sites = '/api/proposal/' + this.proposal.id + '/tempary_use_apiary_sites/'
-                console.log("tempary_use_apiary_sites")
+                let url_sites = '/api/proposal/' + this.proposal.id + '/temporary_use_apiary_sites/'
+                console.log("temporary_use_apiary_sites")
                 fetch(url_sites).then(
                     async (response) => {
                         if (response.ok) {

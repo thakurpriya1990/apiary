@@ -282,8 +282,6 @@ def annotate_temporary_use_apiary_site(qs):
                 lat=F('lat'),
             )
         ).annotate(
-            site_id=F("apiary_site_on_approval__apiary_site__id")
-        ).annotate(
             site_guid=F("apiary_site_on_approval__apiary_site__site_guid")
         ).annotate(
             status=F("apiary_site_on_approval__site_status")
@@ -330,14 +328,12 @@ def annotate_temporary_use_apiary_site(qs):
                 properties=F('properties'),
             )
         ).values(
-            'site_id',
+            'id',
             'proposal_apiary_temporary_use_id',
             'apiary_site_on_approval_id',
             'apiary_site',
             'selected',
         )
-
-    annotated = rename_site_id_to_id(annotated)
 
     return annotated
 

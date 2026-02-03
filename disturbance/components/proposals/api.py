@@ -1160,7 +1160,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
         return ApiaryInternalProposalSerializer
 
     @action(detail=True,methods=['GET',])
-    def tempary_use_apiary_sites(self, request, *args, **kwargs):
+    def temporary_use_apiary_sites(self, request, *args, **kwargs):
         instance = self.get_object()
         qs = TemporaryUseApiarySite.objects.filter(proposal_apiary_temporary_use=instance.apiary_temporary_use)
 
@@ -1940,7 +1940,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             is_authorised_to_modify_draft(request, instance)
 
             save_proponent_data(instance, request, self)
-            return redirect(reverse('external'))
+            serializer = self.serializer_class(instance,context={'request':request})
+            return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise

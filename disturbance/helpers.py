@@ -120,7 +120,7 @@ def is_authorised_to_modify_draft(request, instance):
         # Get Organisation if in Apiary
         applicant = instance.relevant_applicant
     else:
-        applicant = instance.applicant.organisation
+        applicant = instance.applicant.organisation if instance.applicant else None
 
     applicantIsIndividual = isinstance(applicant, EmailUser)
     if instance.processing_status=='draft':
