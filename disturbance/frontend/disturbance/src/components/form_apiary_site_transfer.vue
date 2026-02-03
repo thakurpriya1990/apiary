@@ -226,7 +226,6 @@
             },
             licenceHolders: function() {
                 this.$nextTick(() => {
-                    console.log(this.readonlyLicenceHolders)
                     if (this.readonlyLicenceHolders) {
                         // only one option available
                         this.selectedLicenceHolder = this.licenceHolders[0];
@@ -288,6 +287,9 @@
             },
             applicationFee: function() {
                 let totalFee = 0;
+                console.log(this.apiary_sites_local)
+                console.log(this.southWestSiteTransferFee)
+                console.log(this.remoteSiteTransferFee)
                 if (this.apiary_sites_local && this.apiary_sites_local.length && this.southWestSiteTransferFee && this.remoteSiteTransferFee) {
                     for (let site of this.apiary_sites_local) {
                         if (site.checked && site.properties.site_category === 'remote') {
@@ -506,7 +508,6 @@
                         return response.json();
                     })
                     .then(res => {
-                        console.log(res);
                         if (res && res.licence_holders) {
                             this.licenceHolders = res.licence_holders.licence_holders;
                         } else {
@@ -517,35 +518,10 @@
                     .catch(err => {
                         console.error(err);
                     });
-
-
             },
 
         },
         mounted: function() {
-            this.component_site_selection_key = uuid()
-            // set initial checked status
-            if (this.proposal && this.proposal.proposal_apiary) {
-                for (let site of this.apiary_sites) {
-                    if (this.is_external) {
-                        site.apiary_site.checked = site.customer_selected;
-                    } else {
-                        site.apiary_site.checked = site.internal_selected;
-                    }
-                }
-            }
-            fetch(api_endpoints.apiary_site_transfer_fees)
-            .then(async (response) => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw err });
-                }
-                const data = await response.json();
-                for (let fee of data) {
-                    this.siteTransferFees.push(fee)
-                }
-            }).catch(err => {
-                console.error(err);
-            })
             // update transferreeEmail
             if (this.proposal && this.proposal.proposal_apiary) {
                 this.transfereeEmail = this.proposal.proposal_apiary.transferee_email_text;
@@ -568,11 +544,39 @@
                             for (let site of transfer_apiary_sites_req) {
                                 // show all sites in Draft; only selected sites after customer submits
                                 if (this.proposal.customer_status === 'Draft' || site.customer_selected) {
+                                    site.apiary_site.customer_selected = site.customer_selected;
+                                    site.apiary_site.internal_selected = site.internal_selected;
                                     this.apiary_sites.push(site.apiary_site);
                                 }
                             }
                         }
                         this.loading_sites = false;
+
+                        this.component_site_selection_key = uuid()
+                        // set initial checked status
+                        if (this.proposal && this.proposal.proposal_apiary) {
+                            for (let site of this.apiary_sites) {
+                                if (this.is_external) {
+                                    site.checked = site.customer_selected;
+                                } else {
+                                    site.checked = site.internal_selected;
+                                }
+                            }
+                        }
+
+                        this.apiary_sites_local = this.apiary_sites;
+                        fetch(api_endpoints.apiary_site_transfer_fees)
+                        .then(async (response) => {
+                            if (!response.ok) {
+                                return response.json().then(err => { throw err });
+                            }
+                            const data = await response.json();
+                            for (let fee of data) {
+                                this.siteTransferFees.push(fee)
+                            }
+                        }).catch(err => {
+                            console.error(err);
+                        })
                     }
                 ).catch((error) => {
                     console.log(error);

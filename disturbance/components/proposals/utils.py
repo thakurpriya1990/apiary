@@ -255,7 +255,7 @@ def annotate_site_transfer_apiary_site(qs):
             )
         ).annotate(
             apiary_site=JSONObject(
-                id=F('apiary_site_on_approval__id'),
+                id=F('apiary_site_on_approval__apiary_site__id'),
                 type=F('type'),
                 geometry=F('geometry'),
                 properties=F('properties'),
@@ -324,7 +324,7 @@ def annotate_temporary_use_apiary_site(qs):
             )
         ).annotate(
             apiary_site=JSONObject(
-                id=F('apiary_site_on_approval__id'),
+                id=F('apiary_site_on_approval__apiary_site__id'),
                 type=F('type'),
                 geometry=F('geometry'),
                 properties=F('properties'),
@@ -852,13 +852,8 @@ def save_proponent_data_apiary(proposal_obj, request, viewset):
                         except:
                             pass
 
-                print("\n\nDEBUG")
-                print(site_ids_received)
-
                 site_ids_existing = [site.id for site in proposal_obj.proposal_apiary.apiary_sites.all()]
                 site_ids_delete = [id for id in site_ids_existing if id not in site_ids_received]
-
-                print(site_ids_delete)
 
                 # only internal users can add/update apiary sites on renewal applications
                 renewal = proposal_obj.proposal_type == "renewal"

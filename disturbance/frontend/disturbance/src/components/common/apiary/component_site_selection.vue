@@ -493,9 +493,10 @@
                     vm.constructApiarySitesTable(vm.apiary_sites);
                     vm.addApiarySitesToMap(vm.apiary_sites)
                     vm.ensureCheckedStatus();
+                    vm.$emit('apiary_sites_updated', vm.apiary_sites_local)
                 }
             });
-            vm.$emit('apiary_sites_updated', vm.apiary_sites_local)
+            
         },
         components: {
             ComponentMap,
