@@ -60,5 +60,10 @@ def annotate_apiary_site_on_approval_geometry(qs):
             'geometry',
             'properties',
         )
+    
+    #transform site_id to id NOTE: this is not ideal, but the original serializer overwrote id so for now we have to as well...
+    #TODO on cleanup - change all references to this dataset to site_id instead of id
+    for row in annotated:
+        row["id"] = row.pop("site_id")
 
     return annotated

@@ -55,6 +55,14 @@ logger = logging.getLogger(__name__)
 richtext = u''
 richtext_assessor=u''
 
+def rename_site_id_to_id(rows):
+    #transform site_id to id NOTE: this is not ideal, but the original serializer overwrote id so for now we have to as well...
+    #TODO on cleanup - change all references to this dataset to site_id instead of id
+    for row in rows:
+        row["id"] = row.pop("site_id")
+
+    return rows
+
 def annotate_apiary_site_on_proposal_draft_geometry(qs):
     annotated = qs.annotate(
             lat=Func("wkb_geometry_draft", function="ST_Y", output_field=FloatField()),
@@ -119,6 +127,8 @@ def annotate_apiary_site_on_proposal_draft_geometry(qs):
             'geometry',
             'properties',
         )
+
+    annotated = rename_site_id_to_id(annotated)
 
     return annotated
 
@@ -188,6 +198,8 @@ def annotate_apiary_site_on_proposal_processed_geometry(qs):
             'properties',
         )
 
+    annotated = rename_site_id_to_id(annotated)
+
     return annotated
 
 def annotate_site_transfer_apiary_site(qs):
@@ -255,8 +267,9 @@ def annotate_site_transfer_apiary_site(qs):
             'internal_selected',
         )
 
-    return annotated
+    annotated = rename_site_id_to_id(annotated)
 
+    return annotated
 
 def annotate_temporary_use_apiary_site(qs):
 
@@ -323,6 +336,8 @@ def annotate_temporary_use_apiary_site(qs):
             'apiary_site',
             'selected',
         )
+
+    annotated = rename_site_id_to_id(annotated)
 
     return annotated
 
