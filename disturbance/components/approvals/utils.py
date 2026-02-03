@@ -14,6 +14,8 @@ def annotate_apiary_site_on_approval_geometry(qs):
                 lat=F('lat'),
             )
         ).annotate(
+            site_id=F("apiary_site__id")
+        ).annotate(
             site_guid=F("apiary_site__site_guid")
         ).annotate(
             status=F("site_status")
@@ -53,7 +55,7 @@ def annotate_apiary_site_on_approval_geometry(qs):
                 dra_permit=F('dra_permit'),
             )
         ).values(
-            'id',
+            'site_id',
             'type',
             'geometry',
             'properties',

@@ -1035,23 +1035,38 @@
             load_apiary_sites_in_this_proposal: function(){
                 // Load the apiary sites in this proposal on the map
                 let vm = this
-                for (let i=0; i<vm.proposal.proposal_apiary.apiary_sites.length; i++){
-                     let apiary_site = vm.proposal.proposal_apiary.apiary_sites[i]
 
-                    if (apiary_site.properties.status === 'vacant'){
-                        // apiary_site is 'vacant' site
-                        let feature = vm.apiarySitesQuerySource.getFeatureById(apiary_site.id)
-                        // Set new attribute to apply a specific style for the 'vacant' selected site
-                        feature.set('vacant_selected', true)
+                if (this.proposal && this.proposal.proposal_apiary) {
+                    let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/apiary_sites/'
+                    console.log('apiary_sites')
+                    fetch(url_sites).then(
+                        async (response) => {
+                            if (response.ok) {
+                                let apiary_sites_req = await response.json();
+                                let apiary_sites = JSON.parse(JSON.stringify(apiary_sites_req)).features
+                                for (let i=0; i<apiary_sites.length; i++){
+                                    let apiary_site = apiary_sites[i]
 
-                        vm.drawingLayerSource.addFeature(feature);
-                    } else {
-                        let feature = (new GeoJSON).readFeature(apiary_site)
-                        this.drawingLayerSource.addFeature(feature)
-                        this.createBufferForSite(feature);
-                    }
+                                    if (apiary_site.properties.status === 'vacant'){
+                                        // apiary_site is 'vacant' site
+                                        let feature = vm.apiarySitesQuerySource.getFeatureById(apiary_site.id)
+                                        // Set new attribute to apply a specific style for the 'vacant' selected site
+                                        feature.set('vacant_selected', true)
+
+                                        vm.drawingLayerSource.addFeature(feature);
+                                    } else {
+                                        let feature = (new GeoJSON).readFeature(apiary_site)
+                                        this.drawingLayerSource.addFeature(feature)
+                                        this.createBufferForSite(feature);
+                                    }
+                                }
+                                this.constructSiteLocationsTable();
+                            }
+                        }
+                    ).catch((error) => {
+                        console.log(error);
+                    })
                 }
-                this.constructSiteLocationsTable();
             },
             is_feature_new_or_renewal: function(feature){
                 if (feature.get('for_renewal')){
@@ -1282,6 +1297,7 @@
                 //this.updateApiarySitesData()
             },
             getFeatures: function() {
+                console.log("getFeatures")
                 let allFeatures = this.drawingLayerSource.getFeatures()
                 return allFeatures
             },

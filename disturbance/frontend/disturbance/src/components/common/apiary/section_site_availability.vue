@@ -171,7 +171,7 @@
 
             loadApiarySites: async function(){
                 console.log('loadApiarySites');
-
+                console.log('apiary_site')
                 fetch('/api/approvals/' + this.approval_id + '/apiary_site/').then(
                     async (response)=>{
                          if (!response.ok) {

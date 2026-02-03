@@ -60,6 +60,8 @@ def annotate_apiary_site_on_proposal_draft_geometry(qs):
             lat=Func("wkb_geometry_draft", function="ST_Y", output_field=FloatField()),
             lng=Func("wkb_geometry_draft", function="ST_X", output_field=FloatField()),
         ).annotate(
+            site_id=F("apiary_site__id")
+        ).annotate(
             stable_coords=JSONObject(
                 lng=F('lng'),
                 lat=F('lat'),
@@ -112,7 +114,7 @@ def annotate_apiary_site_on_proposal_draft_geometry(qs):
                 dra_permit=F('dra_permit'),
             )
         ).values(
-            'id',
+            'site_id',
             'type',
             'geometry',
             'properties',
@@ -130,6 +132,8 @@ def annotate_apiary_site_on_proposal_processed_geometry(qs):
                 lng=F('lng'),
                 lat=F('lat'),
             )
+        ).annotate(
+            site_id=F("apiary_site__id")
         ).annotate(
             site_guid=F("apiary_site__site_guid")
         ).annotate(
@@ -178,7 +182,7 @@ def annotate_apiary_site_on_proposal_processed_geometry(qs):
                 dra_permit=F('dra_permit'),
             )
         ).values(
-            'id',
+            'site_id',
             'type',
             'geometry',
             'properties',
@@ -196,6 +200,8 @@ def annotate_site_transfer_apiary_site(qs):
                 lng=F('lng'),
                 lat=F('lat'),
             )
+        ).annotate(
+            site_id=F("apiary_site_on_approval__apiary_site__id")
         ).annotate(
             site_guid=F("apiary_site_on_approval__apiary_site__site_guid")
         ).annotate(
@@ -243,7 +249,7 @@ def annotate_site_transfer_apiary_site(qs):
                 properties=F('properties'),
             )
         ).values(
-            'id',
+            'site_id',
             'apiary_site',
             'customer_selected',
             'internal_selected',
@@ -263,6 +269,8 @@ def annotate_temporary_use_apiary_site(qs):
                 lat=F('lat'),
             )
         ).annotate(
+            site_id=F("apiary_site_on_approval__apiary_site__id")
+        ).annotate(
             site_guid=F("apiary_site_on_approval__apiary_site__site_guid")
         ).annotate(
             status=F("apiary_site_on_approval__site_status")
@@ -309,7 +317,7 @@ def annotate_temporary_use_apiary_site(qs):
                 properties=F('properties'),
             )
         ).values(
-            'id',
+            'site_id',
             'proposal_apiary_temporary_use_id',
             'apiary_site_on_approval_id',
             'apiary_site',
@@ -829,8 +837,13 @@ def save_proponent_data_apiary(proposal_obj, request, viewset):
                         except:
                             pass
 
+                print("\n\nDEBUG")
+                print(site_ids_received)
+
                 site_ids_existing = [site.id for site in proposal_obj.proposal_apiary.apiary_sites.all()]
                 site_ids_delete = [id for id in site_ids_existing if id not in site_ids_received]
+
+                print(site_ids_delete)
 
                 # only internal users can add/update apiary sites on renewal applications
                 renewal = proposal_obj.proposal_type == "renewal"

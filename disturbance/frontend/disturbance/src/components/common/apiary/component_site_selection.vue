@@ -443,13 +443,14 @@
             if (vm.apiary_proposal_id){
                 vm.loading_sites = true
                 let url_sites = '/api/proposal_apiary/' + vm.apiary_proposal_id + '/apiary_sites/'
+                console.log("apiary_sites")
                 fetch(url_sites).then(
                     async (response) => {
                         if (!response.ok) {
                             return response.json().then(err => { throw err });
                         }
                         let apiary_sites_req = await response.json()
-                        vm.apiary_sites_local = JSON.parse(JSON.stringify(apiary_sites_req)),  // Deep copy the array
+                        vm.apiary_sites_local = JSON.parse(JSON.stringify(apiary_sites_req)).features,  // Deep copy the array
                         vm.constructApiarySitesTable(vm.apiary_sites_local);
                         vm.addApiarySitesToMap(vm.apiary_sites_local)
                         vm.ensureCheckedStatus();
@@ -462,6 +463,7 @@
                 vm.loading_sites = true
                 // Retrieve apiary_sites
                 let url_sites = '/api/approvals/' + vm.apiary_approval_id + '/apiary_sites/'
+                console.log("apiary_sites")
                 fetch(url_sites).then(
                     async (response) => {
                         if (!response.ok) {
@@ -690,6 +692,7 @@
                 }).then(
                     (result) => {
                         if (result.isConfirmed) {
+                            console.log("apiary_site")
                             fetch('/api/apiary_site/' + apiary_site_id + '/',{
                                 method: 'PATCH',
                                 headers: {
@@ -749,6 +752,7 @@
                 e.stopPropagation()
 
                 try {
+                    console.log("apiary_site")
                     const response = await fetch('/api/apiary_site/' + apiary_site_id + '/', {
                         method: 'PATCH',
                         headers: {

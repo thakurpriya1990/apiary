@@ -441,19 +441,11 @@ export default {
             let formData = new FormData(vm.form);
             // Add apiary_sites data if needed
             formData = this.attach_apiary_sites_data(formData)
-            // Add site_transfer_apiary_sites data if needed
-            /*
-            if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.site_transfer_apiary_sites) {
-                console.log(this.$refs.apiary_site_transfer.site_transfer_apiary_sites)
-                formData.append('site_transfer_apiary_sites', JSON.stringify(this.$refs.apiary_site_transfer.site_transfer_apiary_sites));
-            }
-            */
+
             if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.apiary_sites_local) {
-                //console.log(this.$refs.apiary_site_transfer.site_transfer_apiary_sites)
                 formData.append('apiary_sites_local', JSON.stringify(this.$refs.apiary_site_transfer.apiary_sites_local));
             }
             if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.selectedLicenceHolder){
-                //let selectedLicenceHolder = this.$refs.apiary_site_transfer.selectedLicenceHolder
                 formData.append('selected_licence_holder', JSON.stringify(this.$refs.apiary_site_transfer.selectedLicenceHolder));
             }
             if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.transfereeEmail){

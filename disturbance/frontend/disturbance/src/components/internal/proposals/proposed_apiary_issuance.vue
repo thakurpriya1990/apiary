@@ -467,20 +467,13 @@ export default {
             this.num_of_sites_selected = temp
         },
         setApiarySiteCheckedStatuses: function() {
-            if(this.proposal && this.proposal.proposal_apiary){
-                for (let i=0; i<this.proposal.proposal_apiary.apiary_sites.length; i++){
-                    this.proposal.proposal_apiary.apiary_sites[i].checked = (this.proposal.proposal_apiary.apiary_sites[i].properties.workflow_selected_status || this.proposal.proposal_apiary.apiary_sites[i].properties.status === 'approved')
+            //TODO fix for segregation - ensure these checkboxes are used where needed
+            if(this.proposal && this.proposal.proposal_apiary && this.apiary_sites_prop){
+                for (let i=0; i<this.apiary_sites_prop.length; i++){
+                   this.apiary_sites_prop[i].checked = (this.apiary_sites_prop[i].properties.workflow_selected_status || this.apiary_sites_prop[i].properties.status === 'approved')
                 }
             }
         },
-        setApiarySiteCheckedStatusesSiteTransfer: function() {
-            if(this.proposal && this.proposal.proposal_apiary){
-                for (let i=0; i<this.proposal.proposal_apiary.transfer_apiary_sites.length; i++){
-                    this.proposal.proposal_apiary.transfer_apiary_sites[i].apiary_site.checked = this.proposal.proposal_apiary.transfer_apiary_sites[i].internal_selected
-                }
-            }
-        },
-
         forceToRefreshMap: function() {
             if (this.$refs.component_site_selection){
                 this.$refs.component_site_selection.forceToRefreshMap()
@@ -734,11 +727,7 @@ export default {
         this.$nextTick(()=>{
             vm.eventListeners();
         });
-        if (this.proposal.application_type === 'Site Transfer') {
-            this.setApiarySiteCheckedStatusesSiteTransfer();
-        } else {
-            this.setApiarySiteCheckedStatuses();
-        }
+        this.setApiarySiteCheckedStatuses();
         this.component_site_selection_key = uuid()
     },
     created: function() {
@@ -761,6 +750,7 @@ export default {
         } else {
             //NOTE: this is how we should be loading sites from now on (not bundled with proposal, loaded separetely with a loading_sites boolean)
             let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/apiary_sites/'
+            console.log('apiary_sites')
             fetch(url_sites).then(
                 async (response) => {
                     if (response.ok) {

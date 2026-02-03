@@ -506,6 +506,7 @@
             this.fetchDeedPollUrl()
             if (this.proposal && this.proposal.proposal_apiary) {
                 let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/apiary_sites/'
+                console.log('apiary_sites')
                 fetch(url_sites).then(
                     async (response) => {
                         if (response.ok) {

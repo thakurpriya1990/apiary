@@ -487,7 +487,6 @@
             lookupTransferee: function() {
                 this.lookupErrorText = '';
                 this.lookupNotification = '';
-                console.log(this.transfereeEmail);
                 fetch(helpers.add_endpoint_json(
                     api_endpoints.proposal_apiary,this.proposal.proposal_apiary.id+'/get_licence_holders'),
                     {
@@ -527,7 +526,7 @@
             this.component_site_selection_key = uuid()
             // set initial checked status
             if (this.proposal && this.proposal.proposal_apiary) {
-                for (let site of this.proposal.proposal_apiary.transfer_apiary_sites) {
+                for (let site of this.apiary_sites) {
                     if (this.is_external) {
                         site.apiary_site.checked = site.customer_selected;
                     } else {
@@ -561,6 +560,7 @@
             if (this.proposal && this.proposal.proposal_apiary) {
 
                 let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/transfer_apiary_sites/'
+                console.log('transfer_apiary_sites')
                 fetch(url_sites).then(
                     async (response) => {
                         if (response.ok) {

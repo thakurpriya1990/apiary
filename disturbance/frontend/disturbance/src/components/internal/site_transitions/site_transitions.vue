@@ -45,31 +45,13 @@
             },
             loadSites: async function() {
                 let vm = this
-
+                console.log('transitable_sites')
                 fetch('/api/apiary_site/transitable_sites/')
                 .then(async (res) => {
                     if (!res.ok) { return res.json().then(err => { throw err }); }
                     const data = await res.json();
                     vm.apiary_sites = data.features
                     this.component_site_selection_key = uuid()
-
-                    ////let temp_use = data.apiary_temporary_use
-                    //vm.apiary_temporary_use = data.apiary_temporary_use
-                    //if (vm.apiary_temporary_use.from_date){
-                    //    console.log(vm.apiary_temporary_use.from_date);
-                    //    vm.apiary_temporary_use.from_date = moment(vm.apiary_temporary_use.from_date, 'YYYY-MM-DD');
-                    //    console.log(vm.apiary_temporary_use.from_date);
-                    //}
-                    //if (vm.apiary_temporary_use.to_date){
-                    //    console.log(vm.apiary_temporary_use.to_date);
-                    //    vm.apiary_temporary_use.to_date = moment(vm.apiary_temporary_use.to_date, 'YYYY-MM-DD');
-                    //    console.log(vm.apiary_temporary_use.to_date);
-                    //}
-
-                    //// Update PeriodAndSites component
-                    //vm.period_and_sites_key = uuid();
-                    //// Update TemporaryOccupier component
-                    //vm.temporary_occupier_key = uuid();
                 }).catch(err => {
                     console.log(err);
                 });
