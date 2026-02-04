@@ -287,9 +287,6 @@
             },
             applicationFee: function() {
                 let totalFee = 0;
-                console.log(this.apiary_sites_local)
-                console.log(this.southWestSiteTransferFee)
-                console.log(this.remoteSiteTransferFee)
                 if (this.apiary_sites_local && this.apiary_sites_local.length && this.southWestSiteTransferFee && this.remoteSiteTransferFee) {
                     for (let site of this.apiary_sites_local) {
                         if (site.checked && site.properties.site_category === 'remote') {
@@ -461,7 +458,6 @@
                         }
                     }
                 }
-                console.log(siteList)
                 return siteList;
             },
 
@@ -546,25 +542,22 @@
                                 if (this.proposal.customer_status === 'Draft' || site.customer_selected) {
                                     site.apiary_site.customer_selected = site.customer_selected;
                                     site.apiary_site.internal_selected = site.internal_selected;
-                                    this.apiary_sites.push(site.apiary_site);
-                                }
-                            }
-                        }
-                        this.loading_sites = false;
 
-                        this.component_site_selection_key = uuid()
-                        // set initial checked status
-                        if (this.proposal && this.proposal.proposal_apiary) {
-                            for (let site of this.apiary_sites) {
-                                if (this.is_external) {
-                                    site.checked = site.customer_selected;
-                                } else {
-                                    site.checked = site.internal_selected;
+                                    if (this.is_external) {
+                                        site.apiary_site.checked = site.customer_selected;
+                                    } else {
+                                        site.apiary_site.checked = site.internal_selected;
+                                    }
+
+                                    this.apiary_sites.push(site.apiary_site);
                                 }
                             }
                         }
 
                         this.apiary_sites_local = this.apiary_sites;
+                        this.component_site_selection_key = uuid()
+                        this.loading_sites = false;
+                        
                         fetch(api_endpoints.apiary_site_transfer_fees)
                         .then(async (response) => {
                             if (!response.ok) {

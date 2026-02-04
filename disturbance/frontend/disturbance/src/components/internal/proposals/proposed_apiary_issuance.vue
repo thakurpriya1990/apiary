@@ -541,6 +541,7 @@ export default {
             if (originating_target) {
                 this.approval.originating_target = originating_target;
             }
+            
             this.approval.apiary_sites = this.apiary_sites_updated
             if (!this.startDateCanBeModified && !this.siteTransferApplication){
                 // There is an existing licence. Therefore start_date and expiry_date are fixed to that dates
@@ -563,7 +564,6 @@ export default {
                 fetch(helpers.add_endpoint_json(api_endpoints.proposal_apiary,this.proposal_apiary_id+'/final_approval'), {
                     method: 'POST',
                     body: JSON.stringify(approval),
-                    //body: this.approval,
                     headers: {
                         "Content-Type": "application/json",
                         "X-CSRFToken": this.csrf_token,
@@ -606,7 +606,7 @@ export default {
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded' // emulateJSON
                     },
-                    body: new URLSearchParams(approval)
+                    body: JSON.stringify(approval),
                 })
                 .then(response => {
                     if (!response.ok) throw response;
@@ -650,7 +650,7 @@ export default {
 
             }
             else if (vm.state == 'final_approval'){
-                fetch(helpers.add_endpoint_json(api_endpoints.proposal_apiary,vm.proposal_apiary_id+'/final_approval'),JSON.stringify(approval),{
+                fetch(helpers.add_endpoint_json(api_endpoints.proposal_apiary,vm.proposal_apiary_id+'/final_approval'),{
                          method: 'POST',
                         headers: {
                         'Content-Type': '"application/json' // emulateJSON
@@ -668,6 +668,7 @@ export default {
                     }) .catch(async error => {
                         vm.errors = true;
                         vm.issuingApproval = false;
+                        console.log(error)
                         try {
                             const errData = await error.json();
                             vm.errorString = errData;
@@ -727,7 +728,7 @@ export default {
         this.$nextTick(()=>{
             vm.eventListeners();
         });
-        this.setApiarySiteCheckedStatuses();
+        
         this.component_site_selection_key = uuid()
     },
     created: function() {
@@ -741,6 +742,7 @@ export default {
                             this.apiary_sites_prop.push(site.apiary_site);
                         }
                     }
+                    this.setApiarySiteCheckedStatuses();
                     this.loading_sites = false;
                 }
             ).catch((error) => {
@@ -757,6 +759,7 @@ export default {
                         let apiary_sites_req = await response.json();
                         this.apiary_sites_prop = JSON.parse(JSON.stringify(apiary_sites_req)).features
                     }
+                    this.setApiarySiteCheckedStatuses();
                     this.loading_sites = false;
                 }
             ).catch((error) => {
