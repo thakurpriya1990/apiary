@@ -105,27 +105,10 @@ export default
                             component: Referral,
                             name:"internal-referral"
                         },
-                        /*
-                        {
-                            path: 'apiary',
-                            component: ProposalApiary,
-                            name:"internal-proposal-apiary"
-                        },
-                        */
                     ]
                 },
 
             ]
         },
-        // {
-        //     path: 'schema',
-        //     component: SchemaManager,
-        //     name:"schema-manager"
-        // },
-        /*{
-            path: 'proposal',
-            component: Proposal,
-            name:"new_proposal"
-        }*/
     ]
 }

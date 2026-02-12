@@ -1,27 +1,26 @@
 import traceback
 from wsgiref.util import FileWrapper
 
-from django.conf import settings
 from django.http.response import HttpResponse
-from rest_framework import viewsets, serializers, status, generics, views
-from rest_framework.decorators import action, renderer_classes, parser_classes
+from rest_framework import viewsets, serializers, status, views
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, BasePermission
-from rest_framework.pagination import PageNumberPagination
-from django.urls import reverse
 
 from disturbance.components.ap_payments import reports
 from disturbance.components.main.models import Region, District, Tenure, ApplicationType, ActivityMatrix, MapLayer
-from disturbance.components.main.serializers import RegionSerializer, DistrictSerializer, TenureSerializer, \
-    ApplicationTypeSerializer, ActivityMatrixSerializer, BookingSettlementReportSerializer, OracleSerializer, \
+from disturbance.components.main.serializers import (
+    RegionSerializer, DistrictSerializer, TenureSerializer,
+    ApplicationTypeSerializer, ActivityMatrixSerializer, BookingSettlementReportSerializer, OracleSerializer,
     MapLayerSerializer
+)
 from django.core.exceptions import ValidationError
 
 from disturbance.components.main.utils import handle_validation_error
 from disturbance.helpers import is_internal
-from disturbance.settings import PAYMENT_SYSTEM_PREFIX
-
+from disturbance.components.main.permissions import (
+    PaymentOfficerPermission,
+)
 
 class DistrictViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = District.objects.all().order_by('id')
@@ -40,7 +39,6 @@ class RegionViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ActivityMatrixViewSet(viewsets.ReadOnlyModelViewSet):
-    #queryset = ActivityMatrix.objects.all().order_by('id')
     queryset = ActivityMatrix.objects.none()
     serializer_class = ActivityMatrixSerializer
 
@@ -51,10 +49,6 @@ class ActivityMatrixViewSet(viewsets.ReadOnlyModelViewSet):
             return [ActivityMatrix.objects.filter(name='Disturbance').order_by('-version').first()]
         return ActivityMatrix.objects.none()
 
-#    def list(self, request, *args, **kwargs):
-#        matrix = ActivityMatrix.objects.filter(name='Disturbance').order_by('-version').first()
-#        return Response( [activity['children'][0] for activity in matrix.schema] )
-
 
 class TenureViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tenure.objects.all().order_by('order')
@@ -62,7 +56,6 @@ class TenureViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ApplicationTypeViewSet(viewsets.ReadOnlyModelViewSet):
-    #queryset = ApplicationType.objects.all().order_by('order')
     queryset = ApplicationType.objects.none()
     serializer_class = ApplicationTypeSerializer
 
@@ -79,9 +72,9 @@ class ApplicationTypeViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 
-
 class BookingSettlementReportView(views.APIView):
     renderer_classes = (JSONRenderer,)
+    permission_classes = [PaymentOfficerPermission]
 
     def get(self,request,format=None):
         try:
@@ -110,6 +103,7 @@ class BookingSettlementReportView(views.APIView):
 
 class OracleJob(views.APIView):
     renderer_classes = [JSONRenderer]
+    permission_classes = [PaymentOfficerPermission]
 
     def get(self, request, format=None):
         try:
@@ -119,7 +113,6 @@ class OracleJob(views.APIView):
             }
             serializer = OracleSerializer(data=data)
             serializer.is_valid(raise_exception=True)
-            #oracle_integration(serializer.validated_data['date'].strftime('%Y-%m-%d'),serializer.validated_data['override'])
             data = {'successful':True}
             return Response(data)
         except serializers.ValidationError:
@@ -127,13 +120,12 @@ class OracleJob(views.APIView):
             raise
         except ValidationError as e:
             handle_validation_error(e)
-            # raise serializers.ValidationError(repr(e.error_dict)) if hasattr(e, 'error_dict') else serializers.ValidationError(e)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e[0]))
 
 
-class MapLayerViewSet(viewsets.ModelViewSet):
+class MapLayerViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MapLayer.objects.none()
     serializer_class = MapLayerSerializer
 
