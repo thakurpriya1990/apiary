@@ -3,11 +3,10 @@ import datetime
 from django.db.models import Q
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from rest_framework import viewsets, serializers
+from rest_framework import viewsets, serializers, mixins
 from rest_framework.decorators import action, renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
-from datetime import datetime
 from datetime import datetime
 
 from disturbance.components.approvals.models import (
@@ -36,6 +35,9 @@ from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from disturbance.components.main.utils import get_template_group, handle_validation_error
 from disturbance.components.approvals.utils import annotate_apiary_site_on_approval_geometry
+from disturbance.components.approvals.permissions import (
+    InternalApprovalPermission,
+)
 
 class ApprovalFilterBackend(DatatablesFilterBackend):
     """
@@ -89,7 +91,7 @@ class ApprovalFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class ApprovalPaginatedViewSet(viewsets.ModelViewSet):
+class ApprovalPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (ApprovalFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
     page_size = 10
@@ -131,7 +133,6 @@ class ApprovalPaginatedViewSet(viewsets.ModelViewSet):
         if submitter_id:
             qs = qs.filter(submitter_id=submitter_id)
 
-        self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = DTApprovalSerializer(result_page, context={
             'request':request,
@@ -140,7 +141,7 @@ class ApprovalPaginatedViewSet(viewsets.ModelViewSet):
         return self.paginator.get_paginated_response(serializer.data)
 
 
-class ApprovalViewSet(viewsets.ModelViewSet):
+class ApprovalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = Approval.objects.none()
     serializer_class = ApprovalSerializer
 
@@ -211,7 +212,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
         serializer = ProposalApiaryTemporaryUseSerializer(qs, many=True)
         return Response(serializer.data)
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[InternalApprovalPermission])
     @basic_exception_handler
     def no_charge_until_date(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -240,7 +241,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
         approval_data = annotate_apiary_site_on_approval_geometry(approval.get_relations())
         return Response(list(approval_data))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[InternalApprovalPermission])
     @basic_exception_handler
     def approval_cancellation(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -250,7 +251,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
         serializer = ApprovalSerializer(instance,context={'request':request})
         return Response(serializer.data)
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[InternalApprovalPermission])
     def approval_suspension(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -268,7 +269,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[InternalApprovalPermission])
     def approval_reinstate(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -302,7 +303,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalApprovalPermission])
     def approval_pdf_view_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -318,7 +319,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalApprovalPermission])
     def action_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -335,7 +336,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalApprovalPermission])
     def comms_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -352,7 +353,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[InternalApprovalPermission])
     @renderer_classes((JSONRenderer,))
     def add_comms_log(self, request, *args, **kwargs):
         try:
@@ -383,14 +384,14 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=False,methods=['GET',])
+    @action(detail=False,methods=['GET',], permission_classes=[InternalApprovalPermission])
     def sti_search(self, request, *args, **kwargs):
         """ Used by the internal users to filter for sti name in ptoposal titlei (for use by external systems) """
         name = request.GET.get('name')
         data = Approval.objects.filter(current_proposal__title__icontains=name).values_list('licence_document___file', flat=True)
         return Response(list(data))
 
-    @action(detail=False,methods=['GET',])
+    @action(detail=False,methods=['GET',], permission_classes=[InternalApprovalPermission])
     def sti_unmatched(self, request, *args, **kwargs):
         """ Used by the internal users to filter for sti name in ptoposal titlei (for use by external systems) """
 

@@ -29,30 +29,20 @@ export default {
     // used in internal and external dashboards
     proposals_paginated_external:   "/api/proposal_paginated/proposals_external/?format=datatables",
     approvals_paginated_external:   "/api/approval_paginated/approvals_external/?format=datatables",
-    // internal_revision_proposal:     "/api/proposal/internal_revision_proposal.json/?revision_number",
     compliances_paginated_external: "/api/compliance_paginated/compliances_external/?format=datatables",
     proposals_paginated_internal:   "/api/proposal_paginated/proposals_internal/?format=datatables",
     referrals_paginated_internal:   "/api/proposal_paginated/referrals_internal/?format=datatables",
-    //filter_list:                    "/api/proposal_paginated/filter_list.json",
     filter_list:                    "/api/proposal/filter_list.json",
     filter_list_approvals:          "/api/approvals/filter_list.json",
     filter_list_compliances:        "/api/compliances/filter_list.json",
     filter_list_referrals:          "/api/referrals/filter_list.json",
 
-    //approvals_paginated:"/api/approvals/user_list_paginated/?format=datatables",
-    //compliances_paginated:"/api/compliances/user_list_paginated/?format=datatables",
-    //list_proposals:"/api/list_proposal/?format=datatables",
-    //list_referrals:"/api/list_proposal/referral_list/?format=datatables",
-
     discard_proposal:function (id) {
       return `/api/proposal/${id}.json`;
     },
     site_url: site_url,
-    //dep_name: 'Department of Biodiversity, Conservation and Attractions',
-    //dep_name_short: 'DBCA',
     system_name: 'Disturbance Approval System',
-    //system_name_short: 'DAS',
-
+    
     // Apiary specific endpoints
     apiary_referral_groups:"/api/apiary_referral_groups.json",
     proposal_apiary:"/api/proposal_apiary.json",
@@ -60,15 +50,12 @@ export default {
     apiary_site_transfer_fees:"/api/apiary_site_fees/get_site_transfer_fees.json",
 
     //schema api's
-    //schema_masterlist:"/api/schema_masterlist/",
     schema_masterlist:"/api/schema_masterlist.json",
     schema_masterlist_paginated:"/api/schema_masterlist_paginated/",
-    //schema_proposal_type:"/api/schema_proposal_type/",
     schema_proposal_type:"/api/schema_proposal_type.json",
     schema_proposal_type_paginated:"/api/schema_proposal_type_paginated/",
     schema_group:"/api/schema_group/",
     schema_group_paginated:"/api/schema_group_paginated/",
-    //schema_question:"/api/schema_question/",
     schema_question:"/api/schema_question.json",
     schema_question_paginated:"/api/schema_question_paginated/",
 

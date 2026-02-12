@@ -51,8 +51,6 @@ export default {
                 },
                 responsive: true,
                 ajax: {
-                    //"url": helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/requirements'),
-                    //"url": helpers.add_endpoint_json(api_endpoints.approvals,vm.targetApprovalId+'/requirements'),
                     "url": helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/apiary_site_transfer_target_approval_requirements'),
                     "dataSrc": ''
                 },

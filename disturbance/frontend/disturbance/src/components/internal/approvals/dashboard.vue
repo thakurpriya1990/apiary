@@ -21,7 +21,6 @@ export default {
     name: 'InternalApprovalDashboard',
     data() {
         return {
-            //approvals_url: api_endpoints.approvals,
             approvals_url: api_endpoints.approvals_paginated_external,
         }
     

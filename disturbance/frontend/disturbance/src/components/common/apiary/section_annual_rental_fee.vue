@@ -4,12 +4,6 @@
             <div class="form-group row mb-3">
                 <label class="col-sm-3">Do not charge annual site fee until</label>
                 <div class="col-sm-3">
-                    <!-- <div class="input-group date" ref="untilDatePicker">
-                        <input type="text" class="form-control text-center" placeholder="DD/MM/YYYY" id="no_charge_until" :readonly="is_readonly"/>
-                        <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-calendar"></span>
-                        </span>
-                    </div> -->
                     <input type="date" class="form-control" name="no_charge_until" placeholder="DD/MM/YYYY" v-model="until_date" id="no_charge_until" :readonly="is_readonly">
                 </div>
                 <div class="col-sm-6 text-right">
