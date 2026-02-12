@@ -427,12 +427,6 @@ export default {
                 var selected = $(e.currentTarget);
                 vm.requirement.standard_requirement = selected.val();
             });
-
-            //vm.$refs.filefield.on('click', '.delete_document', function(e) {
-            //    e.preventDefault();
-            //    vm.requirement.requirement_documents = vm.$refs.filefield.uploaded_documents;
-            //});
-
        }
    },
    mounted:function () {

@@ -21,7 +21,6 @@ export default {
     name: 'InternalCompliancesDashboard',
     data() {
         return {
-            //compliances_url: api_endpoints.compliances,
             compliances_url: api_endpoints.compliances_paginated_external,
         }
     

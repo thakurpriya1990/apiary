@@ -157,15 +157,6 @@ class ApprovalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def get_serializer_class(self):
         return ApprovalSerializer
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset().order_by('-lodgement_number', '-issue_date').distinct('lodgement_number')
-        # Filter by org
-        org_id = request.GET.get('org_id',None)
-        if org_id:
-            queryset = queryset.filter(applicant_id=org_id)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
     @action(detail=False,methods=['GET',])
     def filter_list(self, request, *args, **kwargs):
         """ Used by the external dashboard filters """
