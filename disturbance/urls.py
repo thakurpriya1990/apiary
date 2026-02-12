@@ -26,7 +26,7 @@ from disturbance.management.default_data_manager import DefaultDataManager
 from disturbance.utils import are_migrations_running
 
 router = routers.DefaultRouter()
-router.include_root_view = settings.SHOW_ROOT_API
+router.include_root_view = settings.SHOW_API_ROOT
 router.register(r'organisations',org_api.OrganisationViewSet,"organisations")
 router.register(r'proposal',proposal_api.ProposalViewSet,"proposal")
 router.register(r'proposal_apiary', proposal_api.ProposalApiaryViewSet,"proposal_apiary")

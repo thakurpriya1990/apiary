@@ -26,7 +26,7 @@ SPATIAL_DATA_DIR = env('SPATIAL_DATA_DIR', 'spatial_data')
 ANNUAL_RENTAL_FEE_GST_EXEMPT = True
 FILE_UPLOAD_MAX_MEMORY_SIZE = env('FILE_UPLOAD_MAX_MEMORY_SIZE', 15728640)
 APIARY_MIGRATED_LICENCES_APPROVER = env('APIARY_MIGRATED_LICENCES_APPROVER', 'jacinta.overman@dbca.wa.gov.au')
-SHOW_ROOT_API = env('SHOW_ROOT_API', False)
+SHOW_API_ROOT = env('SHOW_API_ROOT', False)
 SSO_SETTING_URL=env('SSO_SETTING_URL','')
 TIME_ZONE = "Australia/Perth"
 
@@ -58,6 +58,7 @@ REST_FRAMEWORK = {
         'rest_framework_datatables.renderers.DatatablesRenderer',
     ),
     "EXCEPTION_HANDLER": "disturbance.exceptions.custom_exception_handler",
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
 }
 
 USE_DJANGO_JQUERY= True
