@@ -467,10 +467,17 @@ export default {
             this.num_of_sites_selected = temp
         },
         setApiarySiteCheckedStatuses: function() {
-            //TODO fix for segregation - ensure these checkboxes are used where needed
             if(this.proposal && this.proposal.proposal_apiary && this.apiary_sites_prop){
                 for (let i=0; i<this.apiary_sites_prop.length; i++){
-                   this.apiary_sites_prop[i].checked = (this.apiary_sites_prop[i].properties.workflow_selected_status || this.apiary_sites_prop[i].properties.status === 'approved')
+                    this.apiary_sites_prop[i].checked = (this.apiary_sites_prop[i].properties.workflow_selected_status || this.apiary_sites_prop[i].properties.status === 'approved')
+                
+                    if (this.proposal.application_type === 'Site Transfer') {
+                        if (this.is_external) {
+                            this.apiary_sites_prop[i].checked = this.apiary_sites_prop[i].customer_selected;
+                        } else {
+                            this.apiary_sites_prop[i].checked = this.apiary_sites_prop[i].internal_selected;
+                        }
+                    }
                 }
             }
         },
@@ -551,10 +558,10 @@ export default {
                 // There is an existing licence. Therefore start_date and expiry_date are fixed to that dates
                 this.approval.expiry_date = moment(this.proposal.approval.expiry_date, 'YYYY-MM-DD').format('DD/MM/YYYY')
             }
-            if (!this.approval.start_date) {
+            if (!this.approval.start_date || this.approval.start_date == "Invalid date") {
                 delete this.approval.start_date;
             }
-            if (!this.approval.expiry_date) {
+            if (!this.approval.expiry_date || this.approval.expiry_date == "Invalid date") {
                 delete this.approval.expiry_date;
             }
             let approval = JSON.parse(JSON.stringify(this.approval)); // Deep copy
@@ -591,12 +598,13 @@ export default {
                 // There is an existing licence. Therefore start_date and expiry_date are fixed to that dates
                 this.approval.expiry_date = moment(this.proposal.approval.expiry_date, 'YYYY-MM-DD').format('DD/MM/YYYY')
             }
-            if (!this.approval.start_date) {
+            if (!this.approval.start_date || this.approval.start_date == "Invalid date") {
                 delete this.approval.start_date;
             }
-            if (!this.approval.expiry_date) {
+            if (!this.approval.expiry_date || this.approval.expiry_date == "Invalid date") {
                 delete this.approval.expiry_date;
             }
+
             let approval = JSON.parse(JSON.stringify(vm.approval)); // Deep copy
 
             vm.issuingApproval = true;
@@ -717,28 +725,24 @@ export default {
                 }
             });
        },
-       eventListeners:function () {
-           
-       }
     },
     mounted:function () {
         let vm =this;
         vm.form = document.forms.approvalForm;
         vm.addFormValidations();
-        this.$nextTick(()=>{
-            vm.eventListeners();
-        });
-        
         this.component_site_selection_key = uuid()
     },
     created: function() {
         if (this.proposal.application_type === 'Site Transfer') {
+            console.log('transfer_apiary_sites')
             let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/transfer_apiary_sites/'
             fetch(url_sites).then(
                 async (response) => {
                     if (response.ok) {
                         let transfer_apiary_sites_req = await response.json();
                         for (let site of transfer_apiary_sites_req) {
+                            site.apiary_site.customer_selected = site.customer_selected;
+                            site.apiary_site.internal_selected = site.internal_selected;
                             this.apiary_sites_prop.push(site.apiary_site);
                         }
                     }

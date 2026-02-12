@@ -277,12 +277,20 @@ export default {
     created: function(){
         if (this.proposal) {
             if (this.proposal.application_type === 'Site Transfer' && this.proposal.proposal_apiary) {
+                console.log('transfer_apiary_sites')
                 let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/transfer_apiary_sites/'
                 fetch(url_sites).then(
                     async (response) => {
                         if (response.ok) {
                             let transfer_apiary_sites_req = await response.json();
                             for (let site of transfer_apiary_sites_req) {
+                                site.apiary_site.customer_selected = site.customer_selected;
+                                site.apiary_site.internal_selected = site.internal_selected;
+                                if (this.is_external) {
+                                    site.apiary_site.checked = site.customer_selected;
+                                } else {
+                                    site.apiary_site.checked = site.internal_selected;
+                                }
                                 this.apiary_sites_prop.push(site.apiary_site);
                             }
                         }
