@@ -203,7 +203,6 @@ export default {
       referenceWord: '',
       keyWord: null,
       selected_organisation:'',
-      organisations: null,
       results: [],
       errors: false,
       errorString: '',
@@ -311,16 +310,6 @@ export default {
         datatable,
         FormSection,
     },
-    // beforeRouteEnter:function(to,from,next){
-        // utils.fetchOrganisations().then((response)=>{
-        //     next(vm => {
-        //         vm.organisations = response;
-        //     });
-        // },
-        // (error) =>{
-        //     console.log(error);
-        // });
-    // },
     computed: {
         showError: function() {
             var vm = this;
@@ -328,24 +317,6 @@ export default {
         }
     },
     methods: {
-        addListeners: function(){
-            // let vm = this;
-            // Initialise select2 for region
-            // $(vm.$refs.searchOrg).select2({
-            //     "theme": "bootstrap",
-            //     allowClear: true,
-            //     placeholder:"Select Organisation"
-            // }).
-            // on("select2:select",function (e) {
-            //     var selected = $(e.currentTarget);
-            //     vm.selected_organisation = selected.val();
-            // }).
-            // on("select2:unselect",function (e) {
-            //     var selected = $(e.currentTarget);
-            //     vm.selected_organisation = selected.val();
-            // });
-        },
-
         add: function() {
           let vm = this;
           if(vm.keyWord != null)
@@ -696,21 +667,6 @@ export default {
             console.log(error);
           });
       },
-      eventListeners:function () {
-            // let vm = this;
-            // Initialise Date Picker
-            //console.log('here');
-            // $(vm.$refs.question_date).datetimepicker(vm.datepickerOptions);
-            // $(vm.$refs.question_date).on('dp.change', function(e){
-            //     if ($(vm.$refs.question_date).data('DateTimePicker').date()) {
-            //         vm.selected_option =  e.date.format('DD/MM/YYYY');
-            //     }
-            //     else if ($(vm.$refs.question_date).data('date') === "") {
-            //         vm.selected_option = "";
-            //     }
-            //  });
-       },
-
     },
     mounted: function () {
         let vm = this;
@@ -730,13 +686,5 @@ export default {
             }, 100 );
         } );
     },
-    updated: function(){
-        let vm = this;
-        this.$nextTick(() => {
-            vm.addListeners();
-            vm.eventListeners();
-        });
-        
-    }
 }
 </script>

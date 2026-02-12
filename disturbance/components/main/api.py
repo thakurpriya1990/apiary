@@ -2,7 +2,7 @@ import traceback
 from wsgiref.util import FileWrapper
 
 from django.http.response import HttpResponse
-from rest_framework import viewsets, serializers, status, views
+from rest_framework import viewsets, serializers, views
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
@@ -78,7 +78,6 @@ class BookingSettlementReportView(views.APIView):
 
     def get(self,request,format=None):
         try:
-            http_status = status.HTTP_200_OK
             #parse and validate data
             report = None
             data = {
