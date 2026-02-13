@@ -9,7 +9,7 @@ from disturbance.settings import TIME_ZONE
 from django.db.models import Q
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from rest_framework import viewsets, serializers, status, views
+from rest_framework import viewsets, serializers, status, views, mixins
 from rest_framework.decorators import action, renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
@@ -41,12 +41,16 @@ from disturbance.components.proposals.utils import (
 
 from disturbance.components.approvals.utils import annotate_apiary_site_on_approval_geometry
 
-from disturbance.components.proposals.models import ProposalDocument, searchKeyWords, search_reference, \
-    OnSiteInformation, ApiarySite, ApiaryChecklistQuestion, ApiaryChecklistAnswer, \
-    ProposalApiaryTemporaryUse, ApiarySiteOnProposal, PublicLiabilityInsuranceDocument, DeedPollDocument, \
+from disturbance.components.proposals.models import (
+    ProposalDocument, searchKeyWords, search_reference, 
+    OnSiteInformation, ApiarySite, ApiaryChecklistQuestion, ApiaryChecklistAnswer, 
+    ProposalApiaryTemporaryUse, ApiarySiteOnProposal, PublicLiabilityInsuranceDocument, DeedPollDocument, 
     SupportingApplicationDocument, search_sections, private_storage
-from disturbance.settings import SITE_STATUS_DRAFT, SITE_STATUS_CURRENT, SITE_STATUS_DENIED, \
-    SITE_STATUS_NOT_TO_BE_REISSUED, SITE_STATUS_VACANT, SITE_STATUS_DISCARDED
+)
+from disturbance.settings import (
+    SITE_STATUS_DRAFT, SITE_STATUS_CURRENT, SITE_STATUS_DENIED,
+    SITE_STATUS_NOT_TO_BE_REISSUED, SITE_STATUS_DISCARDED
+)
 from disturbance.utils import search_tenure
 from disturbance.components.main.utils import (
     check_db_connection,
@@ -82,7 +86,6 @@ from disturbance.components.proposals.models import (
 )
 from disturbance.components.proposals.serializers import (
     SendReferralSerializer,
-    ProposalTypeSerializer,
     ProposalSerializer,
     InternalProposalSerializer,
     SaveProposalSerializer,
@@ -142,6 +145,12 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from disturbance.components.main.process_document import process_generic_document
+from disturbance.components.proposals.permissions import (
+    InternalProposalPermission,
+)
+from disturbance.components.approvals.permissions import (
+    InternalApprovalPermission,
+)
 
 import logging
 logger = logging.getLogger(__name__)
@@ -253,7 +262,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class ProposalPaginatedViewSet(viewsets.ModelViewSet):
+class ProposalPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (ProposalFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
     queryset = Proposal.objects.none()
@@ -271,7 +280,7 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
             return qs
         return Proposal.objects.none()
 
-    @action(detail=False,methods=['GET',])
+    @action(detail=False,methods=['GET',], permission_classes=[InternalProposalPermission])
     def proposals_internal(self, request, *args, **kwargs):
         """
         Used by the internal dashboard
@@ -288,7 +297,6 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
         if applicant_id:
             qs = qs.filter(applicant_id=applicant_id)
 
-        self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListProposalSerializer(result_page, context={
             'request':request,
@@ -297,7 +305,7 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
         return self.paginator.get_paginated_response(serializer.data)
 
 
-    @action(detail=False,methods=['GET',])
+    @action(detail=False,methods=['GET',], permission_classes=[InternalProposalPermission])
     def referrals_internal(self, request, *args, **kwargs):
         """
         Used by the internal dashboard
@@ -313,7 +321,6 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
 
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = DTReferralSerializer(result_page, context={
             'request':request,
@@ -340,7 +347,6 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
         if applicant_id:
             qs = qs.filter(applicant_id=applicant_id)
 
-        self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListProposalSerializer(result_page, context={
             'request':request,
@@ -349,7 +355,7 @@ class ProposalPaginatedViewSet(viewsets.ModelViewSet):
         return self.paginator.get_paginated_response(serializer.data)
 
 
-class OnSiteInformationViewSet(viewsets.ModelViewSet):
+class OnSiteInformationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OnSiteInformation.objects.filter(datetime_deleted=None)
     serializer_class = OnSiteInformationSerializer
 
@@ -406,8 +412,32 @@ class OnSiteInformationViewSet(viewsets.ModelViewSet):
 
         apiary_site_id = request.data.get('apiary_site_id')
         approval_id = request.data.get('approval_id')
-        apiary_site = ApiarySite.objects.get(id=apiary_site_id)
-        approval = Approval.objects.get(id=approval_id)
+
+        if not apiary_site_id:
+            raise serializers.ValidationError("Please provide Apiary Site.")
+
+        if is_internal(self.request):
+            approval_queryset = Approval.objects.filter(id=approval_id)
+            apiary_site = ApiarySite.objects.filter(id=apiary_site_id).filter(approval_set__in=approval_queryset).first()
+            approval = approval_queryset.first()
+        else:
+            user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
+            approval_queryset = Approval.objects.filter(id=approval_id).filter(Q(applicant_id__in = user_orgs)|Q(proxy_applicant_id=self.request.user.id))
+            apiary_site = ApiarySite.objects.filter(id=apiary_site_id).filter(approval_set__in=approval_queryset).first()
+            approval = approval_queryset.first()
+
+        if not apiary_site:
+            if is_internal(self.request):
+                raise serializers.ValidationError("Apiary Site does not exist on Approval.")
+            else:
+                raise serializers.ValidationError("User not authorised to add site information to specified Apiary Site.")
+
+        if not approval:
+            if is_internal(self.request):
+                raise serializers.ValidationError("Approval does not exist.")
+            else:
+                raise serializers.ValidationError("User not authorised to add site information to specified Approval.")
+
         apiary_site_on_approval = ApiarySiteOnApproval.objects.get(apiary_site=apiary_site, approval=approval)
         request_data['apiary_site_on_approval_id'] = apiary_site_on_approval.id
 
@@ -457,17 +487,9 @@ class OnSiteInformationViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class ApiarySiteViewSet(viewsets.ModelViewSet):
+class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = ApiarySite.objects.none()
     serializer_class = ApiarySiteSerializer
-
-    def is_internal_system(self, request):
-        apiary_site_list_token = request.query_params.get(ApiaryGlobalSettings.KEY_APIARY_SITES_LIST_TOKEN, None)
-        if apiary_site_list_token:
-            token = ApiaryGlobalSettings.objects.get(key=ApiaryGlobalSettings.KEY_APIARY_SITES_LIST_TOKEN)
-            if apiary_site_list_token.lower() == token.value.lower():
-                return True
-        return False
 
     def get_queryset(self):
         if is_internal(self.request):
@@ -492,6 +514,9 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         relevant_applicant = apiary_site.get_relevant_applicant_name()
         return Response({'relevant_applicant': relevant_applicant})
 
+    #TODO on-cleanup consider putting better controls around this 
+    # - right now a user can just keep emailing another user through our system without any limits
+    #TODO fix for segregation - add sanitisation here
     @action(detail=True,methods=['POST',])
     @basic_exception_handler
     def contact_licence_holder(self, request, pk=None):
@@ -506,12 +531,45 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         email_data = send_contact_licence_holder_email(apiary_site.latest_approval_link, comments, sender)
 
         email_data['approval'] = u'{}'.format(apiary_site.latest_approval_link.approval.id)
+        email_data['fromm'] = sender.email if sender else None
+        email_data['to'] = apiary_site.latest_approval_link.approval.relevant_applicant_email if apiary_site.latest_approval_link and apiary_site.latest_approval_link.approval else None
+
         serializer = ApprovalLogEntrySerializer(data=email_data)
         serializer.is_valid(raise_exception=True)
-        comms = serializer.save()
+        serializer.save()
 
         return Response({})
 
+    @action(detail=True,methods=['PATCH',])
+    @basic_exception_handler
+    def toggle_availability(self, request, pk=None):
+        set_available = request.data.get('available', '')
+        instance = self.get_object()
+        try:
+            apiary_site_on_approval = instance.latest_approval_link
+            apiary_site_on_approval.available = set_available
+            apiary_site_on_approval.save()
+        except:
+            raise serializer.ValidationError("Invalid Request")
+        data = annotate_apiary_site_on_approval_geometry(ApiarySiteOnApproval.objects.filter(id=apiary_site_on_approval.id))
+        return Response(data[0] if len(data) > 0 else {})
+
+    @action(detail=True,methods=['PATCH',], permission_classes=[InternalApprovalPermission])
+    @basic_exception_handler
+    def make_vacant(self, request, pk=None):
+        instance = self.get_object()
+        try:
+            apiary_site_on_approval = instance.latest_approval_link
+            apiary_site_on_approval.status = 'vacant'
+            apiary_site_on_approval.save()
+        except:
+            raise serializer.ValidationError("Invalid Request")
+        instance.save()
+        data = annotate_apiary_site_on_approval_geometry(ApiarySiteOnApproval.objects.filter(id=instance.id))
+        return Response(data[0] if len(data) > 0 else {})
+
+    #TODO fix for segregation - everything from here needs to be optimised - replace the serializers
+    #This one is not used
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_draft(self, request):
@@ -590,6 +648,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
 
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
+    #This one is not used
     def list_apiary_sites_discarded(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_sites = get_qs_discarded_site(search_text)
@@ -649,6 +708,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         qs_on_approval = get_qs_approval()
         serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_on_approval, many=True)
         return Response(serializer.data)
+    #END TODO fix for segregation
 
     def _available_sites_qs(self):
         q_include = Q(id__in=(ApiarySite.objects.all().values('latest_approval_link__id')))
@@ -673,6 +733,7 @@ class ApiarySiteViewSet(viewsets.ModelViewSet):
         qs_on_proposal = ApiarySiteOnProposal.objects.filter(q_include_proposal).distinct('apiary_site')
         return qs_on_proposal
 
+    #TODO fix for segregation
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
     def available_sites(self, request):

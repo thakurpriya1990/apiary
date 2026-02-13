@@ -408,7 +408,7 @@
                                         } else {
                                             display_text = 'Mark as available';
                                         }
-                                        let ret = '<a data-toggle-availability="' + apiary_site.id + '" data-apiary-site-available="' + apiary_site.properties.available + '">' + display_text + '</a>';
+                                        let ret = '<a href="#' + apiary_site.id + '" data-toggle-availability="' + apiary_site.id + '" data-apiary-site-available="' + apiary_site.properties.available + '">' + display_text + '</a>';
                                         action_list.push(ret);
                                     //} else if (vm.is_internal && ['Current', 'current'].includes(apiary_site.status.id)){
                                     } else if (vm.is_internal && ['current',].includes(apiary_site.properties.status.toLowerCase())){
@@ -609,7 +609,6 @@
                 // Update internal apiary_site data
                 for (let i=0; i<this.apiary_sites.length; i++){
                     if (this.apiary_sites[i].id == site_updated.id){
-                        //this.apiary_sites[i].available = site_updated.properties.available
                         this.apiary_sites[i] = site_updated
                     }
                 }
@@ -694,7 +693,7 @@
                     (result) => {
                         if (result.isConfirmed) {
                             console.log("apiary_site")
-                            fetch('/api/apiary_site/' + apiary_site_id + '/',{
+                            fetch('/api/apiary_site/' + apiary_site_id + '/make_vacant/',{
                                 method: 'PATCH',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -714,7 +713,7 @@
 
                                     // Remove the site from the map
                                     this.$refs.component_map.removeApiarySiteById(apiary_site_id)
-                                    //vm.component_map_key = uuid()
+
                                 }).catch((error) => {
                                     console.log(error);
                                     swal.fire({
@@ -754,7 +753,7 @@
 
                 try {
                     console.log("apiary_site")
-                    const response = await fetch('/api/apiary_site/' + apiary_site_id + '/', {
+                    const response = await fetch('/api/apiary_site/' + apiary_site_id + '/toggle_availability/', {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
@@ -762,15 +761,13 @@
                         },
                         body: JSON.stringify({ available: requested_availability })
                     });
-
                     if (!response.ok) {
                         const errorText = await response.text();
                         throw new Error(errorText);
                     }
 
                     const site_updated = await response.json();
-                    vm.updateApiarySite(site_updated)
-                    // vm.constructApiarySitesTable();
+                    vm.updateApiarySite(site_updated);
                     vm.constructApiarySitesTable(vm.apiary_sites);
 
                 } catch (error) {

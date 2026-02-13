@@ -33,9 +33,9 @@ export default
             name:"submit_compliance"
         },
         {
-            path: 'sites',
+            path: 'available_sites',
             component: AvailableSites,
-            name: 'sites',
+            name: 'available_sites',
             props: { is_external: true }
         },
         {
