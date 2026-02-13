@@ -79,7 +79,6 @@ from disturbance.components.proposals.models import (
     ApiaryReferral,
     SiteTransferApiarySite,
     ApiarySiteFee,
-    ProposalTypeSection,
     TemporaryUseApiarySite,
 )
 from disturbance.components.proposals.serializers import (
@@ -103,7 +102,6 @@ from disturbance.components.proposals.serializers import (
     SaveProposalRegionSerializer,
     ProposalWrapperSerializer,
     ReferralWrapperSerializer,
-    ProposalTypeSectionSerializer,
 )
 from disturbance.components.proposals.serializers_apiary import (
     ProposalApiaryTypeSerializer,
@@ -532,6 +530,7 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         return Response({})
 
+    #TODO fix for segregation - check the status of the approval and the site to ensure valid to change (status current (check what is enforced on frontend))
     @action(detail=True,methods=['PATCH',])
     @basic_exception_handler
     def toggle_availability(self, request, pk=None):
@@ -749,7 +748,7 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         return Response(data)
 
 
-class ProposalApiaryViewSet(viewsets.ModelViewSet):
+class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = ProposalApiary.objects.none()
     serializer_class = ProposalApiarySerializer
 
@@ -784,12 +783,6 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
 
         return Response(data)
 
-    @action(detail=True,methods=['GET', ])
-    def on_site_information_list(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = ProposalApiarySerializer(instance)
-        return Response(serializer.data)
-
     def get_queryset(self):
         user = self.request.user
         if is_internal(self.request):
@@ -807,7 +800,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
         if application_type in (ApplicationType.APIARY, ApplicationType.SITE_TRANSFER):
             return ApiaryInternalProposalSerializer
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalProposalPermission])
     def internal_apiary_proposal(self, request, *args, **kwargs):
         instance = self.get_object()
         proposal_instance = instance.proposal
@@ -816,6 +809,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
         serializer = serializer_class(proposal_instance,context={'request':request})
         return Response(serializer.data)
 
+    #TODO only allow this to occur at appropriate proposal status (draft(?))
     @action(detail=True,methods=['POST'])
     @renderer_classes((JSONRenderer,))
     @basic_exception_handler
@@ -827,6 +821,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
         else:
             return Response()
 
+    #TODO only allow this to occur at appropriate proposal status (draft(?))
     @action(detail=True,methods=['POST'])
     @renderer_classes((JSONRenderer,))
     @basic_exception_handler
@@ -842,6 +837,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
         else:
             return Response()
 
+    #TODO only allow this to occur at appropriate proposal status (draft(?))
     @action(detail=True,methods=['POST'])
     @renderer_classes((JSONRenderer,))
     @basic_exception_handler
@@ -853,6 +849,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
         else:
             return Response()
 
+    #TODO fix for segregation - add permissions and enfore status restrictions
     @action(detail=True,methods=['post'])
     @basic_exception_handler
     def apiary_assessor_send_referral(self, request, *args, **kwargs):
@@ -864,6 +861,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
         serializer = serializer_class(instance.proposal,context={'request':request})
         return Response(serializer.data)
 
+    #TODO fix for segregation - add permissions and enfore status restrictions
     @action(detail=True,methods=['post'])
     @renderer_classes((JSONRenderer,))
     @basic_exception_handler
@@ -876,7 +874,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
         )
         return redirect(reverse('external'))
 
-    @action(detail=True,methods=['GET', ])
+    @action(detail=True,methods=['GET', ], permission_classes=[InternalProposalPermission])
     @renderer_classes((JSONRenderer,))
     def proposal_history(self, request, *args, **kwargs):
         try:
@@ -897,6 +895,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    #TODO fix for segregation - add permissions and enfore status restrictions
     @action(detail=True,methods=['POST',])
     @basic_exception_handler
     def final_approval(self, request, *args, **kwargs):
@@ -936,6 +935,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
                 return licence_response
             return Response(serializer.data)
 
+    #TODO fix for segregation - why it is a POST?
     @action(detail=True,methods=['POST', ])
     def get_licence_holders(self, request, *args, **kwargs):
         try:

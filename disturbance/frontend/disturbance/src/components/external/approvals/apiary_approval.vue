@@ -227,36 +227,6 @@ export default {
             org: {
                 address: {}
             },
-
-            // variables passed to the child component
-            //on_site_information_list: [],
-            // Filters
-
-        }
-    },
-    watch: {
-        approval: {
-            handler(){
-                console.log('approval in watch');
-                
-                // Construct the array, which is passed to the child component, SiteAvailability
-                // Construct the array, which is passed to the child component, OnSiteInformation
-                //this.on_site_information_list = []
-                
-                console.log(this.approval)
-                
-                //for (let i=0; i<this.approval.apiary_sites.length; i++){
-                //console.log('in apiary_sites.length')
-                //for (let j=0; j<this.approval.apiary_sites[i].onsiteinformation_set.length; j++){
-                    //console.log('in onsiteinformation_setgt.length')
-                    //this.on_site_information_list.push(this.approval.apiary_sites[i].onsiteinformation_set[j])
-                    //}
-                    //}
-                    
-                    // Construct the array, which is passed to the child component, TemporaryUse
-                    
-            },
-            deep: true,
         }
     },
     created: function() {
@@ -264,20 +234,6 @@ export default {
             this.loadApproval(this.approvalId)
         }
     },
-    //beforeRouteEnter: function(to, from, next){
-    //    Vue.http.get(helpers.add_endpoint_json(api_endpoints.approvals,to.params.approval_id)).then((response) => {
-    //        next(vm => {
-    //            console.log('in next');
-    //            console.log('response.body: ');
-    //            console.log(response.body);
-    //            vm.approval = response.body;
-    //            vm.approval.applicant_id = response.body.applicant_id;
-    //            vm.fetchOrganisation(vm.approval.applicant_id)
-    //        })
-    //    },(error) => {
-    //        console.log(error);
-    //    })
-    //},
     components: {
         SectionAnnualRentalFee,
         FormSection,

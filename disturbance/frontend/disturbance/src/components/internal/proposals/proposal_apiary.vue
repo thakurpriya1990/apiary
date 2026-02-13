@@ -574,7 +574,6 @@ export default {
           return helpers.getCookie('csrftoken')
         },
         proposal_form_url: function() {
-          //return (this.proposal) ? `/api/proposal/${this.proposal.id}/assessor_save.json` : '';
             if (this.apiaryProposal) {
                 return `/api/proposal_apiary/${this.apiaryProposal.id}/assessor_save.json`;
             }
@@ -1244,8 +1243,6 @@ export default {
                 //vm.sendingReferral = true;
                 // need to create Referral, ApiaryReferral at this point
                 let url = helpers.add_endpoint_json(api_endpoints.proposal_apiary,(vm.proposal.proposal_apiary.id+'/apiary_assessor_send_referral'))
-                //fetch(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/assesor_send_referral')),JSON.stringify(data),{
-                //fetch(helpers.add_endpoint_json(api_endpoints.proposal_apiary,(vm.proposal.id+'/apiary_assessor_send_referral')),JSON.stringify(data),{
                 fetch(url,{
                     method: 'POST',
                     headers: {
