@@ -49,16 +49,6 @@ export default {
     apiary_referrals:"/api/apiary_referrals.json",
     apiary_site_transfer_fees:"/api/apiary_site_fees/get_site_transfer_fees.json",
 
-    //schema api's
-    schema_masterlist:"/api/schema_masterlist.json",
-    schema_masterlist_paginated:"/api/schema_masterlist_paginated/",
-    schema_proposal_type:"/api/schema_proposal_type.json",
-    schema_proposal_type_paginated:"/api/schema_proposal_type_paginated/",
-    schema_group:"/api/schema_group/",
-    schema_group_paginated:"/api/schema_group_paginated/",
-    schema_question:"/api/schema_question.json",
-    schema_question_paginated:"/api/schema_question_paginated/",
-
     history_version_compare_field: "/api/history/compare/field/",
     history_version_compare: "/api/history/compare/",
     history_versions: "/api/history/versions/",

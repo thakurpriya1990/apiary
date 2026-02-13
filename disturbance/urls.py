@@ -54,25 +54,6 @@ router.register(r'apiary_referrals',proposal_api.ApiaryReferralViewSet,"apiary_r
 router.register(r'apiary_site_fees',proposal_api.ApiarySiteFeeViewSet,"apiary_site_fees")
 router.register(r'proposal_type_sections', proposal_api.ProposalTypeSectionViewSet,"proposal_type_sections")
 
-router.register(
-    r'schema_question_paginated', proposal_api.SchemaQuestionPaginatedViewSet,"schema_question_paginated")
-
-router.register(
-    r'schema_question', proposal_api.SchemaQuestionViewSet,"schema_question")
-
-router.register(
-    r'schema_masterlist',
-    proposal_api.SchemaMasterlistViewSet,
-    "schema_masterlist"
-)
-router.register(
-    r'schema_masterlist_paginated', proposal_api.SchemaMasterlistPaginatedViewSet,"schema_masterlist_paginated")
-router.register(
-    r'schema_proposal_type', proposal_api.SchemaProposalTypeViewSet,"schema_proposal_type")
-router.register(
-    r'schema_proposal_type_paginated', proposal_api.SchemaProposalTypePaginatedViewSet,"schema_proposal_type_paginated")
-router.register(r'map_layers', main_api.MapLayerViewSet,"map_layers")
-
 api_patterns = [
     re_path(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),
     re_path(r'^api/my_user_details/$',users_api.GetMyUserDetails.as_view(), name='get-my-user-details'),
