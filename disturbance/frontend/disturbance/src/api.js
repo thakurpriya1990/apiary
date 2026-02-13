@@ -24,7 +24,6 @@ export default {
     activity_matrix:"/api/activity_matrix.json",
     application_types:"/api/application_types.json",
     searchable_application_types:"/api/application_types/searchable_application_types.json",
-    proposal_type_sections:"/api/proposal_type_sections.json",
 
     // used in internal and external dashboards
     proposals_paginated_external:   "/api/proposal_paginated/proposals_external/?format=datatables",
