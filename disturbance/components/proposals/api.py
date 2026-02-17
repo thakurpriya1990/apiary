@@ -816,7 +816,8 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def process_deed_poll_document(self, request, *args, **kwargs):
         instance = self.get_object()
         returned_data = None
-        if instance.proposal and instance.proposal.customer_status == Proposal.CUSTOMER_STATUS_DRAFT:
+        action = request.data.get('action')
+        if action == 'list' or instance.proposal and instance.proposal.customer_status == Proposal.CUSTOMER_STATUS_DRAFT:
             returned_data = process_generic_document(request, instance, document_type=DeedPollDocument.DOC_TYPE_NAME)
         if returned_data:
             return Response(returned_data)
@@ -833,7 +834,8 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             instance = ProposalApiaryTemporaryUse.objects.get(proposal__id=kwargs.get('pk'))
         
         returned_data = None
-        if instance.proposal and instance.proposal.customer_status == Proposal.CUSTOMER_STATUS_DRAFT:
+        action = request.data.get('action')
+        if action == 'list' or instance.proposal and instance.proposal.customer_status == Proposal.CUSTOMER_STATUS_DRAFT:
             returned_data = process_generic_document(request, instance, document_type=PublicLiabilityInsuranceDocument.DOC_TYPE_NAME)
         if returned_data:
             return Response(returned_data)
@@ -847,7 +849,8 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
 
         returned_data = None
-        if instance.proposal and instance.proposal.customer_status == Proposal.CUSTOMER_STATUS_DRAFT:
+        action = request.data.get('action')
+        if action == 'list' or instance.proposal and instance.proposal.customer_status == Proposal.CUSTOMER_STATUS_DRAFT:
             returned_data = process_generic_document(request, instance, document_type=SupportingApplicationDocument.DOC_TYPE_NAME)
         if returned_data:
             return Response(returned_data)
@@ -1353,7 +1356,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             returned_data = None
-            if instance.customer_status == Proposal.CUSTOMER_STATUS_DRAFT:
+            action = request.data.get('action')
+            if action == 'list' or instance.customer_status == Proposal.CUSTOMER_STATUS_DRAFT:
                 returned_data = process_generic_document(request, instance, document_type=DeedPollDocument.DOC_TYPE_NAME)
             if returned_data:
                 return Response(returned_data)

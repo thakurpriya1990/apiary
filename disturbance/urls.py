@@ -52,6 +52,7 @@ router.register(r'application_types', main_api.ApplicationTypeViewSet,"applicati
 router.register(r'apiary_referral_groups', proposal_api.ApiaryReferralGroupViewSet,"apiary_referral_groups")
 router.register(r'apiary_referrals',proposal_api.ApiaryReferralViewSet,"apiary_referrals")
 router.register(r'apiary_site_fees',proposal_api.ApiarySiteFeeViewSet,"apiary_site_fees")
+router.register(r'map_layers', main_api.MapLayerViewSet,"map_layers")
 
 api_patterns = [
     re_path(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),
