@@ -74,12 +74,7 @@
                                 <div class="col-sm-12 top-buffer-s">
                                     <div class="mb-2"><strong>Referrals</strong></div>
                                     <div class="form-group mb-3">
-                                        <!--select :disabled="!canLimitedAction" ref="department_users" class="form-control">
-                                            <option value="null"></option>
-                                            <option v-for="user in department_users" :value="user.email">{{user.name}}</option>
-                                        </select-->
                                         <select :disabled="!canLimitedAction" ref="apiary_referral_groups" class="form-select">
-                                            <option value="null"></option>
                                             <option v-for="group in apiaryReferralGroups" :value="group.id" :key="group.id">{{group.name}}</option>
                                         </select>
                                         <template v-if='!sendingReferral'>

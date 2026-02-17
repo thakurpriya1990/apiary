@@ -589,13 +589,11 @@
                 }
             },
             addApiarySiteToTable: function(apiary_site) {
-                //this.$refs.table_apiary_site.vmDataTable.row.add(apiary_site).draw();
                 this.$refs.table_apiary_site.vmDataTable.row.add(apiary_site);
             },
             addEventListeners: function () {
                 $("#" + this.table_id).on("click", "a[data-view-on-map]", this.zoomOnApiarySite)
                 $("#" + this.table_id).on("click", "a[data-toggle-availability]", this.toggleAvailability)
-                //$("#" + this.table_id).on('click', 'input[type="checkbox"]', this.checkboxClicked)
                 $("#" + this.table_id).on('click', 'input[class="site_checkbox"]', this.checkboxClicked)
                 $("#" + this.table_id).on('click', 'input[class="licensed_site_checkbox"]', this.checkboxLicensedSiteClicked)
                 $("#" + this.table_id).on('click', 'input[class="select_all_checkbox"]', this.checkboxSelectAll)

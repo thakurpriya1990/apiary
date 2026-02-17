@@ -234,6 +234,7 @@ export default {
        eventListerners:function () {
             let vm = this;
 
+            //TODO fix for segregation - fix this going under the modal
             // Intialise select2
             $(vm.$refs.reason).select2({
                 "theme": "bootstrap",

@@ -1235,11 +1235,11 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         else:
             if self.assigned_officer:
                 if self.assigned_officer == user:
-                    return self.__assessor_group() in user.apiaryassessorgroup_set.all()
+                    return self.__assessor_group() in user.apiaryassessorgroup_set.all() or user.is_superuser
                 else:
                     return False
             else:
-                return self.__assessor_group() in user.apiaryassessorgroup_set.all()
+                return self.__assessor_group() in user.apiaryassessorgroup_set.all() or user.is_superuser
 
     def log_user_action(self, action, request):
         return ProposalUserAction.log_action(self, action, request.user)

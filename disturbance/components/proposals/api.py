@@ -137,6 +137,7 @@ from rest_framework_datatables.filters import DatatablesFilterBackend
 from disturbance.components.main.process_document import process_generic_document
 from disturbance.components.proposals.permissions import (
     InternalProposalPermission,
+    ProposalAssessorPermission,
 )
 from disturbance.components.approvals.permissions import (
     InternalApprovalPermission,
@@ -506,7 +507,7 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     #TODO on-cleanup consider putting better controls around this 
     # - right now a user can just keep emailing another user through our system without any limits
-    #TODO fix for segregation - add sanitisation here
+    #TODO fix for segregation - add sanitisation here (refer to textfield sanitisation when implemented)
     @action(detail=True,methods=['POST',])
     @basic_exception_handler
     def contact_licence_holder(self, request, pk=None):
@@ -530,7 +531,6 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         return Response({})
 
-    #TODO fix for segregation - check the status of the approval and the site to ensure valid to change (status current (check what is enforced on frontend))
     @action(detail=True,methods=['PATCH',])
     @basic_exception_handler
     def toggle_availability(self, request, pk=None):
@@ -538,8 +538,9 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         try:
             apiary_site_on_approval = instance.latest_approval_link
-            apiary_site_on_approval.available = set_available
-            apiary_site_on_approval.save()
+            if apiary_site_on_approval.site_status == 'current':
+                apiary_site_on_approval.available = set_available
+                apiary_site_on_approval.save()
         except:
             raise serializer.ValidationError("Invalid Request")
         data = annotate_apiary_site_on_approval_geometry(ApiarySiteOnApproval.objects.filter(id=apiary_site_on_approval.id))
@@ -551,7 +552,7 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         try:
             apiary_site_on_approval = instance.latest_approval_link
-            apiary_site_on_approval.status = 'vacant'
+            apiary_site_on_approval.site_status = 'vacant'
             apiary_site_on_approval.save()
         except:
             raise serializer.ValidationError("Invalid Request")
@@ -724,7 +725,7 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         qs_on_proposal = ApiarySiteOnProposal.objects.filter(q_include_proposal).distinct('apiary_site')
         return qs_on_proposal
 
-    #TODO fix for segregation
+    #TODO fix for segregation (optimise)
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
     def available_sites(self, request):
@@ -774,7 +775,7 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def transfer_apiary_sites(self, request, *args, **kwargs):
         proposal_apiary = self.get_object()
 
-        if proposal_apiary.proposal.customer_status == 'draft':
+        if proposal_apiary.proposal and proposal_apiary.proposal.customer_status == 'draft':
             sites = proposal_apiary.site_transfer_apiary_sites.all()
         else:
             sites = proposal_apiary.site_transfer_apiary_sites.filter(customer_selected=True)
@@ -805,23 +806,23 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         proposal_instance = instance.proposal
         proposal_instance.internal_view_log(request)
-        serializer_class = self.internal_serializer_class()
+        serializer_class = self.internal_apiary_serializer_class()
         serializer = serializer_class(proposal_instance,context={'request':request})
         return Response(serializer.data)
 
-    #TODO only allow this to occur at appropriate proposal status (draft(?))
     @action(detail=True,methods=['POST'])
     @renderer_classes((JSONRenderer,))
     @basic_exception_handler
     def process_deed_poll_document(self, request, *args, **kwargs):
         instance = self.get_object()
-        returned_data = process_generic_document(request, instance, document_type=DeedPollDocument.DOC_TYPE_NAME)
+        returned_data = None
+        if instance.proposal and instance.proposal.customer_status == Proposal.CUSTOMER_STATUS_DRAFT:
+            returned_data = process_generic_document(request, instance, document_type=DeedPollDocument.DOC_TYPE_NAME)
         if returned_data:
             return Response(returned_data)
         else:
             return Response()
 
-    #TODO only allow this to occur at appropriate proposal status (draft(?))
     @action(detail=True,methods=['POST'])
     @renderer_classes((JSONRenderer,))
     @basic_exception_handler
@@ -830,36 +831,42 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             instance = self.get_object()
         except:
             instance = ProposalApiaryTemporaryUse.objects.get(proposal__id=kwargs.get('pk'))
-
-        returned_data = process_generic_document(request, instance, document_type=PublicLiabilityInsuranceDocument.DOC_TYPE_NAME)
+        
+        returned_data = None
+        if instance.proposal and instance.proposal.customer_status == Proposal.CUSTOMER_STATUS_DRAFT:
+            returned_data = process_generic_document(request, instance, document_type=PublicLiabilityInsuranceDocument.DOC_TYPE_NAME)
         if returned_data:
             return Response(returned_data)
         else:
             return Response()
 
-    #TODO only allow this to occur at appropriate proposal status (draft(?))
     @action(detail=True,methods=['POST'])
     @renderer_classes((JSONRenderer,))
     @basic_exception_handler
     def process_supporting_application_document(self, request, *args, **kwargs):
         instance = self.get_object()
-        returned_data = process_generic_document(request, instance, document_type=SupportingApplicationDocument.DOC_TYPE_NAME)
+
+        returned_data = None
+        if instance.proposal and instance.proposal.customer_status == Proposal.CUSTOMER_STATUS_DRAFT:
+            returned_data = process_generic_document(request, instance, document_type=SupportingApplicationDocument.DOC_TYPE_NAME)
         if returned_data:
             return Response(returned_data)
         else:
             return Response()
 
-    #TODO fix for segregation - add permissions and enfore status restrictions
-    @action(detail=True,methods=['post'])
+    @action(detail=True,methods=['post'], permission_classes=[ProposalAssessorPermission])
     @basic_exception_handler
     def apiary_assessor_send_referral(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = SendApiaryReferralSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        instance.send_referral(request,serializer.validated_data['group_id'], serializer.validated_data['text'])
-        serializer_class = self.internal_apiary_serializer_class()
-        serializer = serializer_class(instance.proposal,context={'request':request})
-        return Response(serializer.data)
+        if instance.proposal and instance.proposal.processing_status == Proposal.PROCESSING_STATUS_WITH_ASSESSOR:
+            serializer = SendApiaryReferralSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            instance.send_referral(request,serializer.validated_data['group_id'], serializer.validated_data['text'])
+            serializer_class = self.internal_apiary_serializer_class()
+            serializer = serializer_class(instance.proposal,context={'request':request})
+            return Response(serializer.data)
+        else:
+            raise serializer.ValidationError("Can only send reference when proposal is With Assessor.")
 
     #TODO fix for segregation - add permissions and enfore status restrictions
     @action(detail=True,methods=['post'])
@@ -867,12 +874,19 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     @basic_exception_handler
     def assessor_save(self, request, *args, **kwargs):
         instance = self.get_object()
-        save_apiary_assessor_data(
-            instance.proposal,
-            request,
-            self
-        )
-        return redirect(reverse('external'))
+        if instance.proposal and instance.proposal.processing_status in [
+            Proposal.PROCESSING_STATUS_WITH_ASSESSOR,
+            Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS,
+        ]:
+            save_apiary_assessor_data(
+                instance.proposal,
+                request,
+            )
+            instance.refresh_from_db()
+        proposal_instance = instance.proposal
+        serializer_class = self.internal_apiary_serializer_class()
+        serializer = serializer_class(proposal_instance,context={'request':request})
+        return Response(serializer.data)
 
     @action(detail=True,methods=['GET', ], permission_classes=[InternalProposalPermission])
     @renderer_classes((JSONRenderer,))
@@ -1338,7 +1352,9 @@ class ProposalViewSet(viewsets.ModelViewSet):
     def process_deed_poll_document(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            returned_data = process_generic_document(request, instance, document_type=DeedPollDocument.DOC_TYPE_NAME)
+            returned_data = None
+            if instance.customer_status == Proposal.CUSTOMER_STATUS_DRAFT:
+                returned_data = process_generic_document(request, instance, document_type=DeedPollDocument.DOC_TYPE_NAME)
             if returned_data:
                 return Response(returned_data)
             else:

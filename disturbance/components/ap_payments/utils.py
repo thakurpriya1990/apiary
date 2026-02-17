@@ -357,7 +357,7 @@ def checkout(
         vouchers=[], 
         proxy=False
     ):
-
+    print("checkout")
     basket_params = {
         'products': lines,
         'vouchers': vouchers,
@@ -382,7 +382,7 @@ def checkout(
         'basket_owner': email_user_id,
         'session_type': 'ledger_api',
     }
-
+    print(checkout_params['return_preload_url'])
     create_checkout_session(request, checkout_params)
 
     response = HttpResponse(
@@ -531,7 +531,7 @@ def generate_line_items_for_annual_rental_fee(approval, today_now, period, apiar
 
 
 def checkout_existing_invoice(request, invoice, return_url_ns='public_booking_success'):
-
+    print("checkout_existing_invoice")
     basket, basket_hash = use_existing_basket_from_invoice(invoice.reference)
     checkout_params = {
         'system': settings.PAYMENT_SYSTEM_ID,
@@ -541,7 +541,7 @@ def checkout_existing_invoice(request, invoice, return_url_ns='public_booking_su
         'force_redirect': True,
         'invoice_text': invoice.text,
     }
-
+    
     if request.user.is_anonymous():
         # We need to determine the basket owner and set it to the checkout_params to proceed the payment
         annual_rental_fee = AnnualRentalFee.objects.filter(invoice_reference=invoice.reference)

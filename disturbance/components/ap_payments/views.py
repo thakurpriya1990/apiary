@@ -479,6 +479,7 @@ class ApplicationFeeSuccessViewPreload(APIView):
 
         return Response(status=status.HTTP_200_OK)
 
+#TODO fix for segregation - move submission to preload (this view should be for display only, no submission processes)
 class ApplicationFeeSuccessView(TemplateView):
     template_name = 'disturbance/payment/success_fee.html'
 
@@ -491,18 +492,14 @@ class ApplicationFeeSuccessView(TemplateView):
         
         #get application invoice from session
         application_fee = get_session_application_invoice(request.session)
-        print(application_fee)
         proposal = application_fee.proposal
-        print(proposal)
         submitter = proposal.submitter
 
         # Retrieve db processes stored when calculating the fee, and delete the session
         db_operations = request.session['db_processes']
-        print(db_operations)
         del request.session['db_processes']
 
         fee_inv = ApplicationFeeInvoice.objects.filter(application_fee=application_fee).order_by('id').last()
-        print("fee_inv",fee_inv)
         if fee_inv and fee_inv.invoice_reference:
             invoice_ref = fee_inv.invoice_reference
             invoice = Invoice.objects.filter(reference=invoice_ref).order_by('id').last()
@@ -543,7 +540,6 @@ class ApplicationFeeSuccessView(TemplateView):
             'submitter': submitter,
             'fee_invoice': fee_inv
         }
-        print("SUCCESS CONTEXT",context)
         return render(request, self.template_name, context)
 
     def adjust_db_operations(self, db_operations):

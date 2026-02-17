@@ -1150,12 +1150,12 @@ def save_assessor_data(instance,request,viewset):
             raise
 
 
-def save_apiary_assessor_data(instance,request,viewset):
+def save_apiary_assessor_data(instance,request):
     with transaction.atomic():
         try:
             serializer = SaveProposalSerializer(instance, request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            viewset.perform_update(serializer)
+
             # Save Documents
             for f in request.FILES:
                 try:
