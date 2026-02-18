@@ -139,6 +139,7 @@ from disturbance.components.proposals.permissions import (
     InternalProposalPermission,
     ProposalAssessorPermission,
     ProposalApproverPermission,
+    ProposalReferrerPermission,
 )
 from disturbance.components.approvals.permissions import (
     InternalApprovalPermission,
@@ -1003,28 +1004,20 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = self.get_serializer(instance, context={'request':request})
         return Response(serializer.data)
 
+    #TODO on-cleanup - ideally this should be paginated (so should comms and actions logs)
     @action(detail=False,methods=['GET',])
     def datatable_list(self, request, *args, **kwargs):
-        proposal_field = request.GET.get('proposal',None)
-        proposal = Proposal.objects.get(id=int(proposal_field))
-        if proposal:
+        try:
+            proposal_field = request.GET.get('proposal',None)
+            proposal = Proposal.objects.get(id=int(proposal_field))
             qs = Referral.objects.filter(proposal=proposal)
-            result_page = self.paginator.paginate_queryset(qs, request)
-            serializer = DTApiaryReferralSerializer(result_page, many=True)
+            serializer = DTApiaryReferralSerializer(qs, many=True)
             return Response(serializer.data)
+        except:
+            raise serializer.ValidationError("Valid proposal id not provided")
 
-    @action(detail=True,methods=['GET',])
-    def referral_list(self, request, *args, **kwargs):
-        instance = self.get_object()
-        qs = ApiaryReferral.objects.filter(
-                referral_group__in=request.user.apiaryreferralgroup_set.all(), 
-                proposal=instance.referral.proposal
-                )
-        serializer = ApiaryReferralSerializer(qs, many=True)
-
-        return Response(serializer.data)
-
-    @action(detail=True,methods=['GET', 'POST'])
+    #TODO fix for segregation - why GET?
+    @action(detail=True,methods=['GET', 'POST'],permission_classes=[ProposalReferrerPermission])
     def complete(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1052,7 +1045,8 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    #TODO fix for segregation - why GET?
+    @action(detail=True,methods=['GET',],permission_classes=[ProposalAssessorPermission])
     def remind(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1069,7 +1063,8 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    #TODO fix for segregation - why GET?
+    @action(detail=True,methods=['GET',],permission_classes=[ProposalAssessorPermission])
     def recall(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1086,7 +1081,8 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    #TODO fix for segregation - why GET?
+    @action(detail=True,methods=['GET',],permission_classes=[ProposalAssessorPermission])
     def resend(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1103,25 +1099,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['post'])
-    def send_referral(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = SendApiaryReferralSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            instance.referral.proposal.proposal_apiary.send_referral(request,serializer.validated_data['group_id'], serializer.validated_data['text'])
-            serializer = self.get_serializer(instance, context={'request':request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
-
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',],permission_classes=[ProposalReferrerPermission])
     def assign_request_user(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1138,7 +1116,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',],permission_classes=[ProposalReferrerPermission])
     def assign_to(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1163,7 +1141,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',],permission_classes=[ProposalReferrerPermission])
     def unassign(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
