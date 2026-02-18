@@ -421,8 +421,6 @@
                 let vm = this;
                 let searchPattern = /^[0-9]{4}/
                 let expiry_date_passed = vm.proposal.proposal_apiary.public_liability_insurance_expiry_date;
-                console.log('passed')
-                console.log(expiry_date_passed)
                 if (expiry_date_passed) {
                     // If date passed
                     if (searchPattern.test(expiry_date_passed)) {
@@ -457,7 +455,6 @@
                         }
                     }
                 }
-                console.log(siteList)
                 return siteList;
             },
             num_of_sites_south_west_to_add_as_remainder: function(value){

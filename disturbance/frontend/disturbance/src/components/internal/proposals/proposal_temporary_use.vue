@@ -316,18 +316,11 @@
 </template>
 <script>
 import { v4 as uuid } from 'uuid';
-// import ProposalDisturbance from '../../form.vue'
-//import ProposalApiary from '../../form_apiary.vue'
-// import ProposalApiary from '@/components/form_apiary.vue'
-// import NewApply from '../../external/proposal_apply_new.vue'
 import ProposedDecline from './proposal_proposed_decline.vue'
 import AmendmentRequest from './amendment_request.vue'
-//import datatable from '@vue-utils/datatable.vue'
 import Requirements from './proposal_requirements.vue'
 import ApprovalScreen from './proposal_approval.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
-//import MoreReferrals from '@common-utils/more_referrals.vue'
-// import ApiaryReferralsForProposal from '@common-utils/apiary/apiary_referrals_for_proposal.vue'
 import { api_endpoints, helpers, constants } from '@/utils/hooks'
 import SectionsProposalTemporaryUse from '@/components/common/apiary/sections_proposal_temporary_use.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
@@ -435,9 +428,6 @@ export default {
         contactsURL: function(){
             return this.proposal!= null ? helpers.add_endpoint_json(api_endpoints.organisations,this.proposal.applicant.id+'/contacts') : '';
         },
-        //referralListURL: function(){
-        //    return this.proposal!= null ? helpers.add_endpoint_json(api_endpoints.apiary_referrals,'datatable_list')+'?proposal='+this.proposal.id : '';
-        //},
         isLoading: function() {
           return this.loading.length > 0
         },
@@ -445,7 +435,6 @@ export default {
           return helpers.getCookie('csrftoken')
         },
         proposal_form_url: function() {
-          //return (this.proposal) ? `/api/proposal/${this.proposal.id}/assessor_save.json` : '';
             if (this.apiaryProposal) {
                 return `/api/proposal_apiary/${this.apiaryProposal.id}/assessor_save.json`;
             }

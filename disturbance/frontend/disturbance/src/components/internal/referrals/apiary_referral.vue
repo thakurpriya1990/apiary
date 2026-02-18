@@ -334,13 +334,7 @@
 import { v4 as uuid } from 'uuid';
 import ProposalApiary from '../../form_apiary.vue'
 import ApiarySiteTransfer from '../../form_apiary_site_transfer.vue'
-// import NewApply from '../../external/proposal_apply_new.vue'
-// import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
-//import MoreReferrals from '@common-utils/more_referrals.vue'
-//import ApiaryReferralsForProposal from '@common-utils/apiary/apiary_referrals_for_proposal.vue'
-//import OriginatingApprovalRequirements from '../proposals/originating_approval_requirements.vue'
-//import TargetApprovalRequirements from '../proposals/target_approval_requirements.vue'
 
 import {
     api_endpoints,
@@ -356,8 +350,6 @@ export default {
             detailsBody: 'detailsBody'+uuid(),
             addressBody: 'addressBody'+uuid(),
             contactsBody: 'contactsBody'+uuid(),
-            //"proposal": null,
-            //referral: null,
             assigned_officer_id: null,
             referral_sent_list: null,
             "loading": [],
@@ -672,31 +664,6 @@ export default {
                 console.log(err);
             });
         },
-        /*
-        assignTo: function(){
-            let vm = this;
-            if ( vm.proposal.assigned_officer != 'null'){
-                let data = {'user_id': vm.proposal.assigned_officer};
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.proposal.id+'/assign_to')),JSON.stringify(data),{
-                    emulateJSON:true
-                }).then((response) => {
-                    console.log(response);
-                    vm.proposal = response.body;
-                }, (error) => {
-                    console.log(error);
-                });
-            }
-            else{
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.proposal.id+'/unassign')))
-                .then((response) => {
-                    console.log(response);
-                    vm.proposal = response.body;
-                }, (error) => {
-                    console.log(error);
-                });
-            }
-        },
-        */
         fetchProposalGroupMembers: function(){
             let vm = this;
             vm.loading.push('Loading Proposal Group Members');
@@ -710,164 +677,6 @@ export default {
                 vm.loading.splice('Loading Proposal Group Members',1);
             })
         },
-        /*
-        initialiseSelects: function(){
-            let vm = this;
-            if (!vm.initialisedSelects){
-                $(vm.$refs.apiary_referral_groups).select2({
-                    "theme": "bootstrap",
-                    allowClear: true,
-                    placeholder:"Select Referral"
-                }).
-                on("select2:select",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.selected_referral = selected.val();
-               }).
-               on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.selected_referral = selected.val();
-               });
-                // Assigned officer select
-                $(vm.$refs.assigned_officer).select2({
-                    "theme": "bootstrap",
-                    allowClear: true,
-                    placeholder:"Select Officer"
-                }).
-                on("select2:select",function (e) {
-                   var selected = $(e.currentTarget);
-                   vm.$emit('input',selected[0])
-               }).
-               on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.$emit('input',selected[0])
-               });
-                vm.initialisedSelects = true;
-            }
-        },
-        sendReferral: function(){
-            let vm = this;
-            let formData = new FormData(vm.form); //save data before completing referral
-            vm.sendingReferral = true;
-            vm.$http.post(vm.proposal_form_url,formData).then(res=>{
-                //let data = {'email':vm.selected_referral, 'text': vm.referral_text};
-                let data = {'group_id':vm.selected_referral, 'text': vm.referral_text};
-                //vm.sendingReferral = true;
-                //vm.$http.post(helpers.add_endpoint_json(api_endpoints.referrals,(vm.referral.id+'/send_referral')),JSON.stringify(data),{
-                let url = helpers.add_endpoint_json(api_endpoints.apiary_referrals,(vm.referral.apiary_referral.id+'/send_referral'))
-                console.log(url)
-                vm.$http.post(url,JSON.stringify(data),{
-                emulateJSON:true
-                }).then((response) => {
-                vm.sendingReferral = false;
-                console.log(response.body)
-                //commenting out the following lines, as a secondary referral should not overwrite the current referral
-                //vm.referral = response.body;
-                //vm.referral.proposal.applicant.address = vm.referral.proposal.applicant.address != null ? vm.referral.proposal.applicant.address : {};
-                swal.fire(
-                    'Referral Sent',
-                    'The referral has been sent to '+vm.apiaryReferralGroups.find(d => d.id == vm.selected_referral).name,
-                    //'The referral has been sent to '+vm.apiaryReferralGroups.find(d => d.email == vm.selected_referral).name,
-                    'success'
-                )
-                $(vm.$refs.apiary_referral_groups).val(null).trigger("change");
-                vm.selected_referral = '';
-                vm.referral_text = '';
-             }, (error) => {
-                console.log(error);
-                swal.fire(
-                    'Referral Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-                vm.sendingReferral = false;
-                vm.selected_referral = '';
-                vm.referral_text = '';
-                });
-            
-             
-             },err=>{
-             });
-        },
-        fetchApiaryReferralGroups: function() {
-            this.loading.push('Loading Apiary Referral Groups');
-            this.$http.get(api_endpoints.apiary_referral_groups).then((response) => {
-                for (let group of response.body) {
-                    this.apiaryReferralGroups.push(group)
-                }
-                this.loading.splice('Loading Apiary Referral Groups',1);
-            },(error) => {
-                console.log(error);
-                this.loading.splice('Loading Apiary Referral Groups',1);
-            })
-
-        },
-        remindReferral:function(r){
-            let vm = this;
-            
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/remind')).then(response => {
-                // vm.original_proposal = helpers.copyObject(response.body);
-                // vm.proposal = response.body;
-                // vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                vm.fetchReferral(vm.referral.id);
-                swal.fire(
-                    'Referral Reminder',
-                    'A reminder has been sent to '+r.referral,
-                    'success'
-                )
-            },
-            error => {
-                swal.fire(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
-        },
-        resendReferral:function(r){
-            let vm = this;
-            
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/resend')).then(response => {
-                // vm.original_proposal = helpers.copyObject(response.body);
-                // vm.proposal = response.body;
-                // vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                vm.fetchReferral(vm.referral.id);
-                swal.fire(
-                    'Referral Resent',
-                    'The referral has been resent to '+r.referral,
-                    'success'
-                )
-            },
-            error => {
-                swal.fire(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
-        },
-        recallReferral:function(r){
-            let vm = this;
-            
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/recall')).then(response => {
-                // vm.original_proposal = helpers.copyObject(response.body);
-                // vm.proposal = response.body;
-                // vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                vm.fetchReferral(vm.referral.id);
-                swal.fire(
-                    'Referral Recall',
-                    'The referall has been recalled from '+r.referral,
-                    'success'
-                )
-            },
-            error => {
-                swal.fire(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
-        },
-        */
         fetchreferrallist: function(referral_id){
             let vm = this;
 

@@ -64,7 +64,7 @@ from disturbance.components.main.utils import (
 
 from django.urls import reverse
 from django.shortcuts import redirect, get_object_or_404
-from disturbance.components.main.models import ApplicationType, ApiaryGlobalSettings
+from disturbance.components.main.models import ApplicationType
 from disturbance.components.proposals.models import (
     ProposalType,
     Proposal,
@@ -909,20 +909,24 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    #TODO fix for segregation - add permissions and enfore status restrictions
     @action(detail=True,methods=['POST',], permission_classes=[ProposalApproverPermission])
     @basic_exception_handler
     def final_approval(self, request, *args, **kwargs):
         with transaction.atomic():
             instance = self.get_object()
+
             if instance.proposal.application_type.name == ApplicationType.SITE_TRANSFER:
                 serializer = ProposedApprovalSerializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
             else:
                 serializer = ProposedApprovalSerializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
-            preview = request.data.get('preview')
-            instance = instance.final_approval(request,serializer.validated_data,preview=preview)
+            
+            preview = None
+            if instance.proposal and instance.proposal.processing_status == Proposal.PROCESSING_STATUS_WITH_APPROVER:
+                preview = request.data.get('preview')
+                instance = instance.final_approval(request,serializer.validated_data,preview=preview)
+
             serializer_class = self.internal_apiary_serializer_class()
             serializer = serializer_class(instance.proposal,context={'request':request})
 
@@ -947,6 +951,7 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                         )
                 transaction.set_rollback(True)
                 return licence_response
+                        
             return Response(serializer.data)
 
     #TODO fix for segregation - why it is a POST?
@@ -981,9 +986,10 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             raise serializers.ValidationError(str(e))
 
 
-class ApiaryReferralViewSet(viewsets.ModelViewSet):
+class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = ApiaryReferral.objects.none()
     serializer_class = ApiaryReferralSerializer
+    permission_classes = [InternalProposalPermission]
 
     def get_queryset(self):
         user = self.request.user
@@ -998,25 +1004,14 @@ class ApiaryReferralViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=False,methods=['GET',])
-    def user_list(self, request, *args, **kwargs):
-        qs = self.get_queryset().filter(referral__referral=request.user)
-        serializer = DTReferralSerializer(qs, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False,methods=['GET',])
-    def user_group_list(self, request, *args, **kwargs):
-        qs = ApiaryReferralGroup.objects.filter().values_list('name', flat=True)
-        return Response(qs)
-
-    @action(detail=False,methods=['GET',])
     def datatable_list(self, request, *args, **kwargs):
         proposal_field = request.GET.get('proposal',None)
         proposal = Proposal.objects.get(id=int(proposal_field))
         if proposal:
             qs = Referral.objects.filter(proposal=proposal)
-        serializer = DTApiaryReferralSerializer(qs, many=True)
-        return Response(serializer.data)
-
+            result_page = self.paginator.paginate_queryset(qs, request)
+            serializer = DTApiaryReferralSerializer(result_page, many=True)
+            return Response(serializer.data)
 
     @action(detail=True,methods=['GET',])
     def referral_list(self, request, *args, **kwargs):
