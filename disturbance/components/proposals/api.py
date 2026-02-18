@@ -138,6 +138,7 @@ from disturbance.components.main.process_document import process_generic_documen
 from disturbance.components.proposals.permissions import (
     InternalProposalPermission,
     ProposalAssessorPermission,
+    ProposalApproverPermission,
 )
 from disturbance.components.approvals.permissions import (
     InternalApprovalPermission,
@@ -871,16 +872,12 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         else:
             raise serializer.ValidationError("Can only send reference when proposal is With Assessor.")
 
-    #TODO fix for segregation - add permissions and enfore status restrictions
-    @action(detail=True,methods=['post'])
+    @action(detail=True,methods=['post'], permission_classes=[ProposalAssessorPermission])
     @renderer_classes((JSONRenderer,))
     @basic_exception_handler
     def assessor_save(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.proposal and instance.proposal.processing_status in [
-            Proposal.PROCESSING_STATUS_WITH_ASSESSOR,
-            Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS,
-        ]:
+        if instance.proposal and instance.proposal.has_assessor_mode(request.user):
             save_apiary_assessor_data(
                 instance.proposal,
                 request,
@@ -913,7 +910,7 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             raise serializers.ValidationError(str(e))
 
     #TODO fix for segregation - add permissions and enfore status restrictions
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[ProposalApproverPermission])
     @basic_exception_handler
     def final_approval(self, request, *args, **kwargs):
         with transaction.atomic():
@@ -2656,15 +2653,23 @@ class SearchReferenceView(views.APIView):
             raise serializers.ValidationError(str(e))
 
 
-class ApiaryReferralGroupViewSet(viewsets.ModelViewSet):
+class ApiaryReferralGroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ApiaryReferralGroup.objects.none()
     serializer_class = ApiaryReferralGroupSerializer
+    permission_classes=[InternalProposalPermission]
 
     def get_queryset(self):
         if is_internal(self.request):
             return ApiaryReferralGroup.objects.all()
         else:
             return ApiaryReferralGroup.objects.none()
+        
+    @action(detail=False,methods=['GET',])
+    def get_referral_group_list(self, request, *args, **kwargs):
+
+        data = self.get_queryset().values("id","name")
+
+        return Response(data)
 
 
 class ApiarySiteFeeViewSet(viewsets.ModelViewSet):

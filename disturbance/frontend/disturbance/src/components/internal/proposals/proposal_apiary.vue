@@ -1150,7 +1150,7 @@ export default {
         },
         fetchApiaryReferralGroups: function() {
             this.loading.push('Loading Apiary Referral Groups');
-            fetch(api_endpoints.apiary_referral_groups)
+            fetch("/api/apiary_referral_groups/get_referral_group_list/")
             .then(async (response) => {
                 if (!response.ok) { return response.json().then(err => { throw err }); }
                 const data = await response.json();

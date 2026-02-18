@@ -3,6 +3,7 @@ from rest_framework.permissions import BasePermission
 from disturbance.helpers import (
     is_internal,
     is_apiary_assessor,
+    is_apiary_approver,
 )
 
 class InternalProposalPermission(BasePermission):
@@ -20,3 +21,8 @@ class ProposalAssessorPermission(BasePermission):
 
     def has_permission(self, request, view):
         return is_apiary_assessor(request)
+    
+class ProposalApproverPermission(BasePermission):
+
+    def has_permission(self, request, view):
+        return is_apiary_approver(request)
