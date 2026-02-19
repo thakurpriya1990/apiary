@@ -421,53 +421,6 @@ export default {
         } finally {
             vm.creatingProposal = false;
         }
-
-
-		// vm.$http.post('/api/proposal.json',{
-		// 	behalf_of: vm.behalf_of,
-		// 	application: vm.selected_application_id,
-		// 	region: vm.selected_region,
-		// 	district: vm.selected_district,
-		// 	//tenure: vm.selected_tenure,
-		// 	activity: vm.selected_activity,
-        //     sub_activity1: vm.selected_sub_activity1,
-        //     sub_activity2: vm.selected_sub_activity2,
-        //     category: vm.selected_category,
-        //     approval_level: vm.approval_level,
-        //     profile: this.profile.id,
-        //     // Site Transfer
-        //     originating_approval_id: vm.currentApiaryApproval,
-        //     // Temporary Use
-        //     approval_id: vm.currentApiaryApproval,
-		// }).then(res => {
-		//     vm.proposal = res.body;
-		// 	vm.$router.push({
-		// 	    name:"draft_proposal",
-		// 		params:{proposal_id:vm.proposal.id}
-		// 	});
-        //     vm.creatingProposal = false;
-		// },
-		// err => {
-		// 	console.log(err);
-        //     console.log(err.bodyText);
-        //     if (err.bodyText.includes("null_applicant_address")) {
-        //         swal.fire({
-        //             title: "Cannot create application",
-        //             text: "Please add your address",
-        //             icon: "error",
-        //             confirmButtonText: 'Ok',
-        //             customClass: {
-        //                 confirmButton: 'btn btn-primary',
-        //             },
-        //         }).then((result) => {
-        //             if(result.isConfirmed){
-        //                 vm.$router.push({
-        //                     name:"account",
-        //                 });
-        //             }
-        //         });
-        //     }
-		// });
     },
     isDisabled: function() {
         let vm = this;
@@ -525,21 +478,19 @@ export default {
     fetchApplicationTypes: function(){
 		let vm = this;
 
-		fetch(api_endpoints.application_types).then(
+		fetch("/api/application_types/searchable_application_types").then(
             async (response) => {
                 if (!response.ok) {
                     return await response.json().then(err => { throw err });
                 }
 				vm.api_app_types = await response.json();
-				//console.log('api_app_types ' + response.body);
+				console.log('api_app_types ' + vm.api_app_types);
 
                 for (var i = 0; i < vm.api_app_types.length; i++) {
                     this.application_types.push( {
                         text: vm.api_app_types[i].name, 
                         value: vm.api_app_types[i].id, 
                         domain_used: vm.api_app_types[i].domain_used,
-                        //activities: (vm.api_app_types[i].activity_app_types.length > 0) ? vm.api_app_types[i].activity_app_types : [],
-                        //tenures: (vm.api_app_types[i].tenure_app_types.length > 0) ? vm.api_app_types[i].tenure_app_types : [],
                     } );
                 }
             }).catch((error) => {
@@ -556,9 +507,6 @@ export default {
         vm.display_activity_matrix_selectbox = false;
 
         vm.selected_application_name = this.searchList(application_id, vm.application_types).text
-        //this.chainedSelectActivities(application_id);
-        //this.chainedSelectActivities(application_id);
-
         if (['Apiary', 'Site Transfer', 'Temporary Use'].includes(vm.selected_application_name)) {
             vm.display_region_selectbox = false;
             vm.display_activity_matrix_selectbox = false;

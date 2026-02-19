@@ -1625,21 +1625,6 @@ export default {
           this.loading.splice('Loading Proposal', 1);
         });
     },
-    /*
-    beforeRouteEnter: function(to, from, next) {
-          Vue.http.get(`/api/proposal/${to.params.proposal_id}/internal_proposal.json`).then(res => {
-              next(vm => {
-                vm.proposal = res.body;
-                vm.original_proposal = helpers.copyObject(res.body);
-                vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                vm.hasAmendmentRequest=vm.proposal.hasAmendmentRequest;
-              });
-            },
-            err => {
-              console.log(err);
-            });
-    },
-    */
     beforeRouteUpdate: function(to, from, next) {
         console.log("beforeRouteUpdate")
           fetch(`/api/proposal/${to.params.proposal_id}.json`)

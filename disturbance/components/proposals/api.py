@@ -1129,7 +1129,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             raise serializers.ValidationError(str(e))
 
 
-class ProposalViewSet(viewsets.ModelViewSet):
+class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = Proposal.objects.none()
     serializer_class = ProposalSerializer
 
@@ -1178,12 +1178,6 @@ class ProposalViewSet(viewsets.ModelViewSet):
                 return Response(returned_data)
             else:
                 return Response()
-
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1202,126 +1196,29 @@ class ProposalViewSet(viewsets.ModelViewSet):
         )
         return Response(data)
 
-    @action(detail=True,methods=['POST'])
-    @renderer_classes((JSONRenderer,))
-    def process_document(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            action = request.POST.get('action')
-            section = request.POST.get('input_name')
-
-            if action == 'list' and 'input_name' in request.POST:
-                pass
-
-            elif action == 'delete' and 'document_id' in request.POST:
-                document_id = request.POST.get('document_id')
-                document = instance.documents.get(id=document_id)
-
-                if document._file and os.path.isfile(document._file.path) and document.can_delete:
-                    os.remove(document._file.path)
-
-                document.delete()
-                instance.save(version_comment='Approval File Deleted: {}'.format(document.name)) # to allow revision to be added to reversion history
-
-            elif action == 'hide' and 'document_id' in request.POST:
-                document_id = request.POST.get('document_id')
-                document = instance.documents.get(id=document_id)
-
-                document.hidden=True
-                document.save()
-                instance.save(version_comment='File hidden: {}'.format(document.name)) # to allow revision to be added to reversion history
-
-            elif action == 'save' and 'input_name' in request.POST and 'filename' in request.POST:
-                proposal_id = request.POST.get('proposal_id')
-                filename = request.POST.get('filename')
-                _file = request.POST.get('_file')
-                if not _file:
-                    _file = request.FILES.get('_file')
-
-                document = instance.documents.get_or_create(input_name=section, name=filename)[0]
-                path = private_storage.save('proposals/{}/documents/{}'.format(proposal_id, filename), ContentFile(_file.read()))
-
-                document._file = path
-                document.save()
-                instance.save(version_comment='File Added: {}'.format(filename)) # to allow revision to be added to reversion history
-
-            proposal_lodgement_date = request.POST.get('proposal_lodgement_date')
-            # Only go through the overhead of finding older proposal documents when viewing a version other than current
-            if proposal_lodgement_date:
-                if(parser.parse(str(instance.lodgement_date))!=parser.parse(proposal_lodgement_date)):
-                    # For viewing older versions of a proposal we need to build a list of documents that were not hidden at that time
-                    documents = instance.documents.filter(input_name=section, uploaded_date__lte=proposal_lodgement_date).order_by('input_name', 'uploaded_date')
-                    older_version_documents = []
-                    for document in documents:
-                        older_document_version = Version.objects.get_for_object(document)\
-                        .select_related('revision').filter(revision__date_created__lte=proposal_lodgement_date).order_by('-revision__date_created').first()
-                        older_document = ProposalDocument(**older_document_version.field_dict)
-                        if not older_document.hidden:
-                            older_document = ProposalDocument(**older_document_version.field_dict)
-                            older_version_documents.append(older_document)
-
-                    return  Response( [dict(input_name=d.input_name, name=d.name,file=d._file.url, id=d.id, can_delete=d.can_delete, can_hide=d.can_hide) for d in older_version_documents if d._file] )
-                else:
-                    return  Response( [dict(input_name=d.input_name, name=d.name,file=d._file.url, id=d.id, can_delete=d.can_delete, can_hide=d.can_hide) for d in instance.documents.filter(input_name=section, hidden=False) if d._file] )
-            else:
-                return  Response( [dict(input_name=d.input_name, name=d.name,file=d._file.url, id=d.id, can_delete=d.can_delete, can_hide=d.can_hide) for d in instance.documents.filter(input_name=section, hidden=False) if d._file] )
-
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
-
-    @action(detail=False,methods=['GET',])
-    def list_paginated(self, request, *args, **kwargs):
-        """
-        https://stackoverflow.com/questions/29128225/django-rest-framework-3-1-breaks-pagination-paginationserializer
-        """
-        proposals = self.get_queryset()
-        paginator = PageNumberPagination()
-        paginator.page_size = 5
-        result_page = paginator.paginate_queryset(proposals, request)
-        serializer = ListProposalSerializer(result_page, context={'request':request}, many=True)
-        return paginator.get_paginated_response(serializer.data)
-
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalProposalPermission])
     def action_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
             qs = instance.action_logs.all()
             serializer = ProposalUserActionSerializer(qs,many=True)
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalProposalPermission])
     def comms_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
             qs = instance.comms_logs.all()
             serializer = ProposalLogEntrySerializer(qs,many=True)
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[InternalProposalPermission])
     @renderer_classes((JSONRenderer,))
     def add_comms_log(self, request, *args, **kwargs):
         try:
@@ -1340,34 +1237,23 @@ class ProposalViewSet(viewsets.ModelViewSet):
                             _file = request.FILES[f]
                             )
                 return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    #TODO:on-cleanup requirements endpoints should ideally be paginated but not necessary for now
+    @action(detail=True,methods=['GET',], permission_classes=[InternalProposalPermission])
     def requirements(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
             qs = instance.requirements.all().exclude(is_deleted=True)
             serializer = ProposalRequirementSerializer(qs,many=True)
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalProposalPermission])
     def apiary_site_transfer_originating_approval_requirements(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1375,17 +1261,11 @@ class ProposalViewSet(viewsets.ModelViewSet):
             qs = instance.apiary_requirements(approval).exclude(is_deleted=True)
             serializer = ProposalRequirementSerializer(qs,many=True)
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalProposalPermission])
     def apiary_site_transfer_target_approval_requirements(self, request, *args, **kwargs):
         # for new licences, sitetransfer_approval is None
         try:
@@ -1398,16 +1278,9 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
             serializer = ProposalRequirementSerializer(qs,many=True)
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-
 
     @action(detail=True,methods=['GET',])
     def amendment_request(self, request, *args, **kwargs):
@@ -1417,53 +1290,11 @@ class ProposalViewSet(viewsets.ModelViewSet):
             qs = qs.filter(status = 'requested')
             serializer = AmendmentRequestDisplaySerializer(qs,many=True)
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=False,methods=['GET',])
-    def user_list(self, request, *args, **kwargs):
-        qs = self.get_queryset().exclude(processing_status=Proposal.PROCESSING_STATUS_DISCARDED)
-        serializer = ListProposalSerializer(qs,context={'request':request}, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False,methods=['GET',])
-    def user_list_paginated(self, request, *args, **kwargs):
-        """
-        Placing Paginator class here (instead of settings.py) allows specific method for desired behaviour),
-        otherwise all serializers will use the default pagination class
-
-        https://stackoverflow.com/questions/29128225/django-rest-framework-3-1-breaks-pagination-paginationserializer
-        """
-        proposals = self.get_queryset().exclude(processing_status=Proposal.PROCESSING_STATUS_DISCARDED)
-        paginator = DatatablesPageNumberPagination()
-        paginator.page_size = proposals.count()
-        result_page = paginator.paginate_queryset(proposals, request)
-        serializer = ListProposalSerializer(result_page, context={'request':request}, many=True)
-        return paginator.get_paginated_response(serializer.data)
-
-    @action(detail=False,methods=['GET',])
-    def list_paginated(self, request, *args, **kwargs):
-        """
-        Placing Paginator class here (instead of settings.py) allows specific method for desired behaviour),
-        otherwise all serializers will use the default pagination class
-
-        https://stackoverflow.com/questions/29128225/django-rest-framework-3-1-breaks-pagination-paginationserializer
-        """
-        proposals = self.get_queryset()
-        paginator = DatatablesPageNumberPagination()
-        paginator.page_size = proposals.count()
-        result_page = paginator.paginate_queryset(proposals, request)
-        serializer = ListProposalSerializer(result_page, context={'request':request}, many=True)
-        return paginator.get_paginated_response(serializer.data)
-
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalProposalPermission])
     def internal_proposal(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.internal_view_log(request)
@@ -1471,53 +1302,28 @@ class ProposalViewSet(viewsets.ModelViewSet):
         serializer = serializer_class(instance,context={'request': request})
         return Response(serializer.data)
 
-    @action(detail=True,methods=['GET',])
-    def internal_revision_proposal(self, request, *args, **kwargs):
-        
-        instance = self.get_object()
-
-        version_number = int(request.query_params.get("revision_number"))
-        revision = instance.get_revision(version_number)
-        
-        # Populate a new Proposal object with the version data
-        instance = Proposal(**revision)
-
-        serializer_class = self.internal_serializer_class()
-        serializer = serializer_class(instance,context={'request':request})
-
-        return Response(serializer.data)
-
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalProposalPermission])
     def internal_proposal_wrapper(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer_class = ProposalWrapperSerializer
         serializer = serializer_class(instance)
         return Response(serializer.data)
 
-    @action(detail=True,methods=['post'])
+    @action(detail=True,methods=['POST'])
     @renderer_classes((JSONRenderer,))
     def submit(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            if instance.apiary_group_application_type:
+            if instance.customer_status == Proposal.CUSTOMER_STATUS_DRAFT:
                 save_proponent_data(instance, request, self)
-            else:
-                instance.submit(request, self)
-                instance.tenure = search_tenure(instance)
-
             instance.save()
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalProposalPermission])
     def assign_request_user(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1525,17 +1331,11 @@ class ProposalViewSet(viewsets.ModelViewSet):
             serializer_class = self.internal_serializer_class()
             serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[InternalProposalPermission])
     def assign_to(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1551,17 +1351,11 @@ class ProposalViewSet(viewsets.ModelViewSet):
             serializer_class = self.internal_serializer_class()
             serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalProposalPermission])
     def unassign(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1579,7 +1373,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[InternalProposalPermission])
     def switch_status(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1603,7 +1397,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[InternalProposalPermission])
     def reissue_approval(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1617,11 +1411,6 @@ class ProposalViewSet(viewsets.ModelViewSet):
             serializer_class = self.internal_serializer_class()
             serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1658,7 +1447,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             else:
                 raise
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[ProposalAssessorPermission])
     def proposed_approval(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1672,16 +1461,12 @@ class ProposalViewSet(viewsets.ModelViewSet):
             serializer_class = self.internal_serializer_class()
             serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    #TODO on-cleanup - determine if this is required for apiary or not (applying internal permissions for now)
+    @action(detail=True,methods=['POST',], permission_classes=[InternalProposalPermission])
     def approval_level_document(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1689,16 +1474,12 @@ class ProposalViewSet(viewsets.ModelViewSet):
             serializer_class = self.internal_serializer_class()
             serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    #TODO on-cleanup - determine if this is required for apiary or not (applying internal permissions for now)
+    @action(detail=True,methods=['POST',], permission_classes=[InternalProposalPermission])
     def approval_level_comment(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1715,21 +1496,21 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[ProposalApproverPermission])
     @basic_exception_handler
     def final_approval_temp_use(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.final_approval_temp_use(request,)
         return Response({})
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[ProposalApproverPermission])
     @basic_exception_handler
     def final_decline_temp_use(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.final_decline_temp_use(request,)
         return Response({})
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[ProposalApproverPermission])
     def final_approval(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1739,16 +1520,11 @@ class ProposalViewSet(viewsets.ModelViewSet):
             serializer_class = self.internal_serializer_class()
             serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[ProposalAssessorPermission])
     def proposed_decline(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1758,16 +1534,11 @@ class ProposalViewSet(viewsets.ModelViewSet):
             serializer_class = self.internal_serializer_class()
             serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[ProposalApproverPermission])
     def final_decline(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1786,21 +1557,19 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['post'])
+    @action(detail=True,methods=['post'], permission_classes=[ProposalAssessorPermission])
     def assesor_send_referral(self, request, *args, **kwargs):
         try:
-            instance = self.get_object()
-            serializer = SendReferralSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            instance.send_referral(request,serializer.validated_data['email'], serializer.validated_data['text'])
-            serializer_class = self.internal_serializer_class()
-            serializer = serializer_class(instance,context={'request':request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
+            if instance.processing_status == Proposal.PROCESSING_STATUS_WITH_ASSESSOR:
+                instance = self.get_object()
+                serializer = SendReferralSerializer(data=request.data)
+                serializer.is_valid(raise_exception=True)
+                instance.send_referral(request,serializer.validated_data['email'], serializer.validated_data['text'])
+                serializer_class = self.internal_serializer_class()
+                serializer = serializer_class(instance,context={'request':request})
+                return Response(serializer.data)
+            else:
+                raise serializer.ValidationError("Can only send reference when proposal is With Assessor.")
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1809,6 +1578,9 @@ class ProposalViewSet(viewsets.ModelViewSet):
     @basic_exception_handler
     def remove_apiary_site(self, request, *args, **kwargs):
         proposal_obj = self.get_object()
+
+        is_authorised_to_modify_draft(request, proposal_obj)
+
         apiary_site_id = request.data.get('apiary_site_id')
 
         apiary_site = ApiarySite.objects.get(id=apiary_site_id)
@@ -1822,23 +1594,16 @@ class ProposalViewSet(viewsets.ModelViewSet):
     def draft(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-
-            print('in draft')
             # Ensure the current user is a member of the organisation that created the draft application.
             is_authorised_to_modify_draft(request, instance)
-
             save_proponent_data(instance, request, self)
             serializer = self.serializer_class(instance,context={'request':request})
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    #TODO on-cleanup - determine if this is required for apiary or not 
     @action(detail=True,methods=['post'])
     @renderer_classes((JSONRenderer,))
     def update_region_section(self, request, *args, **kwargs):
@@ -1874,12 +1639,13 @@ class ProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
         raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['post'])
+    @action(detail=True,methods=['post'], permission_classes=[ProposalAssessorPermission])
     @renderer_classes((JSONRenderer,))
     def assessor_save(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            save_assessor_data(instance,request,self)
+            if instance.has_assessor_mode(request.user):
+                save_assessor_data(instance,request,self)
             return redirect(reverse('external'))
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -2028,74 +1794,6 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
                 serializer = SaveProposalSerializer(proposal_obj)
                 return Response(serializer.data)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
-
-    #TODO fix for segregation - review/remove
-    def update(self, request, *args, **kwargs):
-        """
-        This function might not be used anymore
-        The function 'draft()' is used rather than this update()
-        """
-        try:
-            http_status = status.HTTP_200_OK
-            application_type = ApplicationType.objects.get(id=request.data.get('application'))
-
-            # When there is a parameter named 'application_type_str', we may need to update application_type
-            application_type_str = request.data.get('application_type_str', None)
-            if application_type_str == 'temporary_use':
-                application_type = ApplicationType.objects.get(name=ApplicationType.TEMPORARY_USE)
-            elif application_type_str == 'site_transfer':
-                application_type = ApplicationType.objects.get(name=ApplicationType.SITE_TRANSFER)
-
-            if application_type.name == ApplicationType.APIARY:
-                pass
-
-            elif application_type.name == ApplicationType.TEMPORARY_USE:
-                # Proposal obj should not be changed
-                # Only ProposalApiaryTemporaryUse object needs to be updated
-                apiary_temporary_use_obj = ProposalApiaryTemporaryUse.objects.get(id=request.data.get('apiary_temporary_use')['id'])
-                apiary_temporary_use_data = request.data.get('apiary_temporary_use')
-                update_proposal_apiary_temporary_use(apiary_temporary_use_obj, apiary_temporary_use_data)
-
-                proposal_obj = self.get_object()
-                serializer = ProposalSerializer(proposal_obj)
-                return Response(serializer.data)
-
-            elif application_type.name == ApplicationType.SITE_TRANSFER:
-                pass
-
-            instance = self.get_object()
-            serializer = SaveProposalSerializer(instance, data=request.data)
-            serializer.is_valid(raise_exception=True)
-            self.perform_update(serializer)
-            return Response(serializer.data)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
-
-    def destroy(self, request, *args, **kwargs):
-        try:
-            http_status = status.HTTP_200_OK
-            instance = self.get_object()
-            serializer = SaveProposalSerializer(instance, {
-                'processing_status': Proposal.PROCESSING_STATUS_DISCARDED,
-                'previous_application': None
-            }, partial=True)
-            serializer.is_valid(raise_exception=True)
-            self.perform_update(serializer)
-            if hasattr(instance, 'proposal_apiary') and instance.proposal_apiary and instance.proposal_apiary.apiary_sites.count():
-                for apiary_site in instance.proposal_apiary.apiary_sites.all():
-                    if apiary_site.can_be_deleted_from_the_system:
-                        # Apiary sites can be actually deleted from the system
-                        apiary_site.delete()
-                    else:
-                        # This apiary site was submitted at least once
-                        # Therefore we have to keep the record of this apiary site
-                        apiary_site.latest_proposal_link.site_status = SITE_STATUS_DISCARDED
-                        apiary_site.latest_proposal_link.save()
-            return Response(serializer.data,status=http_status)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

@@ -839,26 +839,10 @@ export default {
             if (!res.ok) { return res.json().then(err => { throw err }); }
                 this.referral = await res.json();
                 this.referral.proposal.applicant.address = this.proposal.applicant.address != null ? this.proposal.applicant.address : {};
-                //vm.fetchreferrallist(vm.referral.id);
             }).catch(err => {
               console.log(err);
             });
     },
-    /*
-    beforeRouteEnter: function(to, from, next) {
-          //Vue.http.get(`/api/proposal/${to.params.proposal_id}/referral_proposal.json`).then(res => {
-          Vue.http.get(helpers.add_endpoint_json(api_endpoints.referrals,to.params.referral_id)).then(res => {
-              next(vm => {
-                vm.referral = res.body;
-                vm.referral.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                //vm.fetchreferrallist(vm.referral.id);
-              });
-            },
-            err => {
-              console.log(err);
-            });
-    },
-    */
     beforeRouteUpdate: function(to, from, next) {
          fetch(`/api/proposal/${to.params.proposal_id}/referall_proposal.json`)
           .then(async (res) => {
