@@ -1496,14 +1496,14 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',], permission_classes=[ProposalApproverPermission])
+    @action(detail=True,methods=['POST',], permission_classes=[ProposalAssessorPermission,ProposalApproverPermission])
     @basic_exception_handler
     def final_approval_temp_use(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.final_approval_temp_use(request,)
         return Response({})
 
-    @action(detail=True,methods=['POST',], permission_classes=[ProposalApproverPermission])
+    @action(detail=True,methods=['POST',], permission_classes=[ProposalAssessorPermission,ProposalApproverPermission])
     @basic_exception_handler
     def final_decline_temp_use(self, request, *args, **kwargs):
         instance = self.get_object()
