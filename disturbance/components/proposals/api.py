@@ -45,7 +45,7 @@ from disturbance.components.proposals.models import (
     ProposalDocument, searchKeyWords, search_reference, 
     OnSiteInformation, ApiarySite, ApiaryChecklistQuestion, ApiaryChecklistAnswer, 
     ProposalApiaryTemporaryUse, ApiarySiteOnProposal, PublicLiabilityInsuranceDocument, DeedPollDocument, 
-    SupportingApplicationDocument, search_sections, private_storage
+    SupportingApplicationDocument, private_storage
 )
 from disturbance.settings import (
     SITE_STATUS_DRAFT, SITE_STATUS_CURRENT, SITE_STATUS_DENIED,
@@ -158,35 +158,15 @@ class ProposalFilterBackend(DatatablesFilterBackend):
         search_text = request.GET.get('search[value]', '')
         total_count = queryset.count()
 
-        def get_choice(status, choices=Proposal.PROCESSING_STATUS_CHOICES):
-            for i in choices:
-                if i[1]==status:
-                    return i[0]
-            return None
+        try:
+           super_queryset = super(ProposalFilterBackend, self).filter_queryset(request, queryset, view)
+        except Exception as e:
+            print(e)
 
-        # on the internal dashboard, the Region filter is multi-select - have to use the custom filter below
-        regions = request.GET.get('regions')
-        if regions:
-            if queryset.model is Proposal:
-                queryset = queryset.filter(region__name__iregex=regions.replace(',', '|'))
-            elif queryset.model is Referral or queryset.model is Compliance:
-                queryset = queryset.filter(proposal__region__name__iregex=regions.replace(',', '|'))
-            #elif queryset.model is Approval:
-            #    queryset = queryset.filter(region__iregex=regions.replace(',', '|'))
+        if search_text:
+            #TODO fix for segregation - add custom filters as required
+            queryset = queryset.distinct() | super_queryset 
 
-        # since in proposal_datatables.vue, the 'region' data field is declared 'searchable=false'
-        #global_search = request.GET.get('search[value]')
-        #if global_search:
-        #    queryset = queryset.filter(region__name__iregex=global_search)
-
-
-        # on the internal dashboard, the Referral 'Status' filter - have to use the custom filter below
-#        processing_status = request.GET.get('processing_status')
-#        processing_status = get_choice(processing_status, Proposal.PROCESSING_STATUS_CHOICES)
-#        if processing_status:
-#            if queryset.model is Referral:
-#                #processing_status_id = [i for i in Proposal.PROCESSING_STATUS_CHOICES if i[1]==processing_status][0][0]
-#                queryset = queryset.filter(processing_status=processing_status)
         application_type = request.GET.get('application_type')
         if application_type and not application_type.lower() =='all':
             if queryset.model is Referral or queryset.model is Compliance:
@@ -201,8 +181,6 @@ class ProposalFilterBackend(DatatablesFilterBackend):
                 queryset = queryset.filter(activity=proposal_activity)
         proposal_status = request.GET.get('proposal_status')
         if proposal_status and not proposal_status.lower() == 'all':
-            #processing_status = get_choice(proposal_status, Proposal.PROCESSING_STATUS_CHOICES)
-            #queryset = queryset.filter(processing_status=processing_status)
             if queryset.model is Referral or queryset.model is Compliance:
                 queryset = queryset.filter(proposal__processing_status=proposal_status)
             else:
@@ -216,13 +194,8 @@ class ProposalFilterBackend(DatatablesFilterBackend):
 
             if date_to:
                 queryset = queryset.filter(lodgement_date__lte=date_to)
-        elif queryset.model is Approval: #TODO fix for segregation check if this is ever used
-            if date_from:
-                queryset = queryset.filter(expiry_date__gte=date_from)
 
-            if date_to:
-                queryset = queryset.filter(expiry_date__lte=date_to)
-        elif queryset.model is Compliance: #TODO fix for segregation check if this is ever used
+        elif queryset.model is Compliance:
             if date_from:
                 queryset = queryset.filter(due_date__gte=date_from)
 
@@ -247,10 +220,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super(ProposalFilterBackend, self).filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        
         setattr(view, '_datatables_total_count', total_count)
         return queryset
 
@@ -1167,31 +1137,19 @@ class ProposalViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return Proposal.objects.filter(
-                Q(region__isnull=False) |
-                Q(application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE])
+                application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE]
             )
         elif user.is_authenticated:
             user_orgs = [org.id for org in user.disturbance_organisations.all()]
-            queryset = Proposal.objects.filter(region__isnull=False).filter(
+            queryset = Proposal.objects.filter(
+                application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE]
+            ).filter(
                 Q(applicant_id__in=user_orgs) |
                 Q(submitter=user)
-            ).exclude(processing_status='')
+            )
             return queryset
 
-        #logger.warn("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
         return Proposal.objects.none()
-
-    def get_object(self):
-        check_db_connection()
-        try:
-            obj = super(ProposalViewSet, self).get_object()
-        except Exception as e:
-            # because current queryset excludes migrated licences
-            obj_id = self.kwargs['id'] if 'id' in self.kwargs else self.kwargs['pk']
-            obj = get_object_or_404(Proposal, id=obj_id)
-            if self.request.user != obj.submitter:
-                raise #if we do not raise here it will return a record regardless of auth
-        return obj
 
     def get_serializer_class(self):
         return ProposalApiaryTypeSerializer
@@ -1206,119 +1164,6 @@ class ProposalViewSet(viewsets.ModelViewSet):
 
         data = list(annotate_temporary_use_apiary_site(qs))
         return Response(data)
-
-    @action(detail=True,methods=['POST',])
-    def get_revision(self, request, *args, **kwargs):
-        """
-        Use the Proposal model method to get a particular Proposal revision.
-        """
-        try:
-            instance = self.get_object()
-            version_number = request.data.get("version_number")
-            revision = instance.get_revision_flat(version_number)
-            
-            return Response(revision)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
-
-    @action(detail=True,methods=['GET',])
-    def get_revision_diffs(self, request, *args, **kwargs):
-        """
-        Use the Proposal model method to get the differences between the lastest revision and
-        the revision specified.
-        """
-        try:
-            instance = self.get_object()
-            newer_version = int(request.GET.get("newer_version"))
-            older_version = int(request.GET.get("older_version"))
-            diffs = instance.get_revision_diff(newer_version, older_version)
-
-            return Response(diffs)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
-
-    @action(detail=True,methods=['GET'])
-    def version_differences(self, request, *args, **kwargs):
-        """ Returns a json response containing the differences between two 
-            versions.
-        
-        """
-        try:
-            newer_version = int(request.GET.get("newer_version"))
-            older_version = int(request.GET.get("older_version"))
-        except ValueError as e:
-            raise serializers.ValidationError(str(e))
-
-        instance = self.get_object()
-        differences = instance.get_version_differences(newer_version, older_version)
-
-        return Response(differences)
-
-    @action(detail=True,methods=['GET'])
-    def version_differences_comment_data(self, request, *args, **kwargs):
-        """ Returns a json response containing the differences between two 
-            versions.
-        
-        """
-        try:
-            newer_version = int(request.GET.get("newer_version"))
-            older_version = int(request.GET.get("older_version"))
-        except ValueError as e:
-            raise serializers.ValidationError(str(e))
-
-        instance = self.get_object()
-        differences = instance.get_version_differences_comment_and_assessor_data('comment_data', newer_version, older_version)
-
-        return JsonResponse(differences, safe=False)
-
-    @action(detail=True,methods=['GET'])
-    def version_differences_assessor_data(self, request, *args, **kwargs):
-        """ Returns a json response containing the differences between two 
-            versions.
-        
-        """
-        try:
-            newer_version = int(request.GET.get("newer_version"))
-            older_version = int(request.GET.get("older_version"))
-        except ValueError as e:
-            raise serializers.ValidationError(str(e))
-
-        instance = self.get_object()
-        differences = instance.get_version_differences_comment_and_assessor_data('assessor_data', newer_version, older_version)
-
-        return JsonResponse(differences, safe=False)
-
-    @action(detail=True,methods=['GET'])
-    def version_differences_documents(self, request, *args, **kwargs):
-        """ Returns a json response containing the differences between two 
-            versions.
-        
-        """
-        try:
-            newer_version = int(request.GET.get("newer_version"))
-            older_version = int(request.GET.get("older_version"))
-        except ValueError as e:
-            raise serializers.ValidationError(str(e))
-
-        instance = self.get_object()
-        differences_only = request.GET.get('differences_only')
-        differences = instance.get_document_differences(newer_version, older_version, differences_only)
-
-        return JsonResponse(differences, safe=False)
 
     @action(detail=True,methods=['POST'])
     @renderer_classes((JSONRenderer,))

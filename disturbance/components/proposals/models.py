@@ -723,24 +723,27 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         """
         Gets a full Proposal version to show when the View button is clicked.
         """
-
-        versions = self.get_reversion_history()
-
-        return versions[version_number].field_dict
+        try:
+            versions = self.get_reversion_history()
+            return versions[int(version_number)].field_dict
+        except:
+            return {}
 
     def get_revision_flat(self, version_number):
         """
         Gets all the differences in Proposal version to show when the Compare link is clicked.
         """
+        try:
+            all_revisions_list = list(self.get_reversion_history().values())
+            version = all_revisions_list[int(version_number)].field_dict["data"][0]
+            dic = self.flatten_json(version)
 
-        all_revisions_list = list(self.get_reversion_history().values())
-        version = all_revisions_list[version_number].field_dict["data"][0]
-        dic = self.flatten_json(version)
-
-        out = {}
-        for k, v in dic.items():
-            out[k.split('_0_')[1]] = v
-        return out
+            out = {}
+            for k, v in dic.items():
+                out[k.split('_0_')[1]] = v
+            return out
+        except:
+            return {}
 
     def flatten_json(self, dictionary):
         """ 

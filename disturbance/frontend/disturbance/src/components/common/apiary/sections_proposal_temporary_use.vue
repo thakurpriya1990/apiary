@@ -187,9 +187,6 @@
                 this.to_date = value;
             },
             apiarySitesUpdated: function(apiary_sites){
-                console.log('apiary_sites')
-                console.log(apiary_sites)
-                //TODO fix for segregation - investigate and adjust to ensure values are updated (without relying on the serialiser)
                 for (let i=0; i<apiary_sites.length; i++){
                     let temporary_use_apiary_site = this.temporary_use_apiary_sites.find(element => element.apiary_site.id == apiary_sites[i].id)
                     // Update temporary_use_apiary_site, which is sent to the backend when saving
