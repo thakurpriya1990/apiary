@@ -2009,7 +2009,7 @@ class AmendmentRequestReasonChoicesView(views.APIView):
                 choices_list.append({'key': c.id,'value': c.reason})
         return Response(choices_list)
 
-
+#TODO fix for segregation - review, secure or remove
 class SearchKeywordsView(views.APIView):
     renderer_classes = [JSONRenderer,]
     def post(self,request, format=None):
@@ -2023,7 +2023,7 @@ class SearchKeywordsView(views.APIView):
         serializer = SearchKeywordSerializer(qs, many=True)
         return Response(serializer.data)
 
-
+#TODO fix for segregation - review, secure or remove
 class SearchReferenceView(views.APIView):
     renderer_classes = [JSONRenderer,]
     def post(self,request, format=None):
@@ -2034,11 +2034,6 @@ class SearchReferenceView(views.APIView):
                 qs= search_reference(reference_number)
             serializer = SearchReferenceSerializer(qs)
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

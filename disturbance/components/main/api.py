@@ -94,8 +94,6 @@ class BookingSettlementReportView(views.APIView):
                 return response
             else:
                 raise serializers.ValidationError('No report was generated.')
-        except serializers.ValidationError:
-            raise
         except Exception as e:
             traceback.print_exc()
 
@@ -114,11 +112,6 @@ class OracleJob(views.APIView):
             serializer.is_valid(raise_exception=True)
             data = {'successful':True}
             return Response(data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e[0]))
