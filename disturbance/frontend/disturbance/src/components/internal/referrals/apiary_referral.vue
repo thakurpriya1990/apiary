@@ -528,22 +528,11 @@ export default {
             on("select2:select", async function (e) {
                 var selected = $(e.currentTarget);
                 vm.apiaryReferral.assigned_officer_id = selected.val();
-                //await vm.$nextTick();
                 await vm.assignTo();
-                /*
-            }).on("select2:unselecting", function(e) {
-                var self = $(this);
-                setTimeout(() => {
-                    self.select2('close');
-                }, 0);
-                */
             }).on("select2:unselect", async function () {
-                // var selected = $(e.currentTarget);
                 vm.apiaryReferral.assigned_officer_id = null;
-                //await vm.$nextTick();
                 await vm.unAssign();
             });
-            //});
         },
 
         refreshFromResponse:function(response){

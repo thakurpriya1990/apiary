@@ -96,6 +96,7 @@
                 />
             </FormSection>
 
+            <div v-if="applicantChecklistAnswers.length > 0">
             <ApiaryChecklist
                 :checklist="applicantChecklistAnswers"
                 section_title="Applicant Checklist"
@@ -103,7 +104,8 @@
                 ref="applicant_checklist"
                 index="1"
             />
-            <div v-if="assessorChecklistVisibility">
+            </div>
+            <div v-if="assessorChecklistVisibility && assessorChecklistAnswers.length > 0">
                 <ApiaryChecklist
                 :checklist="assessorChecklistAnswers"
                 section_title="Assessor Checklist"
@@ -112,6 +114,7 @@
                 index="2"
                 />
                 <div v-for="site in apiary_sites" :key="site.id">
+                    <div v-if="assessorChecklistAnswersPerSite(site.id).length > 0">
                     <ApiaryChecklist
                     :checklist="assessorChecklistAnswersPerSite(site.id)"
                     :section_title="'Assessor checklist for site ' + site.id"
@@ -119,10 +122,11 @@
                     v-bind:key="'assessor_checklist_per_site_' + site.id"
                     :index="'2_' + site.id"
                     />
+                    </div>
                 </div>
             </div>
             <div v-for="r in referrerChecklistAnswers" :key="r.id">
-                <div v-if="(referral && r.referral_id === referral.id) || (assessorChecklistVisibility)">
+                <div v-if="((referral && r.referral_id === referral.id) || (assessorChecklistVisibility)) && r.referral_data.length > 0">
                     <ApiaryChecklist
                     :checklist="r.referral_data"
                     :section_title="'Referral Checklist: ' + r.referrer_group_name"
@@ -131,6 +135,7 @@
                     index="3"
                     />
                     <div v-for="site in apiary_sites" :key="site.id">
+                        <div v-if="referrerChecklistAnswersPerSite(r.apiary_referral_id, site.id).length > 0">
                         <ApiaryChecklist
                         :checklist="referrerChecklistAnswersPerSite(r.apiary_referral_id, site.id)"
                         :section_title="'Referral Checklist: ' + r.referrer_group_name + ' for site ' + site.id"
@@ -138,6 +143,7 @@
                         v-bind:key="'referrer_checklist_per_site_' + r.apiary_referral_id + site.id"
                         :index="'3_' + r.apiary_referral_id + '_' + site.id"
                         />
+                        </div>
                     </div>
                 </div>
             </div>
