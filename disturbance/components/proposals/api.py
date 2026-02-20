@@ -1784,6 +1784,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 class ReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = Referral.objects.none()
     serializer_class = ReferralSerializer
+    permission_classes = [InternalProposalPermission]
 
     def get_queryset(self):
         user = self.request.user
@@ -1832,12 +1833,6 @@ class ReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance, context={'request':request})
-        return Response(serializer.data)
-
-    @action(detail=False,methods=['GET',])
-    def user_list(self, request, *args, **kwargs):
-        qs = self.get_queryset().filter(referral=request.user)
-        serializer = DTReferralSerializer(qs, many=True)
         return Response(serializer.data)
 
     @action(detail=False,methods=['GET',])
