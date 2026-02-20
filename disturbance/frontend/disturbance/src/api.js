@@ -46,7 +46,7 @@ export default {
     apiary_referral_groups:"/api/apiary_referral_groups.json",
     proposal_apiary:"/api/proposal_apiary.json",
     apiary_referrals:"/api/apiary_referrals.json",
-    apiary_site_transfer_fees:"/api/apiary_site_fees/get_site_transfer_fees.json",
+    apiary_site_transfer_fees:"/api/get_site_transfer_fees",
 
     history_version_compare_field: "/api/history/compare/field/",
     history_version_compare: "/api/history/compare/",

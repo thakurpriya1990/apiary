@@ -51,7 +51,6 @@ router.register(r'activity_matrix', main_api.ActivityMatrixViewSet,"activity_mat
 router.register(r'application_types', main_api.ApplicationTypeViewSet,"application_types")
 router.register(r'apiary_referral_groups', proposal_api.ApiaryReferralGroupViewSet,"apiary_referral_groups")
 router.register(r'apiary_referrals',proposal_api.ApiaryReferralViewSet,"apiary_referrals")
-router.register(r'apiary_site_fees',proposal_api.ApiarySiteFeeViewSet,"apiary_site_fees")
 router.register(r'map_layers', main_api.MapLayerViewSet,"map_layers")
 
 api_patterns = [
@@ -66,6 +65,7 @@ api_patterns = [
     re_path(r'^api/compliance_amendment_reason_choices',compliances_api.ComplianceAmendmentReasonChoicesView.as_view(),name='amendment_request_reason_choices'),
     re_path(r'^api/search_keywords',proposal_api.SearchKeywordsView.as_view(),name='search_keywords'),
     re_path(r'^api/search_reference',proposal_api.SearchReferenceView.as_view(),name='search_reference'),
+    re_path(r'^api/get_site_transfer_fees',proposal_api.GetSiteTransferFees.as_view(),name='get_site_transfer_fees'),
     re_path(r'^api/deed_poll_url', deed_poll_url, name='deed_poll_url'),
     re_path(r'^api/history/compare/serialized/(?P<app_label>[\w-]+)/(?P<component_name>[\w-]+)/(?P<model_name>[\w-]+)/(?P<serializer_name>[\w-]+)/(?P<pk>\d+)/(?P<newer_version>\d+)/(?P<older_version>\d+)/$',
             history_api.GetCompareSerializedVersionsView.as_view(), name='get-compare-serialized-versions'),

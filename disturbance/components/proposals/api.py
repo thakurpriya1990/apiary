@@ -3,7 +3,6 @@ import traceback
 import json
 import pytz
 from disturbance.settings import TIME_ZONE
-from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from django.db import transaction
 from django.core.exceptions import ValidationError
@@ -2064,20 +2063,12 @@ class ApiaryReferralGroupViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(data)
 
 
-class ApiarySiteFeeViewSet(viewsets.ModelViewSet):
-    queryset = ApiarySiteFee.objects.none()
-    serializer_class = ApiarySiteFeeSerializer
+class GetSiteTransferFees(views.APIView):
+    renderer_classes = [JSONRenderer,]
 
-    def get_queryset(self):
-        if is_internal(self.request):
-            return ApiarySiteFee.objects.all()
-        else:
-            return ApiarySiteFee.objects.none()
-
-    @action(detail=False,methods=['GET',])
-    def get_site_transfer_fees(self, request, *args, **kwargs):
-        south_west = ApiarySiteFee.objects.filter(apiary_site_fee_type__name='transfer', site_category__name='south_west').order_by('-date_of_enforcement')[0]
-        remote = ApiarySiteFee.objects.filter(apiary_site_fee_type__name='transfer', site_category__name='remote').order_by('-date_of_enforcement')[0]
+    def get(self,request, format=None):
+        south_west = ApiarySiteFee.objects.filter(apiary_site_fee_type__name='transfer', site_category__name='south_west').order_by('-date_of_enforcement').first()
+        remote = ApiarySiteFee.objects.filter(apiary_site_fee_type__name='transfer', site_category__name='remote').order_by('-date_of_enforcement').first()
         return_list = [south_west, remote]
-        serializer = self.get_serializer(return_list, many=True)
+        serializer = ApiarySiteFeeSerializer(return_list, many=True)
         return Response(serializer.data)
