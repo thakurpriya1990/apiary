@@ -35,27 +35,6 @@
                 </div>
             </div>
 
-
-            <!--
-            <div class="row" v-if="canSeeSubmission">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                       History
-                    </div>
-                                    <table class="table small-table">
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Last Modified</th>
-                                        </tr>
-                                        <tr v-for="p in proposal.get_history">
-                                            <td>{{ p.id }}</td>
-                                            <td>{{ p.modified | formatDate}}</td>
-                                        </tr>
-                                    </table>
-                </div>
-            </div>
-            -->
-
             <div class="mb-3">
                 <div class="card card-default sticky-top">
                     <div class="card-header">
@@ -65,9 +44,7 @@
                         <strong>Status</strong><br/>
                         {{ proposal.processing_status }}
                     </div>
-                    <!-- <div class="col-sm-12">
-                        <div class="separator"></div>
-                    </div> -->
+
                     <template v-if="proposal.processing_status == 'With Assessor' || proposal.processing_status == 'With Referral'">
                         <div class="card-body py-2 border-top">
                             <div class="row">
@@ -751,7 +728,6 @@ export default {
         initialiseOrgContactTable: function(){
             let vm = this;
             if (vm.proposal && !vm.contacts_table_initialised){
-            // if (vm.proposal){
                 vm.contacts_options.ajax.url = helpers.add_endpoint_json(api_endpoints.organisations,vm.proposal.applicant.id+'/contacts');
                 vm.contacts_table = $('#'+vm.contacts_table_id).DataTable(vm.contacts_options);
                 vm.contacts_table_initialised = true;

@@ -5,50 +5,44 @@
         <h3>Proposal: {{ proposal.lodgement_number }}</h3>
         <div class="col-md-3">
             <CommsLogs :comms_url="comms_url" :logs_url="logs_url" comms_add_url="test"/>
-            <div class="row">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
+            <div class="mb-3">
+                <div class="card card-default">
+                    <div class="card-header">
                        Submission 
                     </div>
-                    <div class="panel-body panel-collapse">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <strong>Submitted by</strong><br/>
-                                {{ proposal.submitter }}
-                            </div>
-                            <div class="col-sm-12 top-buffer-s">
-                                <strong>Lodged on</strong><br/>
-                                {{ formatDate(proposal.lodgement_date) }}
-                            </div>
-                            <div class="col-sm-12 top-buffer-s">
-                                <table class="table small-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Lodgement</th>
-                                            <th>Date</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
-                        </div>
+                    <div class="card-body py-2">
+                        <strong>Submitted by</strong><br/>
+                        {{ proposal.submitter }}
+                    </div>
+                    <div  class="card-body border-top py-2">
+                        <strong>Lodged on</strong><br/>
+                        {{ formatDate(proposal.lodgement_date) }}
+                    </div>
+                    <div  class="card-body border-top py-2">
+                        <table class="table small-table">
+                            <thead>
+                                <tr>
+                                    <th>Lodgement</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                        </table>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        Workflow 
+            <div class="mb-3">
+                <div class="card card-default sticky-top">
+                    <div class="card-header">
+                        Workflow
                     </div>
-                    <div class="panel-body panel-collapse">
+                    <div class="card-body py-2">
+                        <strong>Status</strong><br/>
+                        {{ proposal.processing_status }}
+                    </div>
+
+                    <div v-if="!isFinalised" class="card-body py-2 border-top">
                         <div class="row">
-                            <div class="col-sm-12">
-                                <strong>Status</strong><br/>
-                                {{ proposal.processing_status }}
-                            </div>
-                            <div class="col-sm-12">
-                                <div class="separator"></div>
-                            </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Currently assigned to</strong><br/>
                                 <div class="form-group">
@@ -63,7 +57,8 @@
                                     </a>
                                 </div>
                             </div>
-
+                        </div>
+                        <div class="card-body border-top" v-if="!isFinalised && canAction">
                             <div class="col-sm-12 top-buffer-s" v-if="canAction">
                                 <div class="row">
                                     <div class="col-sm-12">
@@ -97,123 +92,83 @@
                         </div>
                     </div>
                 </div>
-                <!--div v-if="siteTransfer">
-                    <OriginatingApprovalRequirements 
-                    :proposal="proposal" 
-                    :originatingApprovalId="originatingApprovalId"
-                    :originatingApprovalLodgementNumber="originatingApprovalLodgementNumber"
-                    />
-                    <TargetApprovalRequirements 
-                    :proposal="proposal" 
-                    :targetApprovalId="targetApprovalId"
-                    :targetApprovalLodgementNumber="targetApprovalLodgementNumber"
-                    />
-                </div-->
                 <div class="col-md-12">
                     <div class="row">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">Applicant
-                                    <a class="panelClicker" :href="'#'+detailsBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="detailsBody">
-                                        <span class="glyphicon glyphicon-chevron-up pull-right "></span>
-                                    </a>
-                                </h3> 
-                            </div>
+                        <FormSection :formCollapse="false" label="Applicant" Index="applicant">
                             <div v-if="organisationApplicant">
-                                <div class="panel-body panel-collapse collapse in" :id="detailsBody">
-                                      <form class="form-horizontal">
-                                          <div class="form-group">
-                                            <label for="" class="col-sm-3 control-label">Name</label>
-                                            <div class="col-sm-6">
-                                                <input disabled type="text" class="form-control" name="applicantName" placeholder="" v-model="proposal.applicant.name">
-                                            </div>
-                                          </div>
-                                          <div class="form-group">
-                                            <label for="" class="col-sm-3 control-label" >ABN/ACN</label>
-                                            <div class="col-sm-6">
-                                                <input disabled type="text" class="form-control" name="applicantABN" placeholder="" v-model="proposal.applicant.abn">
-                                            </div>
-                                          </div>
-                                      </form>
-                                </div>
+                                <form class="form-horizontal">
+                                    <div class="form-group">
+                                    <label for="" class="col-sm-3 control-label">Name</label>
+                                    <div class="col-sm-6">
+                                        <input disabled type="text" class="form-control" name="applicantName" placeholder="" v-model="proposal.applicant.name">
+                                    </div>
+                                    </div>
+                                    <div class="form-group">
+                                    <label for="" class="col-sm-3 control-label" >ABN/ACN</label>
+                                    <div class="col-sm-6">
+                                        <input disabled type="text" class="form-control" name="applicantABN" placeholder="" v-model="proposal.applicant.abn">
+                                    </div>
+                                    </div>
+                                </form>
                             </div>
                             <div v-else>
-                                <div class="panel-body panel-collapse collapse in" :id="detailsBody">
-                                      <form class="form-horizontal">
-                                          <div class="form-group">
-                                            <label for="" class="col-sm-3 control-label">Given Name(s)</label>
-                                            <div class="col-sm-6">
-                                                <input disabled type="text" class="form-control" name="applicantFirstName" placeholder="" v-model="proposal.applicant_first_name">
-                                            </div>
-                                          </div>
-                                          <div class="form-group">
-                                            <label for="" class="col-sm-3 control-label" >Last Name</label>
-                                            <div class="col-sm-6">
-                                                <input disabled type="text" class="form-control" name="applicantLastName" placeholder="" v-model="proposal.applicant_last_name">
-                                            </div>
-                                          </div>
-                                      </form>
+                                <form class="form-horizontal">
+                                    <div class="form-group">
+                                    <label for="" class="col-sm-3 control-label">Given Name(s)</label>
+                                    <div class="col-sm-6">
+                                        <input disabled type="text" class="form-control" name="applicantFirstName" placeholder="" v-model="proposal.applicant_first_name">
+                                    </div>
+                                    </div>
+                                    <div class="form-group">
+                                    <label for="" class="col-sm-3 control-label" >Last Name</label>
+                                    <div class="col-sm-6">
+                                        <input disabled type="text" class="form-control" name="applicantLastName" placeholder="" v-model="proposal.applicant_last_name">
+                                    </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </FormSection>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="row">
+                        <FormSection :formCollapse="true" label="Address Details" Index="address_details">
+                            <form class="form-horizontal">
+                                <div class="form-group">
+                                <label for="" class="col-sm-3 control-label">Street</label>
+                                <div class="col-sm-6">
+                                    <input disabled type="text" class="form-control" name="street" placeholder="" v-model="applicantAddress.line1">
                                 </div>
-                            </div>
-                        </div>
+                                </div>
+                                <div class="form-group">
+                                <label for="" class="col-sm-3 control-label" >Town/Suburb</label>
+                                <div class="col-sm-6">
+                                    <input disabled type="text" class="form-control" name="surburb" placeholder="" v-model="applicantAddress.locality">
+                                </div>
+                                </div>
+                                <div class="form-group">
+                                <label for="" class="col-sm-3 control-label">State</label>
+                                <div class="col-sm-2">
+                                    <input disabled type="text" class="form-control" name="country" placeholder="" v-model="applicantAddress.state">
+                                </div>
+                                <label for="" class="col-sm-2 control-label">Postcode</label>
+                                <div class="col-sm-2">
+                                    <input disabled type="text" class="form-control" name="postcode" placeholder="" v-model="applicantAddress.postcode">
+                                </div>
+                                </div>
+                                <div class="form-group">
+                                <label for="" class="col-sm-3 control-label" >Country</label>
+                                <div class="col-sm-4">
+                                    <input disabled type="text" class="form-control" name="country" v-model="applicantAddress.country"/>
+                                </div>
+                                </div>
+                            </form>
+                        </FormSection>
                     </div>
                 </div>
                 <div class="col-md-12">
                     <div class="row">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">Address Details
-                                    <a class="panelClicker" :href="'#'+addressBody" data-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="addressBody">
-                                        <span class="glyphicon glyphicon-chevron-down pull-right "></span>
-                                    </a>
-                                </h3> 
-                            </div>
-                            <div class="panel-body panel-collapse collapse" :id="addressBody">
-                                  <form class="form-horizontal">
-                                      <div class="form-group">
-                                        <label for="" class="col-sm-3 control-label">Street</label>
-                                        <div class="col-sm-6">
-                                            <input disabled type="text" class="form-control" name="street" placeholder="" v-model="applicantAddress.line1">
-                                        </div>
-                                      </div>
-                                      <div class="form-group">
-                                        <label for="" class="col-sm-3 control-label" >Town/Suburb</label>
-                                        <div class="col-sm-6">
-                                            <input disabled type="text" class="form-control" name="surburb" placeholder="" v-model="applicantAddress.locality">
-                                        </div>
-                                      </div>
-                                      <div class="form-group">
-                                        <label for="" class="col-sm-3 control-label">State</label>
-                                        <div class="col-sm-2">
-                                            <input disabled type="text" class="form-control" name="country" placeholder="" v-model="applicantAddress.state">
-                                        </div>
-                                        <label for="" class="col-sm-2 control-label">Postcode</label>
-                                        <div class="col-sm-2">
-                                            <input disabled type="text" class="form-control" name="postcode" placeholder="" v-model="applicantAddress.postcode">
-                                        </div>
-                                      </div>
-                                      <div class="form-group">
-                                        <label for="" class="col-sm-3 control-label" >Country</label>
-                                        <div class="col-sm-4">
-                                            <input disabled type="text" class="form-control" name="country" v-model="applicantAddress.country"/>
-                                        </div>
-                                      </div>
-                                   </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-12">
-                    <div class="row">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">Contact Details
-                                    <a class="panelClicker" :href="'#'+contactsBody" data-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="contactsBody">
-                                        <span class="glyphicon glyphicon-chevron-down pull-right "></span>
-                                    </a>
-                                </h3>
-                            </div>
-                            <div class="panel-body panel-collapse collapse" :id="contactsBody">
+                        <FormSection :formCollapse="true" label="Contact Details" Index="contact_details">
                                 <div v-if="organisationApplicant">
                                     <table ref="contacts_datatable" :id="contacts_table_id" class="hover table table-striped table-bordered dt-responsive" cellspacing="0" width="100%">
                                     </table>
@@ -240,8 +195,7 @@
                                       </div>
                                   </form>
                                 </div>
-                            </div>
-                        </div>
+                        </FormSection>
                     </div>
                 </div>
 
@@ -313,7 +267,7 @@ import { v4 as uuid } from 'uuid';
 import ProposalApiary from '../../form_apiary.vue'
 import ApiarySiteTransfer from '../../form_apiary_site_transfer.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
-
+import FormSection from "@/components/forms/section_toggle.vue"
 import {
     api_endpoints,
     helpers,
@@ -387,6 +341,7 @@ export default {
         }
     },
     components: {
+        FormSection,
         ProposalApiary,
         // datatable,
         CommsLogs,
