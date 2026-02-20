@@ -7,18 +7,13 @@
         <div v-else-if="temporaryUseApplication">
             <ProposalTemporaryUse :proposalId="proposalId" />
         </div>
-        <div v-else>
-            <Proposal :proposalId="proposalId"/>
-        </div>
     </div>
 </div>
 </template>
 <script>
 
-
 import ProposalApiary from './proposal_apiary.vue';
 import ProposalTemporaryUse from '@/components/internal/proposals/proposal_temporary_use.vue'
-import Proposal from './proposal.vue';
 
 export default {
     name: 'InternalProposalWrapper',
@@ -29,7 +24,6 @@ export default {
         }
     },
     components:{
-        Proposal,
         ProposalApiary,
         ProposalTemporaryUse,
     },
