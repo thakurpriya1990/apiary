@@ -64,28 +64,6 @@
                                 </div>
                             </div>
 
-                            <!--div v-if="!isFinalised" class="col-sm-12 top-buffer-s">
-                                <strong>Currently assigned to</strong><br/>
-                                <div class="form-group">
-                                    <template v-if="proposal.processing_status == 'With Approver'">
-                                        <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="proposal.assigned_approver">
-                                            <option v-for="member in proposal.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
-                                        </select>
-                                        <a v-if="canAssess && proposal.assigned_approver != proposal.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
-                                    </template>
-                                    <template v-else>
-                                        <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="proposal.assigned_officer">
-                                            <option v-for="member in proposal.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
-                                        </select>
-                                        <a v-if="canAssess && proposal.assigned_officer != proposal.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
-                                    </template>
-                                </div>
-                            </div-->
-
-
-                            <!--div class="col-sm-12">
-                                <div class="separator"></div>
-                            </div-->
                             <div class="col-sm-12 top-buffer-s" v-if="canAction">
                                 <div class="row">
                                     <div class="col-sm-12">
@@ -375,6 +353,7 @@ export default {
                 columns: [
                     {
                         title: 'Name',
+                        data: 'id',
                         mRender:function (data,type,full) {
                             return full.first_name + " " + full.last_name;
                         }
@@ -448,7 +427,7 @@ export default {
 
 
         proposal: function(){
-            return this.referral != null && this.referall != 'undefined' ? this.referral.proposal : null;
+            return this.referral != null && this.referral != 'undefined' ? this.referral.proposal : null;
         },
         proposalApiaryReferrerChecklistAnswers: function() {
             if (this.proposal && this.proposal.proposal_apiary) {
@@ -806,7 +785,7 @@ export default {
         this.initialiseAssignedOfficerSelect()
     },
     beforeRouteUpdate: function(to, from, next) {
-           fetch(`/api/proposal/${to.params.proposal_id}/referall_proposal.json`)
+           fetch(`/api/proposal/${to.params.proposal_id}/referral_proposal.json`)
           .then(async (res) => {
             if (!res.ok) { return res.json().then(err => { throw err }); }
             const data = await res.json();

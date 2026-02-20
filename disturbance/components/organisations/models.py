@@ -7,7 +7,7 @@ from django.dispatch import receiver
 from django.db.models.signals import pre_delete
 from six import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
-from django.db.models import JSONField
+from django.db.models import JSONField, Q
 from ledger_api_client.utils import get_organisation, get_search_organisation, create_organisation
 from rest_framework import status
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
@@ -836,7 +836,7 @@ class ApiaryOrganisationAccessGroup(models.Model):
         ).values_list('emailuser_id', flat=True)
 
         # 2. Use the IDs to fetch EmailUser objects from the 'ledger_db'.
-        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+        return EmailUser.objects.using('ledger_db').filter(Q(pk__in=list(member_ids))|Q(is_superuser=True))
 
     @property
     def all_members(self):
@@ -869,6 +869,7 @@ class OrganisationAccessGroupMember(models.Model):
         db_table = "disturbance_organisationaccessgroup_members"
         unique_together=('organisationaccessgroup','emailuser')
 
+#TODO on-cleanup determine if this is needed or can just be replaced with the Apiary Organisation Access Group
 class OrganisationAccessGroup(models.Model):
     site = models.OneToOneField(Site, default='1', on_delete=models.CASCADE) 
     members = models.ManyToManyField(EmailUser, through=OrganisationAccessGroupMember,)
@@ -884,7 +885,7 @@ class OrganisationAccessGroup(models.Model):
         ).values_list('emailuser_id', flat=True)
 
         # 2. Use the IDs to fetch EmailUser objects from the 'ledger_db'.
-        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+        return EmailUser.objects.using('ledger_db').filter(Q(pk__in=list(member_ids))|Q(is_superuser=True))
 
     def __str__(self):
         return 'Organisation Access Group'

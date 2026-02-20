@@ -1,8 +1,6 @@
 import re
 import traceback
-import os
 import json
-from dateutil import parser
 import pytz
 from disturbance.settings import TIME_ZONE
 
@@ -15,10 +13,9 @@ from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from datetime import datetime
-from reversion.models import Version
 from rest_framework.exceptions import NotFound
 
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from disturbance.components.approvals.email import (
     send_contact_licence_holder_email,
     send_on_site_notification_email,
@@ -32,7 +29,7 @@ from disturbance.components.main.decorators import basic_exception_handler, time
 from disturbance.components.proposals.utils import (
     save_proponent_data,
     save_assessor_data,
-    save_apiary_assessor_data, update_proposal_apiary_temporary_use,
+    save_apiary_assessor_data,
     annotate_apiary_site_on_proposal_processed_geometry,
     annotate_apiary_site_on_proposal_draft_geometry,
     annotate_site_transfer_apiary_site,
@@ -42,18 +39,17 @@ from disturbance.components.proposals.utils import (
 from disturbance.components.approvals.utils import annotate_apiary_site_on_approval_geometry
 
 from disturbance.components.proposals.models import (
-    ProposalDocument, searchKeyWords, search_reference, 
+    searchKeyWords, search_reference, 
     OnSiteInformation, ApiarySite, ApiaryChecklistQuestion, ApiaryChecklistAnswer, 
     ProposalApiaryTemporaryUse, ApiarySiteOnProposal, PublicLiabilityInsuranceDocument, DeedPollDocument, 
-    SupportingApplicationDocument, private_storage
+    SupportingApplicationDocument
 )
 from disturbance.settings import (
     SITE_STATUS_DRAFT, SITE_STATUS_CURRENT, SITE_STATUS_DENIED,
-    SITE_STATUS_NOT_TO_BE_REISSUED, SITE_STATUS_DISCARDED
+    SITE_STATUS_NOT_TO_BE_REISSUED
 )
 from disturbance.utils import search_tenure
 from disturbance.components.main.utils import (
-    check_db_connection,
     get_template_group,
     get_qs_vacant_site,
     get_qs_proposal,
@@ -63,7 +59,7 @@ from disturbance.components.main.utils import (
 )
 
 from django.urls import reverse
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect
 from disturbance.components.main.models import ApplicationType
 from disturbance.components.proposals.models import (
     ProposalType,
@@ -130,8 +126,6 @@ from disturbance.components.approvals.models import Approval, ApiarySiteOnApprov
 from disturbance.components.approvals.serializers import ApprovalLogEntrySerializer
 from disturbance.components.compliances.models import Compliance
 from disturbance.helpers import is_internal, is_authorised_to_modify_draft
-from django.core.files.base import ContentFile
-from rest_framework.pagination import PageNumberPagination
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from disturbance.components.main.process_document import process_generic_document
@@ -1059,12 +1053,6 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             instance.resend(request)
             serializer = ApiaryInternalProposalSerializer(instance.referral.proposal,context={'request':request})
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1076,12 +1064,6 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             instance.assign_officer(request,request.user)
             serializer = FullApiaryReferralSerializer(instance.referral, context={'request':request})
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1799,7 +1781,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             raise serializers.ValidationError(str(e))
 
 
-class ReferralViewSet(viewsets.ModelViewSet):
+class ReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = Referral.objects.none()
     serializer_class = ReferralSerializer
 

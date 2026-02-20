@@ -156,6 +156,7 @@ class ProposalAssessorGroupMember(models.Model):
         db_table = "disturbance_proposalassessorgroup_members"
         unique_together=('proposalassessorgroup','emailuser')
 
+#TODO on-cleanup determine if this is needed or can just be replaced with the Apiary Assessor Group (some applications may still come under this one)
 class ProposalAssessorGroup(models.Model):
     name = models.CharField(max_length=255)
     members = models.ManyToManyField(EmailUser, through=ProposalAssessorGroupMember,)
@@ -177,7 +178,7 @@ class ProposalAssessorGroup(models.Model):
             proposalassessorgroup=self
         ).values_list('emailuser_id', flat=True)
 
-        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+        return EmailUser.objects.using('ledger_db').filter(Q(pk__in=list(member_ids))|Q(is_superuser=True))
 
     def clean(self):
         try:
@@ -238,6 +239,7 @@ class ProposalApproverGroupMember(models.Model):
         db_table = "disturbance_proposalapprovergroup_members"
         unique_together=('proposalapprovergroup','emailuser')
 
+#TODO on-cleanup determine if this is needed or can just be replaced with the Apiary Approver Group (some applications may still come under this one)
 class ProposalApproverGroup(models.Model):
     name = models.CharField(max_length=255)
     members = models.ManyToManyField(EmailUser, through=ProposalApproverGroupMember,)
@@ -259,7 +261,7 @@ class ProposalApproverGroup(models.Model):
             proposalapprovergroup=self
         ).values_list('emailuser_id', flat=True)
 
-        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+        return EmailUser.objects.using('ledger_db').filter(Q(pk__in=list(member_ids))|Q(is_superuser=True))
 
     def clean(self):
         try:
@@ -2269,7 +2271,7 @@ class ApiaryReferralGroup(models.Model):
             apiaryreferralgroup=self
         ).values_list('emailuser_id', flat=True)
 
-        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+        return EmailUser.objects.using('ledger_db').filter(Q(pk__in=list(member_ids))|Q(is_superuser=True))
 
     @property
     def all_members(self):
@@ -4345,7 +4347,7 @@ class ApiaryAssessorGroup(models.Model):
             apiaryassessorgroup=self
         ).values_list('emailuser_id', flat=True)
 
-        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+        return EmailUser.objects.using('ledger_db').filter(Q(pk__in=list(member_ids))|Q(is_superuser=True))
 
     @property
     def all_members(self):
@@ -4414,7 +4416,6 @@ class ApiaryApproverGroup(models.Model):
             apiaryapprovergroup=self
         ).values_list('emailuser_id', flat=True)
         
-        # return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
         return EmailUser.objects.filter(pk__in=list(member_ids))
 
     @property
@@ -4453,6 +4454,9 @@ class ApiaryReferral(RevisionedMixin):
 
     def can_assign(self, user):
         if self.referral.processing_status=='with_referral':
+            if user.is_superuser:
+                return True
+
             group =  ApiaryReferralGroup.objects.filter(id=self.referral_group.id)
             if group and group[0] in user.apiaryreferralgroup_set.all():
                 return True
@@ -4505,6 +4509,7 @@ class ApiaryReferral(RevisionedMixin):
             self.referral.processing_status = 'with_referral'
             self.referral.proposal.processing_status = 'with_referral'
             self.referral.proposal.save()
+            self.referral.save()
             self.sent_from = 1
             self.save()
 
@@ -4547,7 +4552,7 @@ class ApiaryReferral(RevisionedMixin):
         with transaction.atomic():
             try:
                 if not self.can_assign(request.user):
-                    raise ValidationError('The selected person is not authorised to assign referrals')
+                    raise ValidationError('The selected person is not authorised to be assigned to referrals')
                 elif request.user != self.assigned_officer:
                     self.assigned_officer = officer
                     self.save()

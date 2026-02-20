@@ -1350,7 +1350,7 @@ export default {
                 vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                 swal.fire({
                     title: 'Referral Recall',
-                    text: 'The referall has been recalled from '+r.apiary_referral.referral_group.name,
+                    text: 'The referral has been recalled from '+r.apiary_referral.referral_group.name,
                     icon: 'success',
                     customClass: {
                         confirmButton: 'btn btn-primary',
