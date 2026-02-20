@@ -3,7 +3,7 @@ import traceback
 import json
 import pytz
 from disturbance.settings import TIME_ZONE
-
+from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from django.db import transaction
 from django.core.exceptions import ValidationError
@@ -48,7 +48,7 @@ from disturbance.settings import (
     SITE_STATUS_DRAFT, SITE_STATUS_CURRENT, SITE_STATUS_DENIED,
     SITE_STATUS_NOT_TO_BE_REISSUED
 )
-from disturbance.utils import search_tenure
+
 from disturbance.components.main.utils import (
     get_template_group,
     get_qs_vacant_site,
@@ -80,7 +80,6 @@ from disturbance.components.proposals.models import (
 from disturbance.components.proposals.serializers import (
     SendReferralSerializer,
     ProposalSerializer,
-    InternalProposalSerializer,
     SaveProposalSerializer,
     ProposalUserActionSerializer,
     ProposalLogEntrySerializer,
@@ -1812,7 +1811,6 @@ class ReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     @action(detail=False,methods=['GET',])
     def filter_list(self, request, *args, **kwargs):
-        """ Used by the external dashboard filters """
         qs = Referral.objects.filter(apiary_referral__referral_group__members=request.user) if is_internal(self.request) else Referral.objects.none()
         application_type_qs =  ApplicationType.objects.filter(name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER]).values_list('name', flat=True).distinct()
         processing_status_qs =  qs.filter(proposal__processing_status__isnull=False).order_by('proposal__processing_status').distinct('proposal__processing_status').values_list('proposal__processing_status', flat=True)
@@ -1835,175 +1833,90 @@ class ReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = self.get_serializer(instance, context={'request':request})
         return Response(serializer.data)
 
-    @action(detail=False,methods=['GET',])
-    def datatable_list(self, request, *args, **kwargs):
-        proposal = request.GET.get('proposal',None)
-        qs = self.get_queryset().all()
-        if proposal:
-            qs = qs.filter(proposal_id=int(proposal))
-        serializer = DTReferralSerializer(qs, many=True)
-        return Response(serializer.data)
 
-    @action(detail=True,methods=['GET',])
-    def referral_list(self, request, *args, **kwargs):
-        instance = self.get_object()
-        qs = self.get_queryset().all()
-        qs=qs.filter(sent_by=instance.referral, proposal=instance.proposal)
-        serializer = DTReferralSerializer(qs, many=True)
-
-        return Response(serializer.data)
-
-    @action(detail=True,methods=['GET', 'POST'])
-    def complete(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            referral_comment = request.data.get('referral_comment')
-            instance.complete(request, referral_comment)
-            serializer = self.get_serializer(instance, context={'request':request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
-
-    @action(detail=True,methods=['GET',])
-    def remind(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            instance.remind(request)
-            serializer = InternalProposalSerializer(instance.proposal,context={'request':request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
-
-    @action(detail=True,methods=['GET',])
-    def recall(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            instance.recall(request)
-            serializer = InternalProposalSerializer(instance.proposal,context={'request':request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
-
-    @action(detail=True,methods=['GET',])
-    def resend(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            instance.resend(request)
-            serializer = InternalProposalSerializer(instance.proposal,context={'request':request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
-
-    @action(detail=True,methods=['post'])
-    def send_referral(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            serializer = SendReferralSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            instance.send_referral(request,serializer.validated_data['email'],serializer.validated_data['text'])
-            serializer = self.get_serializer(instance, context={'request':request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
-
-
-class ProposalRequirementViewSet(viewsets.ModelViewSet):
+class ProposalRequirementViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = ProposalRequirement.objects.none()
     serializer_class = ProposalRequirementSerializer
+    permission_classes = [ProposalAssessorPermission]
 
     def get_queryset(self):
         user = self.request.user
         if is_internal(self.request):
             return ProposalRequirement.objects.exclude(is_deleted=True)
-        elif user.is_authenticated:
-            user_orgs = [org.id for org in user.disturbance_organisations.all()]
-            qs = ProposalRequirement.objects.exclude(is_deleted=True).filter(Q(proposal_id__applicant_id__in=user_orgs)|Q(proposal_id__submitter_id=user.id))
-            return qs
         return ProposalRequirement.objects.none()
 
+    #TODO fix for segregation - why GET?
     @action(detail=True,methods=['GET',])
     def move_up(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
+            if not (instance.proposal and instance.proposal.processing_status == Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS):
+                raise serializers.ValidationError("Proposal must be With Assessor (Requirements) for requirement to updated.")
             instance.up()
             instance.save()
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    #TODO fix for segregation - why GET?
     @action(detail=True,methods=['GET',])
     def move_down(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
+            if not (instance.proposal and instance.proposal.processing_status == Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS):
+                raise serializers.ValidationError("Proposal must be With Assessor (Requirements) for requirement to updated.")
             instance.down()
             instance.save()
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    #TODO fix for segregation - why GET?
     @action(detail=True,methods=['GET',])
     def discard(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
+            if not (instance.proposal and instance.proposal.processing_status == Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS):
+                raise serializers.ValidationError("Proposal must be With Assessor (Requirements) for requirement to removed.")
             instance.is_deleted = True
             instance.save()
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
-        except serializers.ValidationError:
+        except Exception as e:
             print(traceback.print_exc())
-            raise
-        except ValidationError as e:
+            raise serializers.ValidationError(str(e))
+
+    #add status check and perm
+    def create(self, request, *args, **kwargs):
+        try:
+            data = request.data.get('data')
+            proposal = Proposal.objects.get(id=data["proposal"])
+            if proposal.processing_status == Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS:
+                serializer = self.get_serializer(data=data)
+                serializer.is_valid(raise_exception = True)
+                instance = serializer.save()
+                serializer = self.get_serializer(instance)
+                return Response(serializer.data)
+            else:
+                raise serializers.ValidationError("No valid proposal With Assessor (Requirements) for requirement provided.")
+        except Exception as e:
             print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
+            raise serializers.ValidationError(str(e))
+    
+    #add status check and perm
+    def update(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            if instance.proposal and instance.proposal.processing_status == Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS:
+                serializer = self.get_serializer(instance, data=request.data.get('data'))
+                serializer.is_valid(raise_exception=True)
+                return Response(serializer.data)
+            else:
+                raise serializers.ValidationError("No valid proposal With Assessor (Requirements) for requirement provided.")
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

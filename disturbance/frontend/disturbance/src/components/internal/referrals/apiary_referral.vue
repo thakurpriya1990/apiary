@@ -597,18 +597,6 @@ export default {
                 vm.loading.splice('Loading Proposal Group Members',1);
             })
         },
-        fetchreferrallist: function(referral_id){
-            let vm = this;
-
-           fetch(helpers.add_endpoint_json(api_endpoints.referrals,referral_id+'/referral_list'))
-            .then(async (response) => {
-                if (!response.ok) { return response.json().then(err => { throw err }); }
-                vm.referral_sent_list = await response.json();
-            })
-            .catch(err => {
-              console.log(err);
-            });
-        },
         fetchReferral: function(){
             let vm = this;
             fetch(helpers.add_endpoint_json(api_endpoints.referrals,vm.referral.id))
@@ -616,8 +604,6 @@ export default {
                 if (!res.ok) { return res.json().then(err => { throw err }); }
                 vm.referral = await res.json();
                 vm.referral.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                //vm.fetchreferrallist(vm.referral.id);
-              
             }).catch(err => {
               console.log(err);
             });
@@ -691,11 +677,7 @@ export default {
     },
     mounted: function() {
         let vm = this;
-        vm.fetchProposalGroupMembers();
-        //this.fetchApiaryReferralGroups();
-        //vm.fetchDeparmentUsers();
-        //vm.fetchreferrallist()
-        
+        vm.fetchProposalGroupMembers();        
     },
     updated: function(){
         let vm = this;
@@ -724,7 +706,6 @@ export default {
                 this.referral.proposal.applicant.address = this.proposal.applicant.address != null ? this.proposal.applicant.address : {};
             }
         })
-        //vm.fetchreferrallist(vm.referral.id);
         await this.$nextTick();
         this.initialiseAssignedOfficerSelect()
     },

@@ -48,8 +48,6 @@
                                 <div class="row">
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="add_attachments" style="width: 70%;">
-                                            <!--FileField2 ref="filefield" :uploaded_documents="requirement.requirement_documents" :delete_url="delete_url" :proposal_id="proposal_id" isRepeatable="true" name="requirements_file" @refreshFromResponse="refreshFromResponse"/-->
-
                                             <FileField
                                                 ref="deed_poll_documents"
                                                 name="deed-poll-documents"
@@ -121,9 +119,6 @@
 </template>
 
 <script>
-//import $ from 'jquery'
-//import FileField from '@/components/forms/file.vue'
-//import FileField2 from '@/components/forms/filefield2.vue'
 import FileField from '@/components/forms/filefield_immediate.vue'
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
@@ -291,8 +286,6 @@ export default {
             }
 
             let formData = new FormData()
-            //formData.append('files', vm.$refs.filefield.files, 'my_filenames');
-
             // Add files to formData
             var files = vm.$refs.filefield.files;
             $.each(files, function (idx, v) {
@@ -307,7 +300,6 @@ export default {
 
             if (vm.requirement.id){
                 vm.updatingRequirement = true;
-                //vm.$http.put(helpers.add_endpoint_json(api_endpoints.proposal_requirements,requirement.id),JSON.stringify(requirement),{
                 requirement.update = true;
                 formData.append('data', JSON.stringify(requirement));
                 fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements,requirement.id),{
@@ -327,24 +319,23 @@ export default {
                     });
             } else {
                 vm.addingRequirement = true;
-                //vm.$http.post(api_endpoints.proposal_requirements,JSON.stringify(requirement),{
                 requirement.update = false;
                 formData.append('data', JSON.stringify(requirement));
                 fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements),{
-                        method: 'POST',
-                        body: formData,
-                    }).then(async (response)=>{
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! Status: ${response.status}`);
-                        }
-                        vm.addingRequirement = false;
-                        vm.close();
-                        vm.$parent.updatedRequirements();
-                    }).catch((error) => {
-                        vm.errors = true;
-                        vm.addingRequirement = false;
-                        vm.errorString = error;
-                    });
+                    method: 'POST',
+                    body: formData,
+                }).then(async (response)=>{
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    vm.addingRequirement = false;
+                    vm.close();
+                    vm.$parent.updatedRequirements();
+                }).catch((error) => {
+                    vm.errors = true;
+                    vm.addingRequirement = false;
+                    vm.errorString = error;
+                });
             }
         },
         addFormValidations: function() {
