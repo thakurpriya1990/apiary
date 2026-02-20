@@ -1963,18 +1963,15 @@ class ProposalStandardRequirementViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 
-class AmendmentRequestViewSet(viewsets.ModelViewSet):
+class AmendmentRequestViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = AmendmentRequest.objects.none()
     serializer_class = AmendmentRequestSerializer
+    permission_classes = [ProposalAssessorPermission]
 
     def get_queryset(self):
         user = self.request.user
         if is_internal(self.request):
             return AmendmentRequest.objects.all()
-        elif user.is_authenticated:
-            user_orgs = [org.id for org in user.disturbance_organisations.all()]
-            qs = AmendmentRequest.objects.filter(Q(proposal_id__applicant_id__in=user_orgs)|Q(proposal_id__submitter_id=user.id))
-            return qs
         return AmendmentRequest.objects.none()
 
     def create(self, request, *args, **kwargs):
@@ -1986,11 +1983,6 @@ class AmendmentRequestViewSet(viewsets.ModelViewSet):
             instance.generate_amendment(request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            handle_validation_error(e)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2002,12 +1994,6 @@ class AmendmentRequestViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             AmendmentRequestDocument.objects.get(id=request.data.get('id')).delete()
             return Response([dict(id=i.id, name=i.name,_file=i._file.url) for i in instance.requirement_documents.all()])
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

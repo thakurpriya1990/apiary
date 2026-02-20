@@ -34,7 +34,6 @@
                                 <div class="col-sm-offset-2 col-sm-8">
                                     <div class="form-group">
                                         <div class="input-group date" ref="add_attachments" style="width: 70%;">
-                                            <!--FileField ref="filefield" :uploaded_documents="amendment.amendment_request_documents" :delete_url="delete_url" :proposal_id="proposal_id" isRepeatable="true" name="amendment_request_file" @refreshFromResponse="refreshFromResponse"/-->
                                             <FileField
                                             ref="filefield"
                                             :uploaded_documents="amendment.amendment_request_documents"
@@ -231,15 +230,15 @@ export default {
                 }
             });
        },
-       eventListerners:function () {
+       eventListeners:function () {
             let vm = this;
 
-            //TODO fix for segregation - fix this going under the modal
             // Intialise select2
             $(vm.$refs.reason).select2({
                 "theme": "bootstrap",
                 allowClear: true,
-                placeholder:"Select Reason"
+                placeholder:"Select Reason",
+                dropdownParent: $(vm.$refs.reason).parent(),
             }).
             on("select2:select",function (e) {
                 var selected = $(e.currentTarget);
@@ -259,7 +258,7 @@ export default {
        vm.fetchAmendmentChoices();
        vm.addFormValidations();
        this.$nextTick(()=>{
-            vm.eventListerners();
+            vm.eventListeners();
         });
     //console.log(validate);
    }

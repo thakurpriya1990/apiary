@@ -4,22 +4,13 @@
             <div v-if="!proposal_readonly">
               <div v-if="hasAmendmentRequest" class="row" style="color:red;">
                 <div class="col-lg-12 pull-right">
-                    <div class="panel panel-default">
-                      <div class="panel-heading">
-                          <h3 class="panel-title" style="color:red;">{{ amendmentRequestText }}
-                          <a class="panelClicker" :href="'#'+pBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="pBody">
-                                <span class="glyphicon glyphicon-chevron-down pull-right "></span>
-                          </a>
-                        </h3>
-                      </div>
-                      <div class="panel-body collapse in" :id="pBody">
+                    <FormSection :formCollapse="false" :label="amendmentRequestText" Index="amendment_request">
                         <div v-for="a in amendment_request" :key="a.id">
                           <p>Reason: {{a.reason}}</p>
                           <p v-if="a.amendment_request_documents">Documents: </p><p v-for="d in a.amendment_request_documents" :key="d.id"><a :href="d._file" target="_blank" class="control-label pull-left">{{d.name   }}</a><br></p>
                           <p>Details: </p> <p v-for="t in splitText(a.text)" :key="t.text">{{t}}</p>
-                      </div>
-                    </div>
-                  </div>
+                        </div>
+                    </FormSection>
                 </div>
               </div>
             </div>
@@ -191,6 +182,7 @@ import {
   helpers
 }
 from '@/utils/hooks'
+import FormSection from "@/components/forms/section_toggle.vue"
 export default {
     data: function() {
         return {
@@ -233,6 +225,7 @@ export default {
     components: {
         ProposalApiary,
         ApiarySiteTransfer,
+        FormSection,
     },
     computed: {
         amendmentRequestText: function() {
