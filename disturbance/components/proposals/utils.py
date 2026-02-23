@@ -675,7 +675,6 @@ class SpecialFieldsSearch(object):
 
 def save_proponent_data(instance, request, viewset):
     if instance.application_type.name == 'Site Transfer':
-    #if instance.application_type.name == ApplicationType.SITE_TRANSFER:
         save_proponent_data_apiary_site_transfer(instance, request, viewset)
         instance.log_user_action(ProposalUserAction.APIARY_ACTION_SAVE_APPLICATION.format(instance.lodgement_number), request)
     elif instance.apiary_group_application_type:
@@ -930,10 +929,7 @@ def save_proponent_data_apiary(proposal_obj, request, viewset):
                     proposal_obj.processing_status = Proposal.PROCESSING_STATUS_WITH_ASSESSOR
                     proposal_obj.customer_status = Proposal.CUSTOMER_STATUS_WITH_ASSESSOR
                     proposal_obj.documents.all().update(can_delete=False)
-                    #proposal.required_documents.all().update(can_delete=False)
                     proposal_obj.save()
-
-                # return redirect(reverse('external-proposal-temporary-use-submit-success', kwargs={'proposal_pk': proposal_obj.id}))
 
             # save/update any additonal special propoerties here
             proposal_obj.title = proposal_obj.proposal_apiary.title if hasattr(proposal_obj, 'proposal_apiary') else proposal_obj.title
@@ -1220,11 +1216,14 @@ def save_apiary_assessor_data(instance,request):
         except:
             raise
 
+
 def proposal_submit_apiary(proposal, request):
     with transaction.atomic():
         if proposal.can_user_edit:
-            proposal.submitter = request.user
-            #proposal.lodgement_date = datetime.datetime.strptime(timezone.now().strftime('%Y-%m-%d'),'%Y-%m-%d').date()
+
+            if request.user and isinstance(request.user,EmailUser):
+                proposal.submitter = request.user
+
             proposal.lodgement_date = timezone.now()
             proposal.training_completed = True
             if (proposal.amendment_requests):
@@ -1234,22 +1233,13 @@ def proposal_submit_apiary(proposal, request):
                         q.status = 'amended'
                         q.save()
 
-            # Create a log entry for the proposal
-            proposal.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.lodgement_number), request)
-            # Create a log entry for the organisation
-            #proposal.applicant.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id),request)
-            applicant_field=getattr(proposal, proposal.applicant_field)
-            #applicant_field.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.lodgement_number), request)
-
             ret1 = send_submit_email_notification(request, proposal)
             ret2 = send_external_submit_email_notification(request, proposal)
 
-            #proposal.save_form_tabs(request)
             if ret1 and ret2  or DEBUG:
                 proposal.processing_status = Proposal.PROCESSING_STATUS_WITH_ASSESSOR
                 proposal.customer_status = Proposal.CUSTOMER_STATUS_WITH_ASSESSOR
                 proposal.documents.all().update(can_delete=False)
-                #proposal.required_documents.all().update(can_delete=False)
                 proposal.save()
             else:
                 raise ValidationError('An error occurred while submitting proposal (Submit email notifications failed)')

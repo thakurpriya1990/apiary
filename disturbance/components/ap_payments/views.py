@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic.base import View, TemplateView
 from django.db import transaction
 from django.core.exceptions import PermissionDenied
-
+from rest_framework.permissions import AllowAny
 from datetime import datetime
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
@@ -15,7 +15,6 @@ from disturbance.components.approvals.serializers import ApprovalLogEntrySeriali
 from disturbance.components.proposals.models import (
     Proposal, ApiarySiteFeeRemainder,
     ApiarySiteFeeType, SiteCategory,
-    ProposalApiary
 )
 from disturbance.components.main.models import ApplicationType
 from disturbance.components.organisations.models import Organisation
@@ -445,8 +444,42 @@ class AnnualRentalFeeSuccessView(TemplateView):
         return can_access_invoice, to_email_addresses
 
 
+def adjust_db_operations(db_operations):        
+    # Perform database operations to remove and/or store site remainders
+    # site remainders used
+    for item in db_operations['site_remainder_used']:
+        site_remainder = ApiarySiteFeeRemainder.objects.get(id=item['id'])
+        site_remainder.date_used = datetime.strptime(item['date_used'], '%Y-%m-%d')
+        site_remainder.save()
+    # site remainders added
+    for item in db_operations['site_remainder_to_be_added']:
+        apiary_site_fee_type = ApiarySiteFeeType.objects.get(name=item['apiary_site_fee_type_name'])
+        site_category = SiteCategory.objects.get(id=item['site_category_id'])
+        # date_expiry = datetime.strptime(item['date_expiry'], '%Y-%m-%d')
+        applicant = Organisation.objects.get(id=item['applicant_id']) if item['applicant_id'] else None
+        proxy_applicant = EmailUser.objects.get(id=item['proxy_applicant_id']) if item[
+            'proxy_applicant_id'] else None
+        site_remainder = ApiarySiteFeeRemainder.objects.create(
+            site_category=site_category,
+            apiary_site_fee_type=apiary_site_fee_type,
+            applicant=applicant,
+            proxy_applicant=proxy_applicant,
+        )
+
 class ApplicationFeeSuccessViewPreload(APIView):
 
+    permission_classes = [AllowAny] 
+    """ NOTE this endpoint must be openly accessible for payment notification
+        while not ideal this should be okay provided:
+            it only runs submissions and sends emails as needed (i.e. once assuming success on the first try)
+            validates that payment has in fact been taken before running submissions
+            does not return anything substantial in the response
+
+        Currently this function if regulated, so that it does not run more than once, by checking:
+            application_fee.payment_type == ApplicationFee.PAYMENT_TYPE_TEMPORARY
+
+        TODO consider an allowed ip range so only specific services can access this endpoint
+    """
     def get(self, request, lodgement_number, format=None):
         print("ApplicationFeeSuccessViewPreload")
         invoice_ref = request.GET.get('invoice')
@@ -465,7 +498,7 @@ class ApplicationFeeSuccessViewPreload(APIView):
             return redirect('home')
         
         Invoice.objects.filter(reference=invoice_ref).order_by('id').last()
-        fee_inv = ApplicationFeeInvoice.objects.get_or_create(application_fee=application_fee, invoice_reference=invoice_ref)
+        fee_inv, created = ApplicationFeeInvoice.objects.get_or_create(application_fee=application_fee, invoice_reference=invoice_ref)
 
         if fee_inv and fee_inv.invoice_reference:
             invoice_ref = fee_inv.invoice_reference
@@ -502,7 +535,7 @@ class ApplicationFeeSuccessViewPreload(APIView):
                         proposal_apiary = proposal.proposal_apiary
                         proposal_apiary.post_payment_success()
 
-                    self.adjust_db_operations(db_operations)
+                    adjust_db_operations(db_operations)
                 else:
                     logger.error('Invoice payment status is {}'.format(invoice.payment_status))
                     raise
@@ -527,8 +560,6 @@ class ApplicationFeeSuccessView(TemplateView):
         print("ApplicationFeeSuccessView")
         fee_inv = None
         submitter = None
-        invoice = None
-        invoice_ref = None
         
         #get application invoice from session
         application_fee = get_session_application_invoice(request.session)
@@ -543,31 +574,6 @@ class ApplicationFeeSuccessView(TemplateView):
             'fee_invoice': fee_inv
         }
         return render(request, self.template_name, context)
-
-    def adjust_db_operations(self, db_operations):        
-
-        # Perform database operations to remove and/or store site remainders
-        # site remainders used
-        for item in db_operations['site_remainder_used']:
-            site_remainder = ApiarySiteFeeRemainder.objects.get(id=item['id'])
-            site_remainder.date_used = datetime.strptime(item['date_used'], '%Y-%m-%d')
-            site_remainder.save()
-
-        # site remainders added
-        for item in db_operations['site_remainder_to_be_added']:
-            apiary_site_fee_type = ApiarySiteFeeType.objects.get(name=item['apiary_site_fee_type_name'])
-            site_category = SiteCategory.objects.get(id=item['site_category_id'])
-            # date_expiry = datetime.strptime(item['date_expiry'], '%Y-%m-%d')
-            applicant = Organisation.objects.get(id=item['applicant_id']) if item['applicant_id'] else None
-            proxy_applicant = EmailUser.objects.get(id=item['proxy_applicant_id']) if item[
-                'proxy_applicant_id'] else None
-
-            site_remainder = ApiarySiteFeeRemainder.objects.create(
-                site_category=site_category,
-                apiary_site_fee_type=apiary_site_fee_type,
-                applicant=applicant,
-                proxy_applicant=proxy_applicant,
-            )
 
 
 class AwaitingPaymentPDFView(View):

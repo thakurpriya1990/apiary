@@ -41,7 +41,7 @@ from disturbance.components.proposals.models import (
     searchKeyWords, search_reference, 
     OnSiteInformation, ApiarySite, ApiaryChecklistQuestion, ApiaryChecklistAnswer, 
     ProposalApiaryTemporaryUse, ApiarySiteOnProposal, PublicLiabilityInsuranceDocument, DeedPollDocument, 
-    SupportingApplicationDocument
+    SupportingApplicationDocument, ProposalUserAction
 )
 from disturbance.settings import (
     SITE_STATUS_DRAFT, SITE_STATUS_CURRENT, SITE_STATUS_DENIED,
@@ -1296,6 +1296,9 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             instance = self.get_object()
             if instance.customer_status == Proposal.CUSTOMER_STATUS_DRAFT:
                 save_proponent_data(instance, request, self)
+                #Submitter and lodgement log set here - if payment fails we should still log this and submitter can be overridden later if necessary
+                instance.submitter = request.user
+                instance.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(instance.lodgement_number), request)
             instance.save()
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
