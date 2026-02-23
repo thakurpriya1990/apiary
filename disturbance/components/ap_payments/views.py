@@ -19,7 +19,6 @@ from disturbance.components.proposals.models import (
 )
 from disturbance.components.main.models import ApplicationType
 from disturbance.components.organisations.models import Organisation
-from disturbance.components.ap_payments.invoice_pdf import create_invoice_pdf_bytes
 from disturbance.components.ap_payments.confirmation_pdf import create_confirmation_pdf_bytes
 from disturbance.components.proposals.utils import proposal_submit_apiary
 from disturbance.components.ap_payments.email import (
@@ -30,22 +29,19 @@ from disturbance.components.ap_payments.utils import (
     create_fee_lines,
     get_session_application_invoice,
     set_session_application_invoice,
-    delete_session_application_invoice,
-    get_session_site_transfer_application_invoice,
+    get_db_operations,
     set_session_site_transfer_application_invoice,
     delete_session_site_transfer_application_invoice, set_session_annual_rental_fee, get_session_annual_rental_fee,
-    delete_session_annual_rental_fee, round_amount_according_to_env, checkout_existing_invoice, set_session_invoice,
+    delete_session_annual_rental_fee, round_amount_according_to_env, set_session_invoice,
     get_session_invoice, delete_session_invoice, InvoiceReferenceNotInSettionException,
 )
 
 from disturbance.components.ap_payments.models import ApplicationFee, ApplicationFeeInvoice, AnnualRentalFee
-from ledger_api_client.utils import update_payments, get_invoice_properties
+from ledger_api_client.utils import get_invoice_properties
 from decimal import Decimal
 import requests
 
 from ledger_api_client.ledger_models import Invoice
-from ledger_api_client.ledger_models import Basket
-from ledger_api_client.order import Order
 from disturbance.helpers import is_internal, is_in_organisation_contacts
 from disturbance.context_processors import apiary_url
 from rest_framework.views import APIView
@@ -57,7 +53,7 @@ from django.conf import settings
 import logging
 logger = logging.getLogger(__name__)
 
-
+#TODO on-cleanup - this is not used, determine if needed or not (appears to have been a partially completed addition from some number of years ago that was never fully implemented)
 class AnnualRentalFeeView(TemplateView):
     def get_object(self):
         return get_object_or_404(AnnualRentalFee, id=self.kwargs['annual_rental_fee_id'])
@@ -82,8 +78,7 @@ class AnnualRentalFeeView(TemplateView):
 
                 proposal = annual_rental_fee.current_proposal
 
-                lines, db_processes_after_success = create_fee_lines(proposal)
-                request.session['db_processes'] = db_processes_after_success
+                lines, _ = create_fee_lines(proposal)
 
                 checkout_response = checkout(
                         request,
@@ -118,10 +113,9 @@ class InvoicePaymentView(TemplateView):
             with transaction.atomic():
 
                 proposal = Proposal.objects.get(lodgement_number=invoice.reference)
-                lines, db_processes_after_success = create_fee_lines(proposal)
+                lines, _ = create_fee_lines(proposal)
 
                 set_session_invoice(request.session, invoice)
-                request.session['db_processes'] = db_processes_after_success
 
                 checkout_response = checkout(
                         request,
@@ -164,7 +158,7 @@ class ApplicationFeeView(TemplateView):
                     set_session_site_transfer_application_invoice(request.session, application_fee)
                 else:
                     set_session_application_invoice(request.session, application_fee)
-                lines, db_processes_after_success = create_fee_lines(proposal)
+                lines, _ = create_fee_lines(proposal)
 
                 if proposal.application_type.name == ApplicationType.SITE_TRANSFER:
                     checkout_response = checkout(
@@ -176,7 +170,6 @@ class ApplicationFeeView(TemplateView):
                         invoice_text='Site Transfer Application Fee'
                     )
                 else:
-                    request.session['db_processes'] = db_processes_after_success
                     checkout_response = checkout(
                         request,
                         proposal,
@@ -457,7 +450,6 @@ class ApplicationFeeSuccessViewPreload(APIView):
     def get(self, request, lodgement_number, format=None):
         print("ApplicationFeeSuccessViewPreload")
         invoice_ref = request.GET.get('invoice')
-        print("\n\n\nINVOICE REF",invoice_ref)
 
         try:
             proposal = Proposal.objects.get(lodgement_number=lodgement_number)
@@ -472,14 +464,62 @@ class ApplicationFeeSuccessViewPreload(APIView):
             print("application fee for proposal does not exist")
             return redirect('home')
         
-        invoice = Invoice.objects.filter(reference=invoice_ref).order_by('id').last()
-        print("invoice",invoice)
-        fee_inv, created = ApplicationFeeInvoice.objects.get_or_create(application_fee=application_fee, invoice_reference=invoice_ref)
-        print(created)
+        Invoice.objects.filter(reference=invoice_ref).order_by('id').last()
+        fee_inv = ApplicationFeeInvoice.objects.get_or_create(application_fee=application_fee, invoice_reference=invoice_ref)
+
+        if fee_inv and fee_inv.invoice_reference:
+            invoice_ref = fee_inv.invoice_reference
+            invoice = Invoice.objects.filter(reference=invoice_ref).order_by('id').last()
+
+        proposal = application_fee.proposal
+        if proposal.application_type.name == ApplicationType.APIARY:
+            db_operations = get_db_operations(proposal)
+        else:
+            db_operations = None
+
+        if invoice and application_fee.payment_type == ApplicationFee.PAYMENT_TYPE_TEMPORARY:
+            if fee_inv:
+                application_fee.payment_type = ApplicationFee.PAYMENT_TYPE_INTERNET
+                application_fee.expiry_time = None
+
+                invoice_properties = get_invoice_properties(invoice.id)
+                if (
+                    proposal and invoice_properties['data'] and 
+                    invoice_properties['data']['invoice'] and 
+                    (
+                        invoice_properties['data']['invoice']['payment_status'] == 'paid' 
+                        or invoice_properties['data']['invoice']['payment_status']  == 'over_paid'
+                    )
+                ):
+                    if isinstance(proposal.fee_invoice_references, list):
+                        proposal.fee_invoice_references.append(invoice_ref)
+                    else:
+                        proposal.fee_invoice_references = [invoice_ref,]
+                    proposal.save()
+                    proposal_submit_apiary(proposal, request)
+
+                    if proposal.proposal_apiary:
+                        proposal_apiary = proposal.proposal_apiary
+                        proposal_apiary.post_payment_success()
+
+                    self.adjust_db_operations(db_operations)
+                else:
+                    logger.error('Invoice payment status is {}'.format(invoice.payment_status))
+                    raise
+
+                if proposal.applicant:
+                    recipient = proposal.applicant.email
+                elif proposal.proxy_applicant:
+                    recipient = proposal.proxy_applicant.email
+                elif proposal.submitter:
+                    recipient = proposal.submitter.email
+
+                application_fee.save()
+                send_application_fee_invoice_apiary_email_notification(request, proposal, invoice, recipients=[recipient])
 
         return Response(status=status.HTTP_200_OK)
 
-#TODO fix for segregation - move submission to preload (this view should be for display only, no submission processes)
+
 class ApplicationFeeSuccessView(TemplateView):
     template_name = 'disturbance/payment/success_fee.html'
 
@@ -495,45 +535,7 @@ class ApplicationFeeSuccessView(TemplateView):
         proposal = application_fee.proposal
         submitter = proposal.submitter
 
-        # Retrieve db processes stored when calculating the fee, and delete the session
-        db_operations = request.session['db_processes']
-        del request.session['db_processes']
-
         fee_inv = ApplicationFeeInvoice.objects.filter(application_fee=application_fee).order_by('id').last()
-        if fee_inv and fee_inv.invoice_reference:
-            invoice_ref = fee_inv.invoice_reference
-            invoice = Invoice.objects.filter(reference=invoice_ref).order_by('id').last()
-
-        if invoice and application_fee.payment_type == ApplicationFee.PAYMENT_TYPE_TEMPORARY:
-            if fee_inv:
-                application_fee.payment_type = ApplicationFee.PAYMENT_TYPE_INTERNET
-                application_fee.expiry_time = None
-
-                invoice_properties = get_invoice_properties(invoice.id)
-                if proposal and (invoice_properties['data']['invoice']['payment_amount'] == 'paid' or invoice_properties['data']['invoice']['payment_amount']):
-                    if isinstance(proposal.fee_invoice_references, list):
-                        proposal.fee_invoice_references.append(invoice_ref)
-                    else:
-                        proposal.fee_invoice_references = [invoice_ref,]
-                    proposal.save()
-                    proposal_submit_apiary(proposal, request)
-                    self.adjust_db_operations(db_operations)
-                else:
-                    logger.error('Invoice payment status is {}'.format(invoice.payment_status))
-                    raise
-
-                if proposal.applicant:
-                    recipient = proposal.applicant.email
-                elif proposal.proxy_applicant:
-                    recipient = proposal.proxy_applicant.email
-                elif proposal.submitter:
-                    recipient = proposal.submitter.email
-
-                application_fee.save()
-                request.session['das_last_app_invoice'] = application_fee.id
-                delete_session_application_invoice(request.session)
-
-                send_application_fee_invoice_apiary_email_notification(request, proposal, invoice, recipients=[recipient])
 
         context = {
             'proposal': proposal,
@@ -542,21 +544,7 @@ class ApplicationFeeSuccessView(TemplateView):
         }
         return render(request, self.template_name, context)
 
-    def adjust_db_operations(self, db_operations):
-        proposal_apiary = ProposalApiary.objects.get(id=db_operations['proposal_apiary_id'])
-
-        proposal_apiary.post_payment_success()
-        # non vacant site
-        # for site_id in db_operations['apiary_site_ids']:
-        #     apiary_site = ApiarySite.objects.get(id=site_id)
-        #     proposal_apiary.set_status(apiary_site, ApiarySiteOnProposal.SITE_STATUS_PENDING)
-
-        # vacant site
-        # for site_id in db_operations['vacant_apiary_site_ids']:
-        #     apiary_site = ApiarySite.objects.get(id=site_id,)
-        #     apiary_site.is_vacant = False
-        #     apiary_site.save()
-        #     proposal_apiary.set_status(apiary_site, ApiarySiteOnProposal.SITE_STATUS_PENDING)
+    def adjust_db_operations(self, db_operations):        
 
         # Perform database operations to remove and/or store site remainders
         # site remainders used
