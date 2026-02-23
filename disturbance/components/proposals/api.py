@@ -2012,9 +2012,10 @@ class AmendmentRequestReasonChoicesView(views.APIView):
                 choices_list.append({'key': c.id,'value': c.reason})
         return Response(choices_list)
 
-#TODO fix for segregation - review, secure or remove
+
 class SearchKeywordsView(views.APIView):
     renderer_classes = [JSONRenderer,]
+    permission_classes = [InternalProposalPermission]
     def post(self,request, format=None):
         qs = []
         searchWords = request.data.get('searchKeywords')
@@ -2026,9 +2027,10 @@ class SearchKeywordsView(views.APIView):
         serializer = SearchKeywordSerializer(qs, many=True)
         return Response(serializer.data)
 
-#TODO fix for segregation - review, secure or remove
+
 class SearchReferenceView(views.APIView):
     renderer_classes = [JSONRenderer,]
+    permission_classes = [InternalProposalPermission]
     def post(self,request, format=None):
         try:
             qs = []

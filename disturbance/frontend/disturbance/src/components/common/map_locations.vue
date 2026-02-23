@@ -287,6 +287,8 @@ export default {
           var self = this;
 
           var latlng = this.mainMap.getCenter();
+
+          //TODO fix for segregation - get these values via backend so we do not expose the access token
           $.ajax({
             url:
               api_endpoints.geocoding_address_search + 

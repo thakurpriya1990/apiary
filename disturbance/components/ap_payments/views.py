@@ -45,7 +45,7 @@ from disturbance.helpers import is_internal, is_in_organisation_contacts
 from disturbance.context_processors import apiary_url
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, serializers
 
 from django.conf import settings
 
@@ -99,7 +99,7 @@ class AnnualRentalFeeView(TemplateView):
             logger.error('Error Creating Annual Site Fee: {}'.format(e))
             raise
 
-
+#TODO on-cleanup - this appears to be no longer used, determine if needed or not 
 class InvoicePaymentView(TemplateView):
 
     def get_object(self):
@@ -193,7 +193,6 @@ class SiteTransferApplicationFeeSuccessView(TemplateView):
 
     def get(self, request, lodgement_number, *args, **kwargs):
         print (" SITE TRANSFER APPLICATION FEE SUCCESS VIEW ")
-
         proposal = None
         submitter = None
         invoice = None
@@ -313,7 +312,7 @@ class SiteTransferApplicationFeeSuccessView(TemplateView):
         }
         return render(request, self.template_name, context)
 
-
+#TODO on-cleanup - this appears to be no longer used, determine if needed or not 
 class InvoicePaymentSuccessView(TemplateView):
     template_name = 'disturbance/payment/invoice_payment_success.html'
 
@@ -362,7 +361,7 @@ class InvoicePaymentSuccessView(TemplateView):
             logger.error('Error after payment success: {}'.format(e))
             return redirect('home')
 
-
+#TODO on-cleanup - this is not used, determine if needed or not
 class AnnualRentalFeeSuccessView(TemplateView):
     template_name = 'disturbance/payment/annual_rental_fee_success.html'
 
@@ -575,7 +574,7 @@ class ApplicationFeeSuccessView(TemplateView):
         }
         return render(request, self.template_name, context)
 
-
+#TODO on-cleanup - this is not used, determine if needed or not
 class AwaitingPaymentPDFView(View):
     def get(self, request, *args, **kwargs):
         annual_rental_fee = get_object_or_404(AnnualRentalFee, id=self.kwargs['annual_rental_fee_id'])
@@ -587,12 +586,13 @@ class AwaitingPaymentPDFView(View):
 class InvoicePDFView(View):
     def get(self, request, *args, **kwargs):
         invoice = get_object_or_404(Invoice, reference=self.kwargs['reference'])
-        url_var = apiary_url(request)
         api_key = settings.LEDGER_API_KEY     
+
+        if not self.request or not isinstance(self.request.user, EmailUser):
+            raise PermissionDenied
 
         try:
             # Assume the invoice has been issued for the application(proposal)
-            # proposal = Proposal.objects.get(fee_invoice_reference=invoice.reference)
             proposal = Proposal.objects.get(fee_invoice_references__contains=[invoice.reference])
 
             if proposal.relevant_applicant_type == 'organisation':
@@ -605,20 +605,23 @@ class InvoicePDFView(View):
                     return response
                 raise PermissionDenied
             else:
-                response = HttpResponse(content_type='application/pdf')
-                url = settings.LEDGER_API_URL+'/ledgergw/invoice-pdf/'+api_key+'/' + invoice.reference
-                invoice_pdf = requests.get(url=url)
-                response.write(invoice_pdf)
-                return response
-        except Proposal.DoesNotExist:
-            # The invoice might be issued for the annual site fee
-            annual_rental_fee = AnnualRentalFee.objects.get(invoice_reference=invoice.reference)
-            approval = annual_rental_fee.approval
-            response = HttpResponse(content_type='application/pdf')
-            url = settings.LEDGER_API_URL+'/ledgergw/invoice-pdf/'+api_key+'/' + invoice.reference
-            invoice_pdf = requests.get(url=url)
-            response.write(invoice_pdf)
-            return response
+                if self.check_individual_owner(proposal):
+                    response = HttpResponse(content_type='application/pdf')
+                    url = settings.LEDGER_API_URL+'/ledgergw/invoice-pdf/'+api_key+'/' + invoice.reference
+                    invoice_pdf = requests.get(url=url)
+                    response.write(invoice_pdf)
+                    return response
+                raise PermissionDenied
+        #TODO on-cleanup remove if not needed, secure if needed
+        #except Proposal.DoesNotExist:
+        #    # The invoice might be issued for the annual site fee
+        #    annual_rental_fee = AnnualRentalFee.objects.get(invoice_reference=invoice.reference)
+        #    approval = annual_rental_fee.approval
+        #    response = HttpResponse(content_type='application/pdf')
+        #    url = settings.LEDGER_API_URL+'/ledgergw/invoice-pdf/'+api_key+'/' + invoice.reference
+        #    invoice_pdf = requests.get(url=url)
+        #    response.write(invoice_pdf)
+        #    return response
         except:
             raise
 
@@ -627,6 +630,14 @@ class InvoicePDFView(View):
 
     def check_owner(self, organisation):
         return is_in_organisation_contacts(self.request, organisation) or is_internal(self.request) or self.request.user.is_superuser
+
+    def check_individual_owner(self,proposal):
+        if not self.request or not self.request.user:
+            return False
+
+        return (
+            proposal.proxy_applicant == self.request.user if proposal.relevant_applicant_type == 'proxy' else proposal.submitter == self.request.user
+        ) or is_internal(self.request) or self.request.user.is_superuser
 
 
 class ConfirmationPDFView(View):
@@ -639,7 +650,6 @@ class ConfirmationPDFView(View):
         organisation = proposal.applicant.organisation.organisation_set.all()[0]
         if self.check_owner(organisation):
             response = HttpResponse(content_type='application/pdf')
-            #import ipdb; ipdb.set_trace()
             response.write(create_confirmation_pdf_bytes('confirmation.pdf',invoice, application_fee))
             return response
         raise PermissionDenied

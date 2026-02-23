@@ -11,9 +11,6 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser,Address
 
 from disturbance.components.users.serializers import (   
     UserSerializer,
-    UserAddressSerializer,
-    PersonalSerializer,
-    ContactSerializer,
     MyUserDetailsSerializer,
 )
 from disturbance.helpers import is_internal
