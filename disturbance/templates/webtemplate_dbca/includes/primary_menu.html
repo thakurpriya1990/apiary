@@ -6,11 +6,6 @@
 {% is_internal as is_internal_login %}
 
 {% if is_internal_login %}
-    <!-- <li class="nav-item">
-        <a class="nav-link{% if 'proposals' in request.path %} active{% endif %}" href="/internal">
-            Proposals
-        </a>
-    </li> -->
     <li class="nav-item">
         <a class="nav-link{% if 'approvals' in request.path %} active{% endif %}" href="/internal/approvals">
             Licences
@@ -37,11 +32,8 @@
         </a>
     </li>
 {% else %}
-    <li class="nav-item">
-        <a class="nav-link" href="/external/available_sites">
-            Sites
-        </a>
-    </li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'ds_contact' %}">Contact Us</a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'ds_further_info' %}">Further Information</a></li>
 {% endif %}
 <script>
     var payment_processing = 

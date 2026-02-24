@@ -3,7 +3,6 @@ from django.core.exceptions import ImproperlyConfigured
 import sys
 import os, hashlib
 from confy import env
-import json
 import logging
 
 logger = logging.getLogger(__name__)
@@ -99,7 +98,7 @@ STATIC_URL = '/static/'
 # Department details
 SYSTEM_NAME = env('SYSTEM_NAME', 'Disturbance Approval System')
 APIARY_SYSTEM_NAME = env('APIARY_SYSTEM_NAME', 'Apiary System')
-SYSTEM_NAME_SHORT = env('SYSTEM_NAME_SHORT', 'DAS')
+SYSTEM_NAME_SHORT = env('SYSTEM_NAME_SHORT', 'Apiary')
 SITE_PREFIX = env('SITE_PREFIX')
 SITE_DOMAIN = env('SITE_DOMAIN')
 SUPPORT_EMAIL = env('SUPPORT_EMAIL', SYSTEM_NAME_SHORT.lower() + '@' + SITE_DOMAIN).lower()
