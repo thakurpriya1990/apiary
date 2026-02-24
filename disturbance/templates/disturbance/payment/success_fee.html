@@ -40,7 +40,9 @@
 
                 {% if request.user.is_authenticated %}
                     <span>
+                    {%if fee_invoice %}
                     <a href="{% url 'invoice-pdf' fee_invoice.invoice_reference %}" class="btn btn-info btn-lg"  target="_blank">Invoice</a>
+                    {% endif %}
                     </span>
                     <span style="float:right;">
                     <a href="{% url 'external' %}" class="btn btn-info btn-lg">Return to Dashboard</a>

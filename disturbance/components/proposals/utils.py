@@ -55,10 +55,20 @@ logger = logging.getLogger(__name__)
 richtext = u''
 richtext_assessor=u''
 
+def rename_site_id_to_id(rows):
+    #transform site_id to id NOTE: this is not ideal, but the original serializer overwrote id so for now we have to as well...
+    #TODO on cleanup - change all references to this dataset to site_id instead of id
+    for row in rows:
+        row["id"] = row.pop("site_id")
+
+    return rows
+
 def annotate_apiary_site_on_proposal_draft_geometry(qs):
     annotated = qs.annotate(
             lat=Func("wkb_geometry_draft", function="ST_Y", output_field=FloatField()),
             lng=Func("wkb_geometry_draft", function="ST_X", output_field=FloatField()),
+        ).annotate(
+            site_id=F("apiary_site__id")
         ).annotate(
             stable_coords=JSONObject(
                 lng=F('lng'),
@@ -112,11 +122,13 @@ def annotate_apiary_site_on_proposal_draft_geometry(qs):
                 dra_permit=F('dra_permit'),
             )
         ).values(
-            'id',
+            'site_id',
             'type',
             'geometry',
             'properties',
         )
+
+    annotated = rename_site_id_to_id(annotated)
 
     return annotated
 
@@ -130,6 +142,8 @@ def annotate_apiary_site_on_proposal_processed_geometry(qs):
                 lng=F('lng'),
                 lat=F('lat'),
             )
+        ).annotate(
+            site_id=F("apiary_site__id")
         ).annotate(
             site_guid=F("apiary_site__site_guid")
         ).annotate(
@@ -178,11 +192,13 @@ def annotate_apiary_site_on_proposal_processed_geometry(qs):
                 dra_permit=F('dra_permit'),
             )
         ).values(
-            'id',
+            'site_id',
             'type',
             'geometry',
             'properties',
         )
+
+    annotated = rename_site_id_to_id(annotated)
 
     return annotated
 
@@ -196,6 +212,8 @@ def annotate_site_transfer_apiary_site(qs):
                 lng=F('lng'),
                 lat=F('lat'),
             )
+        ).annotate(
+            site_id=F("apiary_site_on_approval__apiary_site__id")
         ).annotate(
             site_guid=F("apiary_site_on_approval__apiary_site__site_guid")
         ).annotate(
@@ -237,20 +255,21 @@ def annotate_site_transfer_apiary_site(qs):
             )
         ).annotate(
             apiary_site=JSONObject(
-                id=F('apiary_site_on_approval__id'),
+                id=F('apiary_site_on_approval__apiary_site__id'),
                 type=F('type'),
                 geometry=F('geometry'),
                 properties=F('properties'),
             )
         ).values(
-            'id',
+            'site_id',
             'apiary_site',
             'customer_selected',
             'internal_selected',
         )
 
-    return annotated
+    annotated = rename_site_id_to_id(annotated)
 
+    return annotated
 
 def annotate_temporary_use_apiary_site(qs):
 
@@ -303,7 +322,7 @@ def annotate_temporary_use_apiary_site(qs):
             )
         ).annotate(
             apiary_site=JSONObject(
-                id=F('apiary_site_on_approval__id'),
+                id=F('apiary_site_on_approval__apiary_site__id'),
                 type=F('type'),
                 geometry=F('geometry'),
                 properties=F('properties'),
@@ -656,7 +675,6 @@ class SpecialFieldsSearch(object):
 
 def save_proponent_data(instance, request, viewset):
     if instance.application_type.name == 'Site Transfer':
-    #if instance.application_type.name == ApplicationType.SITE_TRANSFER:
         save_proponent_data_apiary_site_transfer(instance, request, viewset)
         instance.log_user_action(ProposalUserAction.APIARY_ACTION_SAVE_APPLICATION.format(instance.lodgement_number), request)
     elif instance.apiary_group_application_type:
@@ -911,10 +929,7 @@ def save_proponent_data_apiary(proposal_obj, request, viewset):
                     proposal_obj.processing_status = Proposal.PROCESSING_STATUS_WITH_ASSESSOR
                     proposal_obj.customer_status = Proposal.CUSTOMER_STATUS_WITH_ASSESSOR
                     proposal_obj.documents.all().update(can_delete=False)
-                    #proposal.required_documents.all().update(can_delete=False)
                     proposal_obj.save()
-
-                # return redirect(reverse('external-proposal-temporary-use-submit-success', kwargs={'proposal_pk': proposal_obj.id}))
 
             # save/update any additonal special propoerties here
             proposal_obj.title = proposal_obj.proposal_apiary.title if hasattr(proposal_obj, 'proposal_apiary') else proposal_obj.title
@@ -1131,12 +1146,12 @@ def save_assessor_data(instance,request,viewset):
             raise
 
 
-def save_apiary_assessor_data(instance,request,viewset):
+def save_apiary_assessor_data(instance,request):
     with transaction.atomic():
         try:
             serializer = SaveProposalSerializer(instance, request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            viewset.perform_update(serializer)
+
             # Save Documents
             for f in request.FILES:
                 try:
@@ -1201,11 +1216,14 @@ def save_apiary_assessor_data(instance,request,viewset):
         except:
             raise
 
+
 def proposal_submit_apiary(proposal, request):
     with transaction.atomic():
         if proposal.can_user_edit:
-            proposal.submitter = request.user
-            #proposal.lodgement_date = datetime.datetime.strptime(timezone.now().strftime('%Y-%m-%d'),'%Y-%m-%d').date()
+
+            if request.user and isinstance(request.user,EmailUser):
+                proposal.submitter = request.user
+
             proposal.lodgement_date = timezone.now()
             proposal.training_completed = True
             if (proposal.amendment_requests):
@@ -1215,22 +1233,13 @@ def proposal_submit_apiary(proposal, request):
                         q.status = 'amended'
                         q.save()
 
-            # Create a log entry for the proposal
-            proposal.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.lodgement_number), request)
-            # Create a log entry for the organisation
-            #proposal.applicant.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id),request)
-            applicant_field=getattr(proposal, proposal.applicant_field)
-            #applicant_field.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.lodgement_number), request)
-
             ret1 = send_submit_email_notification(request, proposal)
             ret2 = send_external_submit_email_notification(request, proposal)
 
-            #proposal.save_form_tabs(request)
             if ret1 and ret2  or DEBUG:
                 proposal.processing_status = Proposal.PROCESSING_STATUS_WITH_ASSESSOR
                 proposal.customer_status = Proposal.CUSTOMER_STATUS_WITH_ASSESSOR
                 proposal.documents.all().update(can_delete=False)
-                #proposal.required_documents.all().update(can_delete=False)
                 proposal.save()
             else:
                 raise ValidationError('An error occurred while submitting proposal (Submit email notifications failed)')

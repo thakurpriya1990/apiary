@@ -122,6 +122,8 @@
                 licence: null,
                 from_date_enabled: true,
                 to_date_enabled: true,
+                to_date: null,
+                from_date: null,
                 isSubmitting: false,
                 application: {},
                 apiary_sites_available: [],
@@ -177,15 +179,14 @@
                 this.proposal.apiary_temporary_use.temporary_occupier_email = value.occupier_email
             },
             fromDateChanged: function(value){
-                this.proposal.apiary_temporary_use.from_date = moment(value, 'DD/MM/YYYY');
+                //this.proposal.apiary_temporary_use.from_date = moment(value, 'DD/MM/YYYY');
+                this.from_date = value;
             },
             toDateChanged: function(value){
-                this.proposal.apiary_temporary_use.to_date = moment(value, 'DD/MM/YYYY');
+                //this.proposal.apiary_temporary_use.to_date = moment(value, 'DD/MM/YYYY');
+                this.to_date = value;
             },
             apiarySitesUpdated: function(apiary_sites){
-                console.log('apiary_sites')
-                console.log(apiary_sites)
-                //TODO fix for segregation - investigate and adjust to ensure values are updated (without relying on the serialiser)
                 for (let i=0; i<apiary_sites.length; i++){
                     let temporary_use_apiary_site = this.temporary_use_apiary_sites.find(element => element.apiary_site.id == apiary_sites[i].id)
                     // Update temporary_use_apiary_site, which is sent to the backend when saving
@@ -193,9 +194,13 @@
                 }
             },
         },
+        mounted: function() {
+            this.from_date = this.proposal.apiary_temporary_use.from_date;
+            this.to_date = this.proposal.apiary_temporary_use.to_date;
+        },
         created: function() {
             if (this.proposal && this.proposal.apiary_temporary_use) {
-                let url_sites = '/api/proposal/' + this.proposal.id + '/tempary_use_apiary_sites/'
+                let url_sites = '/api/proposal/' + this.proposal.id + '/temporary_use_apiary_sites/'
                 fetch(url_sites).then(
                     async (response) => {
                         if (response.ok) {

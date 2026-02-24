@@ -1,29 +1,13 @@
 import traceback
-import base64
-import geojson
-from six.moves.urllib.parse import urlparse
-from wsgiref.util import FileWrapper
-from django.db.models import Q, Min
+from django.db.models import Q
 from django.db import transaction
-from django.http import HttpResponse
-from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
-from django.conf import settings
-from django.contrib import messages
-from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
-from django.utils import timezone
-from rest_framework import viewsets, serializers, status, generics, views
+from rest_framework import viewsets, serializers, status, views, mixins
 from rest_framework.decorators import action,renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, BasePermission
-from rest_framework.pagination import PageNumberPagination
-from datetime import datetime, timedelta
-from collections import OrderedDict
-from django.core.cache import cache
-from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Address as OrganisationAddress
-from datetime import datetime,timedelta, date
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+
 from disturbance.helpers import is_internal
 from disturbance.components.organisations.models import  (   
                                     Organisation,
@@ -33,14 +17,10 @@ from disturbance.components.organisations.models import  (
                                     OrganisationContact,
                                     OrganisationAccessGroup,
                                     ApiaryOrganisationAccessGroup,
-                                    OrganisationRequestLogEntry,
-                                    OrganisationAction,
                                 )
 
 from disturbance.components.organisations.serializers import (   
                                         OrganisationSerializer,
-                                        OrganisationAddressSerializer,
-                                        #DetailsSerializer,
                                         OrganisationRequestSerializer,
                                         OrganisationContactSerializer,
                                         OrganisationRequestDTSerializer,
@@ -51,7 +31,6 @@ from disturbance.components.organisations.serializers import (
                                         OrganisationActionSerializer,
                                         OrganisationRequestCommsSerializer,
                                         OrganisationCommsSerializer,
-                                        OrganisationUnlinkUserSerializer,
                                         OrgUserAcceptSerializer,
                                         MyOrganisationsSerializer,
                                         OrganisationCheckExistSerializer,
@@ -60,15 +39,14 @@ from disturbance.components.organisations.serializers import (
 from disturbance.components.proposals.serializers import (
                                         DTProposalSerializer,
                                     )
-from disturbance.components.organisations.emails import (
-                        send_organisation_address_updated_email_notification,
-                        send_organisation_id_upload_email_notification,
-                        send_organisation_request_email_notification,
-                    )
 from disturbance.components.main.utils import get_template_group, handle_validation_error
 
+from disturbance.components.organisations.permissions import(
+    InternalOrganisationPermission,
+    OrganisationRequestAssessorPermission,
+)
 
-class OrganisationViewSet(viewsets.ModelViewSet):
+class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = Organisation.objects.none()
     serializer_class = OrganisationSerializer
     allow_external = False #TODO fix for segregation review this - workaround for allowing organisations to be accessed when validating pins
@@ -160,32 +138,6 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    # @action(detail=True,methods=['POST',])
-    # def unlink_user(self, request, *args, **kwargs):
-    #     try:
-    #         instance = self.get_object()
-    #         serializer = OrganisationUnlinkUserSerializer(data=request.data)
-    #         serializer.is_valid(raise_exception=True)
-    #         try:
-    #             instance.delegates.get(id=request.user.id)
-    #         except EmailUser.DoesNotExist:
-    #             raise serializers.ValidationError('You are not permitted to perform this operation since you are not a member of this organisation.')
-    #         instance.unlink_user(serializer.validated_data['user_obj'],request)
-    #         serializer = self.get_serializer(instance)
-    #         return Response(serializer.data);
-    #     except serializers.ValidationError:
-    #         print(traceback.print_exc())
-    #         raise
-    #     except ValidationError as e:
-    #         print(traceback.print_exc())
-    #         if hasattr(e,'error_dict'):
-    #             raise serializers.ValidationError(repr(e.error_dict))
-    #         else:
-    #             raise serializers.ValidationError(repr(e[0].encode('utf-8')))
-    #     except Exception as e:
-    #         print(traceback.print_exc())
-    #         raise serializers.ValidationError(str(e)) 
-
     @action(detail=True,methods=['POST', ])
     def accept_user(self, request, *args, **kwargs):
         try:
@@ -276,8 +228,6 @@ class OrganisationViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
-
-
 
 
     @action(detail=True,methods=['POST',])
@@ -415,7 +365,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalOrganisationPermission])
     def action_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -449,7 +399,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalOrganisationPermission])
     def comms_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -466,7 +416,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[InternalOrganisationPermission])
     @renderer_classes((JSONRenderer,))
     def add_comms_log(self, request, *args, **kwargs):
         try:
@@ -484,12 +434,6 @@ class OrganisationViewSet(viewsets.ModelViewSet):
                             name = str(request.FILES[f]),
                             _file = request.FILES[f]
                             )
-#                for f in request.FILES:
-#                    document = comms.documents.create()
-#                    document.name = str(request.FILES[f])
-#                    document._file = request.FILES[f]
-#                    document.save()
-                # End Save Documents
                 
                 return Response(serializer.data) 
         except serializers.ValidationError:
@@ -525,7 +469,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
         
     
-class OrganisationRequestsViewSet(viewsets.ModelViewSet):
+class OrganisationRequestsViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OrganisationRequest.objects.all()
     serializer_class = OrganisationRequestSerializer
 
@@ -539,7 +483,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
         return OrganisationRequest.objects.none()
 
 
-    @action(detail=False,methods=['GET',])
+    @action(detail=False,methods=['GET',], permission_classes=[InternalOrganisationPermission])
     def datatable_list(self, request, *args, **kwargs):
         try:
             template_group = get_template_group(request)
@@ -556,7 +500,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=False,methods=['GET',])
+    @action(detail=False,methods=['GET',], permission_classes=[InternalOrganisationPermission])
     def user_list(self, request, *args, **kwargs):
         try:
             qs = self.get_queryset().filter(requester = request.user, status='with_assessor')
@@ -572,7 +516,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-
+    #TODO fix for segregation - is this used? remove if not
     @action(detail=False,methods=['GET', ])
     def get_pending_requests(self, request, *args, **kwargs):
         try:
@@ -589,6 +533,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    #TODO fix for segregation - is this used? remove if not
     @action(detail=False,methods=['GET', ])
     def get_amendment_requested_requests(self, request, *args, **kwargs):
         try:
@@ -606,7 +551,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[OrganisationRequestAssessorPermission])
     def assign_request_user(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -623,7 +568,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[OrganisationRequestAssessorPermission])
     def unassign(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -640,7 +585,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[OrganisationRequestAssessorPermission])
     def accept(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -657,7 +602,8 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    #TODO fix for segregation - is this used? remove if not
+    @action(detail=True,methods=['GET',], permission_classes=[InternalOrganisationPermission])
     def amendment_request(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -674,7 +620,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[OrganisationRequestAssessorPermission])
     def decline(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -692,7 +638,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[OrganisationRequestAssessorPermission])
     def assign_to(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -717,7 +663,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalOrganisationPermission])
     def action_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -734,7 +680,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalOrganisationPermission])
     def comms_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -751,7 +697,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[InternalOrganisationPermission])
     @renderer_classes((JSONRenderer,))
     def add_comms_log(self, request, *args, **kwargs):
         try:
@@ -783,7 +729,6 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
     def create(self, request, *args, **kwargs):
-        #import ipdb; ipdb.set_trace()
         try:
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
@@ -816,7 +761,7 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
 
 
 class OrganisationAccessGroupMembers(views.APIView):
-
+    permission_classes=[InternalOrganisationPermission]
     renderer_classes = [JSONRenderer,]
     def get(self,request, format=None):
         members = []
@@ -831,7 +776,7 @@ class OrganisationAccessGroupMembers(views.APIView):
 
 
 class ApiaryOrganisationAccessGroupMembers(views.APIView):
-
+    permission_classes=[InternalOrganisationPermission]
     renderer_classes = [JSONRenderer,]
     def get(self,request, format=None):
         members = []
@@ -845,22 +790,7 @@ class ApiaryOrganisationAccessGroupMembers(views.APIView):
         return Response(members)
 
 
-class ApiaryOrganisationAccessGroupMembers(views.APIView):
-
-    renderer_classes = [JSONRenderer,]
-    def get(self,request, format=None):
-        members = []
-        group = ApiaryOrganisationAccessGroup.objects.first()
-        if group:
-            for m in group.all_members:
-                members.append({'name': m.get_full_name(),'id': m.id})
-        else:
-            for m in EmailUser.objects.filter(is_superuser=True,is_staff=True,is_active=True):
-                members.append({'name': m.get_full_name(),'id': m.id})
-        return Response(members)
-
-
-class OrganisationContactViewSet(viewsets.ModelViewSet):
+class OrganisationContactViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     serializer_class = OrganisationContactSerializer
     queryset = OrganisationContact.objects.all()
 
@@ -893,7 +823,7 @@ class OrganisationContactViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class MyOrganisationsViewSet(viewsets.ModelViewSet):
+class MyOrganisationsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Organisation.objects.all()
     serializer_class = MyOrganisationsSerializer
 
@@ -904,6 +834,7 @@ class MyOrganisationsViewSet(viewsets.ModelViewSet):
         elif user.is_authenticated:
             return user.disturbance_organisations.all()
         return Organisation.objects.none()
+
     
 class GetOrganisationId(views.APIView):
     renderer_classes = [JSONRenderer,]

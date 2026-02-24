@@ -14,6 +14,8 @@ def annotate_apiary_site_on_approval_geometry(qs):
                 lat=F('lat'),
             )
         ).annotate(
+            site_id=F("apiary_site__id")
+        ).annotate(
             site_guid=F("apiary_site__site_guid")
         ).annotate(
             status=F("site_status")
@@ -53,10 +55,15 @@ def annotate_apiary_site_on_approval_geometry(qs):
                 dra_permit=F('dra_permit'),
             )
         ).values(
-            'id',
+            'site_id',
             'type',
             'geometry',
             'properties',
         )
+    
+    #transform site_id to id NOTE: this is not ideal, but the original serializer overwrote id so for now we have to as well...
+    #TODO on cleanup - change all references to this dataset to site_id instead of id
+    for row in annotated:
+        row["id"] = row.pop("site_id")
 
     return annotated

@@ -439,7 +439,6 @@ export default {
             this.datatableReady = true;
             this.$nextTick(() => {
                 this.initialiseSearch();
-                this.addEventListeners();
             });
         },
         fetchFilterLists: function(){

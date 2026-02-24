@@ -252,10 +252,7 @@ export default {
                 vm.updatingRequirement = true;
                 fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements, requirement.id), {
                     method: 'PUT',
-                    headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded' // emulateJSON
-                    },
-                    body: new URLSearchParams(requirement)
+                    body: JSON.stringify({"data":requirement})
                 })
                 .then(response => {
                     if (!response.ok) throw response;
@@ -282,10 +279,7 @@ export default {
                 vm.addingRequirement = true;
                 fetch(api_endpoints.proposal_requirements, {
                     method: 'POST',
-                    headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded' // emulateJSON
-                    },
-                    body: new URLSearchParams(requirement)
+                    body: JSON.stringify({"data":requirement})
                 })
                 .then(response => {
                     if (!response.ok) throw response;

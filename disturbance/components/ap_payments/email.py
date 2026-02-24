@@ -28,9 +28,9 @@ class ApplicationFeeInvoiceApiarySendNotificationEmail(TemplateEmailBase):
     txt_template = 'disturbance/emails/payments/apiary/send_application_fee_notification.txt'
 
 def send_application_fee_invoice_apiary_email_notification(request, proposal, invoice, recipients, is_test=False):
+    print("send_application_fee_invoice_apiary_email_notification")
     email = ApplicationFeeInvoiceApiarySendNotificationEmail()
 
-    url_var = apiary_url(request)
     context = {
         'lodgement_number': proposal.lodgement_number,
     }

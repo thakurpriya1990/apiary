@@ -408,7 +408,7 @@
                                         } else {
                                             display_text = 'Mark as available';
                                         }
-                                        let ret = '<a data-toggle-availability="' + apiary_site.id + '" data-apiary-site-available="' + apiary_site.properties.available + '">' + display_text + '</a>';
+                                        let ret = '<a href="#' + apiary_site.id + '" data-toggle-availability="' + apiary_site.id + '" data-apiary-site-available="' + apiary_site.properties.available + '">' + display_text + '</a>';
                                         action_list.push(ret);
                                     //} else if (vm.is_internal && ['Current', 'current'].includes(apiary_site.status.id)){
                                     } else if (vm.is_internal && ['current',].includes(apiary_site.properties.status.toLowerCase())){
@@ -443,13 +443,14 @@
             if (vm.apiary_proposal_id){
                 vm.loading_sites = true
                 let url_sites = '/api/proposal_apiary/' + vm.apiary_proposal_id + '/apiary_sites/'
+                console.log("apiary_sites")
                 fetch(url_sites).then(
                     async (response) => {
                         if (!response.ok) {
                             return response.json().then(err => { throw err });
                         }
                         let apiary_sites_req = await response.json()
-                        vm.apiary_sites_local = JSON.parse(JSON.stringify(apiary_sites_req)),  // Deep copy the array
+                        vm.apiary_sites_local = JSON.parse(JSON.stringify(apiary_sites_req)).features,  // Deep copy the array
                         vm.constructApiarySitesTable(vm.apiary_sites_local);
                         vm.addApiarySitesToMap(vm.apiary_sites_local)
                         vm.ensureCheckedStatus();
@@ -462,6 +463,7 @@
                 vm.loading_sites = true
                 // Retrieve apiary_sites
                 let url_sites = '/api/approvals/' + vm.apiary_approval_id + '/apiary_sites/'
+                console.log("apiary_sites")
                 fetch(url_sites).then(
                     async (response) => {
                         if (!response.ok) {
@@ -491,9 +493,10 @@
                     vm.constructApiarySitesTable(vm.apiary_sites);
                     vm.addApiarySitesToMap(vm.apiary_sites)
                     vm.ensureCheckedStatus();
+                    vm.$emit('apiary_sites_updated', vm.apiary_sites_local)
                 }
             });
-            vm.$emit('apiary_sites_updated', vm.apiary_sites_local)
+            
         },
         components: {
             ComponentMap,
@@ -586,13 +589,11 @@
                 }
             },
             addApiarySiteToTable: function(apiary_site) {
-                //this.$refs.table_apiary_site.vmDataTable.row.add(apiary_site).draw();
                 this.$refs.table_apiary_site.vmDataTable.row.add(apiary_site);
             },
             addEventListeners: function () {
                 $("#" + this.table_id).on("click", "a[data-view-on-map]", this.zoomOnApiarySite)
                 $("#" + this.table_id).on("click", "a[data-toggle-availability]", this.toggleAvailability)
-                //$("#" + this.table_id).on('click', 'input[type="checkbox"]', this.checkboxClicked)
                 $("#" + this.table_id).on('click', 'input[class="site_checkbox"]', this.checkboxClicked)
                 $("#" + this.table_id).on('click', 'input[class="licensed_site_checkbox"]', this.checkboxLicensedSiteClicked)
                 $("#" + this.table_id).on('click', 'input[class="select_all_checkbox"]', this.checkboxSelectAll)
@@ -606,7 +607,6 @@
                 // Update internal apiary_site data
                 for (let i=0; i<this.apiary_sites.length; i++){
                     if (this.apiary_sites[i].id == site_updated.id){
-                        //this.apiary_sites[i].available = site_updated.properties.available
                         this.apiary_sites[i] = site_updated
                     }
                 }
@@ -690,7 +690,8 @@
                 }).then(
                     (result) => {
                         if (result.isConfirmed) {
-                            fetch('/api/apiary_site/' + apiary_site_id + '/',{
+                            console.log("apiary_site")
+                            fetch('/api/apiary_site/' + apiary_site_id + '/make_vacant/',{
                                 method: 'PATCH',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -710,7 +711,7 @@
 
                                     // Remove the site from the map
                                     this.$refs.component_map.removeApiarySiteById(apiary_site_id)
-                                    //vm.component_map_key = uuid()
+
                                 }).catch((error) => {
                                     console.log(error);
                                     swal.fire({
@@ -749,7 +750,8 @@
                 e.stopPropagation()
 
                 try {
-                    const response = await fetch('/api/apiary_site/' + apiary_site_id + '/', {
+                    console.log("apiary_site")
+                    const response = await fetch('/api/apiary_site/' + apiary_site_id + '/toggle_availability/', {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
@@ -757,15 +759,13 @@
                         },
                         body: JSON.stringify({ available: requested_availability })
                     });
-
                     if (!response.ok) {
                         const errorText = await response.text();
                         throw new Error(errorText);
                     }
 
                     const site_updated = await response.json();
-                    vm.updateApiarySite(site_updated)
-                    // vm.constructApiarySitesTable();
+                    vm.updateApiarySite(site_updated);
                     vm.constructApiarySitesTable(vm.apiary_sites);
 
                 } catch (error) {

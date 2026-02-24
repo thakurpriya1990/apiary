@@ -26,7 +26,6 @@
         <template v-if="proposal.proposal_apiary">
             <FormSection :formCollapse="false" label="Site(s)" Index="sites">
                 <ComponentSiteSelection
-                    :apiary_sites="apiary_sites_prop"
                     :is_internal="true"
                     :is_external="false"
                     :key="component_site_selection_key"
@@ -160,19 +159,6 @@ export default {
         },
         isApprovalLevel:function(){
             return this.proposal.approval_level != null ? true : false;
-        },
-        apiary_sites_prop: function() {
-            let apiary_sites = [];
-            if (this.proposal.application_type === 'Site Transfer') {
-                for (let site of this.proposal.proposal_apiary.site_transfer_apiary_sites) {
-                    if (site.selected) {
-                        apiary_sites.push(site.apiary_site);
-                    }
-                }
-            } else {
-                apiary_sites = this.proposal.proposal_apiary.apiary_sites;
-            }
-            return apiary_sites;
         },
         showColCheckbox: function() {
             let checked = true;

@@ -184,6 +184,7 @@ export default {
                 formData.append('input_name', this.name);
                 formData.append('csrfmiddlewaretoken', this.csrf_token);
                 try {
+                    console.log(this.document_action_url)
                     const response = await fetch(this.document_action_url, {
                         method: 'POST',
                         body: formData,

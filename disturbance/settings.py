@@ -3,7 +3,6 @@ from django.core.exceptions import ImproperlyConfigured
 import sys
 import os, hashlib
 from confy import env
-import json
 import logging
 
 logger = logging.getLogger(__name__)
@@ -26,7 +25,7 @@ SPATIAL_DATA_DIR = env('SPATIAL_DATA_DIR', 'spatial_data')
 ANNUAL_RENTAL_FEE_GST_EXEMPT = True
 FILE_UPLOAD_MAX_MEMORY_SIZE = env('FILE_UPLOAD_MAX_MEMORY_SIZE', 15728640)
 APIARY_MIGRATED_LICENCES_APPROVER = env('APIARY_MIGRATED_LICENCES_APPROVER', 'jacinta.overman@dbca.wa.gov.au')
-SHOW_ROOT_API = env('SHOW_ROOT_API', False)
+SHOW_API_ROOT = env('SHOW_API_ROOT', False)
 SSO_SETTING_URL=env('SSO_SETTING_URL','')
 TIME_ZONE = "Australia/Perth"
 
@@ -58,6 +57,9 @@ REST_FRAMEWORK = {
         'rest_framework_datatables.renderers.DatatablesRenderer',
     ),
     "EXCEPTION_HANDLER": "disturbance.exceptions.custom_exception_handler",
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
 }
 
 USE_DJANGO_JQUERY= True
@@ -96,7 +98,7 @@ STATIC_URL = '/static/'
 # Department details
 SYSTEM_NAME = env('SYSTEM_NAME', 'Disturbance Approval System')
 APIARY_SYSTEM_NAME = env('APIARY_SYSTEM_NAME', 'Apiary System')
-SYSTEM_NAME_SHORT = env('SYSTEM_NAME_SHORT', 'DAS')
+SYSTEM_NAME_SHORT = env('SYSTEM_NAME_SHORT', 'Apiary')
 SITE_PREFIX = env('SITE_PREFIX')
 SITE_DOMAIN = env('SITE_DOMAIN')
 SUPPORT_EMAIL = env('SUPPORT_EMAIL', SYSTEM_NAME_SHORT.lower() + '@' + SITE_DOMAIN).lower()

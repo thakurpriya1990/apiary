@@ -45,10 +45,8 @@ export default {
                 responsive: true,
                 deferRender: true, 
                 autowidth: true,
-                //order: [[0, 'desc']],
                 processing:true,
                 ajax: {
-                    //"url": helpers.add_endpoint_json(api_endpoints.referrals,'datatable_list')+'?proposal='+vm.proposal.id, 
                     "url": this.referral_url,
                     "dataSrc": '',
                 },

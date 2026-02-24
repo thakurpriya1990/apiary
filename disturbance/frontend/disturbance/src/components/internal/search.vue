@@ -111,11 +111,6 @@
             </FormSection>
         </div>
     </div>
-    <div class="row">
-      <div class="col-sm-12">
-        <searchSection></searchSection>
-      </div>
-    </div>
 </div>
 </template>
 <script>
@@ -128,8 +123,7 @@ import {
   constants
 }
 from '@/utils/hooks'
-import utils from './utils'
-import searchSection from './search_section.vue'
+//import utils from './utils'
 export default {
   name: 'SearchComponent',
   props: {
@@ -205,11 +199,10 @@ export default {
   },
     components: {
         datatable,
-        searchSection,
         alert,
         FormSection,
     },
-    beforeRouteEnter:function(to,from,next){
+    //beforeRouteEnter:function(to,from,next){
         /* TODO fix for segregation - fix this or completely replace, takes near 30 seconds to load!
         utils.fetchOrganisations().then((response)=>{
             next(vm => {
@@ -220,7 +213,7 @@ export default {
             console.log(error);
         });
         */
-    },
+    //},
     computed: {
         showError: function() {
             var vm = this;

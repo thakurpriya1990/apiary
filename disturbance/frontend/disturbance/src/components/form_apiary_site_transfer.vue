@@ -96,6 +96,7 @@
                 />
             </FormSection>
 
+            <div v-if="applicantChecklistAnswers.length > 0">
             <ApiaryChecklist
                 :checklist="applicantChecklistAnswers"
                 section_title="Applicant Checklist"
@@ -103,7 +104,8 @@
                 ref="applicant_checklist"
                 index="1"
             />
-            <div v-if="assessorChecklistVisibility">
+            </div>
+            <div v-if="assessorChecklistVisibility && assessorChecklistAnswers.length > 0">
                 <ApiaryChecklist
                 :checklist="assessorChecklistAnswers"
                 section_title="Assessor Checklist"
@@ -112,6 +114,7 @@
                 index="2"
                 />
                 <div v-for="site in apiary_sites" :key="site.id">
+                    <div v-if="assessorChecklistAnswersPerSite(site.id).length > 0">
                     <ApiaryChecklist
                     :checklist="assessorChecklistAnswersPerSite(site.id)"
                     :section_title="'Assessor checklist for site ' + site.id"
@@ -119,10 +122,11 @@
                     v-bind:key="'assessor_checklist_per_site_' + site.id"
                     :index="'2_' + site.id"
                     />
+                    </div>
                 </div>
             </div>
             <div v-for="r in referrerChecklistAnswers" :key="r.id">
-                <div v-if="(referral && r.referral_id === referral.id) || (assessorChecklistVisibility)">
+                <div v-if="((referral && r.referral_id === referral.id) || (assessorChecklistVisibility)) && r.referral_data.length > 0">
                     <ApiaryChecklist
                     :checklist="r.referral_data"
                     :section_title="'Referral Checklist: ' + r.referrer_group_name"
@@ -131,6 +135,7 @@
                     index="3"
                     />
                     <div v-for="site in apiary_sites" :key="site.id">
+                        <div v-if="referrerChecklistAnswersPerSite(r.apiary_referral_id, site.id).length > 0">
                         <ApiaryChecklist
                         :checklist="referrerChecklistAnswersPerSite(r.apiary_referral_id, site.id)"
                         :section_title="'Referral Checklist: ' + r.referrer_group_name + ' for site ' + site.id"
@@ -138,6 +143,7 @@
                         v-bind:key="'referrer_checklist_per_site_' + r.apiary_referral_id + site.id"
                         :index="'3_' + r.apiary_referral_id + '_' + site.id"
                         />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -226,7 +232,6 @@
             },
             licenceHolders: function() {
                 this.$nextTick(() => {
-                    console.log(this.readonlyLicenceHolders)
                     if (this.readonlyLicenceHolders) {
                         // only one option available
                         this.selectedLicenceHolder = this.licenceHolders[0];
@@ -459,7 +464,6 @@
                         }
                     }
                 }
-                console.log(siteList)
                 return siteList;
             },
 
@@ -487,7 +491,6 @@
             lookupTransferee: function() {
                 this.lookupErrorText = '';
                 this.lookupNotification = '';
-                console.log(this.transfereeEmail);
                 fetch(helpers.add_endpoint_json(
                     api_endpoints.proposal_apiary,this.proposal.proposal_apiary.id+'/get_licence_holders'),
                     {
@@ -507,7 +510,6 @@
                         return response.json();
                     })
                     .then(res => {
-                        console.log(res);
                         if (res && res.licence_holders) {
                             this.licenceHolders = res.licence_holders.licence_holders;
                         } else {
@@ -518,35 +520,10 @@
                     .catch(err => {
                         console.error(err);
                     });
-
-
             },
 
         },
         mounted: function() {
-            this.component_site_selection_key = uuid()
-            // set initial checked status
-            if (this.proposal && this.proposal.proposal_apiary) {
-                for (let site of this.proposal.proposal_apiary.transfer_apiary_sites) {
-                    if (this.is_external) {
-                        site.apiary_site.checked = site.customer_selected;
-                    } else {
-                        site.apiary_site.checked = site.internal_selected;
-                    }
-                }
-            }
-            fetch(api_endpoints.apiary_site_transfer_fees)
-            .then(async (response) => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw err });
-                }
-                const data = await response.json();
-                for (let fee of data) {
-                    this.siteTransferFees.push(fee)
-                }
-            }).catch(err => {
-                console.error(err);
-            })
             // update transferreeEmail
             if (this.proposal && this.proposal.proposal_apiary) {
                 this.transfereeEmail = this.proposal.proposal_apiary.transferee_email_text;
@@ -561,6 +538,7 @@
             if (this.proposal && this.proposal.proposal_apiary) {
 
                 let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/transfer_apiary_sites/'
+                console.log('transfer_apiary_sites')
                 fetch(url_sites).then(
                     async (response) => {
                         if (response.ok) {
@@ -568,11 +546,36 @@
                             for (let site of transfer_apiary_sites_req) {
                                 // show all sites in Draft; only selected sites after customer submits
                                 if (this.proposal.customer_status === 'Draft' || site.customer_selected) {
+                                    site.apiary_site.customer_selected = site.customer_selected;
+                                    site.apiary_site.internal_selected = site.internal_selected;
+
+                                    if (this.is_external) {
+                                        site.apiary_site.checked = site.customer_selected;
+                                    } else {
+                                        site.apiary_site.checked = site.internal_selected;
+                                    }
+
                                     this.apiary_sites.push(site.apiary_site);
                                 }
                             }
                         }
+
+                        this.apiary_sites_local = this.apiary_sites;
+                        this.component_site_selection_key = uuid()
                         this.loading_sites = false;
+                        
+                        fetch(api_endpoints.apiary_site_transfer_fees)
+                        .then(async (response) => {
+                            if (!response.ok) {
+                                return response.json().then(err => { throw err });
+                            }
+                            const data = await response.json();
+                            for (let fee of data) {
+                                this.siteTransferFees.push(fee)
+                            }
+                        }).catch(err => {
+                            console.error(err);
+                        })
                     }
                 ).catch((error) => {
                     console.log(error);

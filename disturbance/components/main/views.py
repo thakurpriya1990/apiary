@@ -14,7 +14,7 @@ def deed_poll_url(request):
     deed_poll_url = ApiaryGlobalSettings.objects.get(key=ApiaryGlobalSettings.KEY_PRINT_DEED_POLL_URL)
     return Response(deed_poll_url.value)
 
-
+#TODO fix for segregation: should this token be secret? if so, we need to change how it is used
 class GeocodingAddressSearchTokenView(views.APIView):
     def get(self, request, format=None):
         return Response({"access_token": settings.GEOCODING_ADDRESS_SEARCH_TOKEN})

@@ -171,13 +171,12 @@
 
             loadApiarySites: async function(){
                 console.log('loadApiarySites');
-
+                console.log('apiary_site')
                 fetch('/api/approvals/' + this.approval_id + '/apiary_site/').then(
                     async (response)=>{
                          if (!response.ok) {
                             return response.json().then(err => { throw err });
                         }
-                        // console.log(response.json())
                         this.apiary_sites = await response.json();
                         this.component_site_selection_key = uuid()
                     }).catch((error) => {

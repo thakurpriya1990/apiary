@@ -114,6 +114,7 @@
                             <label>Expiry Date</label>
                         </div>
                         <div class="grow1">
+                            <!--TODO fix for segregation - fix expiry date not saving...-->
                             <div class="input-group date" ref="expiryDatePicker"  style="width: 70%;">
                                 <input type="date" class="form-control" v-model="expiry_date_local" placeholder="DD/MM/YYYY" id="expiry_date_input_element" :readonly="readonly" />
                                 <span class="input-group-addon">
@@ -132,7 +133,7 @@
                     :documentActionUrl="deedPollDocumentUrl"
                 />
             </FormSection>
-
+            <div v-if="applicantChecklistAnswers.length > 0">
             <ApiaryChecklist
                 :checklist="applicantChecklistAnswers"
                 section_title="Applicant Checklist"
@@ -140,7 +141,8 @@
                 ref="applicant_checklist"
                 index="1"
             />
-            <div v-if="assessorChecklistVisibility">
+            </div>
+            <div v-if="assessorChecklistVisibility && assessorChecklistAnswers.length > 0">
                 <ApiaryChecklist
                 :checklist="assessorChecklistAnswers"
                 section_title="Assessor Checklist"
@@ -149,6 +151,7 @@
                 index="2"
                 />
                 <div v-for="site in apiary_sites" :key="site.id">
+                    <div v-if="assessorChecklistAnswersPerSite(site.id).length > 0">
                     <ApiaryChecklist
                     :checklist="assessorChecklistAnswersPerSite(site.id)"
                     :section_title="'Assessor checklist for site ' + site.id"
@@ -156,10 +159,11 @@
                     v-bind:key="'assessor_checklist_per_site_' + site.id"
                     :index="'2_' + site.id"
                     />
+                    </div>
                 </div>
             </div>
             <div v-for="r in referrerChecklistAnswers" :key="r.id">
-                <div v-if="(referral && r.referral_id === referral.id) || (assessorChecklistVisibility)">
+                <div v-if="((referral && r.referral_id === referral.id) || (assessorChecklistVisibility)) && r.referral_data.length > 0">
                     <ApiaryChecklist
                     :checklist="r.referral_data"
                     :section_title="'Referral Checklist: ' + r.referrer_group_name"
@@ -168,6 +172,7 @@
                     index="3"
                     />
                     <div v-for="site in apiary_sites" :key="site.id">
+                        <div v-if="referrerChecklistAnswersPerSite(r.apiary_referral_id, site.id).length > 0">
                         <ApiaryChecklist
                         :checklist="referrerChecklistAnswersPerSite(r.apiary_referral_id, site.id)"
                         :section_title="'Referral Checklist: ' + r.referrer_group_name + ' for site ' + site.id"
@@ -175,6 +180,7 @@
                         v-bind:key="'referrer_checklist_per_site_' + r.apiary_referral_id + site.id"
                         :index="'3_' + r.apiary_referral_id + '_' + site.id"
                         />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -420,8 +426,6 @@
                 let vm = this;
                 let searchPattern = /^[0-9]{4}/
                 let expiry_date_passed = vm.proposal.proposal_apiary.public_liability_insurance_expiry_date;
-                console.log('passed')
-                console.log(expiry_date_passed)
                 if (expiry_date_passed) {
                     // If date passed
                     if (searchPattern.test(expiry_date_passed)) {
@@ -456,7 +460,6 @@
                         }
                     }
                 }
-                console.log(siteList)
                 return siteList;
             },
             num_of_sites_south_west_to_add_as_remainder: function(value){
@@ -506,6 +509,7 @@
             this.fetchDeedPollUrl()
             if (this.proposal && this.proposal.proposal_apiary) {
                 let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/apiary_sites/'
+                console.log('apiary_sites')
                 fetch(url_sites).then(
                     async (response) => {
                         if (response.ok) {

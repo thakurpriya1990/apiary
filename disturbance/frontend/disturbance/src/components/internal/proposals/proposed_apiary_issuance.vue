@@ -467,20 +467,20 @@ export default {
             this.num_of_sites_selected = temp
         },
         setApiarySiteCheckedStatuses: function() {
-            if(this.proposal && this.proposal.proposal_apiary){
-                for (let i=0; i<this.proposal.proposal_apiary.apiary_sites.length; i++){
-                    this.proposal.proposal_apiary.apiary_sites[i].checked = (this.proposal.proposal_apiary.apiary_sites[i].properties.workflow_selected_status || this.proposal.proposal_apiary.apiary_sites[i].properties.status === 'approved')
+            if(this.proposal && this.proposal.proposal_apiary && this.apiary_sites_prop){
+                for (let i=0; i<this.apiary_sites_prop.length; i++){
+                    this.apiary_sites_prop[i].checked = (this.apiary_sites_prop[i].properties.workflow_selected_status || this.apiary_sites_prop[i].properties.status === 'approved')
+                
+                    if (this.proposal.application_type === 'Site Transfer') {
+                        if (this.is_external) {
+                            this.apiary_sites_prop[i].checked = this.apiary_sites_prop[i].customer_selected;
+                        } else {
+                            this.apiary_sites_prop[i].checked = this.apiary_sites_prop[i].internal_selected;
+                        }
+                    }
                 }
             }
         },
-        setApiarySiteCheckedStatusesSiteTransfer: function() {
-            if(this.proposal && this.proposal.proposal_apiary){
-                for (let i=0; i<this.proposal.proposal_apiary.transfer_apiary_sites.length; i++){
-                    this.proposal.proposal_apiary.transfer_apiary_sites[i].apiary_site.checked = this.proposal.proposal_apiary.transfer_apiary_sites[i].internal_selected
-                }
-            }
-        },
-
         forceToRefreshMap: function() {
             if (this.$refs.component_site_selection){
                 this.$refs.component_site_selection.forceToRefreshMap()
@@ -548,6 +548,7 @@ export default {
             if (originating_target) {
                 this.approval.originating_target = originating_target;
             }
+            
             this.approval.apiary_sites = this.apiary_sites_updated
             if (!this.startDateCanBeModified && !this.siteTransferApplication){
                 // There is an existing licence. Therefore start_date and expiry_date are fixed to that dates
@@ -557,10 +558,10 @@ export default {
                 // There is an existing licence. Therefore start_date and expiry_date are fixed to that dates
                 this.approval.expiry_date = moment(this.proposal.approval.expiry_date, 'YYYY-MM-DD').format('DD/MM/YYYY')
             }
-            if (!this.approval.start_date) {
+            if (!this.approval.start_date || this.approval.start_date == "Invalid date") {
                 delete this.approval.start_date;
             }
-            if (!this.approval.expiry_date) {
+            if (!this.approval.expiry_date || this.approval.expiry_date == "Invalid date") {
                 delete this.approval.expiry_date;
             }
             let approval = JSON.parse(JSON.stringify(this.approval)); // Deep copy
@@ -570,7 +571,6 @@ export default {
                 fetch(helpers.add_endpoint_json(api_endpoints.proposal_apiary,this.proposal_apiary_id+'/final_approval'), {
                     method: 'POST',
                     body: JSON.stringify(approval),
-                    //body: this.approval,
                     headers: {
                         "Content-Type": "application/json",
                         "X-CSRFToken": this.csrf_token,
@@ -598,12 +598,13 @@ export default {
                 // There is an existing licence. Therefore start_date and expiry_date are fixed to that dates
                 this.approval.expiry_date = moment(this.proposal.approval.expiry_date, 'YYYY-MM-DD').format('DD/MM/YYYY')
             }
-            if (!this.approval.start_date) {
+            if (!this.approval.start_date || this.approval.start_date == "Invalid date") {
                 delete this.approval.start_date;
             }
-            if (!this.approval.expiry_date) {
+            if (!this.approval.expiry_date || this.approval.expiry_date == "Invalid date") {
                 delete this.approval.expiry_date;
             }
+
             let approval = JSON.parse(JSON.stringify(vm.approval)); // Deep copy
 
             vm.issuingApproval = true;
@@ -613,7 +614,7 @@ export default {
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded' // emulateJSON
                     },
-                    body: new URLSearchParams(approval)
+                    body: JSON.stringify(approval),
                 })
                 .then(response => {
                     if (!response.ok) throw response;
@@ -657,7 +658,7 @@ export default {
 
             }
             else if (vm.state == 'final_approval'){
-                fetch(helpers.add_endpoint_json(api_endpoints.proposal_apiary,vm.proposal_apiary_id+'/final_approval'),JSON.stringify(approval),{
+                fetch(helpers.add_endpoint_json(api_endpoints.proposal_apiary,vm.proposal_apiary_id+'/final_approval'),{
                          method: 'POST',
                         headers: {
                         'Content-Type': '"application/json' // emulateJSON
@@ -675,6 +676,7 @@ export default {
                     }) .catch(async error => {
                         vm.errors = true;
                         vm.issuingApproval = false;
+                        console.log(error)
                         try {
                             const errData = await error.json();
                             vm.errorString = errData;
@@ -723,35 +725,28 @@ export default {
                 }
             });
        },
-       eventListeners:function () {
-           
-       }
     },
     mounted:function () {
         let vm =this;
         vm.form = document.forms.approvalForm;
         vm.addFormValidations();
-        this.$nextTick(()=>{
-            vm.eventListeners();
-        });
-        if (this.proposal.application_type === 'Site Transfer') {
-            this.setApiarySiteCheckedStatusesSiteTransfer();
-        } else {
-            this.setApiarySiteCheckedStatuses();
-        }
         this.component_site_selection_key = uuid()
     },
     created: function() {
         if (this.proposal.application_type === 'Site Transfer') {
+            console.log('transfer_apiary_sites')
             let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/transfer_apiary_sites/'
             fetch(url_sites).then(
                 async (response) => {
                     if (response.ok) {
                         let transfer_apiary_sites_req = await response.json();
                         for (let site of transfer_apiary_sites_req) {
+                            site.apiary_site.customer_selected = site.customer_selected;
+                            site.apiary_site.internal_selected = site.internal_selected;
                             this.apiary_sites_prop.push(site.apiary_site);
                         }
                     }
+                    this.setApiarySiteCheckedStatuses();
                     this.loading_sites = false;
                 }
             ).catch((error) => {
@@ -761,12 +756,14 @@ export default {
         } else {
             //NOTE: this is how we should be loading sites from now on (not bundled with proposal, loaded separetely with a loading_sites boolean)
             let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/apiary_sites/'
+            console.log('apiary_sites')
             fetch(url_sites).then(
                 async (response) => {
                     if (response.ok) {
                         let apiary_sites_req = await response.json();
                         this.apiary_sites_prop = JSON.parse(JSON.stringify(apiary_sites_req)).features
                     }
+                    this.setApiarySiteCheckedStatuses();
                     this.loading_sites = false;
                 }
             ).catch((error) => {

@@ -26,7 +26,7 @@ from disturbance.management.default_data_manager import DefaultDataManager
 from disturbance.utils import are_migrations_running
 
 router = routers.DefaultRouter()
-router.include_root_view = settings.SHOW_ROOT_API
+router.include_root_view = settings.SHOW_API_ROOT
 router.register(r'organisations',org_api.OrganisationViewSet,"organisations")
 router.register(r'proposal',proposal_api.ProposalViewSet,"proposal")
 router.register(r'proposal_apiary', proposal_api.ProposalApiaryViewSet,"proposal_apiary")
@@ -51,26 +51,6 @@ router.register(r'activity_matrix', main_api.ActivityMatrixViewSet,"activity_mat
 router.register(r'application_types', main_api.ApplicationTypeViewSet,"application_types")
 router.register(r'apiary_referral_groups', proposal_api.ApiaryReferralGroupViewSet,"apiary_referral_groups")
 router.register(r'apiary_referrals',proposal_api.ApiaryReferralViewSet,"apiary_referrals")
-router.register(r'apiary_site_fees',proposal_api.ApiarySiteFeeViewSet,"apiary_site_fees")
-router.register(r'proposal_type_sections', proposal_api.ProposalTypeSectionViewSet,"proposal_type_sections")
-
-router.register(
-    r'schema_question_paginated', proposal_api.SchemaQuestionPaginatedViewSet,"schema_question_paginated")
-
-router.register(
-    r'schema_question', proposal_api.SchemaQuestionViewSet,"schema_question")
-
-router.register(
-    r'schema_masterlist',
-    proposal_api.SchemaMasterlistViewSet,
-    "schema_masterlist"
-)
-router.register(
-    r'schema_masterlist_paginated', proposal_api.SchemaMasterlistPaginatedViewSet,"schema_masterlist_paginated")
-router.register(
-    r'schema_proposal_type', proposal_api.SchemaProposalTypeViewSet,"schema_proposal_type")
-router.register(
-    r'schema_proposal_type_paginated', proposal_api.SchemaProposalTypePaginatedViewSet,"schema_proposal_type_paginated")
 router.register(r'map_layers', main_api.MapLayerViewSet,"map_layers")
 
 api_patterns = [
@@ -85,7 +65,7 @@ api_patterns = [
     re_path(r'^api/compliance_amendment_reason_choices',compliances_api.ComplianceAmendmentReasonChoicesView.as_view(),name='amendment_request_reason_choices'),
     re_path(r'^api/search_keywords',proposal_api.SearchKeywordsView.as_view(),name='search_keywords'),
     re_path(r'^api/search_reference',proposal_api.SearchReferenceView.as_view(),name='search_reference'),
-    re_path(r'^api/search_sections',proposal_api.SearchSectionsView.as_view(),name='search_sections'),
+    re_path(r'^api/get_site_transfer_fees',proposal_api.GetSiteTransferFees.as_view(),name='get_site_transfer_fees'),
     re_path(r'^api/deed_poll_url', deed_poll_url, name='deed_poll_url'),
     re_path(r'^api/history/compare/serialized/(?P<app_label>[\w-]+)/(?P<component_name>[\w-]+)/(?P<model_name>[\w-]+)/(?P<serializer_name>[\w-]+)/(?P<pk>\d+)/(?P<newer_version>\d+)/(?P<older_version>\d+)/$',
             history_api.GetCompareSerializedVersionsView.as_view(), name='get-compare-serialized-versions'),
@@ -121,22 +101,15 @@ urlpatterns = [
     re_path(r'^mgt-commands/$', views.ManagementCommandsView.as_view(), name='mgt-commands'),
 
     #following url is used to include url path when sending Proposal amendment request to user.
-    re_path(r'^proposal/$', proposal_views.ProposalView.as_view(), name='proposal'),
     re_path(r'^preview/licence-pdf/(?P<proposal_pk>\d+)',proposal_views.PreviewLicencePDFView.as_view(), name='preview_licence_pdf'),
-    re_path(r'^ledgerpay/(?P<payment_item>.+)', views.LedgerPayView.as_view(), name='ledgerpay-view'),
-    re_path(r'^validate_invoice_details/$', views.validate_invoice_details, name='validate-invoice-details'),
-    re_path(r'^invoice_payment/(?P<invoice_reference>\d+)/$', payment_views.InvoicePaymentView.as_view(), name='invoice_payment'),
     re_path(r'^application_fee/(?P<proposal_pk>\d+)/$', payment_views.ApplicationFeeView.as_view(), name='application_fee'),
     re_path(r'^annual_rental_fee/(?P<annual_rental_fee_id>\d+)/$', payment_views.AnnualRentalFeeView.as_view(), name='annual_rental_fee'),
-    # re_path(r'^success/fee/$', payment_views.ApplicationFeeSuccessView.as_view(), name='fee_success'),
     re_path(r'^success/fee/(?P<lodgement_number>.+)/', payment_views.ApplicationFeeSuccessView.as_view(), name='fee_success'),
     re_path(r'^success_preload/fee/(?P<lodgement_number>.+)/', payment_views.ApplicationFeeSuccessViewPreload.as_view(), name='fee_success_preload'),
-    # re_path(r'^success/site_transfer_fee/$', payment_views.SiteTransferApplicationFeeSuccessView.as_view(), name='site_transfer_fee_success'),
     re_path(r'^success/site_transfer_fee/(?P<lodgement_number>.+)/', payment_views.SiteTransferApplicationFeeSuccessView.as_view(), name='site_transfer_fee_success'),
     re_path(r'^success/annual_rental_fee/$', payment_views.AnnualRentalFeeSuccessView.as_view(), name='annual_rental_fee_success'),
     re_path(r'^success/invoice_payment/$', payment_views.InvoicePaymentSuccessView.as_view(), name='invoice_payment_success'),
     re_path(r'payments/invoice-pdf/(?P<reference>\d+)', payment_views.InvoicePDFView.as_view(), name='invoice-pdf'),
-    re_path(r'payments/awaiting-payment-pdf/(?P<annual_rental_fee_id>\d+)', payment_views.AwaitingPaymentPDFView.as_view(), name='awaiting-payment-pdf'), #TODO on cleanup: is this used/needed?
     re_path(r'payments/confirmation-pdf/(?P<reference>\d+)', payment_views.ConfirmationPDFView.as_view(), name='confirmation-pdf'),
 
     # following url is defined so that to include url path when sending Proposal amendment request to user.
@@ -146,15 +119,15 @@ urlpatterns = [
     re_path(r'^internal/compliance/(?P<compliance_pk>\d+)/$', views.InternalComplianceView.as_view(), name='internal-compliance-detail'),
 
     # reversion history-compare
-    re_path(r'^history/proposal/latest/(?P<pk>\d+)/(?P<count>\d+)/$', proposal_views.ProposalHistoryLatestCompareView.as_view(), name='proposal_history_latest'),
-    re_path(r'^history/proposal/(?P<pk>\d+)/$', proposal_views.ProposalHistoryCompareView.as_view(), name='proposal_history'),
-    re_path(r'^history/proposal/filtered/(?P<pk>\d+)/$', proposal_views.ProposalFilteredHistoryCompareView.as_view(), name='proposal_filtered_history'),
-    re_path(r'^history/referral/(?P<pk>\d+)/$', proposal_views.ReferralHistoryCompareView.as_view(), name='referral_history'),
-    re_path(r'^history/approval/(?P<pk>\d+)/$', proposal_views.ApprovalHistoryCompareView.as_view(), name='approval_history'),
-    re_path(r'^history/compliance/(?P<pk>\d+)/$', proposal_views.ComplianceHistoryCompareView.as_view(), name='compliance_history'),
-    re_path(r'^history/proposaltype/(?P<pk>\d+)/$', proposal_views.ProposalTypeHistoryCompareView.as_view(), name='proposaltype_history'),
-    re_path(r'^history/helppage/(?P<pk>\d+)/$', proposal_views.HelpPageHistoryCompareView.as_view(), name='helppage_history'),
-    re_path(r'^history/organisation/(?P<pk>\d+)/$', organisation_views.OrganisationHistoryCompareView.as_view(), name='organisation_history'),
+    #re_path(r'^history/proposal/latest/(?P<pk>\d+)/(?P<count>\d+)/$', proposal_views.ProposalHistoryLatestCompareView.as_view(), name='proposal_history_latest'),
+    #re_path(r'^history/proposal/(?P<pk>\d+)/$', proposal_views.ProposalHistoryCompareView.as_view(), name='proposal_history'),
+    #re_path(r'^history/proposal/filtered/(?P<pk>\d+)/$', proposal_views.ProposalFilteredHistoryCompareView.as_view(), name='proposal_filtered_history'),
+    #re_path(r'^history/referral/(?P<pk>\d+)/$', proposal_views.ReferralHistoryCompareView.as_view(), name='referral_history'),
+    #re_path(r'^history/approval/(?P<pk>\d+)/$', proposal_views.ApprovalHistoryCompareView.as_view(), name='approval_history'),
+    #re_path(r'^history/compliance/(?P<pk>\d+)/$', proposal_views.ComplianceHistoryCompareView.as_view(), name='compliance_history'),
+    #re_path(r'^history/proposaltype/(?P<pk>\d+)/$', proposal_views.ProposalTypeHistoryCompareView.as_view(), name='proposaltype_history'),
+    #re_path(r'^history/helppage/(?P<pk>\d+)/$', proposal_views.HelpPageHistoryCompareView.as_view(), name='helppage_history'),
+    #re_path(r'^history/organisation/(?P<pk>\d+)/$', organisation_views.OrganisationHistoryCompareView.as_view(), name='organisation_history'),
     re_path(r'^private-media/', views.getPrivateFile, name='view_private_file'),
     re_path(r'^organisation/$', views.ExternalView.as_view(), name='organisation'),
 

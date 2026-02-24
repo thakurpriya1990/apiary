@@ -2,12 +2,13 @@
     <div class="row">
         <div class="col-sm-12">
             <div class="row">
+
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">{{ activityFilterLabel }}</label>
-                        <select class="form-select" v-model="filterProposalActivity">
+                        <label for="">Application Type</label>
+                        <select class="form-select" v-model="filterProposalApplicationType">
                             <option value="All">All</option>
-                            <option v-for="a in proposal_activityTitles" :value="a" :key="a">{{a}}</option>
+                            <option v-for="a in proposal_applicationTypes" :value="a" :key="a">{{a}}</option>
                         </select>
                     </div>
                 </div>
@@ -20,16 +21,9 @@
                         </select>
                     </div>
                 </div>
-                
 
                 <div class="col-md-3">
                     <label for="">Lodged From</label>
-                    <!-- <div class="input-group date" ref="proposalDateFromPicker">
-                        <input type="text" class="form-control" placeholder="DD/MM/YYYY" v-model="filterProposalLodgedFrom">
-                        <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-calendar"></span>
-                        </span>
-                    </div> -->
                     <input
                             id="proposal-lodged-from"
                             type="date"
@@ -41,12 +35,6 @@
                 </div>
                 <div class="col-md-3">
                     <label for="">Lodged To</label>
-                    <!-- <div class="input-group date" ref="proposalDateToPicker">
-                        <input type="text" class="form-control" placeholder="DD/MM/YYYY" v-model="filterProposalLodgedTo">
-                        <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-calendar"></span>
-                        </span>
-                    </div> -->
                     <input
                             id="proposal-lodged-to"
                             type="date"
@@ -146,10 +134,7 @@ export default {
                 {value: 'declined', name: 'Declined'},
                 {value: 'discarded', name: 'Discarded'},
             ],
-            proposal_activityTitles : [],
             proposal_applicationTypes : [],
-            proposal_regions: [],
-            proposal_submitters: [],
             proposal_status: [],
             select2Applied: false,
             dt_options: {},
@@ -395,8 +380,6 @@ export default {
             this.datatableReady = false;
             let vm = this;
             this.uuid++;
-            //$(vm.$refs.proposal_datatable.vmDataTable).DataTable().destroy();
-            //$(vm.$refs.proposal_datatable.vmDataTable).DataTable({
             this.dt_options = {
                 destroy: true,
                 autoWidth: false,
@@ -441,12 +424,6 @@ export default {
                             columns: ':not(.noexport)',
                             orthogonal:'export'
                         }
-                        /*
-                        exportOptions: {
-                            columns: ':visible'
-                            //columns: vm.dt_headers
-                        }
-                        */
                     },
                     {
                         extend: 'csvHtml5',
@@ -455,13 +432,6 @@ export default {
                             columns: ':not(.noexport)',
                             orthogonal:'export'
                         }
-                        /*
-                        exportOptions: {
-                            columns: ':visible'
-                            //columns: vm.dt_headers
-                            //columns: 'lodgement_number'
-                        }
-                        */
                     },
                 ],
                 columns: vm.tableColumns,
@@ -494,12 +464,7 @@ export default {
                         return response.json().then(err => { throw err });
                     }
                     const filterListsProposal = await response.json();
-                    vm.proposal_regions = filterListsProposal.regions;
-
-                    vm.proposal_activityTitles = filterListsProposal.activities;
-                    vm.proposal_applicationTypes = filterListsProposal.application_types;
-
-                    vm.proposal_submitters = filterListsProposal.submitters;
+                    vm.proposal_applicationTypes = filterListsProposal.activities;
                     vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
                 },(error) => {
                     console.log(error);
@@ -548,28 +513,6 @@ export default {
         },
         addEventListeners: function(){
             let vm = this;
-            // Initialise Proposal Date Filters
-            // $(vm.$refs.proposalDateToPicker).datetimepicker(vm.datepickerOptions);
-            // $(vm.$refs.proposalDateToPicker).on('dp.change', function(e){
-            //     if ($(vm.$refs.proposalDateToPicker).data('DateTimePicker').date()) {
-            //         vm.filterProposalLodgedTo =  e.date.format('DD/MM/YYYY');
-            //     }
-            //     else if ($(vm.$refs.proposalDateToPicker).data('date') === "") {
-            //         vm.filterProposaLodgedTo = "";
-            //     }
-            //  });
-            // $(vm.$refs.proposalDateFromPicker).datetimepicker(vm.datepickerOptions);
-            // $(vm.$refs.proposalDateFromPicker).on('dp.change',function (e) {
-            //     if ($(vm.$refs.proposalDateFromPicker).data('DateTimePicker').date()) {
-            //         vm.filterProposalLodgedFrom = e.date.format('DD/MM/YYYY');
-            //         $(vm.$refs.proposalDateToPicker).data("DateTimePicker").minDate(e.date);
-            //     }
-            //     else if ($(vm.$refs.proposalDateFromPicker).data('date') === "") {
-            //         vm.filterProposalLodgedFrom = "";
-            //     }
-            // });
-            // End Proposal Date Filters
-            // External Discard listener
             vm.$refs.proposal_datatable.vmDataTable.on('click', 'a[data-discard-proposal]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-proposal');

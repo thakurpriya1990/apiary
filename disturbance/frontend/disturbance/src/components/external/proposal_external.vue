@@ -4,22 +4,13 @@
             <div v-if="!proposal_readonly">
               <div v-if="hasAmendmentRequest" class="row" style="color:red;">
                 <div class="col-lg-12 pull-right">
-                    <div class="panel panel-default">
-                      <div class="panel-heading">
-                          <h3 class="panel-title" style="color:red;">{{ amendmentRequestText }}
-                          <a class="panelClicker" :href="'#'+pBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="pBody">
-                                <span class="glyphicon glyphicon-chevron-down pull-right "></span>
-                          </a>
-                        </h3>
-                      </div>
-                      <div class="panel-body collapse in" :id="pBody">
+                    <FormSection :formCollapse="false" :label="amendmentRequestText" Index="amendment_request">
                         <div v-for="a in amendment_request" :key="a.id">
                           <p>Reason: {{a.reason}}</p>
                           <p v-if="a.amendment_request_documents">Documents: </p><p v-for="d in a.amendment_request_documents" :key="d.id"><a :href="d._file" target="_blank" class="control-label pull-left">{{d.name   }}</a><br></p>
                           <p>Details: </p> <p v-for="t in splitText(a.text)" :key="t.text">{{t}}</p>
-                      </div>
-                    </div>
-                  </div>
+                        </div>
+                    </FormSection>
                 </div>
               </div>
             </div>
@@ -191,6 +182,7 @@ import {
   helpers
 }
 from '@/utils/hooks'
+import FormSection from "@/components/forms/section_toggle.vue"
 export default {
     data: function() {
         return {
@@ -233,6 +225,7 @@ export default {
     components: {
         ProposalApiary,
         ApiarySiteTransfer,
+        FormSection,
     },
     computed: {
         amendmentRequestText: function() {
@@ -419,7 +412,7 @@ export default {
         attach_apiary_sites_data: function(formData){
             try {
                 // Append apiary_sites edited data
-                if (this.proposal && this.proposal.proposal_apiary){
+                if (this.proposal && this.proposal.proposal_apiary && this.$refs.proposal_apiary){
                     let allFeatures = this.$refs.proposal_apiary.$refs.apiary_site_locations.getFeatures()
                     let json_features = JSON.stringify(allFeatures)
                     formData.append('all_the_features', json_features)
@@ -441,19 +434,11 @@ export default {
             let formData = new FormData(vm.form);
             // Add apiary_sites data if needed
             formData = this.attach_apiary_sites_data(formData)
-            // Add site_transfer_apiary_sites data if needed
-            /*
-            if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.site_transfer_apiary_sites) {
-                console.log(this.$refs.apiary_site_transfer.site_transfer_apiary_sites)
-                formData.append('site_transfer_apiary_sites', JSON.stringify(this.$refs.apiary_site_transfer.site_transfer_apiary_sites));
-            }
-            */
+
             if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.apiary_sites_local) {
-                //console.log(this.$refs.apiary_site_transfer.site_transfer_apiary_sites)
                 formData.append('apiary_sites_local', JSON.stringify(this.$refs.apiary_site_transfer.apiary_sites_local));
             }
             if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.selectedLicenceHolder){
-                //let selectedLicenceHolder = this.$refs.apiary_site_transfer.selectedLicenceHolder
                 formData.append('selected_licence_holder', JSON.stringify(this.$refs.apiary_site_transfer.selectedLicenceHolder));
             }
             if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.transfereeEmail){
@@ -848,6 +833,7 @@ export default {
                                     { proposal: JSON.stringify(vm.proposal) }
                             });
                         } catch (err) {
+                            //TODO fix for segregation - handle errors better (handle missing fields before sub or handle properly here...)
                             swal.fire({
                                 title: 'Submit Error',
                                 text: helpers.apiVueResourceError(err),

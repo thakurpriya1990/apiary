@@ -255,14 +255,15 @@ class ApiaryGlobalSettingsAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         return ['key',]
 
-    def get_form(self, request, obj=None, **kwargs):
-        form = super(ApiaryGlobalSettingsAdmin, self).get_form(request, obj, **kwargs)
-        if obj.key == ApiaryGlobalSettings.KEY_APIARY_SITES_LIST_TOKEN:
-            link_to = '/api/apiary_site/export/?' + ApiaryGlobalSettings.KEY_APIARY_SITES_LIST_TOKEN + '=' + obj.value
-            http_host = request.META['HTTP_HOST']
-            display_link_to = http_host + link_to
-            form.base_fields['value'].help_text = '<a href="' + link_to + '">' + display_link_to + '</a>'
-        return form
+    #TODO on cleanup: review, remove/adjust (commented now, uncomment if issues arise delete otherwise)
+    #def get_form(self, request, obj=None, **kwargs):
+    #    form = super(ApiaryGlobalSettingsAdmin, self).get_form(request, obj, **kwargs)
+    #    if obj.key == ApiaryGlobalSettings.KEY_APIARY_SITES_LIST_TOKEN:
+    #        link_to = '/api/apiary_site/export/?' + ApiaryGlobalSettings.KEY_APIARY_SITES_LIST_TOKEN + '=' + obj.value
+    #        http_host = request.META['HTTP_HOST']
+    #        display_link_to = http_host + link_to
+    #        form.base_fields['value'].help_text = '<a href="' + link_to + '">' + display_link_to + '</a>'
+    #    return form
 
     list_display = ['key', 'value', '_file',]
     ordering = ('key',)

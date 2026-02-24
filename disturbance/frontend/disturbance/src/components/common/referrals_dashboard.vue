@@ -125,8 +125,6 @@ export default {
                 ],
                 buttons:[],  
                 ajax: {
-                    //"url": helpers.add_endpoint_json(api_endpoints.referrals,'user_list'),
-                    //"url": api_endpoints.list_referrals,
                     "url": vm.url,
                     "dataSrc": 'data',
 

@@ -51,8 +51,6 @@ export default {
                 },
                 responsive: true,
                 ajax: {
-                    //"url": helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/requirements'),
-                    //"url": helpers.add_endpoint_json(api_endpoints.approvals,vm.targetApprovalId+'/requirements'),
                     "url": helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/apiary_site_transfer_target_approval_requirements'),
                     "dataSrc": ''
                 },
@@ -232,13 +230,6 @@ export default {
                 },
             }).then((swalresult) => {
                 if(swalresult.isConfirmed) {
-                    // vm.$http.delete(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
-                    // .then((response) => {
-                    //     vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
-                    // }, (error) => {
-                    //     console.log(error);
-                    // });
-
                     fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id+'/discard'))
                     .then(async (response) => {
                         if (!response.ok) { return response.json().then(err => { throw err }); }

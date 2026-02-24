@@ -1,27 +1,22 @@
 import logging
-from datetime import datetime
-
 from django.http import HttpResponse
 from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 from django.conf import settings
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
-from ledger_api_client.ledger_models import Invoice
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.renderers import JSONRenderer
 from disturbance.components.main.decorators import timeit
 from disturbance.components.main.serializers import WaCoastSerializer, WaCoastOptimisedSerializer
 from disturbance.components.main.utils import get_feature_in_wa_coastline_smoothed, get_feature_in_wa_coastline_original
-from disturbance.helpers import is_internal, is_apiary_admin, get_proxy_cache
-from disturbance.components.proposals.models import Referral, Proposal, HelpPage
+from disturbance.helpers import is_internal, get_proxy_cache
+from disturbance.components.proposals.models import Referral, Proposal
 from disturbance.components.compliances.models import Compliance
 from disturbance.components.proposals.mixins import ReferralOwnerMixin
 from django.core.management import call_command
 from rest_framework.response import Response
-from rest_framework import views
 import os
 import mimetypes
 import base64
@@ -33,6 +28,7 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 from wagov_utils.components.proxy.views import proxy_view
+from rest_framework import serializers
 
 logger = logging.getLogger(__name__)
 
@@ -43,25 +39,9 @@ class InternalView(UserPassesTestMixin, TemplateView):
     def test_func(self):
         return is_internal(self.request)
 
-    # def get_context_data(self, **kwargs):
-    #     context = super(InternalView, self).get_context_data(**kwargs)
-    #     context['dev'] = settings.DEV_STATIC
-    #     context['dev_url'] = settings.DEV_STATIC_URL
-    #     if hasattr(settings, 'DEV_APP_BUILD_URL') and settings.DEV_APP_BUILD_URL:
-    #         context['app_build_url'] = settings.DEV_APP_BUILD_URL
-    #     return context
-
 
 class ExternalView(LoginRequiredMixin, TemplateView):
     template_name = 'disturbance/dash/index.html'
-
-    # def get_context_data(self, **kwargs):
-    #     context = super(ExternalView, self).get_context_data(**kwargs)
-    #     context['dev'] = settings.DEV_STATIC
-    #     context['dev_url'] = settings.DEV_STATIC_URL
-    #     if hasattr(settings, 'DEV_APP_BUILD_URL') and settings.DEV_APP_BUILD_URL:
-    #         context['app_build_url'] = settings.DEV_APP_BUILD_URL
-    #     return context
 
 class ReferralView(ReferralOwnerMixin, DetailView):
     model = Referral
@@ -102,7 +82,6 @@ class InternalProposalView(DetailView):
     def get(self, *args, **kwargs):
         if self.request.user.is_authenticated():
             if is_internal(self.request):
-                #return redirect('internal-proposal-detail')
                 return super(InternalProposalView, self).get(*args, **kwargs)
             return redirect('external-proposal-detail')
 
@@ -146,46 +125,7 @@ def gisdata(request):
         serializer = WaCoastOptimisedSerializer(feature)
 
     return Response(serializer.data)
-
-
-class LedgerPayView(TemplateView):
-    template_name = 'disturbance/dash/index.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(LedgerPayView, self).get_context_data(**kwargs)
-        # context['dev'] = settings.DEV_STATIC
-        # context['dev_url'] = settings.DEV_STATIC_URL
-        context['empty_menu'] = True  # We don't want any menu items for now
-        # if hasattr(settings, 'DEV_APP_BUILD_URL') and settings.DEV_APP_BUILD_URL:
-        #     context['app_build_url'] = settings.DEV_APP_BUILD_URL
-        return context
     
-
-@api_view(['POST',])
-def validate_invoice_details(request):
-    invoice_reference = request.data.get('invoice_reference', None)
-    invoice_date = request.data.get('invoice_date', None)
-
-    try:
-        datetime_object = datetime.strptime(invoice_date, '%d/%m/%Y').date()
-        invoice = Invoice.objects.get(reference=invoice_reference)
-        invoice_created_date = invoice.created.date()
-
-        if invoice_created_date == datetime_object and invoice.payment_status in ('unpaid', 'partially_paid'):
-            return Response({
-                "unpaid_invoice_exists": True
-            })
-        else:
-            return Response({
-                "unpaid_invoice_exists": False,
-                "alert_message": "There are no unpaid invoices that meet the criteria.",
-            })
-
-    except Exception as e:
-        return Response({
-            "unpaid_invoice_exists": False,
-            "alert_message": "There are no unpaid invoices that meet the criteria.",
-        })
 
 def is_authorised_to_access_proposal_document(request,document_id):
     if is_internal(request):
@@ -325,14 +265,6 @@ def mapProxyView(request, path):
         remoteurl = None
         auth_user = None
         auth_password = None
-        # if 'kmi-proxy' in request.path:
-        #     remoteurl = settings.KMI_API_SERVER_URL + path 
-        #     auth_user = settings.KMI_USER
-        #     auth_password = settings.KMI_PASSWORD
-        # elif 'kb-proxy' in request.path:
-        #     remoteurl = settings.KB_SERVER_URL + path 
-        #     auth_user = settings.KB_USER
-        #     auth_password = settings.KB_PASSWORD
         if 'kb-proxy' in request.path:
             remoteurl = settings.KB_SERVER_URL + path 
             auth_user = settings.KB_USER
@@ -340,4 +272,4 @@ def mapProxyView(request, path):
         response = process_proxy(request, remoteurl, queryString, auth_user, auth_password)
         return response
     else:
-        raise ValidationError('User is not authenticated')
+        raise serializers.ValidationError('User is not authenticated')

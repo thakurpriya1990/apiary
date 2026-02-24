@@ -225,7 +225,6 @@ class OrgAddressSerializer(serializers.Serializer):
 
 class OnSiteInformationSerializer(serializers.ModelSerializer):
     apiary_site_id = serializers.IntegerField(read_only=True, source='apiary_site_on_approval.apiary_site.id')
-    # apiary_site = ApiarySiteOptimisedSerializer(read_only=True)
     apiary_site_on_approval_id = serializers.IntegerField(required=False)
     datetime_deleted = serializers.DateTimeField(write_only=True, required=False)
 
@@ -233,7 +232,6 @@ class OnSiteInformationSerializer(serializers.ModelSerializer):
         model = OnSiteInformation
         fields = (
             'id',
-            # 'apiary_site',
             'apiary_site_id',
             'apiary_site_on_approval_id',
             'period_from',
@@ -255,8 +253,7 @@ class OnSiteInformationSerializer(serializers.ModelSerializer):
                 field_errors['Period from'] = ['Please select a date.',]
             if not data['period_to']:
                 field_errors['Period to'] = ['Please select a date.',]
-            # if not data['apiary_site_id'] and not data['apiary_site_id'] > 0:
-            #     field_errors['Site'] = ['Please select a site',]
+
             if not data['comments']:
                 field_errors['comments'] = ['Please enter comments.',]
 
@@ -270,9 +267,6 @@ class OnSiteInformationSerializer(serializers.ModelSerializer):
             # Raise errors
             if non_field_errors:
                 raise serializers.ValidationError(non_field_errors)
-        else:
-            # Partial udpate, which means the dict data doesn't have all the field
-            pass
 
         return data
 
@@ -1147,23 +1141,18 @@ class CreateProposalApiarySiteTransferSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProposalApiary
-        # geo_field = 'location'
 
         fields = (
             'id',
             'title',
             'proposal_id',
             'originating_approval_id',
-            # 'location',
-            #'apiary_sites',
             'longitude',
             'latitude',
-            #'on_site_information_list',
-            #'checklist_questions',
         )
         read_only_fields = (
-                'id',
-                )
+            'id',
+        )
 
 
 class SaveProposalApiarySerializer(serializers.ModelSerializer):
@@ -1172,18 +1161,13 @@ class SaveProposalApiarySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProposalApiary
-        # geo_field = 'location'
 
         fields = (
             'id',
             'title',
             'proposal_id',
-            # 'location',
-            #'apiary_sites',
             'longitude',
             'latitude',
-            #'on_site_information_list',
-            #'checklist_questions',
         )
         read_only_fields = (
                 'id',

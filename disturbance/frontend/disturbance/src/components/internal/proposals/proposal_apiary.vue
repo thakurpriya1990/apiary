@@ -35,27 +35,6 @@
                 </div>
             </div>
 
-
-            <!--
-            <div class="row" v-if="canSeeSubmission">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                       History
-                    </div>
-                                    <table class="table small-table">
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Last Modified</th>
-                                        </tr>
-                                        <tr v-for="p in proposal.get_history">
-                                            <td>{{ p.id }}</td>
-                                            <td>{{ p.modified | formatDate}}</td>
-                                        </tr>
-                                    </table>
-                </div>
-            </div>
-            -->
-
             <div class="mb-3">
                 <div class="card card-default sticky-top">
                     <div class="card-header">
@@ -65,21 +44,14 @@
                         <strong>Status</strong><br/>
                         {{ proposal.processing_status }}
                     </div>
-                    <!-- <div class="col-sm-12">
-                        <div class="separator"></div>
-                    </div> -->
+
                     <template v-if="proposal.processing_status == 'With Assessor' || proposal.processing_status == 'With Referral'">
                         <div class="card-body py-2 border-top">
                             <div class="row">
                                 <div class="col-sm-12 top-buffer-s">
                                     <div class="mb-2"><strong>Referrals</strong></div>
                                     <div class="form-group mb-3">
-                                        <!--select :disabled="!canLimitedAction" ref="department_users" class="form-control">
-                                            <option value="null"></option>
-                                            <option v-for="user in department_users" :value="user.email">{{user.name}}</option>
-                                        </select-->
                                         <select :disabled="!canLimitedAction" ref="apiary_referral_groups" class="form-select">
-                                            <option value="null"></option>
                                             <option v-for="group in apiaryReferralGroups" :value="group.id" :key="group.id">{{group.name}}</option>
                                         </select>
                                         <template v-if='!sendingReferral'>
@@ -574,7 +546,6 @@ export default {
           return helpers.getCookie('csrftoken')
         },
         proposal_form_url: function() {
-          //return (this.proposal) ? `/api/proposal/${this.proposal.id}/assessor_save.json` : '';
             if (this.apiaryProposal) {
                 return `/api/proposal_apiary/${this.apiaryProposal.id}/assessor_save.json`;
             }
@@ -757,7 +728,6 @@ export default {
         initialiseOrgContactTable: function(){
             let vm = this;
             if (vm.proposal && !vm.contacts_table_initialised){
-            // if (vm.proposal){
                 vm.contacts_options.ajax.url = helpers.add_endpoint_json(api_endpoints.organisations,vm.proposal.applicant.id+'/contacts');
                 vm.contacts_table = $('#'+vm.contacts_table_id).DataTable(vm.contacts_options);
                 vm.contacts_table_initialised = true;
@@ -807,12 +777,11 @@ export default {
             }
             else{
                 this.$refs.proposed_approval.approval = this.proposal.proposed_issuance_approval != null ? helpers.copyObject(this.proposal.proposed_issuance_approval) : {};
+                this.$refs.proposed_approval.approval.start_date = moment(this.$refs.proposed_approval.approval.start_date, 'DD/MM/YYYY').format('YYYY-MM-DD');
+                this.$refs.proposed_approval.approval.expiry_date = moment(this.$refs.proposed_approval.approval.expiry_date, 'DD/MM/YYYY').format('YYYY-MM-DD');
                 this.$refs.proposed_approval.state = 'final_approval';
-                this.$refs.proposed_approval.isApprovalLevelDocument = this.isApprovalLevelDocument;
-                //this.$refs.proposed_approval.submitter_email=helpers.copyObject(this.proposal.submitter_email);
-                // if(this.proposal.applicant.email){
-                //     this.$refs.proposed_approval.applicant_email=helpers.copyObject(this.proposal.applicant.email);
-                // }
+                //this.$refs.proposed_approval.isApprovalLevelDocument = this.isApprovalLevelDocument; TODO fix for segregation - determine if this is needed or not 
+
                 this.$refs.proposed_approval.isModalOpen = true;
 
                 // Force to refresh the map to display it in case it is not shown.
@@ -1157,7 +1126,7 @@ export default {
         },
         fetchApiaryReferralGroups: function() {
             this.loading.push('Loading Apiary Referral Groups');
-            fetch(api_endpoints.apiary_referral_groups)
+            fetch("/api/apiary_referral_groups/get_referral_group_list/")
             .then(async (response) => {
                 if (!response.ok) { return response.json().then(err => { throw err }); }
                 const data = await response.json();
@@ -1245,8 +1214,6 @@ export default {
                 //vm.sendingReferral = true;
                 // need to create Referral, ApiaryReferral at this point
                 let url = helpers.add_endpoint_json(api_endpoints.proposal_apiary,(vm.proposal.proposal_apiary.id+'/apiary_assessor_send_referral'))
-                //fetch(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/assesor_send_referral')),JSON.stringify(data),{
-                //fetch(helpers.add_endpoint_json(api_endpoints.proposal_apiary,(vm.proposal.id+'/apiary_assessor_send_referral')),JSON.stringify(data),{
                 fetch(url,{
                     method: 'POST',
                     headers: {
@@ -1359,7 +1326,7 @@ export default {
                 vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
                 swal.fire({
                     title: 'Referral Recall',
-                    text: 'The referall has been recalled from '+r.apiary_referral.referral_group.name,
+                    text: 'The referral has been recalled from '+r.apiary_referral.referral_group.name,
                     icon: 'success',
                     customClass: {
                         confirmButton: 'btn btn-primary',

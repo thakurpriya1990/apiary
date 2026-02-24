@@ -450,6 +450,7 @@
 
                 if(!(searching_by_latlng)){
                     var latlng = vm.map.getView().getCenter();
+                    //TODO fix for segregation - get these values via backend so we do not expose the access token
                     $.ajax({
                         url: api_endpoints.geocoding_address_search + encodeURIComponent(place)+'.json?'+ $.param({
                             access_token: vm.mapboxAccessToken,
@@ -639,6 +640,7 @@
                 let vm = this
 
                 $("#app").on('click', 'a[data-contact-licence-holder]', this.contactLicenceHolder)
+                $("#app").on('click', 'a[data-make-vacant]', this.makeVacantClicked)
 
                 let search_input_elem = $('#' + vm.search_input_id)
                 search_input_elem.on('input', function(ev){
@@ -661,7 +663,7 @@
                 e.stopPropagation()
 
                 try {
-                    const response = await fetch('/api/apiary_site/' + apiary_site_id + '/', {
+                    const response = await fetch('/api/apiary_site/' + apiary_site_id + '/toggle_availability/', {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
@@ -669,7 +671,7 @@
                         },
                         body: JSON.stringify({ available: requested_availability })
                     });
-
+                    console.log(response)
                     if (!response.ok) {
                         const errorText = await response.text();
                         throw new Error(errorText);
@@ -692,8 +694,8 @@
 
             },
             makeVacantClicked: function(e){
+                console.log("makeVacantClicked")
                 let vm = this;
-                //let apiary_site_id = e.target.getAttribute("data-apiary-site-id");
                 let apiary_site_id = e.target.getAttribute("data-make-vacant");
                 e.stopPropagation()
 
@@ -710,7 +712,7 @@
                 }).then(
                     (result) => {
                         if (result.isConfirmed) {
-                            fetch('/api/apiary_site/' + apiary_site_id + '/',{
+                            fetch('/api/apiary_site/' + apiary_site_id + '/make_vacant/',{
                                 method: 'PATCH',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -723,15 +725,10 @@
                                     throw new Error(errorText);
                                 }
                                 // Remove the row from the table
-                                // TODO fix for segregation: Update table
                                 $(e.target).closest('tr').fadeOut('slow', function(){
                                     // Remove the site table which the table is based on
                                     vm.removeApiarySiteById(apiary_site_id)
                                 })
-
-                                // TODO fix for segregation: Update map
-                                // Remove the site from the map
-                                this.$refs.component_map.removeApiarySiteById(apiary_site_id)
                             }).catch((error) => {
                                 console.log(error);
                                 swal.fire({
@@ -1225,7 +1222,6 @@
                 return approval_link
             },
             get_actions: function(feature, contactLicenceHolder){
-                console.log(contactLicenceHolder);
                 let action_list = []
 
                 let a_status = getStatusForColour(feature, false, this.display_at_time_of_submitted)
@@ -1233,7 +1229,7 @@
                 if (this.is_internal && this.show_action_make_vacant){
                     if (['denied', 'not_to_be_reissued',].includes(a_status)){
                         let display_text = 'Make Vacant'
-                        let ret = '<a data-make-vacant="' + feature.id_ + '">' + display_text + '</a>';
+                        let ret = '<a href="#' + feature.id_ + '" data-make-vacant="' + feature.id_ + '">' + display_text + '</a>';
                         action_list.push(ret);
                     }
                 }
@@ -1242,7 +1238,7 @@
                         let available = feature.get('available')
                         if (available){
                             let display_text = 'Contact licence holder'
-                            let ret = '<a data-contact-licence-holder="' + feature.id_ + '">' + display_text + '</a>';
+                            let ret = '<a href="#' + feature.id_ + '" data-contact-licence-holder="' + feature.id_ + '">' + display_text + '</a>';
                             action_list.push(ret);
                         }
                     }
@@ -1417,7 +1413,7 @@
                     {
                         headers: { 'Content-Type': 'application/json' },
                         method: 'POST',
-                        body: obj,
+                        body: JSON.stringify(obj)
                     }
                 ).then(
                     async (res) => {
@@ -1460,10 +1456,6 @@
                         // Options (sub categories) exist, which means this site_status is 'current' (for current implementation)
                         for (let option of site_status.options){
                             if (site_status.show && option.show){
-                                //if (option.ajax_obj != null) {
-                                //    option.ajax_obj.abort();
-                                //    option.ajax_obj = null;
-                                //}
                                 option.loading_sites = true
                                 option.ajax_obj = $.ajax('/api/apiary_site/' + option.api + '/?search_text=' + vm.search_text, {
                                     dataType: 'json',
@@ -1504,11 +1496,6 @@
                             // Add the features to the table
                             // Store data in the data storage
 
-                            /* Cancel all the previous requests */
-                            //if (site_status.ajax_obj != null) {
-                            //    site_status.ajax_obj.abort();
-                            //    site_status.ajax_obj = null;
-                            //}
                             site_status.loading_sites = true
                             site_status.ajax_obj = $.ajax('/api/apiary_site/' + site_status.api + '/?search_text=' + vm.search_text, {
                                 dataType: 'json',
