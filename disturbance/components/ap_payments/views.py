@@ -443,7 +443,10 @@ class AnnualRentalFeeSuccessView(TemplateView):
         return can_access_invoice, to_email_addresses
 
 
-def adjust_db_operations(db_operations):        
+def adjust_db_operations(db_operations):
+
+    if not db_operations:
+        return        
     # Perform database operations to remove and/or store site remainders
     # site remainders used
     for item in db_operations['site_remainder_used']:
@@ -538,7 +541,8 @@ class ApplicationFeeSuccessViewPreload(APIView):
                 else:
                     logger.error('Invoice payment status is {}'.format(invoice.payment_status))
                     raise
-
+                
+                recipient = None
                 if proposal.applicant:
                     recipient = proposal.applicant.email
                 elif proposal.proxy_applicant:
@@ -547,7 +551,8 @@ class ApplicationFeeSuccessViewPreload(APIView):
                     recipient = proposal.submitter.email
 
                 application_fee.save()
-                send_application_fee_invoice_apiary_email_notification(request, proposal, invoice, recipients=[recipient])
+                if recipient:
+                    send_application_fee_invoice_apiary_email_notification(request, proposal, invoice, recipients=[recipient])
 
         return Response(status=status.HTTP_200_OK)
 
