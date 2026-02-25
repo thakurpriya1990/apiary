@@ -444,7 +444,7 @@ class CommunicationsLogEntry(models.Model):
         app_label = 'disturbance'
 
 @python_2_unicode_compatible
-class LedgerDocument(models.Model):
+class LedgerDocument(SanitiseFileMixin):
     name = models.CharField(max_length=255, blank=True,
                             verbose_name='name', help_text='')
     description = models.TextField(blank=True,
@@ -517,7 +517,7 @@ class SystemMaintenance(models.Model):
         return 'System Maintenance: {} ({}) - starting {}, ending {}'.format(self.name, self.description,
                                                                              self.start_date, self.end_date)
 
-
+#TODO fix for segregation - assess need for file sanitisation here (admin access only, may still be prudent to run checks)
 @python_2_unicode_compatible
 class ApiaryGlobalSettings(models.Model):
     KEY_ORACLE_CODE_APIARY_SITE_ANNUAL_RENTAL_FEE = 'oracle_code_apiary_site_annural_rental_fee'  # ApplicationType object has an attribute 'oracle_code_application' to store oracle account code

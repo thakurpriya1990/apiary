@@ -11,7 +11,7 @@ from django.db.models import JSONField, Q
 from ledger_api_client.utils import get_organisation, get_search_organisation, create_organisation
 from rest_framework import status
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from disturbance.components.main.models import UserAction,CommunicationsLogEntry, LedgerDocument
+from disturbance.components.main.models import UserAction,CommunicationsLogEntry, LedgerDocument, SanitiseFileMixin
 from disturbance.components.organisations.utils import random_generator
 from disturbance.components.organisations.emails import (
                         send_organisation_request_accept_email_notification,
@@ -621,6 +621,7 @@ def update_organisation_comms_log_filename(instance, filename):
     return 'organisations/{}/communications/{}/{}'.format(instance.log_entry.organisation.id,instance.id,filename)
 
 
+#TODO fix for segregation - is this used? Remove or Adjust accordingly
 class OrganisationLogDocument(LedgerDocument):
     log_entry = models.ForeignKey('OrganisationLogEntry',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(upload_to=update_organisation_comms_log_filename, storage=private_storage)
@@ -642,8 +643,7 @@ class OrganisationLogEntry(CommunicationsLogEntry):
     class Meta:
         app_label = 'disturbance'
 
-
-class OrganisationRequest(models.Model):
+class OrganisationRequest(SanitiseFileMixin):
     STATUS_CHOICES = (
         ('with_assessor','With Assessor'),
         ('approved','Approved'),
