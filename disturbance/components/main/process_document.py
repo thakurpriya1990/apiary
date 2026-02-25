@@ -209,22 +209,3 @@ def save_default_document_obj(instance, temp_document):
 
     document._file = path
     document.save()
-
-## For transferring files from temp doc objs to physical artifact renderer objs
-#def save_renderer_document_obj(instance, temp_document, input_name):
-#    document = instance.renderer_documents.get_or_create(
-#            input_name=input_name,
-#            name=temp_document.name)[0]
-#    path = private_storage.save(
-#        'disturbance/{}/{}/renderer_documents/{}/{}'.format(
-#            instance._meta.model_name,
-#            instance.id,
-#            input_name,
-#            temp_document.name
-#            ),
-#            temp_document._file
-#        )
-#
-#    document._file = path
-#    document.save()
-#

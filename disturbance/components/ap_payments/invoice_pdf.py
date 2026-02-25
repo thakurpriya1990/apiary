@@ -184,12 +184,6 @@ class Remittance(Flowable):
         self.__footer_line()
 
 
-#def _set_template_group(mooring_var):
-
-
-#def get_template_group(mooring_var):
-
-
 def _create_header(canvas, doc, draw_page_number=True):
     canvas.saveState()
     canvas.setTitle('Invoice')
@@ -262,10 +256,6 @@ def _is_gst_exempt(proposal, invoice):
 def _create_invoice(invoice_buffer, invoice, url_var, proposal):
 
     global DPAW_HEADER_LOGO
-#    if  cols_var["TEMPLATE_GROUP"] == 'rottnest':
-#        DPAW_HEADER_LOGO = os.path.join(settings.BASE_DIR, 'mooring', 'static', 'mooring', 'img','logo-rottnest-island-sm.png')
-#    else:
-#        DPAW_HEADER_LOGO = os.path.join(settings.BASE_DIR, 'ledger', 'payments','static', 'payments', 'img','dbca_logo.jpg')
     DPAW_HEADER_LOGO = os.path.join(settings.PROJECT_DIR, 'payments','static', 'payments', 'img','dbca_logo.jpg')
 
     every_page_frame = Frame(PAGE_MARGIN, PAGE_MARGIN + 250, PAGE_WIDTH - 2 * PAGE_MARGIN,
