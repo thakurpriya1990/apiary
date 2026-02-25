@@ -571,6 +571,18 @@ class ApplicationFeeSuccessView(TemplateView):
         proposal = application_fee.proposal
         submitter = proposal.submitter
 
+        user = request.user
+        try:
+            user_orgs = [org.id for org in user.disturbance_organisations.all()]
+            if not (
+                is_internal(self.request) or
+                proposal.applicant_id in user_orgs or proposal.submitter == user
+            ):
+                raise PermissionDenied
+        except Exception as e:
+            print(e)
+            return redirect('home')
+
         fee_inv = ApplicationFeeInvoice.objects.filter(application_fee=application_fee).order_by('id').last()
 
         context = {
