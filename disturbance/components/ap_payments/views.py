@@ -149,6 +149,17 @@ class ApplicationFeeView(TemplateView):
     def post(self, request, *args, **kwargs):
 
         proposal = self.get_object()
+        user = request.user
+        try:
+            user_orgs = [org.id for org in user.disturbance_organisations.all()]
+            if not (
+                is_internal(self.request) or
+                proposal.applicant_id in user_orgs or proposal.submitter == user
+            ):
+                raise PermissionDenied
+        except:
+            raise
+
         application_fee = ApplicationFee.objects.create(proposal=proposal, created_by=request.user, payment_type=ApplicationFee.PAYMENT_TYPE_TEMPORARY)
         print('application_fee:',application_fee)
         try:
@@ -203,8 +214,19 @@ class SiteTransferApplicationFeeSuccessView(TemplateView):
             print(e)
             return redirect('home')
         
+        user = request.user
         try:
-            # application_fee = get_session_site_transfer_application_invoice(request.session)
+            user_orgs = [org.id for org in user.disturbance_organisations.all()]
+            if not (
+                is_internal(self.request) or
+                proposal.applicant_id in user_orgs or proposal.submitter == user
+            ):
+                raise PermissionDenied
+        except Exception as e:
+            print(e)
+            return redirect('home')
+
+        try:
             application_fee = ApplicationFee.objects.filter(proposal=proposal).order_by('id').last()
             try:
                 if proposal.applicant:
@@ -217,17 +239,6 @@ class SiteTransferApplicationFeeSuccessView(TemplateView):
                 recipient = proposal.submitter.email
             submitter = proposal.submitter
 
-            # if self.request.user.is_authenticated:
-            #     basket = Basket.objects.filter(status='Submitted', owner=request.user).order_by('-id')[:1]
-            # else:
-            #     basket = Basket.objects.filter(status='Submitted', owner=proposal.submitter).order_by('-id')[:1]
-
-            # order = Order.objects.get(basket=basket[0])
-            # invoice = Invoice.objects.get(order_number=order.number)
-            # invoice_ref = invoice.reference
-            # invoice_ref = request.GET.get('invoice')
-            # print("invoice_ref:",invoice_ref)
-            #fee_inv, created = ApplicationFeeInvoice.objects.get(application_fee=application_fee, invoice_reference=invoice_ref)
             fee_inv = ApplicationFeeInvoice.objects.filter(application_fee=application_fee).order_by('id').last()
             print("fee_inv",fee_inv)
             if fee_inv and fee_inv.invoice_reference:
@@ -238,10 +249,6 @@ class SiteTransferApplicationFeeSuccessView(TemplateView):
             if application_fee.payment_type == ApplicationFee.PAYMENT_TYPE_TEMPORARY:
                 try:
                     inv = Invoice.objects.get(reference=invoice_ref)
-                    # order = Order.objects.get(number=inv.order_number)
-                    # #order.user = submitter
-                    # order.user = request.user
-                    # order.save()
                 except Invoice.DoesNotExist:
                     logger.error('{} tried paying an application fee with an incorrect invoice'.format('User {} with id {}'.format(proposal.submitter.get_full_name(), proposal.submitter.id) if proposal.submitter else 'An anonymous user'))
                     return redirect('external-proposal-detail', args=(proposal.id,))
@@ -250,10 +257,8 @@ class SiteTransferApplicationFeeSuccessView(TemplateView):
                     return redirect('external-proposal-detail', args=(proposal.id,))
 
                 if fee_inv:
-                    #application_fee.payment_type = 1  # internet booking
                     application_fee.payment_type = ApplicationFee.PAYMENT_TYPE_INTERNET
                     application_fee.expiry_time = None
-                    #update_payments(invoice_ref)
 
                     invoice_properties = get_invoice_properties(invoice.id)
                     if proposal and (invoice_properties['data']['invoice']['payment_status'] == 'paid' or invoice_properties['data']['invoice']['payment_status'] == 'over_paid'):
@@ -272,7 +277,6 @@ class SiteTransferApplicationFeeSuccessView(TemplateView):
                     delete_session_site_transfer_application_invoice(request.session)
 
                     send_application_fee_invoice_apiary_email_notification(request, proposal, invoice, recipients=[recipient])
-                    #send_application_fee_confirmation_apiary_email_notification(request, application_fee, invoice, recipients=[recipient])
 
                     context = {
                         'proposal': proposal,
@@ -289,13 +293,10 @@ class SiteTransferApplicationFeeSuccessView(TemplateView):
                 try:
                     if proposal.applicant:
                         recipient = proposal.applicant.email
-                        #submitter = proposal.applicant
                     elif proposal.proxy_applicant:
                         recipient = proposal.proxy_applicant.email
-                        #submitter = proposal.proxy_applicant
                     else:
                         recipient = proposal.submitter.email
-                        #submitter = proposal.submitter
                 except:
                     recipient = proposal.submitter.email
                 submitter = proposal.submitter
