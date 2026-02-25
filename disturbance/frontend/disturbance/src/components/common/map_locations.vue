@@ -169,9 +169,6 @@ export default {
     vm.guid = guid();
 
     return {
-       // marker_lng: vm.marker_longitude,
-       // marker_lat: vm.marker_latitude,
-            mapboxAccessToken: null,
         marker_lng: null,
         marker_lat: null,
         defaultCenter: defaultCentre,
@@ -221,10 +218,6 @@ export default {
             }
         }
     },
-    created: async function() {
-        let temp_token = await this.retrieveMapboxAccessToken();
-        this.mapboxAccessToken = temp_token.access_token;
-    },
     mounted: function() {
         let vm = this;
     
@@ -239,10 +232,6 @@ export default {
         //});
     },
     methods: {
-        retrieveMapboxAccessToken: async function(){
-            let ret_val = await $.ajax('/api/geocoding_address_search_token');
-            return ret_val;
-        },
         setMarkerCentre: function() {
             let z = this.mainMap.getZoom();
             if (!isNaN(this.marker_lat) && !isNaN(this.marker_lng)){
@@ -298,7 +287,6 @@ export default {
                 country: "au",
                 limit: 10,
                 proximity: "" + latlng.lng + "," + latlng.lat,
-                        access_token: self.mapboxAccessToken,
                 bbox: "112.920934,-35.191991,129.0019283,-11.9662455",
                 types:
                   "region,postcode,district,place,locality,neighborhood,address,poi"
