@@ -153,7 +153,6 @@ export default {
 
     let vm = this;
     let baseDic = {
-      // shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
       shadowUrl: new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).href,
       shadowSize: [41, 41],
       shadowAnchor: [12, 41],
@@ -162,41 +161,32 @@ export default {
       popupAnchor: [0, -20]
     };
     vm.icon_default = Leaf.icon({
-      // iconUrl: require("../../assets/marker-gray-locked.svg"),
       iconUrl: new URL("../../assets/marker-gray-locked.svg", import.meta.url).href,
       ...baseDic
     });
     vm.guid = guid();
 
     return {
-        marker_lng: null,
-        marker_lat: null,
-        defaultCenter: defaultCentre,
-        projection: null,
-        mainMap: null,
-        popup: null,
-        element: null,
-        base_layer: "osm",
-        awe: null,
-        suggest_list: [],
-        feature_marker: null,
-        cursor_location: null,
-        idMap: vm.guid + "mapLeaf",
-        idSearchInput: vm.guid + "SearchInput",
-        idBasemapSat: vm.guid + "BasemapSat",
-        idBasemapOsm: vm.guid + "BasemapOsm",
-        // AT the moment (specify the path) this works but not ideal, need to find a way to load images from assets folder
-        satelliteIconUrl: '/static/disturbance_vue/src/satellite_icon.jpg',
-        mapIconUrl: '/static/disturbance_vue/src/map_icon.png',
-    };
-  },
-    computed: {
-     //   marker_lat: function() {
-     //       return this.marker_latitude;
-     //   },
-     //   marker_lng: function() {
-     //       return this.marker_longitude;
-     //   },
+          marker_lng: null,
+          marker_lat: null,
+          defaultCenter: defaultCentre,
+          projection: null,
+          mainMap: null,
+          popup: null,
+          element: null,
+          base_layer: "osm",
+          awe: null,
+          suggest_list: [],
+          feature_marker: null,
+          cursor_location: null,
+          idMap: vm.guid + "mapLeaf",
+          idSearchInput: vm.guid + "SearchInput",
+          idBasemapSat: vm.guid + "BasemapSat",
+          idBasemapOsm: vm.guid + "BasemapOsm",
+          // AT the moment (specify the path) this works but not ideal, need to find a way to load images from assets folder
+          satelliteIconUrl: '/static/disturbance_vue/src/satellite_icon.jpg',
+          mapIconUrl: '/static/disturbance_vue/src/map_icon.png',
+      };
     },
     watch: {
         marker_latitude: function(){
@@ -268,7 +258,6 @@ export default {
           ).on("click", function() {
             // vm.feature_marker.setIcon(myIcon);
           });
-          //vm.feature_marker.bindTooltip("click to lock/unlock");
           vm.feature_marker.addTo(vm.mainMap);
           vm.setMarkerIcon();
         },
@@ -276,8 +265,6 @@ export default {
           var self = this;
 
           var latlng = this.mainMap.getCenter();
-
-          //TODO fix for segregation - get these values via backend so we do not expose the access token
           $.ajax({
             url:
               api_endpoints.geocoding_address_search + 
