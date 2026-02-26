@@ -122,7 +122,7 @@ class PaymentSessionMiddleware(object):
 
                     checkouthash =  hashlib.sha256(str(request.session["payment_pk"]).encode('utf-8')).hexdigest() 
                     checkouthash_cookie = request.COOKIES.get('checkouthash')
-                    validation_cookie = request.COOKIES.get(request.POST['payment-csrfmiddlewaretoken'])
+                    validation_cookie = request.COOKIES.get(request.POST.get('payment-csrfmiddlewaretoken'))
 
                     proposal_count = Proposal.objects.filter(pk=request.session['payment_pk']).count()
 
