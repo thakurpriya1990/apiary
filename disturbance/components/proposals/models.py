@@ -2359,7 +2359,7 @@ class ProposalUserAction(UserAction):
     ACTION_ENTER_CONDITIONS = "Enter requirement"
     ACTION_CREATE_CONDITION_ = "Create requirement {}"
     ACTION_ISSUE_APPROVAL_ = "Issue Approval for proposal {}"
-    ACTION_ISSUE_APIARY_APPROVAL = "Application {} has been approved with start date {}, expirty date {} for the apiary sites {}"
+    ACTION_ISSUE_APIARY_APPROVAL = "Application {} has been approved with start date {}, expiry date {} for the apiary sites {}"
     ACTION_UPDATE_APPROVAL_ = "Update Approval for proposal {}"
     ACTION_UPDATE_APPROVAL_FOR_PROPOSAL = "Update Approval {} for proposal {}"
     ACTION_EXPIRED_APPROVAL_ = "Expire Approval for proposal {}"
