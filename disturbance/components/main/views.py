@@ -29,8 +29,10 @@ class GeocodingAddressSearchView(views.APIView):
             search_url = "https://api.mapbox.com/geocoding/v5/mapbox.places/{}.json/?access_token={}&country={}&limit={}&bbox={}&type={}&proximity={}".format(
                 search_term,access_token,country,limit,bbox,types,proximity
             )
-
-            r = requests.get(search_url)
-            return Response(r.json())
+            try:
+                r = requests.get(search_url)
+                return Response(r.json())
+            except:
+                return Response()
         else:
             return Response()
