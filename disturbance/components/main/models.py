@@ -107,7 +107,7 @@ class SanitiseFileMixin(SanitiseMixin, DirtyFieldsMixin):
 
             #check file size
             if file_content.size > settings.FILE_SIZE_LIMIT_BYTES:
-                raise ValidationError(format("File size too large: Max {}MB",settings.FILE_SIZE_LIMIT_BYTES/1000000))
+                raise ValidationError("File size too large: Max {}MB".format(settings.FILE_SIZE_LIMIT_BYTES/1000000))
 
             #auto-gen file name
             _, extension = os.path.splitext(str(file_content))
