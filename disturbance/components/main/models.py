@@ -119,6 +119,9 @@ class SanitiseFileMixin(SanitiseMixin, DirtyFieldsMixin):
         elif '_file' in self.get_dirty_fields() and self.get_dirty_fields()['_file']:
             raise ValidationError("Cannot change file")
 
+        print("\n\n\n\n")
+        print(self.__dict__)
+        print("\n\n\n\n")
         #proceed with general sanitisation and save
         super(SanitiseMixin, self).save(**kwargs)
     
@@ -548,7 +551,7 @@ class ApiaryGlobalSettings(models.Model):
     )
     key = models.CharField(max_length=255, choices=keys, blank=False, null=False, unique=True)
     value = models.CharField(max_length=255)
-    _file = models.FileField(upload_to='apiary_licence_template', null=True, blank=True)
+    _file = models.FileField(max_length=255, upload_to='apiary_licence_template', null=True, blank=True)
 
     class Meta:
         app_label = 'disturbance'

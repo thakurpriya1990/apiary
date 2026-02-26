@@ -339,7 +339,7 @@ def update_compliance_comms_log_filename(instance, filename):
 
 class ComplianceLogDocument(Document):
     log_entry = models.ForeignKey('ComplianceLogEntry',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_compliance_comms_log_filename, storage=private_storage)
+    _file = models.FileField(max_length=255, upload_to=update_compliance_comms_log_filename, storage=private_storage)
 
     class Meta:
         app_label = 'disturbance'

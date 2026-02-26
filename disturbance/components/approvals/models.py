@@ -49,7 +49,7 @@ def update_approval_comms_log_filename(instance, filename):
 
 class ApprovalDocument(Document):
     approval = models.ForeignKey('Approval',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_approval_doc_filename, storage=private_storage)
+    _file = models.FileField(max_length=255, upload_to=update_approval_doc_filename, storage=private_storage)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
 
     def delete(self):
@@ -63,7 +63,7 @@ class ApprovalDocument(Document):
 
 class RenewalDocument(Document):
     approval = models.ForeignKey('Approval',related_name='renewal_documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_approval_doc_filename, storage=private_storage)
+    _file = models.FileField(max_length=255, upload_to=update_approval_doc_filename, storage=private_storage)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
 
     def delete(self):
@@ -653,7 +653,7 @@ class ApprovalLogEntry(CommunicationsLogEntry):
 
 class ApprovalLogDocument(Document):
     log_entry = models.ForeignKey('ApprovalLogEntry',related_name='documents', null=True, on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_approval_comms_log_filename, null=True, storage=private_storage)
+    _file = models.FileField(max_length=255, upload_to=update_approval_comms_log_filename, null=True, storage=private_storage)
 
     class Meta:
         app_label = 'disturbance'

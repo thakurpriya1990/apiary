@@ -624,7 +624,7 @@ def update_organisation_comms_log_filename(instance, filename):
 #TODO fix for segregation - is this used? Remove or Adjust accordingly
 class OrganisationLogDocument(LedgerDocument):
     log_entry = models.ForeignKey('OrganisationLogEntry',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_organisation_comms_log_filename, storage=private_storage)
+    _file = models.FileField(max_length=255, upload_to=update_organisation_comms_log_filename, storage=private_storage)
 
     class Meta:
         app_label = 'disturbance'
@@ -939,7 +939,7 @@ def update_organisation_request_comms_log_filename(instance, filename):
 
 class OrganisationRequestLogDocument(LedgerDocument):
     log_entry = models.ForeignKey('OrganisationRequestLogEntry',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_organisation_request_comms_log_filename, storage=private_storage)
+    _file = models.FileField(max_length=255, upload_to=update_organisation_request_comms_log_filename, storage=private_storage)
 
     class Meta:
         app_label = 'disturbance'
