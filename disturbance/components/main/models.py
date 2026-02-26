@@ -118,9 +118,6 @@ class SanitiseFileMixin(SanitiseMixin, DirtyFieldsMixin):
         elif '_file' in self.get_dirty_fields() and self.get_dirty_fields()['_file']:
             raise ValidationError("Cannot change file")
 
-        print("\n\n\n\n")
-        print(self.__dict__)
-        print("\n\n\n\n")
         #proceed with general sanitisation and save
         super(SanitiseMixin, self).save(**kwargs)
     

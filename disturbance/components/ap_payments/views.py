@@ -189,6 +189,8 @@ class ApplicationFeeView(TemplateView):
                         invoice_text='Application Fee'
                     )
 
+                request.session["payment_pk"] = proposal.pk
+                
                 logger.info('{} built payment line item {} for Application Fee and handing over to payment gateway'.format('User {} with id {}'.format(proposal.submitter.get_full_name(),proposal.submitter.id), proposal.id))
                 return checkout_response
 

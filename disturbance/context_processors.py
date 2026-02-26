@@ -9,6 +9,7 @@ from ledger_api_client.helpers import is_payment_admin
 from disturbance.settings import KMI_SERVER_URL
 import logging
 from ledger_api_client import utils as ledger_api_utils
+import hashlib
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,10 @@ def apiary_url(request):
 
     is_payment_officer = is_payment_admin(request.user)
     lt = ledger_api_utils.get_ledger_totals()
+
+    checkouthash = None
+    if 'payment_pk' in request.session:
+        checkouthash =  hashlib.sha256(str(request.session["payment_pk"]).encode('utf-8')).hexdigest()
 
     return {
         "template_group": TEMPLATE_GROUP,
