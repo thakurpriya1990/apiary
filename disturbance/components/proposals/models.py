@@ -34,13 +34,12 @@ from taggit.models import TaggedItemBase
 from ledger_api_client.settings_base import TIME_ZONE
 
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from ledger_api_client.ledger_models import Invoice
 from disturbance import exceptions
 from disturbance.components.organisations.models import Organisation
 from disturbance.components.main.models import (
     CommunicationsLogEntry, UserAction, 
     Document, Region, District, 
-    ApplicationType, RevisionedMixin
+    ApplicationType, RevisionedMixin, SanitiseMixin
 )
 from disturbance.components.main.utils import get_department_user
 from disturbance.components.proposals.email import (
@@ -2102,7 +2101,7 @@ class AmendmentRequestDocument(Document):
         if self.can_delete:
             return super(AmendmentRequestDocument, self).delete()
 
-class ProposalRequest(models.Model):
+class ProposalRequest(SanitiseMixin):
     proposal = models.ForeignKey(Proposal, on_delete=models.CASCADE)
     subject = models.CharField(max_length=200, blank=True)
     text = models.TextField(blank=True)
@@ -2120,7 +2119,7 @@ class ComplianceRequest(ProposalRequest):
         app_label = 'disturbance'
 
 
-class AmendmentReason(models.Model):
+class AmendmentReason(SanitiseMixin):
     reason = models.CharField('Reason', max_length=125)
 
     class Meta:
@@ -2199,7 +2198,7 @@ class Assessment(ProposalRequest):
     class Meta:
         app_label = 'disturbance'
 
-class ProposalDeclinedDetails(models.Model):
+class ProposalDeclinedDetails(SanitiseMixin):
     proposal = models.OneToOneField(Proposal, on_delete=models.CASCADE)
     officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
     reason = models.TextField(blank=True)
@@ -2421,7 +2420,7 @@ class ProposalUserAction(UserAction):
     proposal = models.ForeignKey(Proposal, related_name='action_logs', on_delete=models.CASCADE)
 
 
-class Referral(models.Model):
+class Referral(SanitiseMixin):
     SENT_CHOICES = (
         (1,'Sent From Assessor'),
         (2,'Sent From Referral')
@@ -4091,7 +4090,7 @@ class ApiarySiteFeeRemainder(models.Model):
         app_label = 'disturbance'
 
 
-class OnSiteInformation(models.Model):
+class OnSiteInformation(SanitiseMixin):
     apiary_site_on_approval = models.ForeignKey('ApiarySiteOnApproval', blank=True, null=True, on_delete=models.CASCADE)
     period_from = models.DateField(null=True, blank=True)
     period_to = models.DateField(null=True, blank=True)
@@ -4109,7 +4108,7 @@ class OnSiteInformation(models.Model):
         app_label = 'disturbance'
 
 
-class ProposalApiaryTemporaryUse(models.Model):
+class ProposalApiaryTemporaryUse(SanitiseMixin):
     from_date = models.DateField('Period From Date', blank=True, null=True)
     to_date = models.DateField('Period To Date', blank=True, null=True)
     proposal = models.OneToOneField(Proposal, related_name='apiary_temporary_use', null=True, blank=True, on_delete=models.CASCADE)
@@ -4291,7 +4290,7 @@ class ApiaryChecklistQuestion(RevisionedMixin):
         ordering = ['order', 'id']
 
 
-class ApiaryChecklistAnswer(models.Model):
+class ApiaryChecklistAnswer(SanitiseMixin):
     question=models.ForeignKey(ApiaryChecklistQuestion, related_name='answers', on_delete=models.CASCADE)
     answer = models.BooleanField(null=True, blank=True)
     proposal = models.ForeignKey(ProposalApiary, related_name="apiary_checklist", on_delete=models.CASCADE)
@@ -4614,6 +4613,7 @@ class ApiaryReferral(RevisionedMixin):
 # --------------------------------------------------------------------------------------
 # Generate JSON schema models start
 # --------------------------------------------------------------------------------------
+#TODO on-cleanup remove if no longer needed
 @python_2_unicode_compatible
 class QuestionOption(models.Model):
     label = models.CharField(max_length=100, unique=True)
@@ -4626,6 +4626,7 @@ class QuestionOption(models.Model):
     def __str__(self):
         return self.label 
 
+#TODO on-cleanup remove if no longer needed
 from ckeditor.fields import RichTextField
 @python_2_unicode_compatible
 class MasterlistQuestion(models.Model):
@@ -4864,7 +4865,7 @@ class MasterlistQuestion(models.Model):
             data = TableExpanderEncoder().encode_list(expanders)
             self.property_cache['expanders'] = data
 
-
+#TODO on-cleanup remove if no longer needed
 @python_2_unicode_compatible
 class ProposalTypeSection(models.Model):
     section_name = models.CharField(max_length=100)

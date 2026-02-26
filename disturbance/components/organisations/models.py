@@ -11,7 +11,7 @@ from django.db.models import JSONField, Q
 from ledger_api_client.utils import get_organisation, get_search_organisation, create_organisation
 from rest_framework import status
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from disturbance.components.main.models import UserAction,CommunicationsLogEntry, LedgerDocument, SanitiseFileMixin
+from disturbance.components.main.models import UserAction,CommunicationsLogEntry, LedgerDocument, SanitiseFileMixin, SanitiseMixin
 from disturbance.components.organisations.utils import random_generator
 from disturbance.components.organisations.emails import (
                         send_organisation_request_accept_email_notification,
@@ -505,7 +505,7 @@ class Organisation(models.Model):
         return self.first_five
 
 @python_2_unicode_compatible
-class OrganisationContact(models.Model):
+class OrganisationContact(SanitiseMixin):
     ORG_CONTACT_STATUS_DRAFT = 'draft'
     ORG_CONTACT_STATUS_PENDING = 'pending'
     ORG_CONTACT_STATUS_ACTIVE = 'active'
@@ -565,10 +565,9 @@ class OrganisationContact(models.Model):
         return self.user_status == 'active' and self.user_role =='consultant'
 
 
-class OrganisationContactDeclinedDetails(models.Model):
+class OrganisationContactDeclinedDetails(SanitiseMixin):
     request = models.ForeignKey(OrganisationContact, on_delete=models.CASCADE)
     officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
-    # reason = models.TextField(blank=True)
 
     class Meta:
         app_label = 'commercialoperator'
@@ -925,7 +924,7 @@ class OrganisationRequestUserAction(UserAction):
         app_label = 'disturbance'
 
 
-class OrganisationRequestDeclinedDetails(models.Model):
+class OrganisationRequestDeclinedDetails(SanitiseMixin):
     request = models.ForeignKey(OrganisationRequest, on_delete=models.CASCADE)
     officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
     reason = models.TextField(blank=True)

@@ -25,8 +25,23 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
 
-#TODO fix for segregation - apply sanitisemixin here
-class RevisionedMixin(models.Model):
+class SanitiseMixin(models.Model):
+    """
+    Sanitise models fields
+    """
+
+    def save(self, **kwargs):
+        from disturbance.components.main.utils import sanitise_fields
+        #sanitise
+        exclude = kwargs.pop("exclude_sanitise", []) #fields that should not be subject to full tag removal
+        error_on_change = kwargs.pop("error_on_sanitise", []) #fields that should not be modified through tag removal (and should throw and error if they are)
+        self = sanitise_fields(self, exclude, error_on_change)
+        super(SanitiseMixin, self).save(**kwargs)
+
+    class Meta:
+        abstract = True
+
+class RevisionedMixin(SanitiseMixin):
     """
     A model tracked by reversion through the save method.
     """
@@ -57,22 +72,6 @@ class RevisionedMixin(models.Model):
     class Meta:
         abstract = True
 
-
-class SanitiseMixin(models.Model):
-    """
-    Sanitise models fields
-    """
-
-    def save(self, **kwargs):
-        from disturbance.components.main.utils import sanitise_fields
-        #sanitise
-        exclude = kwargs.pop("exclude_sanitise", []) #fields that should not be subject to full tag removal
-        error_on_change = kwargs.pop("error_on_sanitise", []) #fields that should not be modified through tag removal (and should throw and error if they are)
-        self = sanitise_fields(self, exclude, error_on_change)
-        super(SanitiseMixin, self).save(**kwargs)
-
-    class Meta:
-        abstract = True
 
 class SanitiseFileMixin(SanitiseMixin, DirtyFieldsMixin):
     """
@@ -187,7 +186,7 @@ class Document(SanitiseFileMixin):
     def __str__(self):
         return self.name or self.filename
 
-class MapLayer(models.Model):
+class MapLayer(SanitiseMixin):
     display_name = models.CharField(max_length=100, blank=True, null=True)
     layer_name = models.CharField(max_length=200, blank=True, null=True)
     option_for_internal = models.BooleanField(default=True)
@@ -215,7 +214,7 @@ class MapLayer(models.Model):
         super(MapLayer, self).save(*args, **kwargs)
 
 
-class MapColumn(models.Model):
+class MapColumn(SanitiseMixin):
     map_layer = models.ForeignKey(MapLayer, null=True, blank=True, related_name='columns', on_delete=models.CASCADE)
     name = models.CharField(max_length=100, blank=True, null=True)
     option_for_internal = models.BooleanField(default=True)
@@ -230,7 +229,7 @@ class MapColumn(models.Model):
 
 
 @python_2_unicode_compatible
-class Region(models.Model):
+class Region(SanitiseMixin):
     name = models.CharField(max_length=200, unique=True)
     forest_region = models.BooleanField(default=False)
 
@@ -248,7 +247,7 @@ class ArchivedDistrictManager(models.Manager):
         return super().get_queryset().exclude(archive_date__lte=date.today())
 
 @python_2_unicode_compatible
-class District(models.Model):
+class District(SanitiseMixin):
     region = models.ForeignKey(Region, related_name='districts', on_delete=models.CASCADE)
     name = models.CharField(max_length=200, unique=True)
     code = models.CharField(max_length=3)
@@ -264,7 +263,7 @@ class District(models.Model):
         return self.name
 
 
-class DistrictDbca(models.Model):
+class DistrictDbca(SanitiseMixin):
     wkb_geometry = MultiPolygonField(srid=4326, blank=True, null=True)
     district_name = models.CharField(max_length=200, blank=True, null=True)
     office = models.CharField(max_length=200, blank=True, null=True)
@@ -277,7 +276,7 @@ class DistrictDbca(models.Model):
         verbose_name_plural = "Apiary DBCA Districts"
 
 
-class RegionDbca(models.Model):
+class RegionDbca(SanitiseMixin):
     wkb_geometry = MultiPolygonField(srid=4326, blank=True, null=True)
     region_name = models.CharField(max_length=200, blank=True, null=True)
     office = models.CharField(max_length=200, blank=True, null=True)
@@ -290,7 +289,7 @@ class RegionDbca(models.Model):
         verbose_name_plural = "Apiary DBCA Regions"
 
 
-class CategoryDbca(models.Model):
+class CategoryDbca(SanitiseMixin):
     '''
     This model is used for defining the categories
     '''
@@ -301,7 +300,7 @@ class CategoryDbca(models.Model):
         app_label = 'disturbance'
 
 
-class WaCoast(models.Model):
+class WaCoast(SanitiseMixin):
     '''
     This model is used for validating if the apiary site is in the valid area
     '''
@@ -343,7 +342,6 @@ class ApplicationType(models.Model):
         ('apiary', 'Apiary'),
     )
 
-    # name = models.CharField(max_length=64, unique=True)
     name = models.CharField(
         verbose_name='Application Type name',
         max_length=64,
@@ -364,10 +362,9 @@ class ApplicationType(models.Model):
     def __str__(self):
         return self.name
 
-
+#TODO on-cleanup - work out if this is needed, remove if not
 @python_2_unicode_compatible
 class ActivityMatrix(models.Model):
-    # name = models.CharField(verbose_name='Activity matrix name', max_length=24, choices=application_type_choicelist(), default='Disturbance')
     name = models.CharField(verbose_name='Activity matrix name', max_length=24,
                             choices=[('Disturbance', u'Disturbance')], default='Disturbance')
     description = models.CharField(max_length=256, blank=True, null=True)
@@ -386,7 +383,7 @@ class ActivityMatrix(models.Model):
 
 
 @python_2_unicode_compatible
-class Tenure(models.Model):
+class Tenure(SanitiseMixin):
     name = models.CharField(max_length=255, unique=True)
     order = models.PositiveSmallIntegerField(default=0)
     application_type = models.ForeignKey(ApplicationType, related_name='tenure_app_types', on_delete=models.CASCADE)
@@ -400,7 +397,7 @@ class Tenure(models.Model):
 
 
 @python_2_unicode_compatible
-class UserAction(models.Model):
+class UserAction(SanitiseMixin):
     who = models.ForeignKey(EmailUser, null=False, blank=False, on_delete=models.CASCADE)
     when = models.DateTimeField(null=False, blank=False, auto_now_add=True)
     what = models.TextField(blank=False)
@@ -417,7 +414,7 @@ class UserAction(models.Model):
         app_label = 'disturbance'
 
 
-class CommunicationsLogEntry(models.Model):
+class CommunicationsLogEntry(SanitiseMixin):
     TYPE_CHOICES = [
         ('email', 'Email'),
         ('phone', 'Phone Call'),
@@ -427,10 +424,8 @@ class CommunicationsLogEntry(models.Model):
     ]
     DEFAULT_TYPE = TYPE_CHOICES[0][0]
 
-    # to = models.CharField(max_length=200, blank=True, verbose_name="To")
     to = models.TextField(blank=True, verbose_name="To")
     fromm = models.CharField(max_length=200, blank=True, verbose_name="From")
-    # cc = models.CharField(max_length=200, blank=True, verbose_name="cc")
     cc = models.TextField(blank=True, verbose_name="cc")
 
     type = models.CharField(max_length=20, choices=TYPE_CHOICES, default=DEFAULT_TYPE)
@@ -499,7 +494,7 @@ class Document(SanitiseFileMixin):
 
 
 @python_2_unicode_compatible
-class SystemMaintenance(models.Model):
+class SystemMaintenance(SanitiseMixin):
     name = models.CharField(max_length=100)
     description = models.TextField()
     start_date = models.DateTimeField()
@@ -593,8 +588,6 @@ class GlobalSettings(models.Model):
 
 
 class TemporaryDocumentCollection(models.Model):
-    # input_name = models.CharField(max_length=255, null=True, blank=True)
-
     class Meta:
         app_label = 'disturbance'
 
@@ -605,8 +598,6 @@ class TemporaryDocument(Document):
         TemporaryDocumentCollection,
         related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(max_length=255)
-
-    # input_name = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         app_label = 'disturbance'

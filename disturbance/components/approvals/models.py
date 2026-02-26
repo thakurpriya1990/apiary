@@ -14,7 +14,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from disturbance.components.approvals.pdf import create_approval_document
 from disturbance.components.organisations.models import Organisation
 from disturbance.components.proposals.models import Proposal, ProposalUserAction, ApiarySite, ApiarySiteOnProposal
-from disturbance.components.main.models import CommunicationsLogEntry, UserAction, Document, RevisionedMixin
+from disturbance.components.main.models import CommunicationsLogEntry, UserAction, Document, RevisionedMixin, SanitiseMixin
 from disturbance.components.approvals.email import (
     send_approval_expire_email_notification,
     send_approval_cancel_email_notification,
@@ -75,7 +75,7 @@ class RenewalDocument(Document):
         app_label = 'disturbance'
 
 
-class ApiarySiteOnApproval(models.Model):
+class ApiarySiteOnApproval(SanitiseMixin):
     apiary_site = models.ForeignKey('ApiarySite', on_delete=models.CASCADE)
     approval = models.ForeignKey('Approval', on_delete=models.CASCADE)
     available = models.BooleanField(default=False)
@@ -688,7 +688,7 @@ class ApprovalUserAction(UserAction):
 
     approval= models.ForeignKey(Approval, related_name='action_logs', on_delete=models.CASCADE)
 
-class MigratedApiaryLicence(models.Model):
+class MigratedApiaryLicence(SanitiseMixin):
 # Records imported from CSV
     LICENCEE_TYPE_ORGANISATION = 'organisation'
     LICENCEE_TYPE_INDIVIDUAL = 'individual'
@@ -711,11 +711,9 @@ class MigratedApiaryLicence(models.Model):
     abn = models.CharField(max_length=50, null=True, blank=True, verbose_name='ABN')
     first_name = models.CharField(max_length=128, blank=False, verbose_name='Given name(s)')
     last_name = models.CharField(max_length=128, blank=False)
-    #data.update({'other_contact': row[12].strip()})
     address_line1 = models.CharField('Line 1', max_length=255)
     address_line2 = models.CharField('Line 2', max_length=255, blank=True)
     address_line3 = models.CharField('Line 3', max_length=255, blank=True)
-    #locality = models.CharField('Suburb / Town', max_length=255)
     suburb = models.CharField('Suburb / Town', max_length=255)
     state = models.CharField(max_length=255, default='WA', blank=True)
     country = CountryField(default='AU')
