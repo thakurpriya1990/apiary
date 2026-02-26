@@ -45,4 +45,5 @@ def apiary_url(request):
         "vue3_entry_script": settings.VUE3_ENTRY_SCRIPT,
         'LEDGER_SYSTEM_ID': f'{settings.LEDGER_SYSTEM_ID}',
         'DJANGO_SETTINGS': settings,
+        'checkouthash' : checkouthash,
     }
