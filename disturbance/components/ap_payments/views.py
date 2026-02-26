@@ -542,7 +542,7 @@ class ApplicationFeeSuccessViewPreload(APIView):
 
                     adjust_db_operations(db_operations)
                 else:
-                    logger.error('Invoice payment status is {}'.format(invoice.payment_status))
+                    logger.error('Invoice payment status is {}'.format(invoice_properties['data']['invoice']['payment_status'] if invoice_properties['data'] and invoice_properties['data']['invoice'] else "not available"))
                     raise
                 
                 recipient = None
