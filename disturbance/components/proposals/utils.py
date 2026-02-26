@@ -1085,28 +1085,6 @@ def save_proponent_data_disturbance(instance,request,viewset):
             viewset.perform_update(serializer)
             instance.log_user_action(ProposalUserAction.ACTION_SAVE_APPLICATION.format(instance.lodgement_number), request)
 
-            # Save Documents
-        #            for f in request.FILES:
-        #                try:
-        #                    #document = instance.documents.get(name=str(request.FILES[f]))
-        #                    document = instance.documents.get(input_name=f)
-        #                except ProposalDocument.DoesNotExist:
-        #                    document = instance.documents.get_or_create(input_name=f)[0]
-        #                document.name = str(request.FILES[f])
-        #                if document._file and os.path.isfile(document._file.path):
-        #                    os.remove(document._file.path)
-        #                document._file = request.FILES[f]
-        #                document.save()
-
-        #            for f in request.FILES:
-        #                try:
-        #                   document = instance.documents.get(input_name=f, name=request.FILES[f].name)
-        #                except ProposalDocument.DoesNotExist:
-        #                   document = instance.documents.get_or_create(input_name=f, name=request.FILES[f].name)[0]
-        #                document._file = request.FILES[f]
-        #                document.save()
-
-        # End Save Documents
         except:
             raise
 
@@ -1131,7 +1109,6 @@ def save_assessor_data(instance,request,viewset):
             # Save Documents
             for f in request.FILES:
                 try:
-                    #document = instance.documents.get(name=str(request.FILES[f]))
                     document = instance.documents.get(input_name=f)
                 except ProposalDocument.DoesNotExist:
                     document = instance.documents.get_or_create(input_name=f)[0]

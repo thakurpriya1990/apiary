@@ -467,7 +467,7 @@ class LedgerDocument(SanitiseFileMixin):
         app_label = 'disturbance'
 
 @python_2_unicode_compatible
-class Document(models.Model):
+class Document(SanitiseFileMixin):
     name = models.CharField(max_length=255, blank=True,
                             verbose_name='name', help_text='')
     description = models.TextField(blank=True,
