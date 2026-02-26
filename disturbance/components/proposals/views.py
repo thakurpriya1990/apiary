@@ -13,16 +13,24 @@ from disturbance.helpers import is_internal, is_in_organisation_contacts
 from reversion.models import Version
 from reversion_compare.views import HistoryCompareDetailView
 
+from django.contrib.auth.mixins import UserPassesTestMixin
+
+#TODO fix for segregation: reversion as of writing cannot be used in this way anyway (ledger user id issues)
+#The below class should (untested) secure all history views once HistoryCompareDetailView has been replaced
+#Either implement (presuming the compare interfaces have been fixed somehow) or remove entirely
+#class InternalHistoryCompareDetailView(UserPassesTestMixin, HistoryCompareDetailView):
+#    def test_func(self):
+#        return is_internal(self.request)
 
 #TODO fix for segregation (fix or remove all history compare views (they are not secured!))
-#class ProposalHistoryCompareView(HistoryCompareDetailView):
+#class ProposalHistoryCompareView(InternalHistoryCompareDetailView):
 #    """
 #    View for reversion_compare
 #    """
 #    model = Proposal
 #    template_name = 'disturbance/reversion_history.html'
-#
-#
+
+
 #class ProposalHistoryLatestCompareView(HistoryCompareDetailView):
 #    """
 #    View for reversion_compare that returns on the x most recent revisions

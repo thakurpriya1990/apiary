@@ -185,12 +185,6 @@ class Remittance(Flowable):
         self.__footer_line()
 
 
-#def _set_template_group(mooring_var):
-
-
-#def get_template_group(mooring_var):
-
-
 def _create_header(canvas, doc, draw_page_number=True):
     canvas.saveState()
     canvas.setTitle('Confirmation')

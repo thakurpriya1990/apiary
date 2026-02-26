@@ -54,7 +54,7 @@ from disturbance.components.main.utils import (
     get_qs_proposal,
     get_qs_approval,
     handle_validation_error, get_qs_pending_site, get_qs_denied_site, get_qs_current_site,
-    get_qs_not_to_be_reissued_site, get_qs_suspended_site, get_qs_discarded_site,
+    get_qs_not_to_be_reissued_site, get_qs_suspended_site, get_qs_discarded_site, remove_html_tags
 )
 
 from django.urls import reverse
@@ -481,17 +481,19 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         except ApiarySite.DoesNotExist:
             raise NotFound(detail="No ApiarySite matches the given query.", code=404)
 
-        comments = request.data.get('comments', '')
-        sender = request.user
-        email_data = send_contact_licence_holder_email(apiary_site.latest_approval_link, comments, sender)
+        comments = remove_html_tags(request.data.get('comments', ''))
 
-        email_data['approval'] = u'{}'.format(apiary_site.latest_approval_link.approval.id)
-        email_data['fromm'] = sender.email if sender else None
-        email_data['to'] = apiary_site.latest_approval_link.approval.relevant_applicant_email if apiary_site.latest_approval_link and apiary_site.latest_approval_link.approval else None
+        if comments:
+            sender = request.user
+            email_data = send_contact_licence_holder_email(apiary_site.latest_approval_link, comments, sender)
 
-        serializer = ApprovalLogEntrySerializer(data=email_data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+            email_data['approval'] = u'{}'.format(apiary_site.latest_approval_link.approval.id)
+            email_data['fromm'] = sender.email if sender else None
+            email_data['to'] = apiary_site.latest_approval_link.approval.relevant_applicant_email if apiary_site.latest_approval_link and apiary_site.latest_approval_link.approval else None
+
+            serializer = ApprovalLogEntrySerializer(data=email_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
         return Response({})
 

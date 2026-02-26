@@ -18,14 +18,6 @@
                             <img :src="rulerSvgUrl" @click="set_mode('layer')" />
                         </template>
                     </div>
-                    <!--div class="optional-layers-button" @click="set_mode(mode)">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" >
-                            <path
-                                d="M18.342 0l-2.469 2.47 2.121 2.121-.707.707-2.121-2.121-1.414 1.414 1.414 1.414-.707.707-1.414-1.414-1.414 1.414 1.414 1.414-.707.707-1.414-1.414-1.414 1.414 2.121 2.122-.707.707-2.121-2.121-1.414 1.414 1.414 1.414-.708.707-1.414-1.414-1.414 1.414 1.414 1.414-.708.709-1.414-1.414-1.414 1.413 2.121 2.121-.706.706-2.122-2.121-2.438 2.439 5.656 5.657 18.344-18.343z"
-                                :fill="ruler_colour"
-                            />
-                        </svg>
-                    </div-->
                     <div style="position:relative">
                         <transition v-if="optionalLayers.length">
                             <div v-if="optionalLayers.length" class="optional-layers-button" @mouseover="hover=true">
@@ -70,29 +62,20 @@
     import { v4 as uuid } from 'uuid';
     import 'ol/ol.css';
     import 'ol-layerswitcher/dist/ol-layerswitcher.css'
-    //import 'index.css';  // copy-and-pasted the contents of this file at the <style> section below in this file
-
     import Map from 'ol/Map';
     import View from 'ol/View';
-    // import WMTSCapabilities from 'ol/format/WMTSCapabilities';
     import TileLayer from 'ol/layer/Tile';
     import OSM from 'ol/source/OSM';
     import TileWMS from 'ol/source/TileWMS';
-    // import WMTS, {optionsFromCapabilities} from 'ol/source/WMTS';
-    // import Collection from 'ol/Collection';
     import { Draw, Modify } from 'ol/interaction';
     import VectorLayer from 'ol/layer/Vector';
     import VectorSource from 'ol/source/Vector';
     import { Circle as CircleStyle, Fill, Style } from 'ol/style';
     import { FullScreen as FullScreenControl, MousePosition as MousePositionControl } from 'ol/control';
-    // import { Feature } from 'ol';
     import { LineString, Point } from 'ol/geom';
-    // import { getDistance } from 'ol/sphere';
-    // import { circular} from 'ol/geom/Polygon';
     import GeoJSON from 'ol/format/GeoJSON';
     import Overlay from 'ol/Overlay';
     import { getDisplayNameFromStatus, getDisplayNameOfCategory, getStatusForColour, getApiaryFeatureStyle, zoomToCoordinates, checkIfValidlatitudeAndlongitude } from '@/components/common/apiary/site_colours.js'
-    // import { getArea, getLength } from 'ol/sphere'
     import MeasureStyles, { formatLength } from '@/components/common/apiary/measure.js'
     import Awesomplete from 'awesomplete'
     import { api_endpoints } from '@/utils/hooks'
@@ -152,7 +135,6 @@
                 segmentStyles: null,
                 
                 awe: null,
-                mapboxAccessToken: null,
                 search_box_id: uuid(),
                 search_input_id: uuid(),
                 // AT the moment (specify the path) this works but not ideal, need to find a way to load images from assets folder
@@ -162,10 +144,6 @@
                 rulerSvgUrl: '/static/disturbance_vue/src/ruler.svg',
                 infoBubbleSvgUrl: '/static/disturbance_vue/src/info-bubble.svg',
             }
-        },
-        created: async function(){
-            let temp_token = await this.retrieveMapboxAccessToken()
-            this.mapboxAccessToken = temp_token.access_token
         },
         mounted: function(){
             let vm = this;
@@ -193,10 +171,6 @@
             }
         },
         methods: {
-            retrieveMapboxAccessToken: async function(){
-                let ret_val = await $.ajax('/api/geocoding_address_search_token')
-                return ret_val
-            },
             initAwesomplete: function(){
                 var vm = this;
                 var element_search = document.getElementById(vm.search_input_id);
@@ -236,10 +210,8 @@
 
                 if(!(searching_by_latlng)){
                     var latlng = vm.map.getView().getCenter();
-                    //TODO fix for segregation - get these values via backend so we do not expose the access token
                     $.ajax({
                         url: api_endpoints.geocoding_address_search + encodeURIComponent(place)+'.json?'+ $.param({
-                            access_token: vm.mapboxAccessToken,
                             country: 'au',
                             limit: 10,
                             proximity: ''+latlng[0]+','+latlng[1],

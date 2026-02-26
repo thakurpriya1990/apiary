@@ -52,7 +52,7 @@ export default {
     history_version_compare: "/api/history/compare/",
     history_versions: "/api/history/versions/",
     history_version: "/api/history/version/",
-    geocoding_address_search: "https://api.mapbox.com/geocoding/v5/mapbox.places/",
+    geocoding_address_search: "/api/geocoding_address_search/",
     get_organisation_id: function (org_id) {
       return `/api/get_organisation_id/?org_id=${org_id}`
     },

@@ -4,7 +4,7 @@ from django.urls import re_path, include
 from django.conf.urls.static import static
 from rest_framework import routers
 from disturbance import views
-from disturbance.components.main.views import deed_poll_url, GeocodingAddressSearchTokenView
+from disturbance.components.main.views import deed_poll_url, GeocodingAddressSearchView
 from disturbance.components.proposals import views as proposal_views
 from disturbance.components.organisations import views as organisation_views
 from disturbance.components.ap_payments import views as payment_views
@@ -79,7 +79,7 @@ api_patterns = [
             history_api.GetVersionsView.as_view(), name='get-versions'),
     re_path(r'^api/history/version/(?P<app_label>[\w-]+)/(?P<component_name>[\w-]+)/(?P<model_name>[\w-]+)/(?P<serializer_name>[\w-]+)/(?P<pk>\d+)/(?P<version_number>\d+)/$',
             history_api.GetVersionView.as_view(), name='get-version'),
-    re_path(r'^api/geocoding_address_search_token', GeocodingAddressSearchTokenView.as_view(), name='geocoding_address_search_token'),
+    re_path(r'^api/geocoding_address_search', GeocodingAddressSearchView.as_view(),name='geocoding_address_search'),
 ]
 
 # URL Patterns

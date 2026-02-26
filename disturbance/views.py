@@ -39,13 +39,18 @@ class InternalView(UserPassesTestMixin, TemplateView):
     def test_func(self):
         return is_internal(self.request)
 
-
 class ExternalView(LoginRequiredMixin, TemplateView):
     template_name = 'disturbance/dash/index.html'
 
+#TODO on-cleanup review and remove unused DetailView (they don't appear to be needed though that should be tested)
 class ReferralView(ReferralOwnerMixin, DetailView):
     model = Referral
     template_name = 'disturbance/dash/index.html'
+    
+    def get(self, *args, **kwargs):
+        if self.request.user.is_authenticated():
+            if is_internal(self.request):
+                return super(InternalComplianceView, self).get(*args, **kwargs)
 
 class ExternalProposalView(DetailView):
     model = Proposal
@@ -58,6 +63,12 @@ class ExternalComplianceView(DetailView):
 class InternalComplianceView(DetailView):
     model = Compliance
     template_name = 'disturbance/dash/index.html'
+
+    def get(self, *args, **kwargs):
+        if self.request.user.is_authenticated():
+            if is_internal(self.request):
+                return super(InternalComplianceView, self).get(*args, **kwargs)
+            return redirect('external-compliance-detail')
 
 class DisturbanceRoutingView(TemplateView):
     template_name = 'disturbance/index.html'

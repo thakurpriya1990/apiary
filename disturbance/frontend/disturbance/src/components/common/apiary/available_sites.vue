@@ -304,7 +304,6 @@
                     },
                 ],
                 awe: null,
-                mapboxAccessToken: null,
                 search_box_id: uuid(),
                 search_input_id: uuid(),
                 search_address_latlng_text: '',
@@ -409,10 +408,6 @@
             }
         },
         methods: {
-            retrieveMapboxAccessToken: async function(){
-                let ret_val = await $.ajax('/api/geocoding_address_search_token')
-                return ret_val
-            },
             initAwesomplete: function(){
                 var vm = this;
                 var element_search = document.getElementById(vm.search_input_id);
@@ -450,10 +445,8 @@
 
                 if(!(searching_by_latlng)){
                     var latlng = vm.map.getView().getCenter();
-                    //TODO fix for segregation - get these values via backend so we do not expose the access token
                     $.ajax({
                         url: api_endpoints.geocoding_address_search + encodeURIComponent(place)+'.json?'+ $.param({
-                            access_token: vm.mapboxAccessToken,
                             country: 'au',
                             limit: 10,
                             proximity: ''+latlng[0]+','+latlng[1],
@@ -1525,10 +1518,6 @@
                     }
                 } // END: loop for show_hide_instructions
             }, // END: showHideApiarySites()
-        },
-        created: async function() {
-            let temp_token = await this.retrieveMapboxAccessToken()
-            this.mapboxAccessToken = temp_token.access_token
         },
         mounted: function() {
             let vm = this;

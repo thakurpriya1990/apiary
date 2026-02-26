@@ -11,7 +11,7 @@ from django.db.models import JSONField, Q
 from ledger_api_client.utils import get_organisation, get_search_organisation, create_organisation
 from rest_framework import status
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from disturbance.components.main.models import UserAction,CommunicationsLogEntry, LedgerDocument
+from disturbance.components.main.models import UserAction,CommunicationsLogEntry, LedgerDocument, SanitiseFileMixin, SanitiseMixin
 from disturbance.components.organisations.utils import random_generator
 from disturbance.components.organisations.emails import (
                         send_organisation_request_accept_email_notification,
@@ -505,7 +505,7 @@ class Organisation(models.Model):
         return self.first_five
 
 @python_2_unicode_compatible
-class OrganisationContact(models.Model):
+class OrganisationContact(SanitiseMixin):
     ORG_CONTACT_STATUS_DRAFT = 'draft'
     ORG_CONTACT_STATUS_PENDING = 'pending'
     ORG_CONTACT_STATUS_ACTIVE = 'active'
@@ -565,10 +565,9 @@ class OrganisationContact(models.Model):
         return self.user_status == 'active' and self.user_role =='consultant'
 
 
-class OrganisationContactDeclinedDetails(models.Model):
+class OrganisationContactDeclinedDetails(SanitiseMixin):
     request = models.ForeignKey(OrganisationContact, on_delete=models.CASCADE)
     officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
-    # reason = models.TextField(blank=True)
 
     class Meta:
         app_label = 'commercialoperator'
@@ -621,9 +620,10 @@ def update_organisation_comms_log_filename(instance, filename):
     return 'organisations/{}/communications/{}/{}'.format(instance.log_entry.organisation.id,instance.id,filename)
 
 
+#TODO fix for segregation - is this used? Remove or Adjust accordingly
 class OrganisationLogDocument(LedgerDocument):
     log_entry = models.ForeignKey('OrganisationLogEntry',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_organisation_comms_log_filename, storage=private_storage)
+    _file = models.FileField(max_length=255, upload_to=update_organisation_comms_log_filename, storage=private_storage)
 
     class Meta:
         app_label = 'disturbance'
@@ -642,8 +642,7 @@ class OrganisationLogEntry(CommunicationsLogEntry):
     class Meta:
         app_label = 'disturbance'
 
-
-class OrganisationRequest(models.Model):
+class OrganisationRequest(SanitiseFileMixin):
     STATUS_CHOICES = (
         ('with_assessor','With Assessor'),
         ('approved','Approved'),
@@ -925,7 +924,7 @@ class OrganisationRequestUserAction(UserAction):
         app_label = 'disturbance'
 
 
-class OrganisationRequestDeclinedDetails(models.Model):
+class OrganisationRequestDeclinedDetails(SanitiseMixin):
     request = models.ForeignKey(OrganisationRequest, on_delete=models.CASCADE)
     officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
     reason = models.TextField(blank=True)
@@ -939,7 +938,7 @@ def update_organisation_request_comms_log_filename(instance, filename):
 
 class OrganisationRequestLogDocument(LedgerDocument):
     log_entry = models.ForeignKey('OrganisationRequestLogEntry',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_organisation_request_comms_log_filename, storage=private_storage)
+    _file = models.FileField(max_length=255, upload_to=update_organisation_request_comms_log_filename, storage=private_storage)
 
     class Meta:
         app_label = 'disturbance'
