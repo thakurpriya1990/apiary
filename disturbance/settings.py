@@ -69,6 +69,7 @@ MIDDLEWARE_CLASSES += [
     'disturbance.middleware.RevisionOverrideMiddleware',
     'disturbance.middleware.CacheControlMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'disturbance.middleware.PaymentSessionMiddleware',
 ]
 
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'disturbance', 'templates'))
