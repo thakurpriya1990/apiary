@@ -100,10 +100,14 @@ class ApprovalPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if is_internal(self.request):
-            return Approval.objects.all().exclude(status='hidden')
+            return Approval.objects.filter(
+                    apiary_approval=True
+                ).exclude(status='hidden')
         elif self.request.user.is_authenticated:
             user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
-            queryset =  Approval.objects.filter(Q(applicant_id__in = user_orgs)|Q(proxy_applicant_id=self.request.user.id)).exclude(status='hidden')
+            queryset =  Approval.objects.filter(
+                    apiary_approval=True
+                ).filter(Q(applicant_id__in = user_orgs)|Q(proxy_applicant_id=self.request.user.id)).exclude(status='hidden')
             return queryset
         return Approval.objects.none()
 

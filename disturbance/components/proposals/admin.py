@@ -57,7 +57,6 @@ class ProposalApiaryAdmin(VersionAdmin):
     list_display = ['id', 'proposal']
 
 
-#TODO fix for segregation show apiary only (?)
 @admin.register(models.Proposal)
 class ProposalAdmin(VersionAdmin):
     inlines =[ProposalDocumentInline,]
@@ -73,6 +72,11 @@ class ProposalAdmin(VersionAdmin):
             return obj.previous_application.lodgement_number
         else:
             return ''
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE])
+
 
 @admin.register(models.ApiarySite)
 class ApiarySite(admin.ModelAdmin):
@@ -93,7 +97,7 @@ class ProposalAssessorGroupMembershipInline(admin.TabularInline):
     extra = 1
     raw_id_fields = ('emailuser',)
 
-
+#TODO on-cleanup check if need for apiary
 @admin.register(models.ProposalAssessorGroup)
 class ProposalAssessorGroupAdmin(admin.ModelAdmin):
     list_display = ['name','default']
@@ -113,7 +117,7 @@ class ProposalApproverGroupMembershipInline(admin.TabularInline):
     extra = 1
     raw_id_fields = ('emailuser',)
 
-#TODO fix for segregation check if need for apiary
+#TODO on-cleanup check if need for apiary
 @admin.register(models.ProposalApproverGroup)
 class ProposalApproverGroupAdmin(admin.ModelAdmin):
     list_display = ['name','default']
@@ -194,7 +198,7 @@ class ApiaryApproverGroupAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False 
 
-#TODO fix for segregation show apiary only
+#TODO on-cleanup show apiary only 
 @admin.register(models.ProposalStandardRequirement)
 class ProposalStandardRequirementAdmin(admin.ModelAdmin):
     list_display = ['code','text','system','obsolete']
@@ -228,7 +232,7 @@ class SystemMaintenanceAdmin(admin.ModelAdmin):
     readonly_fields = ('duration',)
     form = forms.SystemMaintenanceAdminForm
 
-#TODO fix for segregation show apiary only
+#TODO on-cleanup show apiary only 
 @admin.register(ApplicationType)
 class ApplicationTypeAdmin(admin.ModelAdmin):
     list_display = ['name', 'order', 'visible', 'domain_used',]
@@ -327,23 +331,3 @@ admin.site.register(models.SiteCategory, SiteCategoryAdmin)
 class ApiaryChecklistQuestionAdmin(admin.ModelAdmin):
     list_display = ['text', 'checklist_type', 'checklist_role',]
     ordering = ('order',)
-
-#TODO fix for segregation is this needed for apiary?
-@admin.register(models.QuestionOption)
-class QuestionOptionAdmin(admin.ModelAdmin):
-    list_display = ['label',]
-    fields = ('label',)
-
-#TODO fix for segregation is this needed for apiary?
-@admin.register(models.MasterlistQuestion)
-class MasterlistQuestionAdmin(admin.ModelAdmin):
-    list_display = ['question',]
-    filter_horizontal = ('option',)
-    form = forms.MasterlistQuestionAdminForm
-    
-#TODO fix for segregation (?) - only if needed for apiary
-#@admin.register(models.SectionQuestion)
-#class SectionQuestionAdmin(admin.ModelAdmin):
-#    list_display = ['section', 'question','order', 'parent_question','parent_answer']
-#    #list_display = ['section', 'question','parent_question',]
-#    form = forms.SectionQuestionAdminForm

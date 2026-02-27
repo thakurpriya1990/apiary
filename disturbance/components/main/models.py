@@ -512,7 +512,6 @@ class SystemMaintenance(SanitiseMixin):
         return 'System Maintenance: {} ({}) - starting {}, ending {}'.format(self.name, self.description,
                                                                              self.start_date, self.end_date)
 
-#TODO fix for segregation - assess need for file sanitisation here (admin access only, may still be prudent to run checks)
 @python_2_unicode_compatible
 class ApiaryGlobalSettings(models.Model):
     KEY_ORACLE_CODE_APIARY_SITE_ANNUAL_RENTAL_FEE = 'oracle_code_apiary_site_annural_rental_fee'  # ApplicationType object has an attribute 'oracle_code_application' to store oracle account code

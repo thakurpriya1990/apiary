@@ -640,7 +640,6 @@ export default {
         },
 
         check_org_details_complete: function(org) {
-            //let org = this.$refs.proposal_apiary.$refs.mu_details.org
             let blank_fields = []
 
             // Org Details
@@ -663,8 +662,6 @@ export default {
             let vm=this;
             let blank_fields = []
 
-            //console.log('can_submit checklistq check' +vm.$refs.proposal_apiary.getUnansweredChecklistQuestions());
-
              if(vm.proposal.application_type == 'Apiary'){
                 let org = vm.$refs.proposal_apiary.$refs.mu_details.org
                 if( vm.$refs.proposal_apiary.getUnansweredChecklistQuestions ){
@@ -680,8 +677,6 @@ export default {
                     blank_fields.push(' Public liability expiry date is missing')
                 }
 
-                //this.$refs.proposal_apiary.$refs.mu_details.updateDetails(false);
-                //this.$refs.proposal_apiary.$refs.mu_details.updateAddress(false);
                 let blank_org_fields = vm.check_org_details_complete(org)
                 if(blank_org_fields.length>0){
                     blank_fields.push(' Organisation details missing: [' + blank_org_fields.join(", ") + ']')

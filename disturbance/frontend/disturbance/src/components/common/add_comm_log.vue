@@ -217,7 +217,6 @@ export default {
         sendData:function(){
             let vm = this;
             vm.errors = false;
-            //TODO fix for segregation - comms log file not uploading
             let comms = new FormData(); 
             comms.append('to',this.to);
             comms.append('fromm',this.from);

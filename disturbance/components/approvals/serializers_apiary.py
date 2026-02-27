@@ -179,8 +179,6 @@ class ApiarySiteOnApprovalGeometryExportSerializer(ApiarySiteOnApprovalGeometryS
     def get_status(self, relation):
         return get_status_for_export(relation)
 
-    # def get_category(self, relation):
-    #     return relation.site_category.name
     def _get_admin_user(self, org):
         admins = org.contacts.filter(user_status__in=('active', 'suspended', 'contact_form',), is_admin=True)
         admin = admins.first() if admins else None

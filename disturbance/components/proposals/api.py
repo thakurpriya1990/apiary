@@ -136,11 +136,12 @@ from disturbance.components.proposals.permissions import (
 from disturbance.components.approvals.permissions import (
     InternalApprovalPermission,
 )
+from django.db.models.functions import Concat
+from django.db.models import Value
 
 import logging
 logger = logging.getLogger(__name__)
 
-#TODO fix for segregation fix search (check other filter backends too)
 class ProposalFilterBackend(DatatablesFilterBackend):
     """
     Custom filters
@@ -156,8 +157,39 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             print(e)
 
         if search_text:
-            #TODO fix for segregation - add custom filters as required
-            queryset = queryset.distinct() | super_queryset 
+            search_text = search_text.lower()
+
+            email_user_ids = list(EmailUser.objects.annotate(
+                full_name=Concat(
+                    'first_name',
+                    Value(' '),
+                    'last_name'
+                ),
+                legal_full_name=Concat(
+                    'legal_first_name',
+                    Value(' '),
+                    'legal_last_name'
+                ),
+            ).filter(
+                Q(email__icontains=search_text) |
+                Q(first_name__icontains=search_text) |
+                Q(last_name__icontains=search_text) |
+                Q(full_name__icontains=search_text) |
+                Q(legal_first_name__icontains=search_text) |
+                Q(legal_last_name__icontains=search_text) |
+                Q(legal_full_name__icontains=search_text) 
+            ).values_list('id', flat=True))
+
+            search_text_app_ids = Proposal.objects.values(
+                'id'
+            ).filter(
+                Q(proxy_applicant_id__in=email_user_ids) |
+                Q(submitter_id__in=email_user_ids) 
+            )
+
+            queryset = queryset.filter(
+                id__in=search_text_app_ids
+            ).distinct() | super_queryset
 
         application_type = request.GET.get('application_type')
         if application_type and not application_type.lower() =='all':
@@ -471,7 +503,6 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     #TODO on-cleanup consider putting better controls around this 
     # - right now a user can just keep emailing another user through our system without any limits
-    #TODO fix for segregation - add sanitisation here (refer to textfield sanitisation when implemented)
     @action(detail=True,methods=['POST',])
     @basic_exception_handler
     def contact_licence_holder(self, request, pk=None):
@@ -1944,6 +1975,7 @@ class ProposalStandardRequirementViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    #TODO on-cleanup remove
     @action(detail=False,methods=['GET',])
     def disturbance_standard_requirements(self, request, *args, **kwargs):
         # Only Disturbance standard requirements

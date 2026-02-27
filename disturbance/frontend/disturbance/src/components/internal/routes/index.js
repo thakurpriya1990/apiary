@@ -3,7 +3,6 @@ import InternalDashboard from '../dashboard.vue'
 import Search from '../search.vue'
 import OrgAccessTable from '../organisations/dashboard.vue'
 import OrgAccess from '../organisations/access.vue'
-import Organisation from '../organisations/manage.vue'
 import Proposal from '../proposals/proposal_wrapper.vue';
 import Referral from '../referrals/referral_wrapper.vue'
 import ApprovalDash from '../approvals/dashboard.vue'
@@ -79,12 +78,6 @@ export default
                     component: OrgAccess,
                     name:"org-access"
                 },
-                {
-                    path: ':org_id',
-                    component: Organisation,
-                    name:"internal-org-detail"
-                },
-
             ]
         },
         {

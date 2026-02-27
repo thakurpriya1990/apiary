@@ -49,7 +49,7 @@ from disturbance.components.organisations.permissions import(
 class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = Organisation.objects.none()
     serializer_class = OrganisationSerializer
-    allow_external = False #TODO fix for segregation review this - workaround for allowing organisations to be accessed when validating pins
+    allow_external = False #NOTE: this is fine, but an alternative would be to use a direct get instead of going through get_queryset
 
     def get_queryset(self):
         user = self.request.user
@@ -516,7 +516,7 @@ class OrganisationRequestsViewSet(viewsets.GenericViewSet, mixins.RetrieveModelM
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    #TODO fix for segregation - is this used? remove if not
+
     @action(detail=False,methods=['GET', ])
     def get_pending_requests(self, request, *args, **kwargs):
         try:
@@ -533,7 +533,7 @@ class OrganisationRequestsViewSet(viewsets.GenericViewSet, mixins.RetrieveModelM
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    #TODO fix for segregation - is this used? remove if not
+
     @action(detail=False,methods=['GET', ])
     def get_amendment_requested_requests(self, request, *args, **kwargs):
         try:
@@ -602,7 +602,7 @@ class OrganisationRequestsViewSet(viewsets.GenericViewSet, mixins.RetrieveModelM
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    #TODO fix for segregation - is this used? remove if not
+    #TODO on-cleanup - is this used? remove if not
     @action(detail=True,methods=['GET',], permission_classes=[InternalOrganisationPermission])
     def amendment_request(self, request, *args, **kwargs):
         try:
@@ -851,5 +851,5 @@ class GetOrganisationId(views.APIView):
         if organisation_qs.exists():
             return Response({"id":organisation_qs.last().id})
         else:
-            serializers.ValidationError("not authorised to access organisation")
+            raise serializers.ValidationError("not authorised to access organisation")
 
