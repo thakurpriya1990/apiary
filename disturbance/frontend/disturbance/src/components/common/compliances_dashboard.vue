@@ -15,12 +15,6 @@
 
                 <div class="col-md-3">
                     <label for="">Due date From</label>
-                    <!-- <div class="input-group date" ref="complianceDueDateFromPicker">
-                        <input type="text" class="form-control" placeholder="DD/MM/YYYY" v-model="filterComplianceDueFrom">
-                        <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-calendar"></span>
-                        </span>
-                    </div> -->
                     <input
                                 id="compliance-due-from"
                                 type="date"
@@ -32,12 +26,6 @@
                 </div>
                 <div class="col-md-3">
                     <label for="">Due date To</label>
-                    <!-- <div class="input-group date" ref="complianceDueDateToPicker">
-                        <input type="text" class="form-control" placeholder="DD/MM/YYYY" v-model="filterComplianceDueTo">
-                        <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-calendar"></span>
-                        </span>
-                    </div> -->
                     <input
                                 id="compliance-due-to"
                                 type="date"
@@ -97,8 +85,6 @@ export default {
             filterComplianceStatus: 'All',
             filterComplianceStartFrom: '',
             filterComplianceStartTo: '',
-            // filterComplianceDueFrom: '',
-            // filterComplianceDueTo: '',
             compliance_due_from: '',
             compliance_due_to: '',
             filterProposalSubmitter: 'All',
@@ -111,25 +97,9 @@ export default {
                 allowInputToggle:true
             },
             select2Applied: false,
-            /*
-            external_status:[
-                'Due',
-                'Future',
-                'Under Review',
-                'Approved',
-            ],
-            internal_status:[
-                'Due',
-                'Future',
-                'With Assessor',
-                'Approved',
-
-            ],
-            */
             proposal_activityTitles : [],
             proposal_regions: [],
             proposal_submitters: [],
-            //proposal_headers:["Number","Region/District","Activity","Title","Approval","Holder","Status","Due Date","Assigned To", "CustomerStatus", "Reference","Action"],
             proposal_options: {},
         }
     },
@@ -140,15 +110,6 @@ export default {
         filterProposalRegion: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
         },
-        //filterProposalRegion: function() {
-        //    //this.$refs.proposal_datatable.vmDataTable.draw();
-        //    let vm = this;
-        //    if (vm.filterProposalRegion!= 'All') {
-        //        vm.$refs.proposal_datatable.vmDataTable.column('proposal__region__name:name').search(vm.filterProposalRegion).draw();
-        //    } else {
-        //        vm.$refs.proposal_datatable.vmDataTable.column('proposal__region__name:name').search('').draw();
-        //    }
-        //},
         filterProposalActivity: function() {
             let vm = this;
             if (vm.filterProposalActivity!= 'All') {
@@ -163,27 +124,11 @@ export default {
         filterProposalSubmitter: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
         },
-        // filterComplianceStartFrom: function(){
-        //     this.$refs.proposal_datatable.vmDataTable.draw();
-        // },
-        // filterComplianceStartTo: function(){
-        //     this.$refs.proposal_datatable.vmDataTable.draw();
-        // },
-        // filterComplianceDueFrom: function(){
-        //     this.$refs.proposal_datatable.vmDataTable.draw();
-        // },
-        // filterComplianceDueTo: function(){
-        //     this.$refs.proposal_datatable.vmDataTable.draw();
-        // },
         dateRangeIdentifierForReloadProposalTable: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
         },
     },
     computed: {
-        /* status: function(){
-            return this.is_external ? this.external_status : this.internal_status;
-            //return [];
-        }, */
         filterComplianceDueFrom: {
             get() {
                 // If our internal date exists, convert it for submission, etc
@@ -225,7 +170,6 @@ export default {
                 "Number",
                 "Activity",
                 "Due Date",
-                "District",
                 "Holder",
                 "Licence",
                 "Status",
@@ -241,12 +185,12 @@ export default {
             let columnList = [
                     {
                         // 1. Number
-                        data: "id",
+                        data: "lodgement_number",
                         mRender:function (data,type,full) {
-                            //return `C${data}`;
-                            return full.reference;
+                            return full.lodgement_number;
                         },
-                        name: "id, lodgement_number",
+                        name: "lodgement_number",
+                        searchable: true,
                         defaultContent: '',
                     }]
             columnList.push(
@@ -254,7 +198,6 @@ export default {
                         // 3. Activity
                         data: "activity",
                         name: "proposal__activity",
-                        //visible: true,
                         defaultContent: '',
                     });
 
@@ -266,18 +209,15 @@ export default {
                             return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
                         },
                         defaultContent: '',
-                    },
-                    {
-                        // 8. District
-                        data: "district",
-                        searchable: false,
-                        defaultContent: '',
+                        searchable: true,
                     },
                     {
                         // 9. Holder
                         data: "holder",
                         name: "proposal__applicant__organisation__name",
                         defaultContent: '',
+                        orderable: false,
+                        searchable: false,
                     },
                     {
                         // 10. Approval/Licence
@@ -293,6 +233,7 @@ export default {
                         data: vm.level == 'external'? "customer_status" : "processing_status",
                         searchable: false,  // There is a filter dropdown for 'Status'
                         defaultContent: '',
+                        orderable: false,
                     },
                     );
 
@@ -303,6 +244,8 @@ export default {
                         name: "assigned_to__first_name, assigned_to__last_name, assigned_to__email",
                         // visible: false
                         defaultContent: '',
+                        orderable: false,
+                        searchable: false,
                     });
             }
             columnList.push(
@@ -310,7 +253,6 @@ export default {
                         // 13. Action
                         data: '',
                         mRender:function (data,type,full) {
-                            //console.log(full)
                             let links = '';
                             if (!vm.is_external){
                                 if (full.processing_status=='With Assessor' && vm.check_assessor(full)) {
@@ -336,30 +278,6 @@ export default {
                         className: "noexport",
                         defaultContent: '',
                     },
-                    {
-                        data: "reference", 
-                        visible: false,
-                        className: "noexport",
-                        defaultContent: '',
-                    },
-                    {
-                        data: "customer_status", 
-                        visible: false,
-                        className: "noexport",
-                        defaultContent: '',
-                    },
-                    {
-                        data: "can_user_view", 
-                        visible: false,
-                        className: "noexport",
-                        defaultContent: '',
-                    },
-                    {
-                        data: "allowed_assessors", 
-                        visible: false,
-                        className: "noexport",
-                        defaultContent: '',
-                    }
             );
             return columnList;
         },
@@ -383,10 +301,6 @@ export default {
 
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
-                        //d.start_date_from = vm.filterComplianceStartFrom != '' && vm.filterComplianceStartFrom != null ? moment(vm.filterComplianceStartFrom, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
-                        //d.start_date_to = vm.filterComplianceStartTo != '' && vm.filterComplianceStartTo != null ? moment(vm.filterComplianceStartTo, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
-                        // d.due_date_from = vm.filterComplianceDueFrom != '' && vm.filterComplianceDueFrom != null ? moment(vm.filterComplianceDueFrom, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
-                        // d.due_date_to = vm.filterComplianceDueTo != '' && vm.filterComplianceDueTo != null ? moment(vm.filterComplianceDueTo, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
                         d.due_date_from = vm.compliance_due_from != '' && vm.compliance_due_from != null ? moment(vm.compliance_due_from, 'YYYY-MM-DD').format('YYYY-MM-DD'): '';
                         d.due_date_to = vm.compliance_due_to != '' && vm.compliance_due_to != null ? moment(vm.compliance_due_to, 'YYYY-MM-DD').format('YYYY-MM-DD'): '';
                         d.compliance_status = vm.filterComplianceStatus;
