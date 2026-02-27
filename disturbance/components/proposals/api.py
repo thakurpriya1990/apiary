@@ -558,17 +558,6 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         return Response(data[0] if len(data) > 0 else {})
 
     #TODO fix for segregation - everything from here needs to be optimised - replace the serializers
-    #This one is not used
-    @action(detail=False,methods=['GET', ])
-    @basic_exception_handler
-    def list_apiary_sites_draft(self, request):
-        proposal_id = request.query_params.get('proposal_id', None)
-        search_text = request.query_params.get('search_text', '')
-        proposal = Proposal.objects.get(id=proposal_id) if proposal_id else None
-        qs_on_proposal_draft = get_qs_proposal('draft', proposal, search_text, True)
-        serializer_proposal_draft = ApiarySiteOnProposalDraftMinimalGeometrySerializer(qs_on_proposal_draft, many=True)
-        return Response(serializer_proposal_draft.data)
-
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_vacant(self, request):
@@ -633,15 +622,6 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         search_text = request.query_params.get('search_text', '')
         qs_sites = get_qs_not_to_be_reissued_site(search_text)
         serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_sites, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False,methods=['GET', ])
-    @basic_exception_handler
-    #This one is not used
-    def list_apiary_sites_discarded(self, request):
-        search_text = request.query_params.get('search_text', '')
-        qs_sites = get_qs_discarded_site(search_text)
-        serializer = ApiarySiteOnProposalProcessedMinimalGeometrySerializer(qs_sites, many=True)
         return Response(serializer.data)
 
     @action(detail=False,methods=['GET',])

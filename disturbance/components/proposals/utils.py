@@ -41,7 +41,7 @@ import json
 
 import logging
 
-from disturbance.settings import RESTRICTED_RADIUS, TIME_ZONE, DEBUG
+from disturbance.settings import TIME_ZONE, DEBUG
 from disturbance.utils import convert_moment_str_to_python_datetime_obj
 from disturbance.helpers import is_internal
 
@@ -337,6 +337,108 @@ def annotate_temporary_use_apiary_site(qs):
 
     return annotated
 
+def annotate_apiary_site_on_proposal_vacant_draft_minimal_geometry(qs):
+    annotated = qs.annotate(
+            lat=Func("wkb_geometry_draft", function="ST_Y", output_field=FloatField()),
+            lng=Func("wkb_geometry_draft", function="ST_X", output_field=FloatField()),
+        ).annotate(
+            site_id=F("apiary_site__id")
+        ).annotate(
+            stable_coords=JSONObject(
+                lng=F('lng'),
+                lat=F('lat'),
+            )
+        ).annotate(
+            site_guid=F("apiary_site__site_guid")
+        ).annotate(
+            site_category=F("site_category_draft__name")
+        ).annotate(
+            status=F("site_status")
+        ).annotate(
+            is_vacant=F("apiary_site__is_vacant")
+        ).annotate(
+            geometry=JSONObject(
+                type=Value("Point"), #we only serve points from here
+                coordinates=Func(
+                    Concat(F('lng'),Value(","),F('lat'),output_field=CharField()),
+                    Value(','),
+                    function='string_to_array',
+                    output_field=ArrayField(FloatField()),
+                )
+            )
+        ).annotate(
+            type=Value("Feature") #we are returning a list of features
+        ).annotate(
+            properties=JSONObject(
+                stable_coords=F('stable_coords'),
+                site_guid=F('site_guid'),
+                is_vacant=F('is_vacant'),
+                site_category=F('site_category'),
+                status=F('status'),
+            )
+        ).values(
+            'site_id',
+            'type',
+            'geometry',
+            'properties',
+        )
+
+    annotated = rename_site_id_to_id(annotated)
+
+    return annotated
+
+def annotate_apiary_site_on_proposal_minimal_geometry(qs):
+    annotated = qs.annotate(
+            lat=Func("wkb_geometry_draft", function="ST_Y", output_field=FloatField()),
+            lng=Func("wkb_geometry_draft", function="ST_X", output_field=FloatField()),
+        ).annotate(
+            site_id=F("apiary_site__id")
+        ).annotate(
+            stable_coords=JSONObject(
+                lng=F('lng'),
+                lat=F('lat'),
+            )
+        ).annotate(
+            site_guid=F("apiary_site__site_guid")
+        ).annotate(
+            site_category=F("site_category_draft__name")
+        ).annotate(
+            status=F("site_status")
+        ).annotate(
+            is_vacant=F("apiary_site__is_vacant")
+        ).annotate(
+            geometry=JSONObject(
+                type=Value("Point"), #we only serve points from here
+                coordinates=Func(
+                    Concat(F('lng'),Value(","),F('lat'),output_field=CharField()),
+                    Value(','),
+                    function='string_to_array',
+                    output_field=ArrayField(FloatField()),
+                )
+            )
+        ).annotate(
+            type=Value("Feature") #we are returning a list of features
+        ).annotate(
+            properties=JSONObject(
+                stable_coords=F('stable_coords'),
+                site_guid=F('site_guid'),
+                is_vacant=F('is_vacant'),
+                site_category=F('site_category'),
+                status=F('status'),
+                for_renewal=F('for_renewal'),
+                application_fee_paid=F('application_fee_paid'),
+            )
+        ).values(
+            'site_id',
+            'type',
+            'geometry',
+            'properties',
+        )
+
+    annotated = rename_site_id_to_id(annotated)
+
+    return annotated
+
 def create_data_from_form(schema, post_data, file_data, post_data_index=None,special_fields=[],assessor_data=False):
     data = {}
     special_fields_list = []
@@ -364,10 +466,6 @@ def create_data_from_form(schema, post_data, file_data, post_data_index=None,spe
         return [data],special_fields_list,assessor_data_list,comment_data_list
 
     return [data],special_fields_list
-
-
-def _extend_item_name(name, suffix, repetition):
-    return '{}{}-{}'.format(name, suffix, repetition)
 
 def _create_data_from_item(item, post_data, file_data, repetition, suffix):
     item_data = {}
