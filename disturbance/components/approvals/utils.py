@@ -107,7 +107,7 @@ def annotate_apiary_site_on_approval_min_geometry(qs):
                 status=F('status'),
                 available=F('available'),
                 approval_id=F('approval_id'),
-                approval_lodgement_number=F('lodgement_number'),
+                lodgement_number=F('lodgement_number'),
             )
         ).values(
             'site_id',

@@ -436,6 +436,62 @@ def annotate_apiary_site_on_proposal_minimal_geometry(qs):
 
     return annotated
 
+def annotate_apiary_site_on_proposal_processed_minimal_geometry(qs):
+    annotated = qs.annotate(
+            lat=Func("wkb_geometry_processed", function="ST_Y", output_field=FloatField()),
+            lng=Func("wkb_geometry_processed", function="ST_X", output_field=FloatField()),
+        ).annotate(
+            site_id=F("apiary_site__id")
+        ).annotate(
+            stable_coords=JSONObject(
+                lng=F('lng'),
+                lat=F('lat'),
+            )
+        ).annotate(
+            site_guid=F("apiary_site__site_guid")
+        ).annotate(
+            site_category=F("site_category_draft__name")
+        ).annotate(
+            status=F("site_status")
+        ).annotate(
+            is_vacant=F("apiary_site__is_vacant")
+        ).annotate(
+            geometry=JSONObject(
+                type=Value("Point"),
+                coordinates=Func(
+                    Cast(F('lng'), FloatField()),
+                    Cast(F('lat'), FloatField()),
+                    function='jsonb_build_array',
+                    output_field=JSONField(),
+                )
+            )
+        ).annotate(
+            type=Value("Feature") #we are returning a list of features
+        ).annotate(
+            properties=JSONObject(
+                stable_coords=F('stable_coords'),
+                site_guid=F('site_guid'),
+                is_vacant=F('is_vacant'),
+                site_category=F('site_category'),
+                status=F('status'),
+                workflow_selected_status=F('workflow_selected_status'),
+                for_renewal=F('for_renewal'),
+                making_payment=F('making_payment'),
+                application_fee_paid=F('application_fee_paid'),
+                apiary_site_status_when_submitted=F('apiary_site_status_when_submitted'),
+                apiary_site_is_vacant_when_submitted=F('apiary_site_is_vacant_when_submitted'),
+            )
+        ).values(
+            'site_id',
+            'type',
+            'geometry',
+            'properties',
+        )
+
+    annotated = rename_site_id_to_id(annotated)
+
+    return annotated
+
 def create_data_from_form(schema, post_data, file_data, post_data_index=None,special_fields=[],assessor_data=False):
     data = {}
     special_fields_list = []

@@ -19,11 +19,7 @@ from disturbance.components.approvals.email import (
     send_contact_licence_holder_email,
     send_on_site_notification_email,
 )
-from disturbance.components.approvals.serializers_apiary import (
-    ApiarySiteOnApprovalGeometrySerializer,
-    ApiarySiteOnApprovalMinimalGeometrySerializer,
-    ApiarySiteOnApprovalMinGeometrySerializer,
-)
+
 from disturbance.components.main.decorators import basic_exception_handler, timeit
 from disturbance.components.proposals.utils import (
     save_proponent_data,
@@ -34,6 +30,8 @@ from disturbance.components.proposals.utils import (
     annotate_site_transfer_apiary_site,
     annotate_temporary_use_apiary_site,
     annotate_apiary_site_on_proposal_vacant_draft_minimal_geometry,
+    annotate_apiary_site_on_proposal_minimal_geometry,
+    annotate_apiary_site_on_proposal_processed_minimal_geometry,
 )
 
 from disturbance.components.approvals.utils import (
@@ -118,11 +116,7 @@ from disturbance.components.proposals.serializers_apiary import (
     FullApiaryReferralSerializer,
     ProposalHistorySerializer,
     UserApiaryApprovalSerializer,
-    ApiarySiteOnProposalProcessedMinimalGeometrySerializer,
-    ApiarySiteOnProposalDraftMinimalGeometrySerializer,
     ApiarySiteFeeSerializer,
-    ApiarySiteOnProposalVacantDraftMinimalGeometrySerializer,
-    ApiarySiteOnProposalVacantProcessedMinimalGeometrySerializer,
 )
 from disturbance.components.approvals.models import Approval, ApiarySiteOnApproval
 from disturbance.components.approvals.serializers import ApprovalLogEntrySerializer
@@ -561,7 +555,6 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         data = annotate_apiary_site_on_approval_geometry(ApiarySiteOnApproval.objects.filter(id=instance.id))
         return Response(data[0] if len(data) > 0 else {})
 
-    #TODO fix for segregation - replace serializers if possible
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_vacant(self, request):
@@ -577,80 +570,91 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def list_apiary_sites_pending(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_sites = get_qs_pending_site(search_text)
-        serializer = ApiarySiteOnProposalProcessedMinimalGeometrySerializer(qs_sites, many=True)
-        return Response(serializer.data)
+        sites = annotate_apiary_site_on_proposal_minimal_geometry(qs_sites)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_denied(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_sites = get_qs_denied_site(search_text)
-        serializer = ApiarySiteOnProposalProcessedMinimalGeometrySerializer(qs_sites, many=True)
-        return Response(serializer.data)
+        sites = annotate_apiary_site_on_proposal_minimal_geometry(qs_sites)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_current_available(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_sites = get_qs_current_site(search_text, available=True)
-        serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_sites, many=True)
-        return Response(serializer.data)
+        sites = annotate_apiary_site_on_approval_min_geometry(qs_sites)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_current_unavailable(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_sites = get_qs_current_site(search_text, available=False)
-        serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_sites, many=True)
-        return Response(serializer.data)
+        sites = annotate_apiary_site_on_approval_min_geometry(qs_sites)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_current(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_sites = get_qs_current_site(search_text)
-        serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_sites, many=True)
-        return Response(serializer.data)
+        sites = annotate_apiary_site_on_approval_min_geometry(qs_sites)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_suspended(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_sites = get_qs_suspended_site(search_text)
-        serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_sites, many=True)
-        return Response(serializer.data)
+        sites = annotate_apiary_site_on_approval_min_geometry(qs_sites)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_not_to_be_reissued(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_sites = get_qs_not_to_be_reissued_site(search_text)
-        serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_sites, many=True)
-        return Response(serializer.data)
+        sites = annotate_apiary_site_on_approval_min_geometry(qs_sites)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
     @timeit
     def list_existing_proposal_vacant_draft(self, request):
-        qs_vacant_site_proposal, qs_vacant_site_approval = get_qs_vacant_site()
-        serializer_vacant_proposal_d = ApiarySiteOnProposalVacantDraftMinimalGeometrySerializer(qs_vacant_site_proposal.filter(wkb_geometry_processed__isnull=True), many=True)
-        return Response(serializer_vacant_proposal_d.data)
+        qs_vacant_site_proposal, _ = get_qs_vacant_site()
+        vacant_site_proposal = annotate_apiary_site_on_proposal_vacant_draft_minimal_geometry(qs_vacant_site_proposal)
+        data = {"type":"FeatureCollection","features":list(vacant_site_proposal)}
+        return Response(data)
 
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
     @timeit
     def list_existing_proposal_vacant_processed(self, request):
-        qs_vacant_site_proposal, qs_vacant_site_approval = get_qs_vacant_site()
-        serializer_vacant_proposal = ApiarySiteOnProposalVacantProcessedMinimalGeometrySerializer(qs_vacant_site_proposal.filter(wkb_geometry_processed__isnull=False), many=True)
-        return Response(serializer_vacant_proposal.data)
+        qs_vacant_site_proposal, _ = get_qs_vacant_site()
+        qs_vacant_site_proposal = qs_vacant_site_proposal.filter(wkb_geometry_processed__isnull=False)
+        vacant_site_proposal = annotate_apiary_site_on_proposal_processed_minimal_geometry(qs_vacant_site_proposal)
+        data = {"type":"FeatureCollection","features":list(vacant_site_proposal)}
+        return Response(data)
 
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
     @timeit
     def list_existing_approval_vacant(self, request):
-        qs_vacant_site_proposal, qs_vacant_site_approval = get_qs_vacant_site()
-        serializer_vacant_approval = ApiarySiteOnApprovalMinGeometrySerializer(qs_vacant_site_approval, many=True)
-        return Response(serializer_vacant_approval.data)
+        _, qs_vacant_site_approval = get_qs_vacant_site()
+        vacant_site_approval = annotate_apiary_site_on_approval_min_geometry(qs_vacant_site_approval)
+        data = {"type":"FeatureCollection","features":list(vacant_site_approval)}
+        return Response(data)
 
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
@@ -660,8 +664,9 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         search_text = request.query_params.get('search_text', '')
         proposal = Proposal.objects.get(id=proposal_id) if proposal_id else None
         qs_on_proposal_draft = get_qs_proposal('draft', proposal, search_text)
-        serializer_proposal_draft = ApiarySiteOnProposalDraftMinimalGeometrySerializer(qs_on_proposal_draft, many=True)
-        return Response(serializer_proposal_draft.data)
+        on_proposal_draft = annotate_apiary_site_on_proposal_minimal_geometry(qs_on_proposal_draft)
+        data = {"type":"FeatureCollection","features":list(on_proposal_draft)}
+        return Response(data)
 
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
@@ -670,8 +675,9 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         proposal_id = request.query_params.get('proposal_id', None)
         proposal = Proposal.objects.get(id=proposal_id) if proposal_id else None
         qs_on_proposal_processed = get_qs_proposal('processed', proposal)
-        serializer_proposal_processed = ApiarySiteOnProposalProcessedMinimalGeometrySerializer(qs_on_proposal_processed, many=True)
-        return Response(serializer_proposal_processed.data)
+        on_proposal_processed = annotate_apiary_site_on_proposal_processed_minimal_geometry(qs_on_proposal_processed)
+        data = {"type":"FeatureCollection","features":list(on_proposal_processed)}
+        return Response(data)
 
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
@@ -679,9 +685,9 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def list_existing_approval(self, request):
         # ApiarySiteOnApproval
         qs_on_approval = get_qs_approval()
-        serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_on_approval, many=True)
-        return Response(serializer.data)
-    #END TODO fix for segregation
+        sites = annotate_apiary_site_on_approval_min_geometry(qs_on_approval)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     def _available_sites_qs(self):
         q_include = Q(id__in=(ApiarySite.objects.all().values('latest_approval_link__id')))
@@ -706,14 +712,13 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         qs_on_proposal = ApiarySiteOnProposal.objects.filter(q_include_proposal).distinct('apiary_site')
         return qs_on_proposal
 
-    #TODO fix for segregation (optimise)
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
     def available_sites(self, request):
         qs_on_approval = self._available_sites_qs()
-        serializer = ApiarySiteOnApprovalGeometrySerializer(qs_on_approval, many=True)
-
-        return Response(serializer.data)
+        sites = annotate_apiary_site_on_approval_geometry(qs_on_approval)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     #TODO cleanup: this may not be needed any more
     @action(detail=False,methods=['GET',])
