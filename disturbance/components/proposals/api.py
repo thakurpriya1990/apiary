@@ -33,9 +33,13 @@ from disturbance.components.proposals.utils import (
     annotate_apiary_site_on_proposal_draft_geometry,
     annotate_site_transfer_apiary_site,
     annotate_temporary_use_apiary_site,
+    annotate_apiary_site_on_proposal_vacant_draft_minimal_geometry,
 )
 
-from disturbance.components.approvals.utils import annotate_apiary_site_on_approval_geometry
+from disturbance.components.approvals.utils import (
+    annotate_apiary_site_on_approval_geometry,
+    annotate_apiary_site_on_approval_min_geometry
+)
 
 from disturbance.components.proposals.models import (
     searchKeyWords, search_reference, 
@@ -557,16 +561,16 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         data = annotate_apiary_site_on_approval_geometry(ApiarySiteOnApproval.objects.filter(id=instance.id))
         return Response(data[0] if len(data) > 0 else {})
 
-    #TODO fix for segregation - everything from here needs to be optimised - replace the serializers
+    #TODO fix for segregation - replace serializers if possible
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_vacant(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_vacant_site_proposal, qs_vacant_site_approval = get_qs_vacant_site(search_text)
-        serializer_vacant_proposal = ApiarySiteOnProposalVacantDraftMinimalGeometrySerializer(qs_vacant_site_proposal, many=True)
-        serializer_vacant_approval = ApiarySiteOnApprovalMinGeometrySerializer(qs_vacant_site_approval, many=True)
-        serializer_vacant_approval.data['features'].extend(serializer_vacant_proposal.data['features'])
-        return Response(serializer_vacant_approval.data)
+        vacant_site_proposal = annotate_apiary_site_on_proposal_vacant_draft_minimal_geometry(qs_vacant_site_proposal)
+        vacant_site_approval = annotate_apiary_site_on_approval_min_geometry(qs_vacant_site_approval)
+        data = {"type":"FeatureCollection","features":list(vacant_site_proposal)+list(vacant_site_approval)}
+        return Response(data)
 
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler

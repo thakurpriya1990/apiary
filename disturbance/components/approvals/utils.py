@@ -1,7 +1,5 @@
-from django.db.models import Func, FloatField, Value, F
-from django.db.models import CharField
-from django.contrib.postgres.fields import ArrayField
-from django.db.models.functions import JSONObject, Concat
+from django.db.models import JSONField, Func, FloatField, Value, F
+from django.db.models.functions import JSONObject, Cast
 
 def annotate_apiary_site_on_approval_geometry(qs):
     
@@ -23,12 +21,12 @@ def annotate_apiary_site_on_approval_geometry(qs):
             is_vacant=F("apiary_site__is_vacant")
         ).annotate(
             geometry=JSONObject(
-                type=Value("Point"), #we only serve points from here
+                type=Value("Point"),
                 coordinates=Func(
-                    Concat(F('lng'),Value(","),F('lat'),output_field=CharField()),
-                    Value(','),
-                    function='string_to_array',
-                    output_field=ArrayField(FloatField()),
+                    Cast(F('lng'), FloatField()),
+                    Cast(F('lat'), FloatField()),
+                    function='jsonb_build_array',
+                    output_field=JSONField(),
                 )
             )
         ).annotate(
@@ -90,12 +88,12 @@ def annotate_apiary_site_on_approval_min_geometry(qs):
             lodgement_number=F("approval__lodgement_number")
         ).annotate(
             geometry=JSONObject(
-                type=Value("Point"), #we only serve points from here
+                type=Value("Point"),
                 coordinates=Func(
-                    Concat(F('lng'),Value(","),F('lat'),output_field=CharField()),
-                    Value(','),
-                    function='string_to_array',
-                    output_field=ArrayField(FloatField()),
+                    Cast(F('lng'), FloatField()),
+                    Cast(F('lat'), FloatField()),
+                    function='jsonb_build_array',
+                    output_field=JSONField(),
                 )
             )
         ).annotate(

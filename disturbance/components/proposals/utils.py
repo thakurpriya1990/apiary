@@ -5,11 +5,10 @@ import pytz
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.db import transaction
-from django.contrib.gis.geos import Point, GEOSGeometry
-from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Document
+from django.contrib.gis.geos import GEOSGeometry
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from rest_framework import serializers
 
-from disturbance.components.main.decorators import timeit
 from disturbance.components.proposals.models import ProposalDocument, ProposalUserAction, ApiarySite, SiteCategory, \
     ProposalApiaryTemporaryUse, TemporaryUseApiarySite, ApiarySiteOnProposal, Proposal
 from disturbance.components.proposals.serializers import SaveProposalSerializer
@@ -19,12 +18,6 @@ from disturbance.components.proposals.models import (
     SiteTransferApiarySite,
     ApiaryChecklistQuestion,
     ApiaryChecklistAnswer,
-    QuestionOption,
-    MasterlistQuestion,
-    ProposalTypeSection,
-    SectionQuestion,
-    HelpPage,
-    ApplicationType,
 )
 from disturbance.components.proposals.serializers_apiary import (
     ProposalApiarySerializer,
@@ -45,10 +38,8 @@ from disturbance.settings import TIME_ZONE, DEBUG
 from disturbance.utils import convert_moment_str_to_python_datetime_obj
 from disturbance.helpers import is_internal
 
-from django.db.models import Func, FloatField, Value, F
-from django.db.models import CharField
-from django.contrib.postgres.fields import ArrayField
-from django.db.models.functions import JSONObject, Concat
+from django.db.models import JSONField, Func, FloatField, Value, F
+from django.db.models.functions import JSONObject, Cast
 
 logger = logging.getLogger(__name__)
 
@@ -84,12 +75,12 @@ def annotate_apiary_site_on_proposal_draft_geometry(qs):
             is_vacant=F("apiary_site__is_vacant")
         ).annotate(
             geometry=JSONObject(
-                type=Value("Point"), #we only serve points from here
+                type=Value("Point"),
                 coordinates=Func(
-                    Concat(F('lng'),Value(","),F('lat'),output_field=CharField()),
-                    Value(','),
-                    function='string_to_array',
-                    output_field=ArrayField(FloatField()),
+                    Cast(F('lng'), FloatField()),
+                    Cast(F('lat'), FloatField()),
+                    function='jsonb_build_array',
+                    output_field=JSONField(),
                 )
             )
         ).annotate(
@@ -154,12 +145,12 @@ def annotate_apiary_site_on_proposal_processed_geometry(qs):
             is_vacant=F("apiary_site__is_vacant")
         ).annotate(
             geometry=JSONObject(
-                type=Value("Point"), #we only serve points from here
+                type=Value("Point"),
                 coordinates=Func(
-                    Concat(F('lng'),Value(","),F('lat'),output_field=CharField()),
-                    Value(','),
-                    function='string_to_array',
-                    output_field=ArrayField(FloatField()),
+                    Cast(F('lng'), FloatField()),
+                    Cast(F('lat'), FloatField()),
+                    function='jsonb_build_array',
+                    output_field=JSONField(),
                 )
             )
         ).annotate(
@@ -222,12 +213,12 @@ def annotate_site_transfer_apiary_site(qs):
             is_vacant=F("apiary_site_on_approval__apiary_site__is_vacant")
         ).annotate(
             geometry=JSONObject(
-                type=Value("Point"), #we only serve points from here
+                type=Value("Point"),
                 coordinates=Func(
-                    Concat(F('lng'),Value(","),F('lat'),output_field=CharField()),
-                    Value(','),
-                    function='string_to_array',
-                    output_field=ArrayField(FloatField()),
+                    Cast(F('lng'), FloatField()),
+                    Cast(F('lat'), FloatField()),
+                    function='jsonb_build_array',
+                    output_field=JSONField(),
                 )
             )
         ).annotate(
@@ -289,12 +280,12 @@ def annotate_temporary_use_apiary_site(qs):
             is_vacant=F("apiary_site_on_approval__apiary_site__is_vacant")
         ).annotate(
             geometry=JSONObject(
-                type=Value("Point"), #we only serve points from here
+                type=Value("Point"),
                 coordinates=Func(
-                    Concat(F('lng'),Value(","),F('lat'),output_field=CharField()),
-                    Value(','),
-                    function='string_to_array',
-                    output_field=ArrayField(FloatField()),
+                    Cast(F('lng'), FloatField()),
+                    Cast(F('lat'), FloatField()),
+                    function='jsonb_build_array',
+                    output_field=JSONField(),
                 )
             )
         ).annotate(
@@ -358,12 +349,12 @@ def annotate_apiary_site_on_proposal_vacant_draft_minimal_geometry(qs):
             is_vacant=F("apiary_site__is_vacant")
         ).annotate(
             geometry=JSONObject(
-                type=Value("Point"), #we only serve points from here
+                type=Value("Point"),
                 coordinates=Func(
-                    Concat(F('lng'),Value(","),F('lat'),output_field=CharField()),
-                    Value(','),
-                    function='string_to_array',
-                    output_field=ArrayField(FloatField()),
+                    Cast(F('lng'), FloatField()),
+                    Cast(F('lat'), FloatField()),
+                    function='jsonb_build_array',
+                    output_field=JSONField(),
                 )
             )
         ).annotate(
@@ -375,6 +366,12 @@ def annotate_apiary_site_on_proposal_vacant_draft_minimal_geometry(qs):
                 is_vacant=F('is_vacant'),
                 site_category=F('site_category'),
                 status=F('status'),
+                workflow_selected_status=F('workflow_selected_status'),
+                for_renewal=F('for_renewal'),
+                making_payment=F('making_payment'),
+                application_fee_paid=F('application_fee_paid'),
+                apiary_site_status_when_submitted=F('apiary_site_status_when_submitted'),
+                apiary_site_is_vacant_when_submitted=F('apiary_site_is_vacant_when_submitted'),
             )
         ).values(
             'site_id',
@@ -408,12 +405,12 @@ def annotate_apiary_site_on_proposal_minimal_geometry(qs):
             is_vacant=F("apiary_site__is_vacant")
         ).annotate(
             geometry=JSONObject(
-                type=Value("Point"), #we only serve points from here
+                type=Value("Point"),
                 coordinates=Func(
-                    Concat(F('lng'),Value(","),F('lat'),output_field=CharField()),
-                    Value(','),
-                    function='string_to_array',
-                    output_field=ArrayField(FloatField()),
+                    Cast(F('lng'), FloatField()),
+                    Cast(F('lat'), FloatField()),
+                    function='jsonb_build_array',
+                    output_field=JSONField(),
                 )
             )
         ).annotate(
