@@ -633,7 +633,6 @@ export default {
                         if (!response.ok) {
                         throw new Error(`Form save failed: ${response.status}`);
                         }
-                        //return response.json(); // or response.text() if no JSON is returned
                     })
                     .then(() => {
                         // Second POST: Complete referral

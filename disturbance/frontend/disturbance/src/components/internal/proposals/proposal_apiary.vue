@@ -780,8 +780,6 @@ export default {
                 this.$refs.proposed_approval.approval.start_date = moment(this.$refs.proposed_approval.approval.start_date, 'DD/MM/YYYY').format('YYYY-MM-DD');
                 this.$refs.proposed_approval.approval.expiry_date = moment(this.$refs.proposed_approval.approval.expiry_date, 'DD/MM/YYYY').format('YYYY-MM-DD');
                 this.$refs.proposed_approval.state = 'final_approval';
-                //this.$refs.proposed_approval.isApprovalLevelDocument = this.isApprovalLevelDocument; TODO fix for segregation - determine if this is needed or not 
-
                 this.$refs.proposed_approval.isModalOpen = true;
 
                 // Force to refresh the map to display it in case it is not shown.

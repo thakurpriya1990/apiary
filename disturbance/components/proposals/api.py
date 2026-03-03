@@ -939,7 +939,7 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                         
             return Response(serializer.data)
 
-    #TODO fix for segregation - why it is a POST?
+    #TODO on-cleanup - why it is a POST?
     @action(detail=True,methods=['POST', ])
     def get_licence_holders(self, request, *args, **kwargs):
         try:
@@ -1000,8 +1000,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         except:
             raise serializer.ValidationError("Valid proposal id not provided")
 
-    #TODO fix for segregation - why GET?
-    @action(detail=True,methods=['GET', 'POST'],permission_classes=[ProposalReferrerPermission])
+    @action(detail=True,methods=['POST'],permission_classes=[ProposalReferrerPermission])
     def complete(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1029,7 +1028,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    #TODO fix for segregation - why GET?
+    #TODO on-cleanup - why GET?
     @action(detail=True,methods=['GET',],permission_classes=[ProposalAssessorPermission])
     def remind(self, request, *args, **kwargs):
         try:
@@ -1047,7 +1046,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    #TODO fix for segregation - why GET?
+    #TODO on-cleanup - why GET?
     @action(detail=True,methods=['GET',],permission_classes=[ProposalAssessorPermission])
     def recall(self, request, *args, **kwargs):
         try:
@@ -1065,7 +1064,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    #TODO fix for segregation - why GET?
+    #TODO on-cleanup - why GET?
     @action(detail=True,methods=['GET',],permission_classes=[ProposalAssessorPermission])
     def resend(self, request, *args, **kwargs):
         try:
@@ -1792,7 +1791,6 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                             'proposal_apiary_temporary_use_id': new_temp_use.id,
                             'apiary_site_on_approval_id': relation.id,
                         }
-                        #TODO fix for segregation - replace this (do not use serializer)
                         serializer = TemporaryUseApiarySiteSerializer(data=data_to_save)
                         serializer.is_valid(raise_exception=True)
                         serializer.save()
@@ -1869,7 +1867,7 @@ class ProposalRequirementViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMi
             return ProposalRequirement.objects.exclude(is_deleted=True)
         return ProposalRequirement.objects.none()
 
-    #TODO fix for segregation - why GET?
+    #TODO on-cleanup - why GET?
     @action(detail=True,methods=['GET',])
     def move_up(self, request, *args, **kwargs):
         try:
@@ -1884,7 +1882,7 @@ class ProposalRequirementViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMi
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    #TODO fix for segregation - why GET?
+    #TODO on-cleanup - why GET?
     @action(detail=True,methods=['GET',])
     def move_down(self, request, *args, **kwargs):
         try:
@@ -1899,7 +1897,7 @@ class ProposalRequirementViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMi
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    #TODO fix for segregation - why GET?
+    #TODO on-cleanup - why GET?
     @action(detail=True,methods=['GET',])
     def discard(self, request, *args, **kwargs):
         try:

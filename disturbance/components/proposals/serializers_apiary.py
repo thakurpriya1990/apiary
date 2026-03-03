@@ -972,13 +972,7 @@ class SaveProposalApiarySerializer(serializers.ModelSerializer):
 class TemporaryUseApiarySiteSerializer(serializers.ModelSerializer):
     proposal_apiary_temporary_use_id = serializers.IntegerField(write_only=True, required=False)
     apiary_site_on_approval_id = serializers.IntegerField(write_only=True, required=False)
-    # apiary_site_on_approval = ApiarySiteOnApprovalGeometrySerializer(read_only=True)
     apiary_site = serializers.SerializerMethodField()
-    # apiary_site_id = serializers.IntegerField(write_only=True, required=False)
-    # apiary_site = ApiarySiteSerializer(read_only=True)
-    # apiary_site_approval = ApiarySiteApprovalSerializer(read_only=True)
-    # apiary_site_approval_id = serializers.IntegerField(write_only=True, required=False)
-    # apiary_site = serializers.SerializerMethodField()
 
     def get_apiary_site(self, obj):
         return ApiarySiteOnApprovalGeometrySerializer(obj.apiary_site_on_approval).data
