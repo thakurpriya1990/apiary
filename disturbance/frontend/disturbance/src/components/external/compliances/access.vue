@@ -108,6 +108,7 @@
 import { v4 as uuid } from 'uuid';
 import FormSection from "@/components/forms/section_toggle.vue";
 import alert from '@vue-utils/alert.vue'
+import { toRaw } from 'vue';
 import {
   api_endpoints,
   helpers
@@ -291,7 +292,6 @@ export default {
                 }
             }).catch((error)=>{
                 vm.errors = true;
-                // vm.errorString = helpers.apiVueResourceError(error);
                 vm.errorString = error.message;
             });               
         }
@@ -316,17 +316,14 @@ export default {
                 const data = await response.json();
                 if(data){
                     vm.addingCompliance = false;
-                    vm.refreshFromResponse(data);                   
-                    /*swal.fire(
-                    'Submit',
-                    'Your Compliance with Requirement has been submitted',
-                    'success'
-                    );*/
+
                     vm.compliance = data;
+
+                    console.log('Pushing with state:', { compliance: vm.compliance });
                     vm.$router.push({
                         name: 'submit_compliance',
                         state: {
-                            compliance: JSON.stringify(vm.compliance)
+                            compliance: JSON.parse(JSON.stringify(toRaw(vm.compliance)))
                         },
                     });
                 }

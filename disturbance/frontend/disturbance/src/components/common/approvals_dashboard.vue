@@ -119,12 +119,8 @@ export default {
             filterProposalRegion: 'All',
             filterProposalActivity: 'All',
             filterProposalStatus: 'All',
-            // filterProposalStartFrom: '',
-            // filterProposalStartTo: '',
             proposal_start_from: '',
             proposal_start_to: '',
-            // filterProposalExpiryFrom: '',
-            // filterProposalExpiryTo: '',
             proposal_expiry_from: '',
             proposal_expiry_to: '',
             filterProposalSubmitter: 'All',
@@ -156,7 +152,6 @@ export default {
     },
     watch:{
         filterProposalRegion: function(){
-            //this.$refs.proposal_datatable.vmDataTable.draw();
             let vm = this;
             if (vm.filterProposalRegion!= 'All') {
                 vm.$refs.proposal_datatable.vmDataTable.column('current_proposal__region__name:name').search(vm.filterProposalRegion).draw();
@@ -173,7 +168,6 @@ export default {
             }
         },
         filterProposalSubmitter: function(){
-            //this.$refs.proposal_datatable.vmDataTable.draw();
             let vm = this;
             if (vm.filterProposalSubmitter!= 'All') {
                 vm.$refs.proposal_datatable.vmDataTable.columns(4).search(vm.filterProposalSubmitter).draw();
@@ -189,18 +183,6 @@ export default {
                 vm.$refs.proposal_datatable.vmDataTable.column('status:name').search('').draw();
             }
         },
-        // filterProposalStartFrom: function(){
-        //     this.$refs.proposal_datatable.vmDataTable.draw();
-        // },
-        // filterProposalStartTo: function(){
-        //     this.$refs.proposal_datatable.vmDataTable.draw();
-        // },
-        // filterProposalExpiryFrom: function(){
-        //     this.$refs.proposal_datatable.vmDataTable.draw();
-        // },
-        // filterProposalExpiryTo: function(){
-        //     this.$refs.proposal_datatable.vmDataTable.draw();
-        // }
         dateRangeIdentifierForReloadProposalTable: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
         },
@@ -330,12 +312,14 @@ export default {
             columnList.push({
                     data: "applicant",
                     name: "applicant__organisation__name, proxy_applicant__first_name, proxy_applicant__last_name, proxy_applicant__email",
-                    searchable: true,
+                    searchable: false,
+                    orderable: false,
                     defaultContent: '',
                 },
                 {
                     data: "status",
                     name: 'status',
+                    orderable: false,
                     defaultContent: '',
                 },
                 {
@@ -343,7 +327,7 @@ export default {
                     mRender:function (data) {
                         return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
                     },
-                    searchable: false,
+                    searchable: true,
                     defaultContent: '',
                 },
                 {
@@ -374,7 +358,7 @@ export default {
                     },
                     name: 'licence_document__name',
                     searchable: false,
-                    //visible: false,
+                    orderable: false,
                     className: "noexport",
                     defaultContent: '',
                 },
@@ -383,14 +367,10 @@ export default {
                     mRender:function (data,type,full) {
                         let links = '';
                         if (!vm.is_external){
-                            //if(full.can_approver_reissue && full.current_proposal && full.current_proposal.application_type !== 'Site Transfer'){
                             if(full.can_approver_reissue && full.current_proposal){
                                     links +=  `<a href='#${full.id}' data-reissue-approval='${full.current_proposal_id}'>Reissue</a><br/>`;
                             }
                             if(vm.check_assessor(full)){
-                                // if(full.can_approver_reissue){
-                                //     links +=  `<a href='#${full.id}' data-reissue-approval='${full.current_proposal}'>Reissue</a><br/>`;
-                                // }
                                 if(full.can_reissue && full.can_action){
                                     links +=  `<a href='#${full.id}' data-cancel-approval='${full.id}'>Cancel</a><br/>`;
                                     links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
@@ -412,9 +392,6 @@ export default {
                               links +=  `<a href='${full.renewal_document}' target='_blank'>Renewal Notice</a><br/>`;
 
                             }
-                            // if(full.can_approver_reissue){
-                            //         links +=  `<a href='#${full.id}' data-reissue-approval='${full.current_proposal}'>Reissue</a><br/>`;
-                            // }
                         }
                         else{
                             if (full.can_reissue) {

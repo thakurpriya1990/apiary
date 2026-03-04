@@ -11,7 +11,7 @@
                             <div class="row mb-3">
                                 <label for="" class="col-sm-3 col-form-label">Name</label>
                                 <div class="col-sm-6">
-                                    <input disabled type="text" class="form-control" name="applicantName" placeholder="" v-model="approval.organisation_name">
+                                    <input disabled type="text" class="form-control" name="applicantName" placeholder="" v-model="approval.organisation.name">
                                 </div>
                             </div>
                         </div>
@@ -19,7 +19,7 @@
                             <div class="row mb-3">
                                 <label for="" class="col-sm-3 col-form-label" >ABN/ACN</label>
                                 <div class="col-sm-6">
-                                    <input disabled type="text" class="form-control" name="applicantABN" placeholder="" v-model="approval.organisation_abn">
+                                    <input disabled type="text" class="form-control" name="applicantABN" placeholder="" v-model="approval.organisation.abn">
                                 </div>
                             </div>
                         </div>
@@ -255,7 +255,7 @@ export default {
         },
         organisationApplicant: function() {
             let oApplicant = false;
-            if (this.approval && this.approval.organisation_abn) {
+            if (this.approval && this.approval.organisation && this.approval.organisation.abn) {
                 oApplicant = true;
             }
             return oApplicant;

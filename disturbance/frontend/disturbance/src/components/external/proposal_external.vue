@@ -360,7 +360,7 @@ export default {
             this.total_num_of_sites_on_map = value
         },
         expiry_date_changed: function(value){
-            this.proposal.proposal_apiary.public_liability_insurance_expiry_date = moment(value, 'DD/MM/YYYY');
+            this.proposal.proposal_apiary.public_liability_insurance_expiry_date = value;
         },
         setSiteTransferApplicationFee: function(fee) {
             this.siteTransferApplicationFee = fee;
@@ -456,20 +456,22 @@ export default {
                     const errorData = await response.json();
                     throw { body: errorData };
                 }
-                // const res = await response.json();
 
                 if (confirmation_required) {
                     swal.fire({
                         title: 'Saved',
-                        text: 'Your application has been saved',
+                        text: 'Your application has been saved. The page will be refreshed.',
                         icon: 'success',
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
+                    }).then((result) => {
+                        vm.$router.go(0);
                     });
                 }
 
                 vm.isSaving = false;
+                
             })
             .catch(err => {
                 console.log('err');
@@ -640,7 +642,6 @@ export default {
         },
 
         check_org_details_complete: function(org) {
-            //let org = this.$refs.proposal_apiary.$refs.mu_details.org
             let blank_fields = []
 
             // Org Details
@@ -663,8 +664,6 @@ export default {
             let vm=this;
             let blank_fields = []
 
-            //console.log('can_submit checklistq check' +vm.$refs.proposal_apiary.getUnansweredChecklistQuestions());
-
              if(vm.proposal.application_type == 'Apiary'){
                 let org = vm.$refs.proposal_apiary.$refs.mu_details.org
                 if( vm.$refs.proposal_apiary.getUnansweredChecklistQuestions ){
@@ -680,8 +679,6 @@ export default {
                     blank_fields.push(' Public liability expiry date is missing')
                 }
 
-                //this.$refs.proposal_apiary.$refs.mu_details.updateDetails(false);
-                //this.$refs.proposal_apiary.$refs.mu_details.updateAddress(false);
                 let blank_org_fields = vm.check_org_details_complete(org)
                 if(blank_org_fields.length>0){
                     blank_fields.push(' Organisation details missing: [' + blank_org_fields.join(", ") + ']')
@@ -811,8 +808,6 @@ export default {
                             console.log('http.post(submit)')
                             console.log('http.post: ' + helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'))
 
-                            // const res = await vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'),formData);
-                            // vm.proposal = res.body;
                             const response = await fetch(
                                 helpers.add_endpoint_json(api_endpoints.proposals, vm.proposal.id + '/submit'),
                                 {
@@ -821,43 +816,29 @@ export default {
                                 }
                             );
                             if (!response.ok) {
-                                const errorData = await response.json();
-                                throw errorData;
+                                let errorString = await helpers.apiVueResourceError(response);
+                                throw errorString;
                             }
                             const resBody = await response.json();
                             vm.proposal = resBody;
                             vm.$router.push({
                                 name: 'submit_proposal',
-                                //params: { proposal: vm.proposal}
                                 state:
                                     { proposal: JSON.stringify(vm.proposal) }
                             });
                         } catch (err) {
-                            //TODO fix for segregation - handle errors better (handle missing fields before sub or handle properly here...)
+                            
+                            let errorString = typeof err === 'string' ? err : (err && err.message) || 'Network error';
+
                             swal.fire({
                                 title: 'Submit Error',
-                                text: helpers.apiVueResourceError(err),
+                                text: String(errorString),
                                 icon: 'error',
                                 customClass: {
                                     confirmButton: 'btn btn-primary',
                                 },
                             })
                         }
-                        /*
-                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'),formData).then(res=>{
-                            vm.proposal = res.body;
-                            vm.$router.push({
-                                name: 'submit_proposal',
-                                params: { proposal: vm.proposal}
-                            });
-                        },err=>{
-                            swal(
-                                'Submit Error',
-                                helpers.apiVueResourceError(err),
-                                'error'
-                            )
-                        });
-                        */
                     }
                 }
             },(error) => {
@@ -983,11 +964,8 @@ export default {
     },
     mounted: function() {
         console.log('in mounted')
-
         let vm = this;
         vm.form = document.forms.new_proposal;
-        window.addEventListener('beforeunload', vm.leaving);
-        window.addEventListener('onblur', vm.leaving);
     },
     updated: function(){
         let vm=this;

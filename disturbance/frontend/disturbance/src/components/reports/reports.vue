@@ -1,5 +1,6 @@
 <template lang="html">
   <div class="container">
+    <!--TODO fix for segregation - determine if needed remove if not-->
     <div id="report-form">
         <form  method="get" id="payments-form" action="/ledger/payments/api/report">
             <!--
@@ -317,8 +318,12 @@ export default {
             if (vm.oracle_form.valid()){
                 let data = vm.oracleDatePicker.data("DateTimePicker").date().format('DD/MM/YYYY');
                 let override = vm.oracle_override ? 'true': 'false';
-                 fetch('/api/oracle_job?date='+data+'&override='+override)
-                .then(() => {
+                fetch('/api/oracle_job?date='+data+'&override='+override)
+                .then((response) => {
+                    if (!response.ok) {
+                        let errorString = helpers.apiVueResourceError(response);
+                        throw errorString;
+                    }
                     swal.fire({
                         icon: 'success',
                         title: 'Job Success',
@@ -327,11 +332,12 @@ export default {
                             confirmButton: 'btn btn-primary',
                         },
                     })
-                },(error) => {
+                },(err) => {
+                    let errorString = typeof err === 'string' ? err : (err && err.message) || 'Network error';
                     swal.fire({
                         icon: 'error',
                         title: 'Oracle Job Error',
-                        text: helpers.apiVueResourceError(error),
+                        text: String(errorString),
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },

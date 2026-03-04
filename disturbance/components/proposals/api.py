@@ -19,11 +19,7 @@ from disturbance.components.approvals.email import (
     send_contact_licence_holder_email,
     send_on_site_notification_email,
 )
-from disturbance.components.approvals.serializers_apiary import (
-    ApiarySiteOnApprovalGeometrySerializer,
-    ApiarySiteOnApprovalMinimalGeometrySerializer,
-    ApiarySiteOnApprovalMinGeometrySerializer,
-)
+
 from disturbance.components.main.decorators import basic_exception_handler, timeit
 from disturbance.components.proposals.utils import (
     save_proponent_data,
@@ -33,9 +29,15 @@ from disturbance.components.proposals.utils import (
     annotate_apiary_site_on_proposal_draft_geometry,
     annotate_site_transfer_apiary_site,
     annotate_temporary_use_apiary_site,
+    annotate_apiary_site_on_proposal_vacant_draft_minimal_geometry,
+    annotate_apiary_site_on_proposal_minimal_geometry,
+    annotate_apiary_site_on_proposal_processed_minimal_geometry,
 )
 
-from disturbance.components.approvals.utils import annotate_apiary_site_on_approval_geometry
+from disturbance.components.approvals.utils import (
+    annotate_apiary_site_on_approval_geometry,
+    annotate_apiary_site_on_approval_min_geometry
+)
 
 from disturbance.components.proposals.models import (
     searchKeyWords, search_reference, 
@@ -114,11 +116,7 @@ from disturbance.components.proposals.serializers_apiary import (
     FullApiaryReferralSerializer,
     ProposalHistorySerializer,
     UserApiaryApprovalSerializer,
-    ApiarySiteOnProposalProcessedMinimalGeometrySerializer,
-    ApiarySiteOnProposalDraftMinimalGeometrySerializer,
     ApiarySiteFeeSerializer,
-    ApiarySiteOnProposalVacantDraftMinimalGeometrySerializer,
-    ApiarySiteOnProposalVacantProcessedMinimalGeometrySerializer,
 )
 from disturbance.components.approvals.models import Approval, ApiarySiteOnApproval
 from disturbance.components.approvals.serializers import ApprovalLogEntrySerializer
@@ -136,11 +134,12 @@ from disturbance.components.proposals.permissions import (
 from disturbance.components.approvals.permissions import (
     InternalApprovalPermission,
 )
+from django.db.models.functions import Concat
+from django.db.models import Value
 
 import logging
 logger = logging.getLogger(__name__)
 
-#TODO fix for segregation fix search (check other filter backends too)
 class ProposalFilterBackend(DatatablesFilterBackend):
     """
     Custom filters
@@ -156,8 +155,39 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             print(e)
 
         if search_text:
-            #TODO fix for segregation - add custom filters as required
-            queryset = queryset.distinct() | super_queryset 
+            search_text = search_text.lower()
+
+            email_user_ids = list(EmailUser.objects.annotate(
+                full_name=Concat(
+                    'first_name',
+                    Value(' '),
+                    'last_name'
+                ),
+                legal_full_name=Concat(
+                    'legal_first_name',
+                    Value(' '),
+                    'legal_last_name'
+                ),
+            ).filter(
+                Q(email__icontains=search_text) |
+                Q(first_name__icontains=search_text) |
+                Q(last_name__icontains=search_text) |
+                Q(full_name__icontains=search_text) |
+                Q(legal_first_name__icontains=search_text) |
+                Q(legal_last_name__icontains=search_text) |
+                Q(legal_full_name__icontains=search_text) 
+            ).values_list('id', flat=True))
+
+            search_text_app_ids = Proposal.objects.values(
+                'id'
+            ).filter(
+                Q(proxy_applicant_id__in=email_user_ids) |
+                Q(submitter_id__in=email_user_ids) 
+            )
+
+            queryset = queryset.filter(
+                id__in=search_text_app_ids
+            ).distinct() | super_queryset
 
         application_type = request.GET.get('application_type')
         if application_type and not application_type.lower() =='all':
@@ -471,7 +501,6 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     #TODO on-cleanup consider putting better controls around this 
     # - right now a user can just keep emailing another user through our system without any limits
-    #TODO fix for segregation - add sanitisation here (refer to textfield sanitisation when implemented)
     @action(detail=True,methods=['POST',])
     @basic_exception_handler
     def contact_licence_holder(self, request, pk=None):
@@ -526,116 +555,106 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         data = annotate_apiary_site_on_approval_geometry(ApiarySiteOnApproval.objects.filter(id=instance.id))
         return Response(data[0] if len(data) > 0 else {})
 
-    #TODO fix for segregation - everything from here needs to be optimised - replace the serializers
-    #This one is not used
-    @action(detail=False,methods=['GET', ])
-    @basic_exception_handler
-    def list_apiary_sites_draft(self, request):
-        proposal_id = request.query_params.get('proposal_id', None)
-        search_text = request.query_params.get('search_text', '')
-        proposal = Proposal.objects.get(id=proposal_id) if proposal_id else None
-        qs_on_proposal_draft = get_qs_proposal('draft', proposal, search_text, True)
-        serializer_proposal_draft = ApiarySiteOnProposalDraftMinimalGeometrySerializer(qs_on_proposal_draft, many=True)
-        return Response(serializer_proposal_draft.data)
-
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_vacant(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_vacant_site_proposal, qs_vacant_site_approval = get_qs_vacant_site(search_text)
-        serializer_vacant_proposal = ApiarySiteOnProposalVacantDraftMinimalGeometrySerializer(qs_vacant_site_proposal, many=True)
-        serializer_vacant_approval = ApiarySiteOnApprovalMinGeometrySerializer(qs_vacant_site_approval, many=True)
-        serializer_vacant_approval.data['features'].extend(serializer_vacant_proposal.data['features'])
-        return Response(serializer_vacant_approval.data)
+        vacant_site_proposal = annotate_apiary_site_on_proposal_vacant_draft_minimal_geometry(qs_vacant_site_proposal)
+        vacant_site_approval = annotate_apiary_site_on_approval_min_geometry(qs_vacant_site_approval)
+        data = {"type":"FeatureCollection","features":list(vacant_site_proposal)+list(vacant_site_approval)}
+        return Response(data)
 
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_pending(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_sites = get_qs_pending_site(search_text)
-        serializer = ApiarySiteOnProposalProcessedMinimalGeometrySerializer(qs_sites, many=True)
-        return Response(serializer.data)
+        sites = annotate_apiary_site_on_proposal_minimal_geometry(qs_sites)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_denied(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_sites = get_qs_denied_site(search_text)
-        serializer = ApiarySiteOnProposalProcessedMinimalGeometrySerializer(qs_sites, many=True)
-        return Response(serializer.data)
+        sites = annotate_apiary_site_on_proposal_minimal_geometry(qs_sites)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_current_available(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_sites = get_qs_current_site(search_text, available=True)
-        serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_sites, many=True)
-        return Response(serializer.data)
+        sites = annotate_apiary_site_on_approval_min_geometry(qs_sites)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_current_unavailable(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_sites = get_qs_current_site(search_text, available=False)
-        serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_sites, many=True)
-        return Response(serializer.data)
+        sites = annotate_apiary_site_on_approval_min_geometry(qs_sites)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_current(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_sites = get_qs_current_site(search_text)
-        serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_sites, many=True)
-        return Response(serializer.data)
+        sites = annotate_apiary_site_on_approval_min_geometry(qs_sites)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_suspended(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_sites = get_qs_suspended_site(search_text)
-        serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_sites, many=True)
-        return Response(serializer.data)
+        sites = annotate_apiary_site_on_approval_min_geometry(qs_sites)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     @action(detail=False,methods=['GET', ])
     @basic_exception_handler
     def list_apiary_sites_not_to_be_reissued(self, request):
         search_text = request.query_params.get('search_text', '')
         qs_sites = get_qs_not_to_be_reissued_site(search_text)
-        serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_sites, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False,methods=['GET', ])
-    @basic_exception_handler
-    #This one is not used
-    def list_apiary_sites_discarded(self, request):
-        search_text = request.query_params.get('search_text', '')
-        qs_sites = get_qs_discarded_site(search_text)
-        serializer = ApiarySiteOnProposalProcessedMinimalGeometrySerializer(qs_sites, many=True)
-        return Response(serializer.data)
+        sites = annotate_apiary_site_on_approval_min_geometry(qs_sites)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
     @timeit
     def list_existing_proposal_vacant_draft(self, request):
-        qs_vacant_site_proposal, qs_vacant_site_approval = get_qs_vacant_site()
-        serializer_vacant_proposal_d = ApiarySiteOnProposalVacantDraftMinimalGeometrySerializer(qs_vacant_site_proposal.filter(wkb_geometry_processed__isnull=True), many=True)
-        return Response(serializer_vacant_proposal_d.data)
+        qs_vacant_site_proposal, _ = get_qs_vacant_site()
+        vacant_site_proposal = annotate_apiary_site_on_proposal_vacant_draft_minimal_geometry(qs_vacant_site_proposal)
+        data = {"type":"FeatureCollection","features":list(vacant_site_proposal)}
+        return Response(data)
 
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
     @timeit
     def list_existing_proposal_vacant_processed(self, request):
-        qs_vacant_site_proposal, qs_vacant_site_approval = get_qs_vacant_site()
-        serializer_vacant_proposal = ApiarySiteOnProposalVacantProcessedMinimalGeometrySerializer(qs_vacant_site_proposal.filter(wkb_geometry_processed__isnull=False), many=True)
-        return Response(serializer_vacant_proposal.data)
+        qs_vacant_site_proposal, _ = get_qs_vacant_site()
+        qs_vacant_site_proposal = qs_vacant_site_proposal.filter(wkb_geometry_processed__isnull=False)
+        vacant_site_proposal = annotate_apiary_site_on_proposal_processed_minimal_geometry(qs_vacant_site_proposal)
+        data = {"type":"FeatureCollection","features":list(vacant_site_proposal)}
+        return Response(data)
 
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
     @timeit
     def list_existing_approval_vacant(self, request):
-        qs_vacant_site_proposal, qs_vacant_site_approval = get_qs_vacant_site()
-        serializer_vacant_approval = ApiarySiteOnApprovalMinGeometrySerializer(qs_vacant_site_approval, many=True)
-        return Response(serializer_vacant_approval.data)
+        _, qs_vacant_site_approval = get_qs_vacant_site()
+        vacant_site_approval = annotate_apiary_site_on_approval_min_geometry(qs_vacant_site_approval)
+        data = {"type":"FeatureCollection","features":list(vacant_site_approval)}
+        return Response(data)
 
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
@@ -645,8 +664,9 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         search_text = request.query_params.get('search_text', '')
         proposal = Proposal.objects.get(id=proposal_id) if proposal_id else None
         qs_on_proposal_draft = get_qs_proposal('draft', proposal, search_text)
-        serializer_proposal_draft = ApiarySiteOnProposalDraftMinimalGeometrySerializer(qs_on_proposal_draft, many=True)
-        return Response(serializer_proposal_draft.data)
+        on_proposal_draft = annotate_apiary_site_on_proposal_minimal_geometry(qs_on_proposal_draft)
+        data = {"type":"FeatureCollection","features":list(on_proposal_draft)}
+        return Response(data)
 
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
@@ -655,8 +675,9 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         proposal_id = request.query_params.get('proposal_id', None)
         proposal = Proposal.objects.get(id=proposal_id) if proposal_id else None
         qs_on_proposal_processed = get_qs_proposal('processed', proposal)
-        serializer_proposal_processed = ApiarySiteOnProposalProcessedMinimalGeometrySerializer(qs_on_proposal_processed, many=True)
-        return Response(serializer_proposal_processed.data)
+        on_proposal_processed = annotate_apiary_site_on_proposal_processed_minimal_geometry(qs_on_proposal_processed)
+        data = {"type":"FeatureCollection","features":list(on_proposal_processed)}
+        return Response(data)
 
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
@@ -664,9 +685,9 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def list_existing_approval(self, request):
         # ApiarySiteOnApproval
         qs_on_approval = get_qs_approval()
-        serializer = ApiarySiteOnApprovalMinimalGeometrySerializer(qs_on_approval, many=True)
-        return Response(serializer.data)
-    #END TODO fix for segregation
+        sites = annotate_apiary_site_on_approval_min_geometry(qs_on_approval)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
     def _available_sites_qs(self):
         q_include = Q(id__in=(ApiarySite.objects.all().values('latest_approval_link__id')))
@@ -691,16 +712,15 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         qs_on_proposal = ApiarySiteOnProposal.objects.filter(q_include_proposal).distinct('apiary_site')
         return qs_on_proposal
 
-    #TODO fix for segregation (optimise)
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
     def available_sites(self, request):
         qs_on_approval = self._available_sites_qs()
-        serializer = ApiarySiteOnApprovalGeometrySerializer(qs_on_approval, many=True)
+        sites = annotate_apiary_site_on_approval_geometry(qs_on_approval)
+        data = {"type":"FeatureCollection","features":list(sites)}
+        return Response(data)
 
-        return Response(serializer.data)
-
-    #TODO cleanup: this may not be needed any more
+    #TODO on-cleanup: this may not be needed any more
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
     def transitable_sites(self, request):
@@ -919,7 +939,7 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                         
             return Response(serializer.data)
 
-    #TODO fix for segregation - why it is a POST?
+    #TODO on-cleanup - why it is a POST?
     @action(detail=True,methods=['POST', ])
     def get_licence_holders(self, request, *args, **kwargs):
         try:
@@ -980,8 +1000,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         except:
             raise serializer.ValidationError("Valid proposal id not provided")
 
-    #TODO fix for segregation - why GET?
-    @action(detail=True,methods=['GET', 'POST'],permission_classes=[ProposalReferrerPermission])
+    @action(detail=True,methods=['POST'],permission_classes=[ProposalReferrerPermission])
     def complete(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -1009,7 +1028,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    #TODO fix for segregation - why GET?
+    #TODO on-cleanup - why GET?
     @action(detail=True,methods=['GET',],permission_classes=[ProposalAssessorPermission])
     def remind(self, request, *args, **kwargs):
         try:
@@ -1027,7 +1046,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    #TODO fix for segregation - why GET?
+    #TODO on-cleanup - why GET?
     @action(detail=True,methods=['GET',],permission_classes=[ProposalAssessorPermission])
     def recall(self, request, *args, **kwargs):
         try:
@@ -1045,7 +1064,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    #TODO fix for segregation - why GET?
+    #TODO on-cleanup - why GET?
     @action(detail=True,methods=['GET',],permission_classes=[ProposalAssessorPermission])
     def resend(self, request, *args, **kwargs):
         try:
@@ -1772,7 +1791,6 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                             'proposal_apiary_temporary_use_id': new_temp_use.id,
                             'apiary_site_on_approval_id': relation.id,
                         }
-                        #TODO fix for segregation - replace this (do not use serializer)
                         serializer = TemporaryUseApiarySiteSerializer(data=data_to_save)
                         serializer.is_valid(raise_exception=True)
                         serializer.save()
@@ -1849,7 +1867,7 @@ class ProposalRequirementViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMi
             return ProposalRequirement.objects.exclude(is_deleted=True)
         return ProposalRequirement.objects.none()
 
-    #TODO fix for segregation - why GET?
+    #TODO on-cleanup - why GET?
     @action(detail=True,methods=['GET',])
     def move_up(self, request, *args, **kwargs):
         try:
@@ -1864,7 +1882,7 @@ class ProposalRequirementViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMi
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    #TODO fix for segregation - why GET?
+    #TODO on-cleanup - why GET?
     @action(detail=True,methods=['GET',])
     def move_down(self, request, *args, **kwargs):
         try:
@@ -1879,7 +1897,7 @@ class ProposalRequirementViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMi
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    #TODO fix for segregation - why GET?
+    #TODO on-cleanup - why GET?
     @action(detail=True,methods=['GET',])
     def discard(self, request, *args, **kwargs):
         try:
@@ -1944,6 +1962,7 @@ class ProposalStandardRequirementViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    #TODO on-cleanup remove
     @action(detail=False,methods=['GET',])
     def disturbance_standard_requirements(self, request, *args, **kwargs):
         # Only Disturbance standard requirements
@@ -2014,7 +2033,7 @@ class AmendmentRequestReasonChoicesView(views.APIView):
                 choices_list.append({'key': c.id,'value': c.reason})
         return Response(choices_list)
 
-
+#TODO on-cleanup - improve or remove if not needed for apiary
 class SearchKeywordsView(views.APIView):
     renderer_classes = [JSONRenderer,]
     permission_classes = [InternalProposalPermission]

@@ -1,7 +1,7 @@
 from disturbance.components.organisations.models import Organisation
 from reversion_compare.views import HistoryCompareDetailView
 
-#TODO fix for segregation (fix or remove all history compare views (they are not secured!))
+#TODO on-cleanup (fix or remove all history compare views (they are not secured!))
 #class OrganisationHistoryCompareView(HistoryCompareDetailView):
 #    """
 #    View for reversion_compare

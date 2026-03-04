@@ -36,6 +36,9 @@ class ComplianceFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
 
+        search_text = request.GET.get('search[value]', '')
+        print(search_text)
+
         def get_processing_choice(status, choices=Compliance.PROCESSING_STATUS_CHOICES):
             for i in choices:
                 if i[1]==status:
@@ -48,12 +51,10 @@ class ComplianceFilterBackend(DatatablesFilterBackend):
                     return i[0]
             return None
         
-        regions = request.GET.get('regions')
-        if regions:
-            queryset = queryset.filter(proposal__region__name__iregex=regions.replace(',', '|'))
         proposal_activity = request.GET.get('proposal_activity')
         if proposal_activity and not proposal_activity.lower() == 'all':
             queryset = queryset.filter(proposal__activity=proposal_activity)
+
         compliance_status = request.GET.get('compliance_status')
         if compliance_status and not compliance_status.lower() == 'all':
             is_external = request.GET.get('is_external')

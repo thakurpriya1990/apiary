@@ -105,6 +105,9 @@
 <script>
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
+import {
+    helpers
+} from '@/utils/hooks'
 export default {
     name:'Add-Comms',
     components:{
@@ -217,7 +220,6 @@ export default {
         sendData:function(){
             let vm = this;
             vm.errors = false;
-            //TODO fix for segregation - comms log file not uploading
             let comms = new FormData(); 
             comms.append('to',this.to);
             comms.append('fromm',this.from);
@@ -231,22 +233,21 @@ export default {
             console.log(comms)
             vm.addingComms = true;
 
-             fetch(vm.url,{
+            fetch(vm.url,{
                 method: 'POST',
                 body: comms,
             }).then(async (response)=>{
                 if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    vm.errors = true;
+                    vm.errorString = await helpers.apiVueResourceError(response);
+                } else {
+                    vm.close();
                 }
                 vm.addingComms = false;
-                vm.close();
-                //vm.$emit('refreshFromResponse',response);
             }).catch((error) => {
                 vm.errors = true;
                 vm.addingComms = false;
-                //TODO fix for segregation (?) - the apiVueResourceError need to be updated
-                // vm.errorString = helpers.apiVueResourceError(error);
-                vm.errorString = error;
+                vm.errorString = (error && error.message) || 'Network error';
             });
             
         },

@@ -63,12 +63,6 @@ class Organisation(models.Model):
     def log_user_action(self, action, request):
         return OrganisationAction.log_action(self, action, request.user)
 
-    # def validate_pins(self,pin1,pin2,request):
-    #     val = self.pin_one == pin1 and self.pin_two == pin2
-    #     if val:
-    #         self.link_user(request.user,request)
-    #     return val
-
     def validate_pins(self,pin1,pin2,request):
         try:
             val_admin = self.admin_pin_one == pin1 and self.admin_pin_two == pin2
@@ -142,8 +136,6 @@ class Organisation(models.Model):
     
 
     def update_organisation(self, request):
-        # log organisation details updated (eg ../internal/organisations/access/2) - incorrect - this is for OrganisationRequesti not Organisation
-        # should be ../internal/organisations/1
         with transaction.atomic():
             self.log_user_action(OrganisationAction.ACTION_UPDATE_ORGANISATION, request)
 
@@ -179,6 +171,10 @@ class Organisation(models.Model):
         recipients = [c.email for c in contacts]
         send_organisation_request_link_email_notification(
             self, request, recipients)
+
+    @property
+    def has_no_admins(self):
+        return self.contacts.filter(user_role=OrganisationContact.ORG_CONTACT_ROLE_ADMIN).count() < 1
 
     @staticmethod
     def existence(abn, name=None):
@@ -620,7 +616,6 @@ def update_organisation_comms_log_filename(instance, filename):
     return 'organisations/{}/communications/{}/{}'.format(instance.log_entry.organisation.id,instance.id,filename)
 
 
-#TODO fix for segregation - is this used? Remove or Adjust accordingly
 class OrganisationLogDocument(LedgerDocument):
     log_entry = models.ForeignKey('OrganisationLogEntry',related_name='documents', on_delete=models.CASCADE)
     _file = models.FileField(max_length=255, upload_to=update_organisation_comms_log_filename, storage=private_storage)

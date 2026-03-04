@@ -20,10 +20,8 @@ class ComplianceSerializer(serializers.ModelSerializer):
     customer_status = serializers.CharField(source='get_customer_status_display')
     submitter = serializers.SerializerMethodField(read_only=True)
     documents = serializers.SerializerMethodField()
-    #submitter = serializers.CharField(source='submitter.get_full_name')
     submitter = serializers.SerializerMethodField(read_only=True)
     allowed_assessors = EmailUserSerializer(many=True)
-    #assigned_to = serializers.CharField(source='assigned_to.get_full_name')
     assigned_to = serializers.SerializerMethodField(read_only=True)
     requirement = serializers.CharField(source='requirement.requirement', required=False, allow_null=True)
     approval_lodgement_number = serializers.SerializerMethodField()
@@ -49,7 +47,32 @@ class ComplianceSerializer(serializers.ModelSerializer):
             'documents',
             'requirement',
             'can_user_view',
-            'reference',
+            'lodgement_number',
+            'lodgement_date',
+            'submitter',
+            'allowed_assessors',
+            'lodgement_date',
+            'approval_lodgement_number',
+            'proposal_lodgement_number',
+            'district',
+            'can_assess',
+        )
+        datatables_always_serialize = (
+            'id',
+            'proposal',
+            'due_date',
+            'processing_status',
+            'customer_status',
+            'regions',
+            'activity',
+            'title',
+            'text',
+            'holder',
+            'assigned_to',
+            'approval',
+            'documents',
+            'requirement',
+            'can_user_view',
             'lodgement_number',
             'lodgement_date',
             'submitter',

@@ -298,8 +298,7 @@ class ApprovalSerializer(serializers.ModelSerializer):
     can_approver_reissue = serializers.SerializerMethodField(read_only=True)
     application_type = serializers.SerializerMethodField(read_only=True)
 
-    organisation_name = serializers.SerializerMethodField()
-    organisation_abn = serializers.SerializerMethodField()
+    organisation = serializers.SerializerMethodField()
     applicant_first_name = serializers.SerializerMethodField()
     applicant_last_name = serializers.SerializerMethodField()
     applicant_address = serializers.SerializerMethodField()
@@ -353,8 +352,7 @@ class ApprovalSerializer(serializers.ModelSerializer):
             'application_type',
             'current_proposal',
             'apiary_approval',
-            'organisation_name',
-            'organisation_abn',
+            'organisation',
             'applicant_first_name',
             'applicant_last_name',
             'applicant_address',
@@ -469,15 +467,9 @@ class ApprovalSerializer(serializers.ModelSerializer):
         except:
             return None
 
-    #TODO fix for segregation everytime we touch applicant we have to make a request to ledger - fix to use one object
-    def get_organisation_name(self,obj):
-        if obj.applicant:
-            return obj.applicant.name
-
-    #TODO fix for segregation everytime we touch applicant we have to make a request to ledger - fix to use one object
-    def get_organisation_abn(self,obj):
-        if obj.applicant:
-            return obj.applicant.abn
+    def get_organisation(self,obj):
+        organisation = obj.applicant
+        return {"name":organisation.name, "abn":organisation.abn}
 
     def get_applicant_first_name(self,obj):
         if obj.proxy_applicant:

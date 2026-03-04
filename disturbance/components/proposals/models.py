@@ -2702,14 +2702,14 @@ def clone_apiary_proposal_with_status_reset(original_proposal):
         except:
             raise
 
-#TODO fix for segregation - improve or remove if not needed for apiary
+#TODO on-cleanup - improve or remove if not needed for apiary
 def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance, is_internal= True):
     from disturbance.utils import search, search_approval, search_compliance
     from disturbance.components.approvals.models import Approval
     from disturbance.components.compliances.models import Compliance
     qs = []
     if is_internal:
-        proposal_list = Proposal.objects.filter(application_type__name='Disturbance').exclude(processing_status__in=[Proposal.PROCESSING_STATUS_DISCARDED, Proposal.PROCESSING_STATUS_DRAFT])
+        proposal_list = Proposal.objects.filter(application_type__name__in=['Apiary', 'Site Transfer', 'Temporary Use']).exclude(processing_status__in=[Proposal.PROCESSING_STATUS_DISCARDED, Proposal.PROCESSING_STATUS_DRAFT])
         approval_list = Approval.objects.all().order_by('lodgement_number', '-issue_date').distinct('lodgement_number')
         compliance_list = Compliance.objects.all()
 
@@ -2766,7 +2766,7 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
                     raise
     return qs
 
-#TODO fix for segregation - improve or remove if not needed for apiary
+
 def search_reference(reference_number):
     from disturbance.components.approvals.models import Approval
     from disturbance.components.compliances.models import Compliance
@@ -2796,43 +2796,6 @@ def search_reference(reference_number):
     else:
         raise ValidationError('Record with provided reference number does not exist')
 
-#TODO fix for segregation - improve or remove if not needed for apiary
-def search_sections(application_type_name, section_label,question_id,option_label,is_internal= True, region=None,district=None,activity=None):
-    from disturbance.utils import search_section
-    qs = []
-    if is_internal:
-        if(not application_type_name or not section_label or not question_id or not option_label):
-            raise ValidationError('Some of the mandatory fields are missing')
-        proposal_list = Proposal.objects.filter(application_type__name=application_type_name).exclude(processing_status__in=[Proposal.PROCESSING_STATUS_DISCARDED, Proposal.PROCESSING_STATUS_DRAFT])
-        question=MasterlistQuestion.objects.get(id=question_id)
-        filter_conditions={}
-        if region:
-            filter_conditions['region']=region
-        if district:
-            filter_conditions['district']=district
-        if activity:
-            filter_conditions['activity']=activity
-        if filter_conditions:
-            proposal_list=proposal_list.filter(**filter_conditions)
-        if proposal_list:
-            for p in proposal_list:
-                if p.data:
-                    try:
-                        results = search_section(p.schema, section_label, question, p.data, option_label)
-                        if results:
-                            res = {
-                                'number': p.lodgement_number,
-                                'id': p.id,
-                                'type': 'Proposal',
-                                'applicant': p.applicant.name,
-                                'text': results[0],
-                                }
-                            qs.append(res)
-                    except:
-                        raise
-
-
-    return qs
 
 #TODO on cleanup - remove if not needed for apiary
 from ckeditor.fields import RichTextField
@@ -3066,7 +3029,6 @@ class ProposalApiary(RevisionedMixin):
                     apiary_referral_list = ApiaryReferral.objects.filter(referral_group=referral_group,referral__in=existing_referrals) if existing_referrals else None
                     if apiary_referral_list:
                         raise ValidationError('A referral has already been sent to this group')
-                    #TODO fix for segregation (?) - Create referral if it does not exist for referral_group
                     else:
                         # Create Referral
                         referral = Referral.objects.create(
@@ -3126,8 +3088,6 @@ class ProposalApiary(RevisionedMixin):
                                             apiary_site=site.apiary_site
                                             )
 
-                        #TODO fix for segregation - Create a log entry for the proposal
-                        #self.log_user_action(ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(referral.id,self.id,'{}({})'.format(user.get_full_name(),user.email)),request)
                         self.proposal.log_user_action(
                                 ProposalUserAction.APIARY_ACTION_SEND_REFERRAL_TO.format(
                                     referral.id,
@@ -3241,68 +3201,15 @@ class ProposalApiary(RevisionedMixin):
             checking_proposal.proposed_issuance_approval = self.proposal.proposed_issuance_approval
             checking_proposal.save()
 
-            #TODO fix for segregation - is this not needed?
-            if self.proposal.proposal_type == 'amendment':
-                pass
-            #    if self.proposal.previous_application:
-            #        previous_approval = self.proposal.previous_application.approval
-            #        approval,created = Approval.objects.update_or_create(
-            #            current_proposal = checking_proposal,
-            #            defaults = {
-            #                #'activity' : self.activity,
-            #                #'region' : self.region,
-            #                #'tenure' : self.tenure,
-            #                #'title' : self.title,
-            #                'issue_date' : timezone.now(),
-            #                'expiry_date' : details.get('expiry_date'),
-            #                'start_date' : details.get('start_date'),
-            #                'applicant' : self.proposal.applicant,
-            #                'proxy_applicant' : self.proposal.proxy_applicant,
-            #                'lodgement_number': previous_approval.lodgement_number,
-            #                'apiary_approval': self.proposal.apiary_group_application_type,
-            #                #'extracted_fields' = JSONField(blank=True, null=True)
-            #            }
-            #        )
-            #        if created:
-            #            previous_approval.replaced_by = approval
-            #            previous_approval.save()
-            #            # Get apiary sites from proposal
-            #            #if self.proposal.application_type == ApplicationType.APIARY:
-            #            #    for site in self.apiary_sites.all():
-            #            #        site.approval = approval
-            #            #elif self.proposal.application_type == ApplicationType.SITE_TRANSFER:
-            #            #    for site in self.apiary_site_transfer.apiary_sites.all():
-            #            #        site.approval = approval
-            #            for site in self.apiary_sites.all():
-            #                site.approval = approval
-
-            #TODO fix for segregation - is this not needed?
             if self.proposal.application_type.name == ApplicationType.SITE_TRANSFER:
-                # approval must already exist - we reissue with same start and expiry dates
-                # does thhis need to be reissued with self.reissue_approval() ?
-                #if originating_approval.reissued:
-                 #   originating_approval.expiry_date = details.get('expiry_date')
-                  #  originating_approval.start_date = details.get('start_date')
-                # always reset this flag
-                #originating_approval.reissued = False
-                #self.proposal.proposed_issuance_approval['start_date'] = originating_approval.start_date.strftime('%d/%m/%Y')
-                #self.proposal.proposed_issuance_approval['expiry_date'] = originating_approval.expiry_date.strftime('%d/%m/%Y')
-                #self.proposal.proposed_issuance_approval['details'] = ''
-                #self.proposal.proposed_issuance_approval['cc_email'] = ''
-                #originating_approval.save()
-                #target_approval.current_proposal = checking_proposal
-                #target_approval.reissued = False
-                #target_approval.save()
                 if preview:
                     # do this instead of generate compliances section below
                     self.link_apiary_approval_requirements(originating_approval)
                     self.link_apiary_approval_requirements(target_approval)
             else:
-                #TODO fix for segregation - adjust the if statement block
                 # Apiary approval
                 from disturbance.components.approvals.models import ApprovalUserAction
                 if not approval:
-                    # There are no existing approvals.  Create a new one.
                     approval, approval_created = Approval.objects.update_or_create(
                         current_proposal = checking_proposal,
                         defaults = {
@@ -3317,8 +3224,6 @@ class ProposalApiary(RevisionedMixin):
                     if approval_created:
                         ApprovalUserAction.log_action(approval, ApprovalUserAction.ACTION_CREATE_APPROVAL.format(approval.lodgement_number), request.user)
                     else:
-                        # approval already exist
-                        # But should not reach here
                         ApprovalUserAction.log_action(approval, ApprovalUserAction.ACTION_UPDATE_APPROVAL.format(approval.lodgement_number), request.user)
                 else:
                     approval.issue_date = timezone.now()
@@ -3336,7 +3241,6 @@ class ProposalApiary(RevisionedMixin):
                 if preview:
                     # do this instead of generate compliances section below
                     self.link_apiary_approval_requirements(approval)
-
 
             # Get apiary sites from proposal
             if self.proposal.application_type.name == ApplicationType.SITE_TRANSFER:
@@ -5027,7 +4931,6 @@ class SectionQuestion(models.Model):
 # Generate JSON schema models End
 # --------------------------------------------------------------------------------------
 
-#TODO fix for segregation - keep for apiary only
 import reversion
 reversion.register(Proposal, follow=['proposal_apiary'])
 reversion.register(ProposalType)
@@ -5043,7 +4946,6 @@ reversion.register(Referral)
 reversion.register(HelpPage)
 reversion.register(ApplicationType)
 reversion.register(ProposalApiary)
-reversion.register(ApiaryChecklistQuestion)
 reversion.register(ApiarySite)
 
 # added 07-Jan-2021
@@ -5069,9 +4971,3 @@ reversion.register(ApiarySiteFee)
 reversion.register(ApiarySiteFeeType)
 reversion.register(SiteCategory)
 reversion.register(ApiarySiteOnProposal)
-
-#JSON schema models
-reversion.register(MasterlistQuestion)
-reversion.register(QuestionOption)
-reversion.register(ProposalTypeSection)
-reversion.register(SectionQuestion)

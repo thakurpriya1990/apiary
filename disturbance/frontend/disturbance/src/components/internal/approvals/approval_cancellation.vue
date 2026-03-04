@@ -139,7 +139,6 @@ export default {
                 body: JSON.stringify(approval),
             }).then(async (response)=>{
                 if (!response.ok) {
-                   //throw new Error(`Approval Cancellation Failed: ${response.status}`);
                    return response.json().then(err => { throw err });
                 }
                 const data = await response.json();

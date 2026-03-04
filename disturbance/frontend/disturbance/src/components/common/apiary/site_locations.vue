@@ -1361,7 +1361,17 @@
                 this.deleteApiarySite(myFeature)
 
                 // Remove the row from the table
-                $(e.target).closest('tr').fadeOut('slow', function(){ })
+                let $tr = $(e.target).closest('tr');
+                if ($tr.hasClass('child')) {
+                    //if the delete link if in an expanded row, remove the parent row
+                    $tr.prev('tr').fadeOut('slow', function () {
+                        $(this).remove();
+                    });
+                } 
+                $tr.fadeOut('slow', function () {
+                    $(this).remove();
+                });
+
             },
             initMap: async function() {
                 let vm = this;

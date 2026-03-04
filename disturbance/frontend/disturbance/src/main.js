@@ -11,12 +11,6 @@ import App from './App.vue'
 import router from './router'
 import helpers from '@/utils/helpers'
 
-import moment from 'moment';
-window.moment = moment;
-import { extendMoment } from 'moment-range';
-extendMoment(moment);
-
-
 import select2 from 'select2';
 import swal from 'sweetalert2';
 window.swal = swal;

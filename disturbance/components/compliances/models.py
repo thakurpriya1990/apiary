@@ -96,11 +96,6 @@ class Compliance(RevisionedMixin):
         return self.approval.applicant
 
     @property
-    def reference(self):
-        #return 'C{0:06d}'.format(self.id)
-        return self.lodgement_number
-
-    @property
     def allowed_assessors(self):
         if self.proposal:
             return self.proposal.compliance_assessors

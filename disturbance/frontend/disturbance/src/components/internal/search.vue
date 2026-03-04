@@ -1,6 +1,6 @@
 <template>
 <div class="container" id="internalSearch">
-    <!--TODO fix for segregation - Exclude until fixed -->
+    <!--TODO fix for segregation - Exclude until fixed or remove if not needed -->
     <!--<div class="row">
         <div class="col-sm-12">
             <FormSection :form-collapse="false" label="Search Organisations">
@@ -29,7 +29,7 @@
             </FormSection>
         </div>
     </div>-->
-
+    <!--TODO fix for segregation -->
     <div class="row">
         <div class="col-sm-12">
             <FormSection :form-collapse="false" label="Search Keywords">
@@ -352,7 +352,6 @@ export default {
             }).catch(error => {
               console.log(error);
               vm.errors = true;
-              // vm.errorString = helpers.apiVueResourceError(error);
               vm.errorString = error;
             });
           }

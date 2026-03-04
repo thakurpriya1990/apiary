@@ -114,7 +114,6 @@
                             <label>Expiry Date</label>
                         </div>
                         <div class="grow1">
-                            <!--TODO fix for segregation - fix expiry date not saving...-->
                             <div class="input-group date" ref="expiryDatePicker"  style="width: 70%;">
                                 <input type="date" class="form-control" v-model="expiry_date_local" placeholder="DD/MM/YYYY" id="expiry_date_input_element" :readonly="readonly" />
                                 <span class="input-group-addon">
@@ -427,11 +426,6 @@
                 let searchPattern = /^[0-9]{4}/
                 let expiry_date_passed = vm.proposal.proposal_apiary.public_liability_insurance_expiry_date;
                 if (expiry_date_passed) {
-                    // If date passed
-                    if (searchPattern.test(expiry_date_passed)) {
-                        // Convert YYYY-MM-DD to DD/MM/YYYY
-                        expiry_date_passed = moment(expiry_date_passed, 'YYYY-MM-DD').format('DD/MM/YYYY');
-                    }
                     $('#expiry_date_input_element').val(expiry_date_passed);
                 }
             },

@@ -65,9 +65,8 @@ import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue'
 import {
     api_endpoints,
-    helpers,
     constants
-}from '@/utils/hooks'
+} from '@/utils/hooks'
 export default {
     name: 'ProposalTableDash',
     props: {
@@ -93,7 +92,6 @@ export default {
             pBody: 'pBody' + uuid(),
             uuid: 0,
             datatable_id: 'proposal-datatable-'+uuid(),
-            //datatable_id: 'proposal-datatable-'+vm.uuid,
             //Profile to check if user has access to process Proposal
             profile: {},
             is_apiary_admin: false,
@@ -102,8 +100,6 @@ export default {
             filterProposalActivity: 'All',
             filterProposalApplicationType: 'All',
             filterProposalStatus: 'All',
-            // filterProposalLodgedFrom: '',
-            // filterProposalLodgedTo: '',
             proposal_lodged_from: '',
             proposal_lodged_to: '',
             filterProposalSubmitter: 'All',
@@ -147,8 +143,6 @@ export default {
     watch:{
         filterProposalRegion: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
-            //let vm = this;
-            //vm.$refs.proposal_datatable.vmDataTable.columns(1).search(vm.filterProposalRegion.join()).draw();
         },
         filterProposalActivity: function() {
             let vm = this;
@@ -167,7 +161,6 @@ export default {
             }
         },
         filterProposalSubmitter: function(){
-            //this.$refs.proposal_datatable.vmDataTable.draw();
             let vm = this;
             if (vm.filterProposalSubmitter!= 'All') {
                 vm.$refs.proposal_datatable.vmDataTable.column(vm.submitter_column_name + ':name').search(vm.filterProposalSubmitter).draw();
@@ -183,12 +176,6 @@ export default {
                 vm.$refs.proposal_datatable.vmDataTable.column('status:name').search('').draw();
             }
         },
-        // filterProposalLodgedFrom: function(){
-        //     this.$refs.proposal_datatable.vmDataTable.draw();
-        // },
-        // filterProposalLodgedTo: function(){
-        //     this.$refs.proposal_datatable.vmDataTable.draw();
-        // },
         dateRangeIdentifierForReloadProposalTable: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
         },
@@ -221,6 +208,7 @@ export default {
         dt_headers: function(){
             let columnList = [
                 "Number",
+                "Application Type",
                 "Submitter",
                 "Applicant",
                 "Status",
@@ -254,7 +242,7 @@ export default {
             columnList.push({
                     // 3. Activity/Application Type
                     data: "activity",
-                    searchable: true,
+                    searchable: false,
                     name: 'activity',
                     defaultContent: '',
                 });
@@ -267,17 +255,17 @@ export default {
                         }
                         return ''
                     },
-                    //name: vm.submitter_column_name,
                     name: "submitter__email, submitter__first_name, submitter__last_name",
-                    searchable: true,
+                    searchable: false,
+                    orderable: false,
                     defaultContent: '',
                 },
                 {
                     // 5. Proponent/Applicant
                     data: "relevant_applicant_name",
-                    //name: vm.proponent_applicant_column_name,
                     name: "applicant__organisation__name, proxy_applicant__first_name, proxy_applicant__last_name, proxy_applicant__email",
-                    searchable: true,
+                    searchable: false,
+                    orderable: false,
                     defaultContent: '',
                 },
                 {
@@ -289,6 +277,7 @@ export default {
                         return full.processing_status
                     },
                     searchable: false,
+                    orderable: false,
                     name: 'status',
                     defaultContent: '',
                 },
@@ -305,9 +294,9 @@ export default {
                 columnList.push({
                     // 8. Assigned Officer
                     data: "assigned_officer",
-                    //visible: false,
                     name: "assigned_officer__first_name, assigned_officer__last_name, assigned_officer__email",
-                    searchable: true,
+                    searchable: false,
+                    orderable: false,
                     defaultContent: '',
                 });
             };
@@ -318,10 +307,9 @@ export default {
                     if (full.fee_invoice_references){
                         for (let item of full.fee_invoice_references){
                             links += '<div>'
-                            //TODO fix for segregation - this link does not work (?), the other one does - investigate and adjust as needed (they both do the same thing, why is one only internal? should it be doing something else (ledger payment link)?)
-                            links +=  `<a href='/payments/invoice-pdf/${item}.pdf' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i> #${item}</a>`;
+                            links +=  `<a href='/ledger-toolkit-api/invoice-pdf/${item.reference}' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i> #${item.reference}</a>`;
                             if (!vm.is_external){
-                                links +=  `&nbsp;&nbsp;&nbsp;<a href='/ledger-toolkit-api/invoice-pdf/${item}' target='_blank'>View Payment</a><br/>`;
+                                links +=  `&nbsp;&nbsp;&nbsp;<a href='${item.ledger_link}' target='_blank'>View Payment</a><br/>`;
                             }
                             links += '</div>'
                         }

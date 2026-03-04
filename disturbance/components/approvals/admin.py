@@ -26,7 +26,6 @@ class ApprovalAdmin(admin.ModelAdmin):
     search_fields = [
         'lodgement_number',
         'current_proposal__lodgement_number',
-        # 'applicant__organisation_name',
         'proxy_applicant__first_name',
         'proxy_applicant__last_name'
     ]
@@ -46,9 +45,13 @@ class ApprovalAdmin(admin.ModelAdmin):
         """
         applicant_data = obj.applicant
 
-        if isinstance(applicant_data.organisation, dict) and 'organisation_name' in applicant_data.organisation:
+        if applicant_data and isinstance(applicant_data.organisation, dict) and 'organisation_name' in applicant_data.organisation:
             return applicant_data.organisation['organisation_name']
         return '---'
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(apiary_approval=True)
 
 @admin.register(ApiarySiteOnApproval)
 class ApiarySiteOnApprovalAdmin(admin.ModelAdmin):

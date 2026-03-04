@@ -296,10 +296,10 @@ export default {
                     vm.addingRequirement = false;
 
                     try {
-                    const errData = await error.json();
-                    vm.errorString = helpers.apiVueResourceError(errData);
+                        const errData = await error;
+                        vm.errorString = helpers.apiVueResourceError(errData);
                     } catch {
-                    vm.errorString = 'An unexpected error occurred.';
+                        vm.errorString = 'An unexpected error occurred.';
                     }
                 });
             }

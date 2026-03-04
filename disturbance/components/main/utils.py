@@ -367,17 +367,16 @@ def get_region_district(wkb_geometry):
     except:
         return ''
 
-
+#NOTE: according to prior commit messages there was an explicit decision to only return an exact match on the site id - I have added better validation in line with this decision
 def _get_vacant_apiary_site(search_text=''):
     from disturbance.components.proposals.models import ApiarySite
     queries = Q(is_vacant=True)
-    if search_text:
-        # queries &= Q(id__icontains=search_text)
+    if search_text and isinstance(search_text, int):
         queries &= Q(id=search_text)
     qs_vacant_site = ApiarySite.objects.filter(queries).distinct()
     return qs_vacant_site
 
-#TODO fix for segregation fix this (does not support non int search)
+
 def get_qs_vacant_site(search_text=''):
     from disturbance.components.proposals.models import ApiarySiteOnProposal
     from disturbance.components.approvals.models import ApiarySiteOnApproval
@@ -389,8 +388,6 @@ def get_qs_vacant_site(search_text=''):
             'apiary_site', 
             'proposal_apiary', 
             'proposal_apiary__proposal', 
-            #'proposal_apiary__proposal__proxy_applicant', 
-            #'proposal_apiary__transferee', 
             'proposal_apiary__target_approval_organisation', 
             'proposal_apiary__target_approval', 
             'proposal_apiary__originating_approval', 
@@ -410,7 +407,6 @@ def get_qs_vacant_site(search_text=''):
             'apiary_site__latest_approval_link', 
             'apiary_site__approval_link_for_vacant',
             'approval__applicant',
-            #'approval__proxy_applicant', TODO fix for segregation fix (?)
             ).filter(id__in=apiary_site_approval_ids)
 
     return qs_vacant_site_proposal, qs_vacant_site_approval
@@ -425,8 +421,7 @@ def get_qs_denied_site(search_text=''):
     # ApiarySite condition
     q_include_apiary_site = Q()
     q_include_apiary_site &= Q(latest_proposal_link__isnull=False)
-    if search_text:
-        # q_include_apiary_site &= Q(id__icontains=search_text)
+    if search_text and isinstance(search_text, int):
         q_include_apiary_site &= Q(id=search_text)
     qs_apiary_sites = ApiarySite.objects.filter(q_include_apiary_site)
 
@@ -463,8 +458,7 @@ def get_qs_pending_site(search_text=''):
     # ApiarySite condition
     q_include_apiary_site = Q()
     q_include_apiary_site &= Q(latest_proposal_link__isnull=False)
-    if search_text:
-        # q_include_apiary_site &= Q(id__icontains=search_text)
+    if search_text and isinstance(search_text, int):
         q_include_apiary_site &= Q(id=search_text)
     qs_apiary_sites = ApiarySite.objects.filter(q_include_apiary_site)
 
@@ -502,8 +496,7 @@ def get_qs_suspended_site(search_text=''):
     # ApiarySite
     q_include_apiary_site = Q()
     q_include_apiary_site &= Q(latest_approval_link__isnull=False)
-    if search_text:
-        # q_include_apiary_site &= Q(id__icontains=search_text)
+    if search_text and isinstance(search_text, int):
         q_include_apiary_site &= Q(id=search_text)
     qs_apiary_sites = ApiarySite.objects.filter(q_include_apiary_site)
 
@@ -550,8 +543,7 @@ def get_qs_current_site(search_text='', available=None):
     # ApiarySite
     q_include_apiary_site = Q()
     q_include_apiary_site &= Q(latest_approval_link__isnull=False)
-    if search_text:
-        # q_include_apiary_site &= Q(id__icontains=search_text)
+    if search_text and isinstance(search_text, int):
         q_include_apiary_site &= Q(id=search_text)
     qs_apiary_sites = ApiarySite.objects.filter(q_include_apiary_site)
 
@@ -640,8 +632,7 @@ def get_qs_not_to_be_reissued_site(search_text=''):
     # ApiarySite
     q_include_apiary_site = Q()
     q_include_apiary_site &= Q(latest_approval_link__isnull=False)
-    if search_text:
-        # q_include_apiary_site &= Q(id__icontains=search_text)
+    if search_text and isinstance(search_text, int):
         q_include_apiary_site &= Q(id=search_text)
     qs_apiary_sites = ApiarySite.objects.filter(q_include_apiary_site)
 
