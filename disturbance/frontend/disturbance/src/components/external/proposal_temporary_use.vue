@@ -176,7 +176,7 @@
                 $('body').append(formElement);
                 $(formElement).submit();
             },
-            proposal_submit: function() {
+            proposal_submit: async function() {
                 console.log('in proposal_submit')
 
                 let vm = this;
@@ -190,17 +190,27 @@
                     },
                     body: JSON.stringify(data),
                 }).then(async (response)=>{
-                        if (!response.ok) {
-                            throw new Error(`Temporary Use ProposalSubmit error: ${response.status}`);
-                        }
-                        console.log('success')
-                        vm.perform_redirect('/external/proposal/' + proposal_id + '/submit_temp_use_success/', {
-                            'csrfmiddlewaretoken': vm.csrf_token,
-                            'proposal_id': proposal_id,
-                        })
-                    }).catch(err=>{
-                        helpers.processError(err)
+                    if (!response.ok) {
+                        let errorString = await helpers.apiVueResourceError(response);
+                        throw errorString;
+                    }
+                    console.log('success')
+                    vm.perform_redirect('/external/proposal/' + proposal_id + '/submit_temp_use_success/', {
+                        'csrfmiddlewaretoken': vm.csrf_token,
+                        'proposal_id': proposal_id,
                     })
+                }).catch(err=>{
+                    let errorString = typeof err === 'string' ? err : (err && err.message) || 'Network error';
+
+                    swal.fire({
+                        title: "Error",
+                        text: String(errorString),
+                        icon: "error",
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                })
             },
             proposal_update: async function(){
                 console.log('in proposal_update');
@@ -210,38 +220,45 @@
                 let proposal_id = this.$route.params.proposal_id
 
                 try {
-                        const response = await fetch('/api/proposal/' + proposal_id + '/draft/', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(data)
-                        });
+                    const response = await fetch('/api/proposal/' + proposal_id + '/draft/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
 
-                        if (!response.ok) {
-                            // Handle non-200 responses
-                            const errorData = await response.json();
-                            helpers.processError(errorData);
-                            return;
-                        }
-
-                        const res = await response.json();
-                        console.log('Proposal updated:', res);
-                        // Show success alert
-                        swal.fire({
-                            title: 'Saved',
-                            text: 'Your proposal has been updated',
-                            icon: 'success',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                        });
-
-                    } catch (err) {
-                        // Network or unexpected error
-                        helpers.processError(err);
+                    if (!response.ok) {
+                        // Handle non-200 responses
+                        let errorString = await helpers.apiVueResourceError(response);
+                        throw errorString;
                     }
 
+                    const res = await response.json();
+                    console.log('Proposal updated:', res);
+                    // Show success alert
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Your proposal has been updated',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+
+                } catch (err) {
+
+                    let errorString = typeof err === 'string' ? err : (err && err.message) || 'Network error';
+
+                    await swal.fire({
+                        title: "Error",
+                        text: String(errorString),
+                        icon: "error",
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                }
             },
 
         }

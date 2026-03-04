@@ -17,11 +17,11 @@
                         <strong>Submitted by</strong><br/>
                         {{ proposal.submitter }}
                     </div>
-                    <div  class="card-body border-top py-2">
+                    <div class="card-body border-top py-2">
                         <strong>Lodged on</strong><br/>
                         {{ formatDate(proposal.lodgement_date) }}
                     </div>
-                    <div  class="card-body border-top py-2">
+                    <div class="card-body border-top py-2">
                         <table class="table small-table">
                             <thead>
                                 <tr>

@@ -56,10 +56,12 @@ export default {
     vm.form = document.forms.new_compliance;
   },
   beforeRouteEnter: function(to, from, next) {
-    //TODO fix for segregation - compliance does not appear be accessible from here - fix or adjust message
-    console.log("beforeRouteEnter")
+    
+    console.log('to.state in beforeRouteEnter:', to.state);
+    console.log('window.history.state:', window.history.state);
+
     next(vm => {
-        vm.compliance = to.params.compliance;
+        vm.compliance = to.state?.compliance ?? null;
         console.log(vm.compliance)
     })
   }

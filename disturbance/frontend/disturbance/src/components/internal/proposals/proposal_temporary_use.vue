@@ -5,104 +5,45 @@
         <h4>Application Type: {{proposal.application_type }}</h4>
         <div class="col-md-3">
             <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url" :disable_add_entry="false"/>
-            <div class="row" v-if="canSeeSubmission">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
+            <div class="mb-3" v-if="canSeeSubmission">
+                <div class="card card-default">
+                    <div class="card-header">
                        Submission
                     </div>
-                    <div class="panel-body panel-collapse">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <strong>Submitted by</strong><br/>
-                                {{ proposal.submitter }}
-                            </div>
-                            <div class="col-sm-12 top-buffer-s">
-                                <strong>Lodged on</strong><br/>
-                                {{ formatDate(proposal.lodgement_date) }}
-                            </div>
-                            <div class="col-sm-12 top-buffer-s">
-                                <table class="table small-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Lodgement</th>
-                                            <th>Date</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
-                        </div>
+                    <div class="card-body py-2">
+                        <strong>Submitted by</strong><br/>
+                        {{ proposal.submitter }}
+                    </div>
+                    <div class="card-body border-top py-2">
+                        <strong>Lodged on</strong><br/>
+                        {{ formatDate(proposal.lodgement_date) }}
+                    </div>
+                    <div class="card-body border-top py-2">
+                        <table class="table small-table">
+                            <thead>
+                                <tr>
+                                    <th>Lodgement</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
+            <div class="mb-3">
+                <div class="card card-default sticky-top">
+                    <div class="card-header">
                         Workflow
                     </div>
-                    <div class="panel-body panel-collapse">
+                    <div class="card-body py-2">
+                        <strong>Status</strong><br/>
+                        {{ proposal.processing_status }}
+                    </div>
+                    <div v-if="!isFinalised" class="card-body py-2 border-top">
                         <div class="row">
-                            <div class="col-sm-12">
-                                <strong>Status</strong><br/>
-                                {{ proposal.processing_status }}
-                            </div>
-                            <div class="col-sm-12">
-                                <div class="separator"></div>
-                            </div>
-
-                            <!--
-                            <template v-if="proposal.processing_status == 'With Assessor' || proposal.processing_status == 'With Referral'">
-                                <div class="col-sm-12 top-buffer-s">
-                                    <strong>Referrals</strong>
-                                    <div class="form-group">
-                                        <select :disabled="!canLimitedAction" ref="apiary_referral_groups" class="form-control">
-                                            <option value="null"></option>
-                                            <option v-for="group in apiaryReferralGroups" :value="group.id">{{group.name}}</option>
-                                        </select>
-                                        <template v-if='!sendingReferral'>
-                                            <template v-if="selected_referral">
-                                                <label class="control-label pull-left"  for="Name">Comments</label>
-                                                <textarea class="form-control" name="name" v-model="referral_text"></textarea>
-                                                <a v-if="canLimitedAction" @click.prevent="sendReferral()" class="actionBtn pull-right">Send</a>
-                                            </template>
-                                        </template>
-                                        <template v-else>
-                                            <span v-if="canLimitedAction" @click.prevent="sendReferral()" disabled class="actionBtn text-primary pull-right">
-                                                Sending Referral&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
-                                            </span>
-                                        </template>
-                                    </div>
-                                    <table class="table small-table">
-                                        <tr>
-                                            <th>Referral</th>
-                                            <th>Status/Action</th>
-                                        </tr>
-                                        <tr v-for="r in proposal.latest_referrals">
-                                            <td>
-                                                <small><strong>{{r.apiary_referral.referral_group.name}}</strong></small><br/>
-                                                <small><strong>{{r.lodged_on | formatDate}}</strong></small>
-                                            </td>
-                                            <td>
-                                                <small><strong>{{r.processing_status}}</strong></small><br/>
-                                                <template v-if="r.processing_status == 'Awaiting'">
-                                                    <small v-if="canLimitedAction"><a @click.prevent="remindReferral(r)" href="#">Remind</a> / <a @click.prevent="recallReferral(r)"href="#">Recall</a></small>
-                                                </template>
-                                                <template v-else>
-                                                    <small v-if="canLimitedAction"><a @click.prevent="resendReferral(r)" href="#">Resend</a></small>
-                                                </template>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                    <ApiaryReferralsForProposal @refreshFromResponse="refreshFromResponse" :proposal="proposal" :canAction="canLimitedAction" :isFinalised="isFinalised" :referral_url="referralListURL"/>
-                                </div>
-                                <div class="col-sm-12">
-                                    <div class="separator"></div>
-                                </div>
-                            </template>
-                            -->
-                            <div v-if="!isFinalised" class="col-sm-12 top-buffer-s">
+                            <div class="col-sm-12 top-buffer-s">
                                 <strong>Currently assigned to</strong>
                                 <div class="form-group">
                                     <template v-if="proposal.processing_status == 'With Approver'">
@@ -119,47 +60,45 @@
                                     </template>
                                 </div>
                             </div>
-                            <template v-if="proposal.processing_status == 'With Assessor (Requirements)' || proposal.processing_status == 'With Approver' || isFinalised">
-                                <div class="col-sm-12">
-                                    <strong>Proposal</strong>
-                                    <a class="actionBtn" v-if="!showingProposal" @click.prevent="toggleProposal()">Show Proposal</a>
-                                    <a class="actionBtn" v-else @click.prevent="toggleProposal()">Hide Proposal</a>
-                                </div>
-                                <div class="col-sm-12">
-                                    <div class="separator"></div>
-                                </div>
-                            </template>
-                            <template v-if="proposal.processing_status == 'With Approver' || isFinalised">
-                                <div class="col-sm-12">
-                                    <strong>Requirements</strong>
-                                    <a class="actionBtn" v-if="!showingRequirements" @click.prevent="toggleRequirements()">Show Requirements</a>
-                                    <a class="actionBtn" v-else @click.prevent="toggleRequirements()">Hide Requirements</a>
-                                </div>
-                                <div class="col-sm-12">
-                                    <div class="separator"></div>
-                                </div>
-                            </template>
-                            <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction">
-                                <template v-if="proposal.processing_status == 'With Assessor'">
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <strong>Action</strong>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="amendmentRequest()">Request Amendment</button>
-                                        </div>
-                                        <div class="col-sm-12" >
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="issueProposal()">Approve</button>
-                                        </div>
-                                        <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="declineProposal()">Decline</button>
-                                        </div>
-                                    </div>
-                                </template>
+                        </div>
+                    </div>
+                    <template v-if="proposal.processing_status == 'With Assessor (Requirements)' || proposal.processing_status == 'With Approver' || isFinalised">
+                        <div class="card-body py-2 border-top">
+                            <div class="col-sm-12">
+                                <strong>Proposal</strong>
+                                <a class="actionBtn" v-if="!showingProposal" @click.prevent="toggleProposal()">Show Proposal</a>
+                                <a class="actionBtn" v-else @click.prevent="toggleProposal()">Hide Proposal</a>
                             </div>
                         </div>
+                    </template>
+                    <template v-if="proposal.processing_status == 'With Approver' || isFinalised">
+                        <div class="card-body py-2 border-top">
+                            <div class="col-sm-12">
+                                <strong>Requirements</strong>
+                                <a class="actionBtn" v-if="!showingRequirements" @click.prevent="toggleRequirements()">Show Requirements</a>
+                                <a class="actionBtn" v-else @click.prevent="toggleRequirements()">Hide Requirements</a>
+                            </div>
+                        </div>
+                    </template>
+                    <div class="card-body border-top" v-if="!isFinalised && canAction">
+                        <template v-if="proposal.processing_status == 'With Assessor'">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="row mb-2">
+                                        <strong>Action</strong>
+                                    </div> 
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="amendmentRequest()">Request Amendment</button>
+                            </div>
+                            <div class="col-sm-12" >
+                                <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="issueProposal()">Approve</button>
+                            </div>
+                            <div class="col-sm-12">
+                                <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="declineProposal()">Decline</button>
+                            </div>
+                        </template>
                     </div>
                 </div>
             </div>
@@ -177,8 +116,6 @@
                     <div v-else>
                         <ApprovalScreen :proposal="proposal" @refreshFromResponse="refreshFromResponse"/>
                     </div>
-
-                    <!--ApprovalScreen :proposal="proposal" @refreshFromResponse="refreshFromResponse"/-->
                 </template>
                 <template v-if="proposal.processing_status == 'With Assessor (Requirements)' || ((proposal.processing_status == 'With Approver' || isFinalised) && showingRequirements)">
                     <Requirements :proposal="proposal"/>
@@ -299,19 +236,6 @@
         </div>
         <ProposedDecline ref="proposed_decline" :processing_status="proposal.processing_status" :proposal_id="proposal.id" @refreshFromResponse="refreshFromResponse"></ProposedDecline>
         <AmendmentRequest ref="amendment_request" :proposal_id="proposal.id" @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
-        <!--
-        <ProposedApproval 
-        ref="proposed_approval" 
-        :processing_status="proposal.processing_status" 
-        :proposal_apiary_id="apiaryProposal.id" 
-        :proposal_id="proposal.id" 
-        :proposal_type='proposal.proposal_type' 
-        :isApprovalLevelDocument="isApprovalLevelDocument" 
-        :submitter_email="proposal.submitter_email" 
-        :applicant_email="applicant_email" 
-        @refreshFromResponse="refreshFromResponse"
-        />
-        -->
     </div>
 </template>
 <script>
@@ -344,7 +268,6 @@ export default {
             approver_comment: '',
             form: null,
             members: [],
-            //department_users : [],
             apiaryReferralGroups: [],
             contacts_table_initialised: false,
             initialisedSelects: false,
@@ -403,19 +326,12 @@ export default {
         }
     },
     components: {
-        // ProposalDisturbance,
-        // ProposalApiary,
-        // datatable,
         ProposedDecline,
         AmendmentRequest,
         Requirements,
-        // ProposedApproval,
         ApprovalScreen,
         ApprovalScreenSiteTransferTemporaryUse,
         CommsLogs,
-        //MoreReferrals,
-        // ApiaryReferralsForProposal,
-        // NewApply,
         FormSection,
         SectionsProposalTemporaryUse,
     },
@@ -552,26 +468,6 @@ export default {
         commaToNewline(s){
             return s.replace(/[,;]/g, '\n');
         },
-        //proposedDecline: function(){
-        //    this.save_wo();
-        //    this.$refs.proposed_decline.decline = this.proposal.proposaldeclineddetails != null ? helpers.copyObject(this.proposal.proposaldeclineddetails): {};
-        //    this.$refs.proposed_decline.isModalOpen = true;
-        //},
-        //proposedApproval: function(){
-        //    this.$refs.proposed_approval.approval = this.proposal.proposed_issuance_approval != null ? helpers.copyObject(this.proposal.proposed_issuance_approval) : {};
-        //    if(this.proposal.proposed_issuance_approval == null){
-        //        var test_approval={
-        //        'cc_email': this.proposal.referral_email_list
-        //    };
-        //    this.$refs.proposed_approval.approval=helpers.copyObject(test_approval);
-        //        // this.$refs.proposed_approval.$refs.bcc_email=this.proposal.referral_email_list;
-        //    }
-        //    //this.$refs.proposed_approval.submitter_email=helpers.copyObject(this.proposal.submitter_email);
-        //    // if(this.proposal.applicant.email){
-        //    //     this.$refs.proposed_approval.applicant_email=helpers.copyObject(this.proposal.applicant.email);
-        //    // }
-        //    this.$refs.proposed_approval.isModalOpen = true;
-        //},
         issueProposal:function(){
             let vm = this
             swal.fire({
@@ -650,12 +546,10 @@ export default {
             });
         },
         amendmentRequest: function(){
-            this.save_wo();
             let values = '';
             $('.deficiency').each((i,d) => {
                 values +=  $(d).val() != '' ? `Question - ${$(d).data('question')}\nDeficiency - ${$(d).val()}\n\n`: '';
             });
-            //this.deficientFields();
             this.$refs.amendment_request.amendment.text = values;
 
             this.$refs.amendment_request.isModalOpen = true;
@@ -748,9 +642,6 @@ export default {
         },
         refreshFromResponse:function(response_data){
             let vm = this;
-            // TODO fix for segregation - check the response_data if that's send in .json() wherever it's emitted as per new fetch calls.
-            // vm.original_proposal = helpers.copyObject(response.body);
-            // vm.proposal = helpers.copyObject(response.body);
             vm.original_proposal = helpers.copyObject(response_data);
             vm.proposal = helpers.copyObject(response_data);
             vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
