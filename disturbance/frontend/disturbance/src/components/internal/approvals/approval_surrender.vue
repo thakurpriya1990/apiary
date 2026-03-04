@@ -150,7 +150,6 @@ export default {
                 body: JSON.stringify(approval),
             }).then(async (response)=>{
                 if (!response.ok) {
-                    //throw new Error(`Approval Surrender failed: ${response.status}`);
                     return response.json().then(err => { throw err });
                 }
 

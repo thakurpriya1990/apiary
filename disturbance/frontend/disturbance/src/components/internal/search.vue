@@ -352,7 +352,6 @@ export default {
             }).catch(error => {
               console.log(error);
               vm.errors = true;
-              // vm.errorString = helpers.apiVueResourceError(error);
               vm.errorString = error;
             });
           }

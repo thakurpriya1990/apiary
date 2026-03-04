@@ -66,7 +66,7 @@ import datatable from '@/utils/vue/datatable.vue'
 import {
     api_endpoints,
     constants
-}from '@/utils/hooks'
+} from '@/utils/hooks'
 export default {
     name: 'ProposalTableDash',
     props: {

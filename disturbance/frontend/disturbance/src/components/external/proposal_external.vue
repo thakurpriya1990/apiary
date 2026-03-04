@@ -808,8 +808,6 @@ export default {
                             console.log('http.post(submit)')
                             console.log('http.post: ' + helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'))
 
-                            // const res = await vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'),formData);
-                            // vm.proposal = res.body;
                             const response = await fetch(
                                 helpers.add_endpoint_json(api_endpoints.proposals, vm.proposal.id + '/submit'),
                                 {
@@ -818,43 +816,29 @@ export default {
                                 }
                             );
                             if (!response.ok) {
-                                const errorData = await response.json();
-                                throw errorData;
+                                let errorString = await helpers.apiVueResourceError(response);
+                                throw errorString;
                             }
                             const resBody = await response.json();
                             vm.proposal = resBody;
                             vm.$router.push({
                                 name: 'submit_proposal',
-                                //params: { proposal: vm.proposal}
                                 state:
                                     { proposal: JSON.stringify(vm.proposal) }
                             });
                         } catch (err) {
-                            //TODO fix for segregation - handle errors better (handle missing fields before sub or handle properly here...)
+                            
+                            let errorString = typeof err === 'string' ? err : (err && err.message) || 'Network error';
+
                             swal.fire({
                                 title: 'Submit Error',
-                                text: helpers.apiVueResourceError(err),
+                                text: String(errorString),
                                 icon: 'error',
                                 customClass: {
                                     confirmButton: 'btn btn-primary',
                                 },
                             })
                         }
-                        /*
-                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'),formData).then(res=>{
-                            vm.proposal = res.body;
-                            vm.$router.push({
-                                name: 'submit_proposal',
-                                params: { proposal: vm.proposal}
-                            });
-                        },err=>{
-                            swal(
-                                'Submit Error',
-                                helpers.apiVueResourceError(err),
-                                'error'
-                            )
-                        });
-                        */
                     }
                 }
             },(error) => {

@@ -1,3 +1,37 @@
+
+function unwrapErrorDetail(input) {
+  //Error unwrap for DRF errors
+
+  if (typeof input !== 'string') return input;
+  let t = input.trim();
+  // If the whole string is bracketed once, strip it: "[...]" -> "..."
+  if (t.startsWith('[') && t.endsWith(']')) {
+    t = t.slice(1, -1).trim();
+  }
+
+  // If still quoted, strip quotes
+  if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
+    t = t.slice(1, -1).trim();
+  }
+
+  // single or double quotes
+  const m =
+    t.match(/ErrorDetail\s*\(\s*string\s*=\s*'([^']*)'/) ||
+    t.match(/ErrorDetail\s*\(\s*string\s*=\s*"([^"]*)"/);
+
+  if (m) return m[1];
+
+  // If it's a simple one-item list in string form 
+  const bracketMsg =
+    t.match(/^\[\s*'([^']*)'\s*\]$/) ||
+    t.match(/^\[\s*"([^"]*)"\s*\]$/);
+
+  if (bracketMsg) return bracketMsg[1];
+
+  return input; 
+}
+
+
 export default {
   truncate(text, { length = 30, omission = '...', separator } = {}) {
         if (text == null) return '';
@@ -36,56 +70,70 @@ export default {
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
     },
-  apiError: function ( resp ) {
-    var error_str = '';
-    if ( resp.status === 400 ) {
-      try {
-        let obj = JSON.parse( resp.responseText );
-        error_str = obj.non_field_errors[ 0 ].replace( /[[\]"]/g, '' );
-      }
-      catch ( e ) {
-        console.log(e);
-        error_str = resp.responseText.replace( /[[\]"]/g, '' );
-      }
-    }
-    else if ( resp.status === 404 ) {
-      error_str = 'The resource you are looking for does not exist.';
-    }
-    else {
-      error_str = resp.responseText.replace( /[[\]"]/g, '' );
-    }
-    return error_str;
-  },
-    apiVueResourceError: function(resp){
+    apiError: function ( resp ) {
         var error_str = '';
-        var text = null;
+        if ( resp.status === 400 ) {
+        try {
+            let obj = JSON.parse( resp.responseText );
+            error_str = obj.non_field_errors[ 0 ].replace( /[[\]"]/g, '' );
+        }
+        catch ( e ) {
+            console.log(e);
+            error_str = resp.responseText.replace( /[[\]"]/g, '' );
+        }
+        }
+        else if ( resp.status === 404 ) {
+        error_str = 'The resource you are looking for does not exist.';
+        }
+        else {
+        error_str = resp.responseText.replace( /[[\]"]/g, '' );
+        }
+        return error_str;
+    }, 
+    apiVueResourceError: async function (resp) {
+        let body;
+        try {
+            body = await resp.clone().json();
+        } catch {
+            try {
+                body = await resp.text();
+            } catch {
+                body = '';
+            }
+        }
+
+        let error_str = '';
+        let text = null;
+
         if (resp.status === 400) {
-            if (Array.isArray(resp.body)){
-                text = resp.body[0];
-            }
-            else if (typeof resp.body == 'object'){
-                text = resp.body;
-            }
-            else{
-                text = resp.body;
+            if (Array.isArray(body)) {
+                text = body[0];
+            } else if (typeof body === 'object' && body !== null) {
+                text = body;
+            } else {
+                text = body; 
             }
 
-            if (typeof text == 'object'){
+            if (typeof text === 'object' && text !== null) {
                 if (Object.prototype.hasOwnProperty.call(text, 'non_field_errors')) {
-                    error_str = text.non_field_errors[0].replace(/[[\]"]/g, '');
+                    const first = text.non_field_errors && text.non_field_errors[0];
+                    let cleaned = unwrapErrorDetail(
+                    typeof first === 'string' ? first : String(first || '')
+                    );
+                    cleaned = cleaned.replace(/[[\]"]/g, '').replace(/^'"['"]$/, '$1');
+                    error_str = cleaned;
+                } else {
+                    error_str = JSON.stringify(text);
                 }
-                else{
-                    error_str = text;
-                }
+            } else if (typeof text === 'string') {
+                let cleaned = unwrapErrorDetail(text);
+                cleaned = cleaned.replace(/[[\]"]/g, '').replace(/^'"['"]$/, '$1');
+                error_str = cleaned;
             }
-            else{
-                error_str = text.replace(/[[\]"]/g,'');
-                error_str = text.replace(/^['"](.*)['"]$/, '$1');
-            }
-        }
-        else if ( resp.status === 404) {
+        } else if (resp.status === 404) {
             error_str = 'The resource you are looking for does not exist.';
         }
+        console.log(error_str)
         return error_str;
     },
 

@@ -291,7 +291,6 @@ export default {
                 }
             }).catch((error)=>{
                 vm.errors = true;
-                // vm.errorString = helpers.apiVueResourceError(error);
                 vm.errorString = error.message;
             });               
         }
