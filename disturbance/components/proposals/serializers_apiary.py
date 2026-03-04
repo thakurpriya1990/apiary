@@ -1256,8 +1256,7 @@ class ApiaryReferralGroupSerializer(serializers.ModelSerializer):
 
 
 class ApiaryProposalReferralSerializer(serializers.ModelSerializer):
-    #TODO fix for segregation - referral name 
-    #referral = serializers.CharField(source='referral.get_full_name')
+    referral = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source='get_processing_status_display')
     apiary_referral = serializers.SerializerMethodField()
     class Meta:
@@ -1266,6 +1265,10 @@ class ApiaryProposalReferralSerializer(serializers.ModelSerializer):
 
     def get_apiary_referral(self, obj):
         return ApiaryReferralSerializer(obj.apiary_referral).data
+    
+    #TODO on-cleanup: this was added as a fix but this column may not be needed for apiary
+    def get_referral(self, obj):
+        return obj.referral.get_full_name() if obj.referral else None
 
 class ApiaryInternalApprovalSerializer(serializers.ModelSerializer):
     class Meta:

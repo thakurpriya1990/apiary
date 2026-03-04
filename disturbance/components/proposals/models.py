@@ -2702,7 +2702,7 @@ def clone_apiary_proposal_with_status_reset(original_proposal):
         except:
             raise
 
-#TODO fix for segregation - improve or remove if not needed for apiary
+#TODO on-cleanup - improve or remove if not needed for apiary
 def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance, is_internal= True):
     from disturbance.utils import search, search_approval, search_compliance
     from disturbance.components.approvals.models import Approval
@@ -2766,7 +2766,7 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
                     raise
     return qs
 
-#TODO fix for segregation - improve or remove if not needed for apiary
+
 def search_reference(reference_number):
     from disturbance.components.approvals.models import Approval
     from disturbance.components.compliances.models import Compliance

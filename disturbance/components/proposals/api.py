@@ -720,7 +720,7 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         data = {"type":"FeatureCollection","features":list(sites)}
         return Response(data)
 
-    #TODO cleanup: this may not be needed any more
+    #TODO on-cleanup: this may not be needed any more
     @action(detail=False,methods=['GET',])
     @basic_exception_handler
     def transitable_sites(self, request):
@@ -2033,7 +2033,7 @@ class AmendmentRequestReasonChoicesView(views.APIView):
                 choices_list.append({'key': c.id,'value': c.reason})
         return Response(choices_list)
 
-
+#TODO on-cleanup - improve or remove if not needed for apiary
 class SearchKeywordsView(views.APIView):
     renderer_classes = [JSONRenderer,]
     permission_classes = [InternalProposalPermission]

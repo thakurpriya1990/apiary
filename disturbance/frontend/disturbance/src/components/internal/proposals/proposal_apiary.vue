@@ -413,12 +413,9 @@
 </template>
 <script>
 import { v4 as uuid } from 'uuid';
-// import ProposalDisturbance from '../../form.vue'
-//import ProposalApiary from '../../form_apiary.vue'
 import ApiaryForm from '@/components/form_apiary.vue'
 import ProposedDecline from './proposal_proposed_decline.vue'
 import AmendmentRequest from './amendment_request.vue'
-//import Requirements from './apiary_proposal_requirements.vue'
 import Requirements from './proposal_requirements.vue'
 import OriginatingApprovalRequirements from './originating_approval_requirements.vue'
 import TargetApprovalRequirements from './target_approval_requirements.vue'
@@ -426,10 +423,8 @@ import ProposedApiaryIssuance from './proposed_apiary_issuance.vue'
 import ApprovalScreen from './proposal_approval.vue'
 import ApprovalScreenSiteTransferTemporaryUse from './proposal_approval_site_transfer_temporary_use.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
-//import MoreReferrals from '@common-utils/more_referrals.vue'
 import ApiaryReferralsForProposal from '@common-utils/apiary/apiary_referrals_for_proposal.vue'
 import { api_endpoints, helpers, constants } from '@/utils/hooks'
-//import MapLocations from '@common-utils/map_locations.vue'
 import ApiarySiteTransfer from '@/components/form_apiary_site_transfer.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
 

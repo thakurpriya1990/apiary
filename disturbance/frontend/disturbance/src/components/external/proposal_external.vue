@@ -470,6 +470,7 @@ export default {
                 }
 
                 vm.isSaving = false;
+                vm.$router.go(0);
             })
             .catch(err => {
                 console.log('err');
@@ -978,11 +979,8 @@ export default {
     },
     mounted: function() {
         console.log('in mounted')
-
         let vm = this;
         vm.form = document.forms.new_proposal;
-        window.addEventListener('beforeunload', vm.leaving);
-        window.addEventListener('onblur', vm.leaving);
     },
     updated: function(){
         let vm=this;
