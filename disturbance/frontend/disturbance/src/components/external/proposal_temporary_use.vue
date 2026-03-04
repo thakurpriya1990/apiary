@@ -150,7 +150,7 @@
                     
                     'application_type_str': 'temporary_use',
                 }
-                //TODO fix for segregation - the full list should NOT be uploaded, find a way to only send what has changed
+                //TODO on-cleanup - ideally should only send what has changed no the entire list
                 data['apiary_temporary_use']['temporary_use_apiary_sites'] = this.$refs.section_proposal_temporary_use.temporary_use_apiary_sites;
                 data['apiary_temporary_use']['to_date'] = this.$refs.section_proposal_temporary_use.to_date;
                 data['apiary_temporary_use']['from_date'] = this.$refs.section_proposal_temporary_use.from_date;

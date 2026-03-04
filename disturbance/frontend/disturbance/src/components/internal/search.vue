@@ -1,6 +1,6 @@
 <template>
 <div class="container" id="internalSearch">
-    <!--TODO fix for segregation - Exclude until fixed -->
+    <!--TODO fix for segregation - Exclude until fixed or remove if not needed -->
     <!--<div class="row">
         <div class="col-sm-12">
             <FormSection :form-collapse="false" label="Search Organisations">
@@ -29,8 +29,8 @@
             </FormSection>
         </div>
     </div>-->
-
-    <div class="row">
+    <!--TODO fix for segregation - Exclude until fixed or remove if not need -->
+    <!--<div class="row">
         <div class="col-sm-12">
             <FormSection :form-collapse="false" label="Search Keywords">
               <div class="row">
@@ -90,7 +90,7 @@
               </div>
             </FormSection>
         </div>
-    </div>
+    </div>-->
     <div class="row">
         <div class="col-sm-12">
             <FormSection :form-collapse="false" label="Search Reference Number">
@@ -198,7 +198,7 @@ export default {
     
   },
     components: {
-        datatable,
+        //datatable,
         alert,
         FormSection,
     },

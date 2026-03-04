@@ -1371,7 +1371,6 @@
                 $tr.fadeOut('slow', function () {
                     $(this).remove();
                 });
-                
 
             },
             initMap: async function() {
