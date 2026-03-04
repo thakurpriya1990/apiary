@@ -456,21 +456,22 @@ export default {
                     const errorData = await response.json();
                     throw { body: errorData };
                 }
-                // const res = await response.json();
 
                 if (confirmation_required) {
                     swal.fire({
                         title: 'Saved',
-                        text: 'Your application has been saved',
+                        text: 'Your application has been saved. The page will be refreshed.',
                         icon: 'success',
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
+                    }).then((result) => {
+                        vm.$router.go(0);
                     });
                 }
 
                 vm.isSaving = false;
-                vm.$router.go(0);
+                
             })
             .catch(err => {
                 console.log('err');
