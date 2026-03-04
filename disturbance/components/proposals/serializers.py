@@ -1,7 +1,6 @@
 import logging
 
 from ledger_api_client.ledger_models import Invoice
-import collections
 from disturbance.components.proposals.models import (
                                     ProposalType,
                                     Proposal,
@@ -28,6 +27,7 @@ from disturbance.components.proposals.serializers_apiary import ProposalApiarySe
 from disturbance.components.proposals.serializers_base import BaseProposalSerializer, ProposalReferralSerializer, \
     ProposalDeclinedDetailsSerializer, EmailUserSerializer
 
+from disturbance import settings
 
 logger = logging.getLogger(__name__)
 
@@ -191,11 +191,14 @@ class ListProposalSerializer(BaseProposalSerializer):
                     inv = Invoice.objects.get(reference=inv_ref)
                     from disturbance.helpers import is_internal
                     if is_internal(self.context['request']):
-                        invoice_references.append(inv_ref)
+                        invoice_references.append({
+                            "reference":inv_ref,
+                            "ledger_link":f'{settings.LEDGER_UI_URL}/ledger/payments/oracle/payments?invoice_no={inv_ref}'
+                        })
                     else:
                         # We don't want to show 0 doller invoices to external
                         if inv.amount > 0:
-                            invoice_references.append(inv_ref)
+                            invoice_references.append({"reference":inv_ref})
                 except:
                     pass
         return invoice_references
