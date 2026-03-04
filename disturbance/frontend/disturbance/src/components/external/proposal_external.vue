@@ -360,7 +360,7 @@ export default {
             this.total_num_of_sites_on_map = value
         },
         expiry_date_changed: function(value){
-            this.proposal.proposal_apiary.public_liability_insurance_expiry_date = moment(value, 'DD/MM/YYYY');
+            this.proposal.proposal_apiary.public_liability_insurance_expiry_date = value;
         },
         setSiteTransferApplicationFee: function(fee) {
             this.siteTransferApplicationFee = fee;

@@ -975,7 +975,6 @@ def save_proponent_data_apiary(proposal_obj, request, viewset):
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
-                # site_locations_received = proposal_apiary_data['apiary_sites']
                 all_features = request.data.get('all_the_features')
                 
                 try:
