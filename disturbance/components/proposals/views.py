@@ -3,10 +3,11 @@ import json
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import View, TemplateView
-from disturbance.components.proposals.models import Proposal, Referral, ProposalType, HelpPage
+from disturbance.components.proposals.models import Proposal, Referral, ProposalType
 from disturbance.components.approvals.models import Approval
 from disturbance.components.compliances.models import Compliance
-
+from disturbance.components.organisations.models import Organisation
+from django.db.models import Q
 from django.core.exceptions import PermissionDenied
 from disturbance.helpers import is_internal, is_in_organisation_contacts
 
@@ -15,60 +16,61 @@ from reversion_compare.views import HistoryCompareDetailView
 
 from django.contrib.auth.mixins import UserPassesTestMixin
 
-#TODO fix for segregation: reversion as of writing cannot be used in this way anyway (ledger user id issues)
-#The below class should (untested) secure all history views once HistoryCompareDetailView has been replaced
-#Either implement (presuming the compare interfaces have been fixed somehow) or remove entirely
-#class InternalHistoryCompareDetailView(UserPassesTestMixin, HistoryCompareDetailView):
-#    def test_func(self):
-#        return is_internal(self.request)
 
-#TODO fix for segregation (fix or remove all history compare views (they are not secured!))
-#class ProposalHistoryCompareView(InternalHistoryCompareDetailView):
-#    """
-#    View for reversion_compare
-#    """
-#    model = Proposal
-#    template_name = 'disturbance/reversion_history.html'
+class InternalHistoryCompareDetailView(UserPassesTestMixin, HistoryCompareDetailView):
 
+    def _get_action_list(self):
+        action_list = [
+            {"version": version, "revision": version.revision}
+            for version in self._order_version_queryset(
+                Version.objects.get_for_object(self.get_object()).select_related("revision")
+            )
+        ]
+        return action_list
 
-#class ProposalHistoryLatestCompareView(HistoryCompareDetailView):
-#    """
-#    View for reversion_compare that returns on the x most recent revisions
-#    """
-#    model = Proposal
-#    template_name = 'disturbance/reversion_history.html'
-#
-#
-#class ProposalFilteredHistoryCompareView(HistoryCompareDetailView):
-#    """
-#    View for reversion_compare - with 'status' in the comment field only'
-#    """
-#
-#    model = Proposal
-#    template_name = 'commercialoperator/reversion_history.html'
-#
-#    def _get_action_list(self,):
-#        """ Get only versions when processing_status changed, and add the most recent (current) version """
-#        current_revision_id = Version.objects.get_for_object(self.get_object()).first().revision_id
-#        action_list = [
-#            {"version": version, "revision": version.revision}
-#            for version in self._order_version_queryset(
-#                #Version.objects.get_for_object(self.get_object()).select_related("revision__user").filter(revision__comment__icontains='status')
-#                Version.objects.get_for_object(self.get_object()).select_related("revision__user").filter(Q(revision__comment__icontains='status') | Q(revision_id=current_revision_id))
-#            )
-#        ]
-#        return action_list
-#
-#
-#class ReferralHistoryCompareView(HistoryCompareDetailView):
-#    """
-#    View for reversion_compare
-#    """
-#    model = Referral
-#    template_name = 'disturbance/reversion_history.html'
-#
-#
+    def test_func(self):
+        return is_internal(self.request)
 
+class ProposalHistoryCompareView(InternalHistoryCompareDetailView):
+    """
+    View for reversion_compare
+    """
+    model = Proposal
+    template_name = 'disturbance/reversion_history.html'
+
+#TODO on-cleanup - this does not appear to do anything more than the other history views
+class ProposalHistoryLatestCompareView(InternalHistoryCompareDetailView):
+    """
+    View for reversion_compare that returns on the x most recent revisions
+    """
+    model = Proposal
+    template_name = 'disturbance/reversion_history.html'
+
+class ProposalFilteredHistoryCompareView(InternalHistoryCompareDetailView):
+    """
+    View for reversion_compare - with 'status' in the comment field only'
+    """
+
+    model = Proposal
+    template_name = 'disturbance/reversion_history.html'
+
+    def _get_action_list(self,):
+        """ Get only versions when processing_status changed, and add the most recent (current) version """
+        current_revision_id = Version.objects.get_for_object(self.get_object()).first().revision_id
+        action_list = [
+            {"version": version, "revision": version.revision}
+            for version in self._order_version_queryset(
+                Version.objects.get_for_object(self.get_object()).select_related("revision").filter(Q(revision__comment__icontains='status') | Q(revision_id=current_revision_id))
+            )
+        ]
+        return action_list
+
+class ReferralHistoryCompareView(InternalHistoryCompareDetailView):
+    """
+    View for reversion_compare
+    """
+    model = Referral
+    template_name = 'disturbance/reversion_history.html'
 
 class ExternalProposalTemporaryUseSubmitSuccessView(TemplateView):
     model = Proposal
@@ -99,39 +101,20 @@ class ExternalProposalTemporaryUseSubmitSuccessView(TemplateView):
         return (
             proposal.proxy_applicant == self.request.user if proposal.relevant_applicant_type == 'proxy' else proposal.submitter == self.request.user
         ) or is_internal(self.request) or self.request.user.is_superuser
-#
-#
-#class ApprovalHistoryCompareView(HistoryCompareDetailView):
-#    """
-#    View for reversion_compare
-#    """
-#    model = Approval
-#    template_name = 'disturbance/reversion_history.html'
-#
-#
-#class ComplianceHistoryCompareView(HistoryCompareDetailView):
-#    """
-#    View for reversion_compare
-#    """
-#    model = Compliance
-#    template_name = 'disturbance/reversion_history.html'
-#
-#
-#
-#class ProposalTypeHistoryCompareView(HistoryCompareDetailView):
-#    """
-#    View for reversion_compare
-#    """
-#    model = ProposalType
-#    template_name = 'disturbance/reversion_history.html'
-#
-#
-#class HelpPageHistoryCompareView(HistoryCompareDetailView):
-#    """
-#    View for reversion_compare
-#    """
-#    model = HelpPage
-#    template_name = 'disturbance/reversion_history.html'
+
+class ApprovalHistoryCompareView(InternalHistoryCompareDetailView):
+    """
+    View for reversion_compare
+    """
+    model = Approval
+    template_name = 'disturbance/reversion_history.html'
+
+class ComplianceHistoryCompareView(InternalHistoryCompareDetailView):
+    """
+    View for reversion_compare
+    """
+    model = Compliance
+    template_name = 'disturbance/reversion_history.html'
 
 
 class PreviewLicencePDFView(View):
