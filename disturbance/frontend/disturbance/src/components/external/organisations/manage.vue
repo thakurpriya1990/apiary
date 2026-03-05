@@ -1068,7 +1068,6 @@ export default {
     },
     mounted: function(){
         this.personal_form = document.forms.personal_form;
-        //this.loaded = true;
     },
     updated: function(){
         $('.panelClicker[data-toggle="collapse"]').on('click', function () {
