@@ -22,7 +22,7 @@
                                         <label class="control-label pull-left"  for="Name">From</label>
                                     </div>
                                     <div class="col-sm-4">
-                                        <input type="text" class="form-control" name="fromm" v-model="from">
+                                        <input type="text" class="form-control" name="from" v-model="from">
                                     </div>
                                 </div>
                             </div>
@@ -160,8 +160,13 @@ export default {
         ok:function () {
             let vm =this;
             if($(vm.form).valid()){
+                vm.errors = false;
                 vm.sendData();
+            } else {
+                vm.errorString = "Missing required fields.";
+                vm.errors = true;
             }
+
         },
         uploadFile(target,file_obj){
             let _file = null;
@@ -256,31 +261,11 @@ export default {
             vm.validation_form = $(vm.form).validate({
                 rules: {
                     to:"required",
-                    fromm:"required",
+                    from:"required",
                     type:"required",
                     subject:"required",
                     text:"required",
                 },
-                messages: {
-                },
-                showErrors: function(errorMap, errorList) {
-                    $.each(this.validElements(), function(index, element) {
-                        var $element = $(element);
-                        $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
-                    });
-                    // destroy tooltips on valid elements
-                    $("." + this.settings.validClass).tooltip("destroy");
-                    // add or update tooltips
-                    for (var i = 0; i < errorList.length; i++) {
-                        var error = errorList[i];
-                        $(error.element)
-                            .tooltip({
-                                trigger: "focus"
-                            })
-                            .attr("data-original-title", error.message)
-                            .parents('.form-group').addClass('has-error');
-                    }
-                }
             });
        },
    },
