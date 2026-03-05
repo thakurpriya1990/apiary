@@ -319,12 +319,9 @@ export default {
 
                     vm.compliance = data;
 
-                    console.log('Pushing with state:', { compliance: vm.compliance });
                     vm.$router.push({
                         name: 'submit_compliance',
-                        state: {
-                            compliance: JSON.parse(JSON.stringify(toRaw(vm.compliance)))
-                        },
+                        query: { compliance: encodeURIComponent(JSON.stringify(toRaw(vm.compliance))) }
                     });
                 }
             }).catch((error)=>{
