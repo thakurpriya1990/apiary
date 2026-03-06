@@ -164,10 +164,10 @@ class Approval(RevisionedMixin):
         unique_together = ('lodgement_number', 'issue_date')
 
     def add_apiary_sites_to_proposal_apiary_for_renewal(self, proposal_apiary):
-        for apiary_site in self.apiary_sites.all():  # Exclude just in case there is.
-            relation = self.get_relation(apiary_site)
+        for apiary_site_on_approval in self.get_relations():
+            relation = self.get_relation(apiary_site_on_approval.apiary_site)
             ApiarySiteOnProposal.objects.create(
-                apiary_site=apiary_site,
+                apiary_site=apiary_site_on_approval.apiary_site,
                 proposal_apiary=proposal_apiary,
                 wkb_geometry_draft=relation.wkb_geometry,
                 site_category_draft=relation.site_category,
@@ -181,7 +181,6 @@ class Approval(RevisionedMixin):
         return relation_obj
 
     def get_relations(self):
-        # relation_objs = ApiarySiteOnApproval.objects.filter(apiary_site__in=self.apiary_sites.all(), approval=self)
         relation_objs = ApiarySiteOnApproval.objects.filter(apiary_site__in=self.apiary_sites.all(), approval=self).exclude(site_status=SITE_STATUS_TRANSFERRED)
         return relation_objs
 

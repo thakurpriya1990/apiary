@@ -1,6 +1,6 @@
 <template>
 <div class="container" id="internalSearch">
-    <!--TODO fix for segregation - Exclude until fixed or remove if not needed -->
+    <!--TODO on-cleanup - Exclude until fixed or remove if not needed -->
     <!--<div class="row">
         <div class="col-sm-12">
             <FormSection :form-collapse="false" label="Search Organisations">
@@ -203,7 +203,7 @@ export default {
         FormSection,
     },
     //beforeRouteEnter:function(to,from,next){
-        /* TODO fix for segregation - fix this or completely replace, takes near 30 seconds to load!
+        /* TODO on-cleanup - fix this or completely replace, takes near 30 seconds to load!
         utils.fetchOrganisations().then((response)=>{
             next(vm => {
                 vm.organisations = response;
