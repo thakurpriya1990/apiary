@@ -29,7 +29,6 @@
             </FormSection>
         </div>
     </div>-->
-    <!--TODO fix for segregation -->
     <div class="row">
         <div class="col-sm-12">
             <FormSection :form-collapse="false" label="Search Keywords">

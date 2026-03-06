@@ -1975,7 +1975,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     def get_latest_related_amend_renew_proposal(self):
         from disturbance.components.approvals.models import Approval
 
-        if self.application_type == ApplicationType.SITE_TRANSFER:
+        if self.application_type.name == ApplicationType.SITE_TRANSFER:
             approval = self.proposal_apiary.originating_approval
             if not approval:
                 raise ValidationError("Invalid proposal id provided for approval amendment/renewal.")
@@ -2750,15 +2750,16 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
 
         filter_regex = ".*\".*\":\s\"(\\\\\"|[^\"])*"+search_words_regex+"(\\\\\"|[^\"])*\".*"
         if searchProposal:
-            proposal_list = proposal_list.filter(data__iregex=filter_regex)
+            proposal_list = proposal_list.filter(proposed_issuance_approval__iregex=filter_regex)
             for p in proposal_list:
                 name = ""
                 if p.applicant:
                     name = p.applicant.name
 
-                if p.data:
+                if p.proposed_issuance_approval:
                     try:
-                        results = search(p.data[0], searchWords)
+                        print(p.proposed_issuance_approval, searchWords)
+                        results = search(p.proposed_issuance_approval, searchWords)
                         final_results = {}
                         if results:
                             for r in results:
