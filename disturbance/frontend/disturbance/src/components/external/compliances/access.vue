@@ -207,9 +207,12 @@ export default {
     submit:function () {
             let vm =this;
             if($(vm.form).valid()){
+                vm.errors = false;
                 vm.sendData();
-            }                
-                //vm.sendData();
+            } else {
+                vm.errorString = "Missing required fields.";
+                vm.errors = true;
+            }
     },
 
     close:function () {
@@ -233,35 +236,10 @@ export default {
             let vm = this;
             vm.validation_form = $(vm.form).validate({
                 rules: {
-                    detail: "required"
-                    
-                     
+                    detail: "required"   
                 },
-                messages: {              
-                    detail: "field is required",
-                                         
-                },
-                showErrors: function(errorMap, errorList) {
-                    $.each(this.validElements(), function(index, element) {
-                        var $element = $(element);
-                        $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
-                    });
-                    // destroy tooltips on valid elements
-                    $("." + this.settings.validClass).tooltip("destroy");
-                    // add or update tooltips
-                    for (var i = 0; i < errorList.length; i++) {
-                        var error = errorList[i];
-                        $(error.element)
-                            .tooltip({
-                                trigger: "focus"
-                            })
-                            .attr("data-original-title", error.message)
-                            .parents('.form-group').addClass('has-error');
-                    }
-                }
             });
        },
-
 
     setAmendmentData: function(amendment_request){
       this.amendment_request = amendment_request;
@@ -319,12 +297,9 @@ export default {
 
                     vm.compliance = data;
 
-                    console.log('Pushing with state:', { compliance: vm.compliance });
                     vm.$router.push({
                         name: 'submit_compliance',
-                        state: {
-                            compliance: JSON.parse(JSON.stringify(toRaw(vm.compliance)))
-                        },
+                        query: { compliance: encodeURIComponent(JSON.stringify(toRaw(vm.compliance))) }
                     });
                 }
             }).catch((error)=>{

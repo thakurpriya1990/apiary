@@ -6,7 +6,6 @@ from rest_framework import routers
 from disturbance import views
 from disturbance.components.main.views import deed_poll_url, GeocodingAddressSearchView
 from disturbance.components.proposals import views as proposal_views
-from disturbance.components.organisations import views as organisation_views
 from disturbance.components.ap_payments import views as payment_views
 from disturbance.components.proposals.views import ExternalProposalTemporaryUseSubmitSuccessView
 
@@ -119,15 +118,12 @@ urlpatterns = [
     re_path(r'^internal/compliance/(?P<compliance_pk>\d+)/$', views.InternalComplianceView.as_view(), name='internal-compliance-detail'),
 
     # reversion history-compare
-    #re_path(r'^history/proposal/latest/(?P<pk>\d+)/(?P<count>\d+)/$', proposal_views.ProposalHistoryLatestCompareView.as_view(), name='proposal_history_latest'),
-    #re_path(r'^history/proposal/(?P<pk>\d+)/$', proposal_views.ProposalHistoryCompareView.as_view(), name='proposal_history'),
-    #re_path(r'^history/proposal/filtered/(?P<pk>\d+)/$', proposal_views.ProposalFilteredHistoryCompareView.as_view(), name='proposal_filtered_history'),
-    #re_path(r'^history/referral/(?P<pk>\d+)/$', proposal_views.ReferralHistoryCompareView.as_view(), name='referral_history'),
-    #re_path(r'^history/approval/(?P<pk>\d+)/$', proposal_views.ApprovalHistoryCompareView.as_view(), name='approval_history'),
-    #re_path(r'^history/compliance/(?P<pk>\d+)/$', proposal_views.ComplianceHistoryCompareView.as_view(), name='compliance_history'),
-    #re_path(r'^history/proposaltype/(?P<pk>\d+)/$', proposal_views.ProposalTypeHistoryCompareView.as_view(), name='proposaltype_history'),
-    #re_path(r'^history/helppage/(?P<pk>\d+)/$', proposal_views.HelpPageHistoryCompareView.as_view(), name='helppage_history'),
-    #re_path(r'^history/organisation/(?P<pk>\d+)/$', organisation_views.OrganisationHistoryCompareView.as_view(), name='organisation_history'),
+    re_path(r'^history/proposal/latest/(?P<pk>\d+)/(?P<count>\d+)/$', proposal_views.ProposalHistoryLatestCompareView.as_view(), name='proposal_history_latest'),
+    re_path(r'^history/proposal/(?P<pk>\d+)/$', proposal_views.ProposalHistoryCompareView.as_view(), name='proposal_history'),
+    re_path(r'^history/proposal/filtered/(?P<pk>\d+)/$', proposal_views.ProposalFilteredHistoryCompareView.as_view(), name='proposal_filtered_history'),
+    re_path(r'^history/referral/(?P<pk>\d+)/$', proposal_views.ReferralHistoryCompareView.as_view(), name='referral_history'),
+    re_path(r'^history/approval/(?P<pk>\d+)/$', proposal_views.ApprovalHistoryCompareView.as_view(), name='approval_history'),
+    re_path(r'^history/compliance/(?P<pk>\d+)/$', proposal_views.ComplianceHistoryCompareView.as_view(), name='compliance_history'),
     re_path(r'^private-media/', views.getPrivateFile, name='view_private_file'),
     re_path(r'^organisation/$', views.ExternalView.as_view(), name='organisation'),
 

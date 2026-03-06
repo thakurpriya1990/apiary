@@ -227,8 +227,12 @@ export default {
         ok:function () {
             let vm =this;
             if($(vm.form).valid()){
+                vm.errors = false;
                 vm.sendData();
                 vm.$refs.filefield.reset_files();
+            } else {
+                vm.errorString = "Missing required fields.";
+                vm.errors = true;
             }
         },
         cancel:function () {
@@ -364,30 +368,6 @@ export default {
                         }
                     }
                 },
-                messages: {
-                    arrival:"field is required",
-                    departure:"field is required",
-                    campground:"field is required",
-                    campsite:"field is required"
-                },
-                showErrors: function(errorMap, errorList) {
-                    $.each(this.validElements(), function(index, element) {
-                        var $element = $(element);
-                        $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
-                    });
-                    // destroy tooltips on valid elements
-                    $("." + this.settings.validClass).tooltip("destroy");
-                    // add or update tooltips
-                    for (var i = 0; i < errorList.length; i++) {
-                        var error = errorList[i];
-                        $(error.element)
-                            .tooltip({
-                                trigger: "focus"
-                            })
-                            .attr("data-original-title", error.message)
-                            .parents('.form-group').addClass('has-error');
-                    }
-                }
             });
        },
        eventListeners:function () {

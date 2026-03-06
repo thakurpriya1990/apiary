@@ -3,7 +3,7 @@
         <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large>
             <div class="container-fluid">
                 <div class="row">
-                    <form class="form-horizontal" name="approvalForm">
+                    <form class="form-horizontal" name="approvalCancellationForm">
                         <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
@@ -102,8 +102,11 @@ export default {
         ok:function () {
             let vm =this;
             if($(vm.form).valid()){
+                vm.errors = false;
                 vm.sendData();
-
+            } else {
+                vm.errorString = "Missing required fields.";
+                vm.errors = true;
             }
         },
         cancel:function () {
@@ -157,7 +160,6 @@ export default {
             }).catch((error)=>{
                 vm.errors = true;
                 vm.issuingApproval = false;
-                // vm.errorString = helpers.apiVueResourceError(error);
                 vm.errorString = error;
             });
         },
@@ -168,26 +170,6 @@ export default {
                     cancellation_date:"required",
                     cancellation_details:"required",
                 },
-                messages: {
-                },
-                showErrors: function(errorMap, errorList) {
-                    $.each(this.validElements(), function(index, element) {
-                        var $element = $(element);
-                        $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
-                    });
-                    // destroy tooltips on valid elements
-                    $("." + this.settings.validClass).tooltip("destroy");
-                    // add or update tooltips
-                    for (var i = 0; i < errorList.length; i++) {
-                        var error = errorList[i];
-                        $(error.element)
-                            .tooltip({
-                                trigger: "focus"
-                            })
-                            .attr("data-original-title", error.message)
-                            .parents('.form-group').addClass('has-error');
-                    }
-                }
             });
        },
        eventListeners:function () {
@@ -195,7 +177,7 @@ export default {
    },
    mounted:function () {
         let vm =this;
-        vm.form = document.forms.approvalForm;
+        vm.form = document.forms.approvalCancellationForm;
         vm.addFormValidations();
         this.$nextTick(()=>{
             vm.eventListeners();

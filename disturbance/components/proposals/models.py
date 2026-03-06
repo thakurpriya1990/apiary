@@ -1972,9 +1972,27 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             except:
                 raise
 
+    def get_latest_related_amend_renew_proposal(self):
+        from disturbance.components.approvals.models import Approval
+
+        if self.application_type.name == ApplicationType.SITE_TRANSFER:
+            approval = self.proposal_apiary.originating_approval
+            if not approval:
+                raise ValidationError("Invalid proposal id provided for approval amendment/renewal.")
+        
+            return Proposal.objects.filter(approval=approval).exclude(application_type__name=ApplicationType.SITE_TRANSFER).order_by("id").last()
+
     def renew_approval(self,request):
         with transaction.atomic():
             previous_proposal = self
+            if previous_proposal.application_type and previous_proposal.application_type.name == "Site Transfer":
+                #if this application is a site transfer, set the previous proposal to last apiary proposal on the approval
+                previous_proposal = previous_proposal.get_latest_related_amend_renew_proposal()
+                if previous_proposal and previous_proposal != self:
+                    proposal = previous_proposal.renew_approval(request)
+                    return proposal
+                else:
+                    raise ValidationError("Approval has no valid proposal to renew with.")
             try:
                 proposal=Proposal.objects.get(previous_application = previous_proposal)
                 if proposal.customer_status=='with_assessor':
@@ -2021,6 +2039,14 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     def amend_approval(self,request):
         with transaction.atomic():
             previous_proposal = self
+            if previous_proposal.application_type and previous_proposal.application_type.name == "Site Transfer":
+                #if this application is a site transfer, set the previous proposal to last apiary proposal on the approval
+                previous_proposal = previous_proposal.get_latest_related_amend_renew_proposal()
+                if previous_proposal and previous_proposal != self:
+                    proposal = previous_proposal.amend_approval(request)
+                    return proposal
+                else:
+                    raise ValidationError("Approval has no valid proposal to amend with.")
             try:
                 amend_conditions = {
                     'previous_application': previous_proposal,
@@ -2724,15 +2750,16 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
 
         filter_regex = ".*\".*\":\s\"(\\\\\"|[^\"])*"+search_words_regex+"(\\\\\"|[^\"])*\".*"
         if searchProposal:
-            proposal_list = proposal_list.filter(data__iregex=filter_regex)
+            proposal_list = proposal_list.filter(proposed_issuance_approval__iregex=filter_regex)
             for p in proposal_list:
                 name = ""
                 if p.applicant:
                     name = p.applicant.name
 
-                if p.data:
+                if p.proposed_issuance_approval:
                     try:
-                        results = search(p.data[0], searchWords)
+                        print(p.proposed_issuance_approval, searchWords)
+                        results = search(p.proposed_issuance_approval, searchWords)
                         final_results = {}
                         if results:
                             for r in results:

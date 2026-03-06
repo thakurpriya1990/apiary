@@ -14,7 +14,7 @@
                                 </tr>
                                 <tr>
                                     <td><strong>Date/Time:</strong></td>
-                                    <td><strong> {{formatDate(compliance.lodgement_date)}}</strong></td>
+                                    <td><strong> {{formatDate}}</strong></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -45,8 +45,12 @@ export default {
   components: {
   },
   computed: {
-    formatDate: function(data){
-        return data ? moment(data).format('DD/MM/YYYY HH:mm:ss'): '';
+    formatDate: function(){
+        let vm = this;
+        if (vm.compliance && vm.compliance.lodgement_date) {
+            return vm.compliance.lodgement_date ? moment(vm.compliance.lodgement_date).format('DD/MM/YYYY HH:mm:ss'): '';
+        }
+        return ""
     },
   },
   methods: {
@@ -57,13 +61,11 @@ export default {
   },
   beforeRouteEnter: function(to, from, next) {
     
-    console.log('to.state in beforeRouteEnter:', to.state);
-    console.log('window.history.state:', window.history.state);
-
     next(vm => {
-        vm.compliance = to.state?.compliance ?? null;
-        console.log(vm.compliance)
-    })
+        const raw = to.query.compliance ? JSON.parse(decodeURIComponent(to.query.compliance)) : null;
+        vm.compliance = raw;
+    });
+
   }
 }
 </script>

@@ -3,7 +3,7 @@
         <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large>
             <div class="container-fluid">
                 <div class="row">
-                    <form class="form-horizontal" name="approvalForm">
+                    <form class="form-horizontal" name="approvalSurrenderForm">
                         <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
@@ -14,10 +14,6 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="surrender_date" style="width: 70%;">
-                                            <!-- <input type="text" class="form-control" name="surrender_date" placeholder="DD/MM/YYYY" v-model="approval.surrender_date">
-                                            <span class="input-group-addon">
-                                                <span class="glyphicon glyphicon-calendar"></span>
-                                            </span> -->
                                             <input
                                                 v-model="
                                                     approval.surrender_date
@@ -72,12 +68,6 @@ export default {
         modal,
         alert
     },
-    props:{
-        //approval_id: {
-        //    type: Number,
-        //    required: true
-        //},
-    },
     data:function () {
         return {
             isModalOpen:false,
@@ -113,8 +103,11 @@ export default {
         ok:function () {
             let vm =this;
             if($(vm.form).valid()){
+                vm.errors = false;
                 vm.sendData();
-
+            } else {
+                vm.errorString = "Missing required fields.";
+                vm.errors = true;
             }
         },
         cancel:function () {
@@ -169,7 +162,6 @@ export default {
             }).catch((error) => {
                 vm.errors = true;
                 vm.issuingApproval = false;
-                // vm.errorString = helpers.apiVueResourceError(error);
                 vm.errorString = error;
             });
         },
@@ -177,38 +169,17 @@ export default {
             let vm = this;
             vm.validation_form = $(vm.form).validate({
                 rules: {
-                    to_date:"required",
+                    surrender_date:"required",
                     surrender_details:"required",
                 },
-                messages: {
-                    surrender_details:"Field is required",
-                },
-                showErrors: function(errorMap, errorList) {
-                    $.each(this.validElements(), function(index, element) {
-                        var $element = $(element);
-                        $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
-                    });
-                    // destroy tooltips on valid elements
-                    $("." + this.settings.validClass).tooltip("destroy");
-                    // add or update tooltips
-                    for (var i = 0; i < errorList.length; i++) {
-                        var error = errorList[i];
-                        $(error.element)
-                            .tooltip({
-                                trigger: "focus"
-                            })
-                            .attr("data-original-title", error.message)
-                            .parents('.form-group').addClass('has-error');
-                    }
-                }
             });
-       },
-       eventListeners:function () {
-       }
+        },
+        eventListeners:function () {
+        }
    },
    mounted:function () {
         let vm =this;
-        vm.form = document.forms.approvalForm;
+        vm.form = document.forms.approvalSurrenderForm;
         vm.addFormValidations();
         this.$nextTick(()=>{
             vm.eventListeners();
