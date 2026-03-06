@@ -56,14 +56,17 @@ class ProposalFilteredHistoryCompareView(InternalHistoryCompareDetailView):
 
     def _get_action_list(self,):
         """ Get only versions when processing_status changed, and add the most recent (current) version """
-        current_revision_id = Version.objects.get_for_object(self.get_object()).first().revision_id
-        action_list = [
-            {"version": version, "revision": version.revision}
-            for version in self._order_version_queryset(
-                Version.objects.get_for_object(self.get_object()).select_related("revision").filter(Q(revision__comment__icontains='status') | Q(revision_id=current_revision_id))
-            )
-        ]
-        return action_list
+        try:
+            current_revision_id = Version.objects.get_for_object(self.get_object()).first().revision_id 
+            action_list = [
+                {"version": version, "revision": version.revision}
+                for version in self._order_version_queryset(
+                    Version.objects.get_for_object(self.get_object()).select_related("revision").filter(Q(revision__comment__icontains='status') | Q(revision_id=current_revision_id))
+                )
+            ]
+            return action_list
+        except:
+            return []
 
 class ReferralHistoryCompareView(InternalHistoryCompareDetailView):
     """
