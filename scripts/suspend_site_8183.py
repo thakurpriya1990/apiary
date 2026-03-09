@@ -6,10 +6,10 @@ This site was omitted from the 33-site cancel batch (cancel_sites_to_dbca.py)
 and requires a different action: suspend (not cancel/transfer to DBCA).
 
 Run (dry run first):
-    python manage_ds.py shell -c "exec(open('scripts/suspend_site_8183.py').read())"
+    python manage_ds.py shell -c "exec(open('disturbance/scripts/suspend_site_8183.py').read())"
 
 Then for real (requires explicit ACTUAL_RUN=true):
-    ACTUAL_RUN=true python manage_ds.py shell -c "exec(open('scripts/suspend_site_8183.py').read())"
+    ACTUAL_RUN=true python manage_ds.py shell -c "exec(open('disturbance/scripts/suspend_site_8183.py').read())"
 """
 
 import os
