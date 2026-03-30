@@ -22,7 +22,7 @@ django-reset-migrations~=0.4.0
 django-ckeditor~=6.7.2
 djangorestframework-datatables~=0.7.2
 django-confy==1.0.4
-gunicorn~=23.0.0
+gunicorn~=25.0.0
 mixer~=7.2.2
 django-dirtyfields~=1.9.7
 python-docx~=1.1.2

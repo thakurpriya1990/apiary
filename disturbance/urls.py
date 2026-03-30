@@ -56,6 +56,7 @@ api_patterns = [
     re_path(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),
     re_path(r'^api/my_user_details/$',users_api.GetMyUserDetails.as_view(), name='get-my-user-details'),
     re_path(r'^api/countries$', users_api.GetCountries.as_view(), name='get-countries'),
+    re_path(r'^api/is_new_user/$', users_api.IsNewUser.as_view(), name='is-new-user'),
     re_path(r'^api/organisation_access_group_members',org_api.OrganisationAccessGroupMembers.as_view(),name='organisation-access-group-members'),
     re_path(r'^api/apiary_organisation_access_group_members',org_api.ApiaryOrganisationAccessGroupMembers.as_view(),name='apiary-organisation-access-group-members'),
     re_path(r'^api/get_organisation_id/$',org_api.GetOrganisationId.as_view(),name='get-organisation-id'),

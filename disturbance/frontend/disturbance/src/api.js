@@ -56,4 +56,6 @@ export default {
     get_organisation_id: function (org_id) {
       return `/api/get_organisation_id/?org_id=${org_id}`
     },
+
+    is_new_user: '/api/is_new_user/',
 }
