@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser,Address
+from django.http import HttpResponse
 
 from disturbance.components.users.serializers import (   
     UserSerializer,
@@ -30,6 +31,16 @@ class GetProfile(views.APIView):
                 context={'request': request}
                 )
         return Response(serializer.data)
+
+class IsNewUser(views.APIView):
+    
+    def get(self, request, format=None):
+        is_new = 'False'
+        try:
+            is_new = request.session['is_new']
+        except BaseException:
+            pass
+        return HttpResponse(is_new)
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = EmailUser.objects.none()
