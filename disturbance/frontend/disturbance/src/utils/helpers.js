@@ -1,4 +1,6 @@
 
+import $ from 'jquery';
+
 function unwrapErrorDetail(input) {
   //Error unwrap for DRF errors
 

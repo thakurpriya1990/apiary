@@ -80,7 +80,8 @@
     import Awesomplete from 'awesomplete'
     import { api_endpoints } from '@/utils/hooks'
     import { toRaw } from 'vue';
-
+    import $ from 'jquery';
+    
     export default {
         props:{
             is_external:{

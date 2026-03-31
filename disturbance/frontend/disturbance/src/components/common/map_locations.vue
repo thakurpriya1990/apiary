@@ -47,6 +47,7 @@ import "leaflet/dist/leaflet.css";
 import "leaflet-measure/dist/leaflet-measure.css";
 import "leaflet.locatecontrol/dist/L.Control.Locate.min.css";
 import { api_endpoints } from '@/utils/hooks'
+import $ from 'jquery';
 
 Leaf.TileLayer.WMTS = Leaf.TileLayer.extend({
     defaultWmtsParams: {

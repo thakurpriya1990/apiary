@@ -132,7 +132,8 @@
     import 'select2-bootstrap-theme/dist/select2-bootstrap.min.css'
     import Awesomplete from 'awesomplete'
     import { api_endpoints } from '@/utils/hooks'
-
+    import $ from 'jquery';
+    
     export default {
         name: 'AvailableSites',
         data: function(){

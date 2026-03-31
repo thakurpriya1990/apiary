@@ -231,7 +231,7 @@ LEDGER_UI_ACCOUNTS_MANAGEMENT = [
     {'postal_address': {'options' : {'view': True, 'edit': True}}},
     {'phone_number' : {'options' : {'view': True, 'edit': True}}},
     {'mobile_number' : {'options' : {'view': True, 'edit': True}}},
-    #{'dob' : {'options' : {'view': True, 'edit': True}}},
+    {'dob' : {'options' : {'view': True, 'edit': True}}},
     {'postal_same_as_residential' : {'options' : {'view': True, 'edit': True}}},
     {'address_details' : {'options' : {'billing_address': {'show': False}}}},
 ]
@@ -251,7 +251,7 @@ MIDDLEWARE = MIDDLEWARE_CLASSES
 DJANGO_VITE_DEV_MODE = env("DJANGO_VITE_DEV_MODE", False)
 if DEBUG and not DJANGO_VITE_DEV_MODE:
     print("\nServer running in DEBUG mode, frontend hot module reloading is OFF. Set env var DJANGO_VITE_DEV_MODE to True to enable hot module reloading.\n")
-else:
+elif DEBUG and DJANGO_VITE_DEV_MODE:
     print("\nServer running in DEBUG mode, frontend hot module reloading is ON. Set env var DJANGO_VITE_DEV_MODE to False to disable hot module reloading.\n")
 
 STATIC_URL_PREFIX = "/static/disturbance_vue/" if DJANGO_VITE_DEV_MODE else "disturbance_vue/"

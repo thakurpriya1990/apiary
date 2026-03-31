@@ -427,6 +427,7 @@ import ApiaryReferralsForProposal from '@common-utils/apiary/apiary_referrals_fo
 import { api_endpoints, helpers, constants } from '@/utils/hooks'
 import ApiarySiteTransfer from '@/components/form_apiary_site_transfer.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
+import $ from 'jquery';
 
 export default {
     name: 'InternalProposalApiary',

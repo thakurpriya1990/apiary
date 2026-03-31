@@ -110,6 +110,7 @@ from '@/utils/hooks'
 import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
 import SectionsProposalTemporaryUse from '@/components/common/apiary/sections_proposal_temporary_use.vue'
+import $ from 'jquery';
 
 export default {
     name: 'ApprovalScreenSiteTransferTemporaryUse',

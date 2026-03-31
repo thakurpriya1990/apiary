@@ -38,7 +38,8 @@
     import { v4 as uuid } from 'uuid';
     import { helpers } from '@/utils/hooks'
     import SectionsProposalTemporaryUse from '@/components/common/apiary/sections_proposal_temporary_use.vue'
-
+    import $ from 'jquery';
+    
     export default {
         name: 'ExternalProposalTemporaryUse',
         props: {

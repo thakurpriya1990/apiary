@@ -30,7 +30,7 @@
     import { v4 as uuid } from 'uuid';
     import { helpers, constants } from '@/utils/hooks'
     import OnSiteInformationModal from './on_site_information_modal.vue'
-
+    import $ from 'jquery';
     export default {
         props:{
             approval_id: {
