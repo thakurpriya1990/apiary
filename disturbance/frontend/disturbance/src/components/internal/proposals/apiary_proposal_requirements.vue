@@ -32,6 +32,8 @@ import {
 from '@/utils/hooks'
 import datatable from '@vue-utils/datatable.vue'
 import RequirementDetail from './apiary_proposal_add_requirement.vue'
+import $ from 'jquery';
+
 export default {
     name: 'ApiaryProposalRequirements',
     props: {

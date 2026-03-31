@@ -1,5 +1,5 @@
 
-import $ from 'jquery';
-window.$ = $;
-window.jQuery = $;
-export default $;
+//import $ from 'jquery';
+//window.$ = $;
+//window.jQuery = $;
+//export default $;

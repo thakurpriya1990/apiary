@@ -94,6 +94,7 @@ import utils from '../utils.js'
 import api from '../api.js'
 import AddContact from '@common-utils/add_contact.vue'
 import FormSection from "@/components/forms/section_toggle.vue";
+import $ from 'jquery';
 export default {
     name: 'ManageOrganisation',
     data () {

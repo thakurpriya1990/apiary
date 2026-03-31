@@ -122,7 +122,8 @@ import {
   constants
 }
 from '@/utils/hooks'
-//import utils from './utils'
+import $ from 'jquery';
+
 export default {
   name: 'SearchComponent',
   props: {

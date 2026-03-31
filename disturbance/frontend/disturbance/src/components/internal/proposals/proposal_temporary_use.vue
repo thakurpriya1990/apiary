@@ -249,6 +249,7 @@ import { api_endpoints, helpers, constants } from '@/utils/hooks'
 import SectionsProposalTemporaryUse from '@/components/common/apiary/sections_proposal_temporary_use.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
 import ApprovalScreenSiteTransferTemporaryUse from './proposal_approval_site_transfer_temporary_use.vue'
+import $ from 'jquery';
 
 export default {
     name: 'InternalProposalTemporaryUse',

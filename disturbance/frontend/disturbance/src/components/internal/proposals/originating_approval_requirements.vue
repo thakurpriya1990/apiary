@@ -22,8 +22,9 @@ import {
 }
 from '@/utils/hooks'
 import datatable from '@vue-utils/datatable.vue'
-//import RequirementDetail from './proposal_add_requirement.vue'
+import $ from 'jquery';
 import FormSection from "@/components/forms/section_toggle.vue";
+
 export default {
     name: 'OriginatingApprovalRequirements',
     props: {

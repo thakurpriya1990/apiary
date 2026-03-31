@@ -167,6 +167,8 @@
     import Awesomplete from 'awesomplete'
     import { api_endpoints, constants } from '@/utils/hooks'
 
+    import $ from 'jquery';
+
     // create the WMTS tile grid in the google projection
     const projection = getProjection('EPSG:4326');
     // const tileSizePixels = 1024;

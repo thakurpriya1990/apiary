@@ -12,6 +12,7 @@ import {
     helpers,
     constants
 }from '@/utils/hooks'
+import $ from 'jquery';
 
 export default {
     name: 'ApiaryReferrals',

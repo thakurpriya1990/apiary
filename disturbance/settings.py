@@ -231,7 +231,7 @@ LEDGER_UI_ACCOUNTS_MANAGEMENT = [
     {'postal_address': {'options' : {'view': True, 'edit': True}}},
     {'phone_number' : {'options' : {'view': True, 'edit': True}}},
     {'mobile_number' : {'options' : {'view': True, 'edit': True}}},
-    #{'dob' : {'options' : {'view': True, 'edit': True}}},
+    {'dob' : {'options' : {'view': True, 'edit': True}}},
     {'postal_same_as_residential' : {'options' : {'view': True, 'edit': True}}},
     {'address_details' : {'options' : {'billing_address': {'show': False}}}},
 ]

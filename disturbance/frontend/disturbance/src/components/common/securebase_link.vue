@@ -9,6 +9,8 @@ import {
   helpers
 }
 from '@/utils/hooks';
+import $ from 'jquery';
+
 export default {
     name: "securebase-link",
     props:{

@@ -50,6 +50,7 @@
 <script>
 import FormSection from "@/components/forms/section_toggle.vue"
 import { helpers, } from '@/utils/hooks'
+import $ from 'jquery';
 
 export default {
     name: 'LedgerPay',

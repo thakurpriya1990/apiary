@@ -254,6 +254,8 @@ import alert from '@vue-utils/alert.vue'
 import {helpers,api_endpoints} from "@/utils/hooks.js"
 import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
+import $ from 'jquery';
+
 export default {
     name:'ProposedApiaryIssuance',
     components:{

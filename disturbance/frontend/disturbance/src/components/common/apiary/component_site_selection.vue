@@ -42,6 +42,7 @@
     import {
         constants
     }from '@/utils/hooks'
+    import $ from 'jquery';
 
     export default {
         props:{

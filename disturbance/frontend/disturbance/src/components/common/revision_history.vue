@@ -46,6 +46,8 @@ import { v4 as uuid } from 'uuid';
 import {
     constants
 } from '@/utils/hooks'
+import $ from 'jquery';
+
 export default {
     name: 'RevisionHistorySection',
     props: {
