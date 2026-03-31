@@ -198,6 +198,8 @@
     import ApiaryChecklist from '@/components/common/apiary/section_checklist.vue'
     import DeedPoll from "@/components/common/apiary/section_deed_poll.vue"
     import { helpers }from '@/utils/hooks'
+    import $ from 'jquery';
+    
     export default {
         name: 'ApiaryForm',
         props:{
