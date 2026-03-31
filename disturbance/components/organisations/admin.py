@@ -9,9 +9,15 @@ from django.contrib.admin import actions
 #     list_display = ['organisation','pin_one', 'pin_two']
 #     readonly_fields = ['pin_one', 'pin_two']
 
+class OrganisationContactInline(admin.TabularInline):
+    model = models.OrganisationContact
+    extra = 0
+
 @admin.register(models.Organisation)
 class OrganisationAdmin(admin.ModelAdmin):
-    list_display = ['admin_pin_one', 'admin_pin_two', 'user_pin_one', 'user_pin_two']
+    list_display = ['id','organisation_id','admin_pin_one', 'admin_pin_two', 'user_pin_one', 'user_pin_two']
+
+    inlines = [OrganisationContactInline,]
 
 
 @admin.register(models.OrganisationRequest)
