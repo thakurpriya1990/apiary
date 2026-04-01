@@ -182,18 +182,15 @@ def _create_approval(approval_buffer, approval, proposal, copied_to_permit, user
 
     #Organization details
 
-    #address = proposal.applicant.organisation.postal_address
     address = proposal.relevant_applicant_address
     #email = proposal.applicant.organisation.organisation_set.all().first().contacts.all().first().email
     #elements.append(Paragraph(email,styles['BoldLeft']))
     elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
     #elements.append(Paragraph(_format_name(approval.applicant),styles['BoldLeft']))
     elements.append(Paragraph(approval.relevant_applicant_name,styles['BoldLeft']))
-    elements.append(Paragraph(address.line1, styles['BoldLeft']))
-    elements.append(Paragraph(address.line2, styles['BoldLeft']))
-    elements.append(Paragraph(address.line3, styles['BoldLeft']))
-    elements.append(Paragraph('%s %s %s' % (address.locality, address.state, address.postcode), styles['BoldLeft']))
-    elements.append(Paragraph(address.country.name, styles['BoldLeft']))
+    elements.append(Paragraph(address['line1'], styles['BoldLeft']))
+    elements.append(Paragraph('%s %s %s' % (address['locality'], address['state'], address['postcode']), styles['BoldLeft']))
+    elements.append(Paragraph(address['country'], styles['BoldLeft']))
     elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
     elements.append(Paragraph(approval.issue_date.strftime(DATE_FORMAT), styles['BoldLeft']))
     elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))

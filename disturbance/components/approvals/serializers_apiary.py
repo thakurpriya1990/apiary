@@ -135,7 +135,7 @@ class ApiarySiteOnApprovalGeometryExportSerializer(ApiarySiteOnApprovalGeometryS
     def get_address(self, relation):
         try:
             address = relation.approval.relevant_applicant_address
-            return address.summary
+            return ", ".join(address.values())
         except:
             return ''
 
