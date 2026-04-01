@@ -8,6 +8,7 @@ import datetime
 import pytz
 import re
 
+from django.forms.models import model_to_dict
 from django.contrib.gis.db.models.fields import PointField
 from django.db.models import Manager as GeoManager
 from django.contrib.gis.geos import GEOSGeometry
@@ -567,9 +568,13 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         if self.applicant:
             return self.applicant.address
         elif self.proxy_applicant:
-            return self.proxy_applicant.residential_address
+            data = model_to_dict(self.proxy_applicant.residential_address, fields=["line1", "locality", "state", "postcode"])
+            data["country"] = self.proxy_applicant.residential_address.country.code
+            return data
         else:
-            return self.submitter.residential_address
+            data = model_to_dict(self.current_proposal.submitter.residential_address, fields=["line1", "locality", "state", "postcode"])
+            data["country"] = self.submitter.residential_address.country.code
+            return data
 
     @property
     def relevant_applicant_id(self):
