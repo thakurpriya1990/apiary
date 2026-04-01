@@ -2096,12 +2096,10 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             previous_proposal = self
             if previous_proposal.application_type and previous_proposal.application_type.name == "Site Transfer":
                 #if this application is a site transfer, set the previous proposal to last apiary proposal on the approval
-                previous_proposal = previous_proposal.get_latest_related_amend_renew_proposal()
+                previous_proposal = previous_proposal.get_latest_related_amend_renew_proposal(request)
                 if previous_proposal and previous_proposal != self:
                     proposal = previous_proposal.renew_approval(request)
                     return proposal
-                else:
-                    raise ValidationError("Approval has no valid proposal to renew with.")
                 
             if previous_proposal:
                 #NOTE: this try except is explicitly designed to fail on first attempt as part of the renewal process - should be refactored to work more gracefully 

@@ -92,11 +92,7 @@ class ApprovalSerializerForLicenceDoc(serializers.ModelSerializer):
         return approval.relevant_applicant_name
 
     def get_authority_holder_address(self, approval):
-        # return approval.relevant_applicant_address.summary
-        if isinstance(approval.relevant_applicant_address, str):
-            return approval.relevant_applicant_address
-        else:
-            return approval.relevant_applicant_address.summary
+        return ", ".join(approval.relevant_applicant_address.values())
         
     def get_trading_name(self, approval):
         #return approval.applicant.trading_name if approval.applicant else ''
