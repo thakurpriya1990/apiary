@@ -572,7 +572,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             data["country"] = self.proxy_applicant.residential_address.country.code
             return data
         else:
-            data = model_to_dict(self.current_proposal.submitter.residential_address, fields=["line1", "locality", "state", "postcode"])
+            data = model_to_dict(self.submitter.residential_address, fields=["line1", "locality", "state", "postcode"])
             data["country"] = self.submitter.residential_address.country.code
             return data
 
