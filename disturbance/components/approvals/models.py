@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import datetime
+from django.forms.models import model_to_dict
 from django.db import models,transaction
 from django.db.models import Q, Max
 from django.dispatch import receiver
@@ -255,13 +256,15 @@ class Approval(RevisionedMixin):
     @property
     def relevant_applicant_address(self):
         if self.applicant:
-            # return self.applicant.address
-            return self.applicant.address_string
+            return self.applicant.address
         elif self.proxy_applicant:
-            #return self.proxy_applicant.addresses.all().first()
-            return self.proxy_applicant.residential_address
+            data = model_to_dict(self.proxy_applicant.residential_address, fields=["line1", "locality", "state", "postcode"])
+            data["country"] = self.proxy_applicant.residential_address.country.code
+            return data
         else:
-            return self.current_proposal.submitter.residential_address
+            data = model_to_dict(self.current_proposal.submitter.residential_address, fields=["line1", "locality", "state", "postcode"])
+            data["country"] = self.current_proposal.submitter.residential_address.country.code
+            return data
 
     @property
     def region(self):

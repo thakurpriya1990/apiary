@@ -402,11 +402,11 @@ export default {
                                 if(full.can_action){
                                     links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
                                     if(full.can_amend){
-                                       links +=  `<a href='#${full.id}' data-amend-approval='${full.current_proposal_id}'>Amend</a><br/>`;
+                                       links +=  `<a href='#${full.id}' data-amend-approval='${full.current_proposal_id}' data-approval-id='${full.id}'>Amend</a><br/>`;
                                    }
                                 }
                                 if(full.renewal_document && full.renewal_sent && full.can_renew) {
-                                    links +=  `<a href='#${full.id}' data-renew-approval='${full.current_proposal_id}'>Renew</a><br/>`;
+                                    links +=  `<a href='#${full.id}' data-renew-approval='${full.current_proposal_id}' data-approval-id='${full.id}'>Renew</a><br/>`;
                                 }
                             }
                             else {
@@ -575,14 +575,15 @@ export default {
             vm.$refs.proposal_datatable.vmDataTable.on('click', 'a[data-renew-approval]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-renew-approval');
-                vm.renewApproval(id);
+                var approval_id = $(this).attr('data-approval-id')
+                vm.renewApproval(id, approval_id);
             });
 
             // External amend listener
             vm.$refs.proposal_datatable.vmDataTable.on('click', 'a[data-amend-approval]', function(e) {
                 e.preventDefault();
-                var id = $(this).attr('data-amend-approval');
-                vm.amendApproval(id);
+                var approval_id = $(this).attr('data-approval-id')
+                vm.amendApproval(id, approval_id);
             });
 
             // Internal view pdf listener
@@ -799,7 +800,7 @@ export default {
             });
         },
 
-        renewApproval:function (proposal_id) {
+        renewApproval:function (proposal_id, approval_id) {
             let vm = this;
             // let status= 'with_approver'
             //let data = {'status': status}
@@ -812,7 +813,7 @@ export default {
                 //confirmButtonColor:'#d9534f'
             }).then((result) => {
                 if (result.isConfirmed){
-                    fetch(helpers.add_endpoint_json(api_endpoints.proposals,(proposal_id+'/renew_approval')),{}).then(
+                    fetch(helpers.add_endpoint_json(api_endpoints.proposals,(proposal_id+'/renew_approval'))+'?approval_id='+approval_id,{}).then(
                     async (response) => {
                         if (!response.ok) {
                             const data = await response.json();
@@ -848,7 +849,7 @@ export default {
             });
         },
 
-        amendApproval:function (proposal_id) {
+        amendApproval:function (proposal_id, approval_id) {
             let vm = this;
             swal.fire({
                 title: "Amend Approval",
@@ -862,7 +863,7 @@ export default {
                 },
             }).then((result) => {
                 if(result.isConfirmed){
-                    fetch(helpers.add_endpoint_json(api_endpoints.proposals,(proposal_id+'/amend_approval')))
+                    fetch(helpers.add_endpoint_json(api_endpoints.proposals,(proposal_id+'/amend_approval'))+'?approval_id='+approval_id)
                     .then(async (response) => {
                         if (!response.ok) {
                             const data = await response.json();

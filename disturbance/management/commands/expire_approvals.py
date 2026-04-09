@@ -21,7 +21,7 @@ class Command(BaseCommand):
         updates = []
         today = timezone.localtime(timezone.now()).date()
         logger.info('Running command {}'.format(__name__))
-        for a in Approval.objects.filter(status=Approval.STATUS_CURRENT, replaced_by__isnull=True):
+        for a in Approval.objects.filter(apiary_approval=True).filter(status=Approval.STATUS_CURRENT, replaced_by__isnull=True):
             if a.expiry_date < today:
                 try:
                     a.expire_approval(user)

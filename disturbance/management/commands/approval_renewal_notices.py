@@ -33,7 +33,7 @@ class Command(BaseCommand):
         }
 
         logger.info('Running command {}'.format(__name__))
-        for a in Approval.objects.filter(**renewal_conditions):
+        for a in Approval.objects.filter(apiary_approval=True).filter(**renewal_conditions):
             if a.status == Approval.STATUS_CURRENT or a.status == Approval.STATUS_SUSPENDED:
                 try:
                     #import ipdb; ipdb.set_trace()
