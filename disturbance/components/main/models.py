@@ -119,7 +119,7 @@ class SanitiseFileMixin(SanitiseMixin, DirtyFieldsMixin):
             raise ValidationError("Cannot change file")
 
         #proceed with general sanitisation and save
-        super(SanitiseMixin, self).save(**kwargs)
+        super(SanitiseFileMixin, self).save(**kwargs)
     
     class Meta:
         abstract = True
