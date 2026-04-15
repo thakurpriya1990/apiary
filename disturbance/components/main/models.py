@@ -107,7 +107,11 @@ class SanitiseFileMixin(SanitiseMixin, DirtyFieldsMixin):
             storage = self._meta.get_field(file_field).storage
 
         if not file_content:
-            file_content = self._meta.get_field(file_field).storage
+            try:
+                file_content = getattr(self, file_field)
+            except Exception as e:
+                print(e)
+                file_content = None
 
         if path_to_file and file_content and storage:
             #check file extension
