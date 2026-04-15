@@ -86,20 +86,28 @@ class SanitiseFileMixin(SanitiseMixin, DirtyFieldsMixin):
         path_to_file = kwargs.pop("path_to_file",None)
         file_content = kwargs.pop("file_content",None)
         storage = kwargs.pop("storage",None)
+        file_field = kwargs.pop("file_field", "_file")
+
+        if not hasattr(self, file_field):
+            #if no file field is provided, get the first filefield on the model (this mixin is designed to handle one filefield per model, but can multiple can be handled with separate saves)
+            for field in self._meta.get_fields():
+                if isinstance(field, models.FileField):
+                    file_field = field.attname
+                    break
 
         if not path_to_file:
             try:
                 #we specify an empty string here so we can substitute our own (NOTE: may be worth changing how this works to just return the path)
-                path_to_file = self._meta.get_field('_file').upload_to(self,'')
+                path_to_file = self._meta.get_field(file_field).upload_to(self,'')
             except Exception as e:
                 print(e)
                 path_to_file = None
 
         if not storage:
-            storage = self._meta.get_field('_file').storage
+            storage = self._meta.get_field(file_field).storage
 
         if not file_content:
-            file_content = self._file
+            file_content = self._meta.get_field(file_field).storage
 
         if path_to_file and file_content and storage:
             #check file extension
