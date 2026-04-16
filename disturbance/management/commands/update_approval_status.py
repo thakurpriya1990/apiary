@@ -2,18 +2,14 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.conf import settings
 from disturbance.components.approvals.models import Approval, ApprovalUserAction
-from disturbance.components.proposals.models import Proposal, ProposalUserAction
+from disturbance.components.proposals.models import ProposalUserAction
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 import datetime
 from disturbance.components.approvals.email import (
-    send_approval_expire_email_notification, 
     send_approval_cancel_email_notification,
     send_approval_suspend_email_notification,
-    send_approval_reinstate_email_notification,
     send_approval_surrender_email_notification
 )
-
-import itertools
 
 import logging
 logger = logging.getLogger(__name__)
