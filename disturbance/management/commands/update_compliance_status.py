@@ -3,9 +3,7 @@ from django.utils import timezone
 from django.conf import settings
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from disturbance.components.compliances.models import Compliance, ComplianceUserAction
-from disturbance.components.compliances.email import send_due_email_notification, send_internal_due_email_notification
 import datetime
-import itertools
 
 import logging
 logger = logging.getLogger(__name__)
@@ -26,8 +24,7 @@ class Command(BaseCommand):
         errors = []
         updates = []
         logger.info('Running command {}'.format(__name__))
-        for c in Compliance.objects.filter(processing_status = 'future'):
-            #if(c.due_date<= compare_date<= c.approval.expiry_date) and c.approval.status=='current':
+        for c in Compliance.objects.filter(processing_status='future').filter(approval__apiary_approval=True):
             if(c.due_date<= compare_date) and (c.due_date<= c.approval.expiry_date) and c.approval.status=='current':
                 try:
                     c.processing_status='due'

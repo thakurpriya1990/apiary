@@ -1,14 +1,12 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from datetime import date, timedelta
+from datetime import timedelta
 from django.conf import settings
 from disturbance.components.proposals.models import Proposal
 from disturbance.components.main.models import GlobalSettings
 from disturbance.components.proposals.email import send_assessment_reminder_email_notification
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-import datetime
-
-import itertools
+from disturbance.components.main.models import ApplicationType
 
 import logging
 logger = logging.getLogger(__name__)
@@ -37,7 +35,9 @@ class Command(BaseCommand):
             assessment_reminder_days=int(assessment_reminder_days)
         else:
             assessment_reminder_days= settings.ASSESSMENT_REMINDER_DAYS
-        qs=Proposal.objects.filter(**reminder_conditions)
+        qs=Proposal.objects.filter(**reminder_conditions).filter(
+            application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE]
+        )
         for proposal in qs:
             compare_date=None
             if proposal.lodgement_date:
