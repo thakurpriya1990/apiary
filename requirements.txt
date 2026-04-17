@@ -32,7 +32,7 @@ django-treebeard~=4.7.1
 django-smart-selects~=1.7.2
 django-multiselectfield~=1.0.1
 psycopg2~=2.9.10
-deepdiff==8.6.1
+deepdiff~=8.6.2
 python-dateutil~=2.8.2
 numpy~=2.2.6
 pandas~=2.2.3
