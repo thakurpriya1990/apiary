@@ -582,6 +582,7 @@ export default {
             // External amend listener
             vm.$refs.proposal_datatable.vmDataTable.on('click', 'a[data-amend-approval]', function(e) {
                 e.preventDefault();
+                var id = $(this).attr('data-amend-approval');
                 var approval_id = $(this).attr('data-approval-id')
                 vm.amendApproval(id, approval_id);
             });
