@@ -1303,7 +1303,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = serializer_class(instance,context={'request': request})
         return Response(serializer.data)
 
-    @action(detail=True,methods=['GET',], permission_classes=[InternalProposalPermission])
+    @action(detail=True,methods=['GET',])
     def internal_proposal_wrapper(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer_class = ProposalWrapperSerializer
@@ -1806,6 +1806,18 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
                 serializer = SaveProposalSerializer(proposal_obj)
                 return Response(serializer.data)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @action(detail=True,methods=['delete',])
+    def discard(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            is_authorised_to_modify_draft(request, instance)
+            instance.discard(request)
+            instance.save()
+            return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

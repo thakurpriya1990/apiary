@@ -1305,6 +1305,15 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             else:
                 raise ValidationError('You can\'t edit this proposal at this moment')
 
+    def discard(self,request):
+        with transaction.atomic():
+            if self.can_user_edit:
+                self.processing_status = Proposal.PROCESSING_STATUS_DISCARDED
+                self.save()
+                self.log_user_action(ProposalUserAction.ACTION_DISCARD_PROPOSAL.format(self.lodgement_number), request)
+            else:
+                raise ValidationError('You can\'t discard this proposal at this moment')
+
     def send_referral(self,request,referral_email,referral_text):
         with transaction.atomic():
             try:
