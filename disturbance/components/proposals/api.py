@@ -1817,6 +1817,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             is_authorised_to_modify_draft(request, instance)
             instance.discard(request)
             instance.save()
+            serializer = self.get_serializer(instance)
             return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
