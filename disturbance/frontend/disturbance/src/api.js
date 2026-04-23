@@ -37,7 +37,7 @@ export default {
     filter_list_referrals:          "/api/referrals/filter_list.json",
 
     discard_proposal:function (id) {
-      return `/api/proposal/${id}.json`;
+      return `/api/proposal/${id}/discard/`;
     },
     site_url: site_url,
     system_name: 'Disturbance Approval System',
