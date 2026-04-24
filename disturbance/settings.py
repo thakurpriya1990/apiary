@@ -281,3 +281,4 @@ KB_SERVER_URL = env('KB_SERVER_URL', 'https://kb.dbca.wa.gov.au/')
 
 CSRF_TRUSTED_ORIGINS_STRING = decouple.config("CSRF_TRUSTED_ORIGINS", default='[]')
 CSRF_TRUSTED_ORIGINS = json.loads(str(CSRF_TRUSTED_ORIGINS_STRING))
+FILE_UPLOAD_PERMISSIONS = None
