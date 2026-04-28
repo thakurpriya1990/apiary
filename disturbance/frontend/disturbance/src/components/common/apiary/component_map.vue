@@ -79,7 +79,8 @@
     import MeasureStyles, { formatLength } from '@/components/common/apiary/measure.js'
     import Awesomplete from 'awesomplete'
     import { api_endpoints } from '@/utils/hooks'
-    import { toRaw } from 'vue';
+    import { markRaw, toRaw } from 'vue';
+    import { fromLonLat } from 'ol/proj';
     import $ from 'jquery';
     
     export default {
@@ -407,46 +408,44 @@
                             }
                         });
 
-                vm.tileLayerOsm = new TileLayer({
+                vm.tileLayerOsm = markRaw(new TileLayer({
                     title: 'OpenStreetMap',
                     type: 'base',
                     visible: true,
-                    source: new OSM(),
-                });
+                    source: new OSM({ url: '/osm-tile/{z}/{x}/{y}.png' }),
+                }));
 
-                vm.tileLayerSat = new TileLayer({
+                vm.tileLayerSat = markRaw(new TileLayer({
                     title: 'Satellite',
                     type: 'base',
                     visible: true,
                     source: satelliteTileWms,
-                })
+                }))
 
-                vm.map = new Map({
+                vm.map = markRaw(new Map({
                     layers: [
-                        // vm.tileLayerOsm,
-                        // vm.tileLayerSat,
-                        toRaw(vm.tileLayerOsm), 
-                        toRaw(vm.tileLayerSat),
+                        vm.tileLayerOsm,
+                        vm.tileLayerSat,
                     ],
                     //target: 'map',
                     target: vm.elem_id,
                     view: new View({
-                        center: [115.95, -31.95],
+                        center: fromLonLat([115.95, -31.95]),
                         zoom: 7,
-                        projection: 'EPSG:4326'
                     }),
+                    // Note: EPSG:3857 is the default for OpenLayers and required for OSM tiles
                     pixelRatio: 1,  // We need this in order to make this map work correctly with the browser and/or display scaling factor(s) other than 100%
                                     // Ref: https://github.com/openlayers/openlayers/issues/11464
-                });
+                }));
 
-                vm.apiarySitesQuerySource = new VectorSource({ });
-                vm.apiarySitesQueryLayer = new VectorLayer({
+                vm.apiarySitesQuerySource = markRaw(new VectorSource({ }));
+                vm.apiarySitesQueryLayer = markRaw(new VectorLayer({
                     source: vm.apiarySitesQuerySource,
                     style: function(feature){
                         let status = getStatusForColour(feature, false, vm.display_at_time_of_submitted)
                         return getApiaryFeatureStyle(status, feature.get('checked'))
                     },
-                });
+                }));
                 vm.map.addLayer(vm.apiarySitesQueryLayer);
 
                 // Set zIndex to some layers to be rendered over the other layers

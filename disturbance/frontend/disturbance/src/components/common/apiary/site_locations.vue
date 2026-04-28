@@ -131,6 +131,7 @@
 </template>
 
 <script>
+    import { markRaw } from 'vue';
     import 'ol/ol.css';
     import 'ol-layerswitcher/dist/ol-layerswitcher.css'
     import Map from 'ol/Map';
@@ -160,7 +161,7 @@
     import WMTS from 'ol/source/WMTS';
     //import WMTSTileGrid from 'ol/source/WMTS';
     import WMTSTileGrid from 'ol/tilegrid/WMTS';
-    import {get as getProjection} from 'ol/proj';
+    import {get as getProjection, fromLonLat, toLonLat} from 'ol/proj';
     import {getTopLeft} from 'ol/extent';
     import MeasureStyles, { formatLength } from '@/components/common/apiary/measure.js'
     // import { getArea, getLength } from 'ol/sphere'
@@ -1388,42 +1389,42 @@
                     style: '',
                 })
 
-                vm.tileLayerOsm = new TileLayer({
+                vm.tileLayerOsm = markRaw(new TileLayer({
                     title: 'OpenStreetMap',
                     type: 'base',
                     visible: true,
-                    source: new OSM(),
-                });
+                    source: new OSM({ url: '/osm-tile/{z}/{x}/{y}.png' }),
+                }));
 
-                vm.tileLayerSat = new TileLayer({
+                vm.tileLayerSat = markRaw(new TileLayer({
                     title: 'Satellite',
                     type: 'base',
                     visible: true,
                     source: satelliteTileWmts,
-                })
+                }))
 
-                vm.map = new Map({
+                vm.map = markRaw(new Map({
                     layers: [
                         //vm.tileLayerOsm, 
                         //vm.tileLayerSat,
                     ],
                     target: 'map',
                     view: new View({
-                        center: [115.95, -31.95],
+                        center: fromLonLat([115.95, -31.95]),
                         zoom: 7,
-                        projection: 'EPSG:4326'
                     }),
+                    // Note: EPSG:3857 is the default for OpenLayers and required for OSM tiles
                     pixelRatio: 1,  // We need this in order to make this map work correctly with the browser and/or display scaling factor(s) other than 100%
                                     // Ref: https://github.com/openlayers/openlayers/issues/11464
-                });
+                }));
 
-                let clusterSource = new Cluster({
+                let clusterSource = markRaw(new Cluster({
                     distance: 50,
                     source: vm.apiarySitesQuerySource,
-                })
+                }))
 
                 let styleCache = {}
-                vm.apiarySitesClusterLayer = new VectorLayer({
+                vm.apiarySitesClusterLayer = markRaw(new VectorLayer({
                     title: 'Cluster Layer',
                     source: clusterSource,
                     style: function (clusteredFeature){
@@ -1466,7 +1467,7 @@
                         }
                         return style
                     },
-                });
+                }));
                 //vm.map.addLayer(vm.apiarySitesClusterLayer);
 
                 vm.bufferedSites = [];
