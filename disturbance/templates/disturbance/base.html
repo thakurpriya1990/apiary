@@ -1,11 +1,11 @@
-{% load bootstrap3 %}
+{% extends "webtemplate_dbca/base_b5_auth_session.html" %}
 
 {% load static %}
+{% load django_vite %}
 
 {% load users %}
 {% load utils %}
 {% is_internal as is_internal_login %}
-{% is_disturbance_admin as is_disturbance_admin_user %}
 {% is_apiary_admin as is_apiary_admin_user %}
 {% system_maintenance_due as system_maintenance_due %}
 {% system_name_short as short_name %}
@@ -14,192 +14,89 @@
 {% system_name_short as system_name_short %}
 {% support_email as support_email %}
 
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-            {% bootstrap_css %}
-                <link type="text/css" href="{% static 'disturbance/css/base.css' %}" rel="stylesheet">
-            {% if not dev %}
-	    <link rel="stylesheet" href="{% static 'disturbance_vue/css/app.css' %}?v={{build_tag}}">
-        <link rel="stylesheet" href="{% static 'disturbance_vue/css/chunk-vendors.css' %}?v={{build_tag}}">
-            {% endif %}
-            {% block extra_css %}
-            {% endblock %}
-            {% block extra_js %}
-            {% endblock %}
-            <title>
-                {% block title %}
-                {{ DISPLAYED_SYSTEM_NAME }} - {{ department_name }}
-                {% endblock %}
-            </title>
+{% block header_top_menu %}
+{% endblock %}
 
-        </meta>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="shortcut icon" type="image/ico" href="/static/favicon.ico"/>
-        <script language="javascript">
-            env = {
-                "kmi_server_url": "{{ KMI_SERVER_URL }}"
-            }
-        </script>
-    </head>
-    <body>
-        <header class="topmast">
-            {% block header %}
-                {% include 'disturbance/header.html' %}
-            {% endblock %}
-        </header>
-        {% block menu %}
-            <div class="container-fluid">
-                <div class="row">
-                    <nav class="navbar navbar-default">
-                        <div class="container">
-                            <div class="navbar-header">
-                                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                                    <span class="sr-only">Toggle navigation</span>
-                                    <span class="icon-bar"></span>
-                                    <span class="icon-bar"></span>
-                                    <span class="icon-bar"></span>
-                                </button>
+{% block extra_css %}
+  <link rel="icon" type="image/png" href="/static/favicon.ico" />
 
-                                {% if not empty_menu %}
-                                    <a class="navbar-brand" href="{% url 'home' %}"><div style="inline"><img src="{% static 'disturbance/img/dpaw_small.png' %}">{% if is_internal_login %}{% if TEMPLATE_GROUP == 'apiary' %}Applications{% else %}Proposals{% endif %}{% else %}Home {% endif %}</div></a>
-                                {% endif %}
+  <link rel="stylesheet" href="{% static 'disturbance/css/base.css' %}?v={{ GIT_COMMIT_HASH }}" />
+{% endblock extra_css %}
 
-                            </div>
-                            <div id="navbar" class="navbar-collapse collapse">
-                                <ul class="nav navbar-nav">
-                                    {% block left_menu_items %}
-                                        {% if not empty_menu %}
-                                            {% if request.user.is_authenticated %}
-                                                {% if is_internal_login %}
-                                                    {% if TEMPLATE_GROUP == 'apiary' %}
-                                                        <li><a href="/internal/approvals">Licences</a></li>
-                                                    {% else %}
-                                                        <li><a href="/internal/approvals">Approvals</a></li>
-                                                    {% endif %}
-                                                    <li><a href="/internal/compliances">Compliance with Requirements</a></li>
-                                                    <li><a href="/internal/organisations/access">Organisation Access</a></li>
-                                                    <li><a href="/internal/search">Search</a></li>
-                                                    {% if TEMPLATE_GROUP == 'apiary' %}
-                                                        <!-- li><a href="/internal/site_transitions">Site Transitions</a></li -->
-                                                        <li><a href="/internal/sites">Sites</a></li>
-                                                    {% endif %}
-                                                {% else %}
-                                                    {% if TEMPLATE_GROUP == 'apiary' %}
-                                                        <li><a href="/external/sites">Sites</a></li>
-                                                    {% endif %}
-                                                {% endif %}
-                                            {% endif %}
-                                        {% endif %}
-                                    {% endblock %}
-                                </ul>
-                                <ul class="nav navbar-nav navbar-right">
-                                    {% if not empty_menu %}
-                                        {% if request.user.is_authenticated %}
-                                            <li>
-                                                <a>
-                                                Welcome
-                                                <strong>
-                                                    {% if request.user.first_name %}
-                                                        {{ request.user.get_short_name }}
-                                                    {% elif request.user.last_name %}
-                                                        {{ request.user.last_name }}
-                                                    {% else %}
-                                                        {{ request.user.email }}
-                                                    {% endif %}
-                                                </strong>
-                                                </a>
-                                            </li>
-                                            <li class="dropdown">
-                                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                                                    Options
-                                                    <span class="caret"></span>
-                                                </a>
-                                                <ul class="dropdown-menu">
-                                                    {% if is_disturbance_admin_user or is_apiary_admin_user or request.user.is_superuser %}
-                                                        <li><a href="{% url 'admin:index' %}">Admin</a></li>
-                                                        <li role="separator" class="divider"></li>
-                                                    {% endif %}
-                                                    {% if request.user.is_superuser %}
-                                                        <li><a href="{% url 'mgt-commands' %}">Management Commands</a></li>
-                                                    {% endif %}
-                                                    <li><a href="/ledger-ui/accounts">Manage Account</a></li>
-                                                    {% for org in request.user.disturbance_organisations.all %}
-                                                        {% if request.user.is_superuser or org.id|is_org_admin:request.user %}
-                                                            <!-- <li><a href="/external/organisations/manage/{{org.id}}">Manage {{org.organisation.organisation_name}}</a></li> -->
-                                                             <li><a href="/ledger-ui/organisation/{{org.organisation_id}}/">Manage {{org.name}} </a></li>
-                                                            <!--<li><a href="/ledger-ui/organisation/{{org.organisation_id}}">Manage {{org.organisation.organisation_name}}</a></li> TODO ledgerui-->
-                                                        {% endif %}
-                                                    {% endfor %}
+{% block extra_js %}
+    {% vite_hmr_client app='default' %}
+{% endblock extra_js %}
 
-                                                    {% if is_payment_admin %}
-                                                        <li><a href="/internal/reports">Reports</a></li>
-                                                    {% endif %}
+{% block custom_js %}
+    <script language="javascript">
+        var env = {
+            "kb_server_url": "{{ KB_SERVER_URL }}",
+        }
+    </script>
+    {% vite_asset vue3_entry_script app='default' %}
+{% endblock custom_js %}
 
-                                                    <li><a href="{% url 'logout' %}?next=/">Logout</a></li>
-                                                </ul>
-                                            </li>
-                                        {% endif %}
-                                    {% endif %}
-                                    {% block right_menu_items %}
-                                    {% endblock %}
-                                </ul>
-                            </div>
-                        </div>
-                    </nav>
-                </div>
+{% block menu_items_left_brand %}
+  <div class="navbar-nav">
+    <div class="nav-item">
+      <!-- <a class="nav-link{% if request.path == '/' %} active{% endif %}" href="/external/"><img src="/static/img/pwl_icon.png" />Home</a> -->
+      <a class="nav-link{% if request.path == '/' %} active{% endif %}" href="{% url 'home' %}"><img src="{% static 'disturbance/img/dpaw_small.png' %}">{% if is_internal_login %}{% if TEMPLATE_GROUP == 'apiary' %}Applications{% else %}Proposals{% endif %}{% else %}Home {% endif %}</a>
+    </div>
+  </div>
+{% endblock menu_items_left_brand%}
 
-            </div>
-        {% endblock %}
-        {% block breadcrumbs %}
-        {% endblock %}
-        {% block messages %}
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        {% for message in messages %}
-                            <div class="{{ message|bootstrap_message_classes }} alert-dismissable">
-                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&#215;</button>
-                                {{ message|safe }}
-                            </div>
-                        {% endfor %}
+{% block menu_items2_right %}
+  {% if request.user.is_authenticated %}
+    
+  {% else %}
+    <a href="ssologin" class="btn btn-primary btn-sm">Login</a>
+  {% endif %}
+{% endblock menu_items2_right %}
+
+{% block menu_spacer %}
+ <BR>
+{% endblock menu_spacer %}
+
+{% block messages %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                {% for message in messages %}
+                    <div class="alert 
+                        {% if message.tags == 'error' %}alert-danger
+                        {% elif message.tags == 'warning' %}alert-warning
+                        {% elif message.tags == 'success' %}alert-success
+                        {% else %}alert-info{% endif %}
+                        alert-dismissible fade show" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&#215;</button>
+                        {{ message|safe }}
                     </div>
-                </div>
+                {% endfor %}
             </div>
+        </div>
+    </div>
+{% endblock %}
 
-        {% endblock %}
+{% block content %}
+{% endblock content %}
 
-        {% if system_maintenance_due %}
-            <div class="alert alert-warning">
-                <strong>Notice!</strong> System will be down for maintenance between {{ system_maintenance_due }}
-            </div>
-        {% endif %}
-
-        {% block content %}
-        <!-- dash/index.html inserts <div id="app"></div> tag here, which is replaced by the Vue components >-->
-        {% endblock %}
-
-        {% block modals %}
-        {% endblock %}
-        {% if not dev %}
-            <!--<script type="text/javascript" src="https://static.dpaw.wa.gov.au/static/cdnjs/ajax/libs/jquery/2.1.2/jquery.min.js"></script>
-            <script type="text/javascript" src="https://static.dpaw.wa.gov.au/static/cdnjs/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>-->
-	{% comment %} <script type="text/javascript" src="{% static 'disturbance_vue/static/js/manifest.js' %}?v={{build_tag}}"></script>
-	<script type="text/javascript" src="{% static 'disturbance_vue/static/js/vendor.js' %}?v={{build_tag}}"></script>
-            {% if app_build_url %}
-	    <!-- script type="text/javascript" src="{% static 'disturbance_vue/static/js/app.js' %}?v={{build_tag}}"></script -->
-	<script type="text/javascript" src="{{ app_build_url }}?v={{build_tag}}"></script>
-            {% else %} {% endcomment %}
-    <script type="text/javascript" src="{% static 'disturbance_vue/js/chunk-vendors.js' %}?v={{build_tag}}"></script>
-	<script type="text/javascript" src="{% static 'disturbance_vue/js/app.js' %}?v={{build_tag}}"></script>
-
-            {% comment %} {% endif %} {% endcomment %}
-        {% else %}
-            <script type="text/javascript" src="{{ dev_url }}"></script>
-        {% endif %}
-        {% block custom_js %}
-        {% endblock %}
-    </body>
-</html>
+{% block footer %}
+  {% application_version as application_version %}
+  {% support_email as support_email %}
+  {% dept_support_phone as dept_support_phone %}
+  {% comment %} <footer class="footer fixed-bottom mt-3">
+    <div class="container-fluid border-top py-2 bg-light text-secondary">
+      <div class="row">
+        <div class="col">
+          <small class="float-start">Version:{% application_version %}</small>
+        </div>
+        <div class="col">
+          <small>Support: <a href="mailto:{% support_email %}">{% support_email %}</a> | <a href="tel:{% dept_support_phone %}">{% dept_support_phone %}</a></small>
+        </div>
+        <div class="col">
+          <small class="float-end">&copy; {% dept_name %}</small>
+        </div>
+      </div>
+    </div>
+  </footer> {% endcomment %}
+{% endblock footer %}

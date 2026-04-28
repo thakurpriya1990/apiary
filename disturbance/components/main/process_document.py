@@ -1,8 +1,6 @@
 import os
-from django.core.files.base import ContentFile
 import traceback
-from disturbance.components.main.models import TemporaryDocument
-from disturbance.components.approvals import models #TODO: improvable - this should be imported from a common source instead of one of many models
+from disturbance.components.main.models import private_storage
 from django.conf import settings
 
 from disturbance.components.proposals.models import (
@@ -12,13 +10,9 @@ from disturbance.components.proposals.models import (
     PublicLiabilityInsuranceDocument,
     DeedPollDocument,
     SupportingApplicationDocument
-    )
-
-private_storage = models.private_storage
+)
 
 def process_generic_document(request, instance, document_type=None, *args, **kwargs):
-    print("process_generic_document")
-    print(request.data)
     try:
         action = request.data.get('action')
         input_name = request.data.get('input_name')
@@ -144,90 +138,44 @@ def save_document(request, instance, comms_instance, document_type, input_name=N
             else:
                 raise('Object type is wrong')
 
-            path = private_storage.save(path_format_string.format(settings.MEDIA_APIARY_DIR, id_number, filename), ContentFile(_file.read()))
-            print(path)
-            document._file = path
-            document.save()
+            document.save(path_to_file=path_format_string.format(settings.MEDIA_APIARY_DIR, id_number, filename),storage=private_storage,file_content=_file)
 
         # comms_log doc store save
         elif comms_instance and 'filename' in request.data:
             filename = request.data.get('filename')
             _file = request.data.get('_file')
 
-            document = comms_instance.documents.get_or_create(
-                name=filename)[0]
-            path = private_storage.save(
-                '{}/{}/communications/{}/documents/{}'.format(
-                    instance._meta.model_name, instance.id, comms_instance.id, filename), ContentFile(
-                    _file.read()))
-
-            document._file = path
-            document.save()
+            document = comms_instance.documents.get_or_create(name=filename)[0]
+            
+            document.save(path_to_file='{}/{}/communications/{}/documents/{}'.format(instance._meta.model_name, instance.id, comms_instance.id, filename),storage=private_storage,file_content=_file)
 
         # default doc store save
         elif 'filename' in request.data:
             filename = request.data.get('filename')
             _file = request.data.get('_file')
 
-            document = instance.documents.get_or_create(
-                name=filename)[0]
-            path = private_storage.save(
-                '{}/{}/documents/{}'.format(
-                    instance._meta.model_name, instance.id, filename), ContentFile(
-                    _file.read()))
-
-            document._file = path
-            document.save()
+            document = instance.documents.get_or_create(name=filename)[0]
+            
+            document.save(path_to_file='{}/{}/documents/{}'.format(instance._meta.model_name, instance.id, filename),storage=private_storage,file_content=_file)
 
 
 # For transferring files from temp doc objs to comms_log objs
 def save_comms_log_document_obj(instance, comms_instance, temp_document):
-    document = comms_instance.documents.get_or_create(
-        name=temp_document.name)[0]
-    path = private_storage.save(
-        '{}/{}/communications/{}/documents/{}'.format(
+    document = comms_instance.documents.get_or_create(name=temp_document.name)[0]
+
+    document.save(path_to_file='{}/{}/communications/{}/documents/{}'.format(
             instance._meta.model_name, 
             instance.id, 
             comms_instance.id, 
             temp_document.name
-            ), 
-            temp_document._file
-        )
-
-    document._file = path
-    document.save()
+            ),storage=private_storage,file_content=document)
 
 # For transferring files from temp doc objs to default doc objs
 def save_default_document_obj(instance, temp_document):
-    document = instance.documents.get_or_create(
-        name=temp_document.name)[0]
-    path = private_storage.save(
-        '{}/{}/documents/{}'.format(
+    document = instance.documents.get_or_create(name=temp_document.name)[0]
+
+    document.save(path_to_file='{}/{}/documents/{}'.format(
             instance._meta.model_name, 
             instance.id, 
             temp_document.name
-            ), 
-            temp_document._file
-        )
-
-    document._file = path
-    document.save()
-
-## For transferring files from temp doc objs to physical artifact renderer objs
-#def save_renderer_document_obj(instance, temp_document, input_name):
-#    document = instance.renderer_documents.get_or_create(
-#            input_name=input_name,
-#            name=temp_document.name)[0]
-#    path = private_storage.save(
-#        'disturbance/{}/{}/renderer_documents/{}/{}'.format(
-#            instance._meta.model_name,
-#            instance.id,
-#            input_name,
-#            temp_document.name
-#            ),
-#            temp_document._file
-#        )
-#
-#    document._file = path
-#    document.save()
-#
+            ),storage=private_storage,file_content=document)

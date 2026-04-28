@@ -3,21 +3,14 @@ import InternalDashboard from '../dashboard.vue'
 import Search from '../search.vue'
 import OrgAccessTable from '../organisations/dashboard.vue'
 import OrgAccess from '../organisations/access.vue'
-import Organisation from '../organisations/manage.vue'
-//import Proposal from '../proposals/proposal.vue'
-//import ProposalApiary from '../proposals/proposal_apiary.vue'
 import Proposal from '../proposals/proposal_wrapper.vue';
-//import Referral from '../referrals/referral.vue'
 import Referral from '../referrals/referral_wrapper.vue'
 import ApprovalDash from '../approvals/dashboard.vue'
 import ComplianceDash from '../compliances/dashboard.vue'
 import Compliance from '../compliances/access.vue'
 import Approval from '../approvals/approval_wrapper.vue'
 import SiteTransitions from '../site_transitions/site_transitions.vue'
-//import AvailableSites from '../available_sites.vue'
 import AvailableSites from '@/components/common/apiary/available_sites.vue'
-import Reports from '@/components/reports/reports.vue'
-
 
 export default
 {
@@ -28,11 +21,6 @@ export default
             path: '',
             component: InternalDashboard,
             name:"internal-dashboard",
-        },
-        {
-            path:'reports',
-            name:'reports',
-            component:Reports
         },
         {
             path: 'approvals',
@@ -83,12 +71,6 @@ export default
                     component: OrgAccess,
                     name:"org-access"
                 },
-                {
-                    path: ':org_id',
-                    component: Organisation,
-                    name:"internal-org-detail"
-                },
-
             ]
         },
         {
@@ -109,27 +91,10 @@ export default
                             component: Referral,
                             name:"internal-referral"
                         },
-                        /*
-                        {
-                            path: 'apiary',
-                            component: ProposalApiary,
-                            name:"internal-proposal-apiary"
-                        },
-                        */
                     ]
                 },
 
             ]
         },
-        // {
-        //     path: 'schema',
-        //     component: SchemaManager,
-        //     name:"schema-manager"
-        // },
-        /*{
-            path: 'proposal',
-            component: Proposal,
-            name:"new_proposal"
-        }*/
     ]
 }

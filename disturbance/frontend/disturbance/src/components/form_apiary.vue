@@ -1,8 +1,5 @@
 <template lang="html">
     <div>
-        <template v-if="is_local">
-            form_apiary.vue
-        </template>
         <div v-if="is_external" class="col-md-3">
             <div>
                 <h3>Application: {{ proposal.lodgement_number }}</h3>
@@ -23,7 +20,7 @@
             />
 
             <FormSection :formCollapse="false" label="Site Locations" Index="site_locations">
-                <div v-if="draftApiaryApplication">
+                <div v-if="draftApiaryApplication && !loading_sites">
 
                     <SiteLocations
                         :proposal="proposal"
@@ -51,7 +48,7 @@
                     />
 
                 </div>
-                <div v-else>
+                <div v-else-if="!loading_sites">
                     <ComponentSiteSelection
                         :apiary_sites="apiary_sites"
                         :is_internal="is_internal"
@@ -117,8 +114,8 @@
                             <label>Expiry Date</label>
                         </div>
                         <div class="grow1">
-                            <div class="input-group date" ref="expiryDatePicker">
-                                <input type="text" class="form-control" placeholder="DD/MM/YYYY" id="expiry_date_input_element" :readonly="readonly"/>
+                            <div class="input-group date" ref="expiryDatePicker"  style="width: 70%;">
+                                <input type="date" class="form-control" v-model="expiry_date_local" placeholder="DD/MM/YYYY" id="expiry_date_input_element" :readonly="readonly" />
                                 <span class="input-group-addon">
                                     <span class="glyphicon glyphicon-calendar"></span>
                                 </span>
@@ -135,7 +132,7 @@
                     :documentActionUrl="deedPollDocumentUrl"
                 />
             </FormSection>
-
+            <div v-if="applicantChecklistAnswers.length > 0">
             <ApiaryChecklist
                 :checklist="applicantChecklistAnswers"
                 section_title="Applicant Checklist"
@@ -143,7 +140,8 @@
                 ref="applicant_checklist"
                 index="1"
             />
-            <div v-if="assessorChecklistVisibility">
+            </div>
+            <div v-if="assessorChecklistVisibility && assessorChecklistAnswers.length > 0">
                 <ApiaryChecklist
                 :checklist="assessorChecklistAnswers"
                 section_title="Assessor Checklist"
@@ -152,6 +150,7 @@
                 index="2"
                 />
                 <div v-for="site in apiary_sites" :key="site.id">
+                    <div v-if="assessorChecklistAnswersPerSite(site.id).length > 0">
                     <ApiaryChecklist
                     :checklist="assessorChecklistAnswersPerSite(site.id)"
                     :section_title="'Assessor checklist for site ' + site.id"
@@ -159,12 +158,11 @@
                     v-bind:key="'assessor_checklist_per_site_' + site.id"
                     :index="'2_' + site.id"
                     />
+                    </div>
                 </div>
             </div>
             <div v-for="r in referrerChecklistAnswers" :key="r.id">
-                <!--div v-if="(referral && r.referral_id === referral.id) || (assessorChecklistVisibility && proposal.processing_status === 'With Assessor')"-->
-                <div v-if="(referral && r.referral_id === referral.id) || (assessorChecklistVisibility)">
-                <!--div v-if="r.id = referral.id"-->
+                <div v-if="((referral && r.referral_id === referral.id) || (assessorChecklistVisibility)) && r.referral_data.length > 0">
                     <ApiaryChecklist
                     :checklist="r.referral_data"
                     :section_title="'Referral Checklist: ' + r.referrer_group_name"
@@ -173,6 +171,7 @@
                     index="3"
                     />
                     <div v-for="site in apiary_sites" :key="site.id">
+                        <div v-if="referrerChecklistAnswersPerSite(r.apiary_referral_id, site.id).length > 0">
                         <ApiaryChecklist
                         :checklist="referrerChecklistAnswersPerSite(r.apiary_referral_id, site.id)"
                         :section_title="'Referral Checklist: ' + r.referrer_group_name + ' for site ' + site.id"
@@ -180,29 +179,10 @@
                         v-bind:key="'referrer_checklist_per_site_' + r.apiary_referral_id + site.id"
                         :index="'3_' + r.apiary_referral_id + '_' + site.id"
                         />
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <!--FormSection :formCollapse="false" label="Checklist" Index="checklist">
-                <ul class="list-unstyled col-sm-12" v-for="q in proposal.proposal_apiary.applicant_checklist_answers">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <li class="col-sm-6">
-                                <label class="control-label">{{q.question.text}}</label>
-                            </li>
-                            <ul  class="list-inline col-sm-6">
-                                <li class="list-inline-item">
-                                    <input  class="form-check-input" v-model="q.answer" ref="Checkbox" type="radio" :name="'option'+q.id" :id="'answer_one'+q.id":value="true" data-parsley-required :disabled="readonly"/> Yes
-                                </li>
-                                <li class="list-inline-item">
-                                    <input  class="form-check-input" v-model="q.answer" ref="Checkbox" type="radio" :name="'option'+q.id" :id="'answer_two'+q.id" :value="false" data-parsley-required :disabled="readonly"/> No
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </ul>
-            </FormSection-->
         </div>
 
     </div>
@@ -218,6 +198,8 @@
     import ApiaryChecklist from '@/components/common/apiary/section_checklist.vue'
     import DeedPoll from "@/components/common/apiary/section_deed_poll.vue"
     import { helpers }from '@/utils/hooks'
+    import $ from 'jquery';
+    
     export default {
         name: 'ApiaryForm',
         props:{
@@ -269,7 +251,8 @@
                 component_site_selection_key: '',
                 expiry_date_local: '',
                 deed_poll_url: '',
-                is_local: helpers.is_local(),
+                apiary_sites: [],
+                loading_sites: true,
             }
         },
         components: {
@@ -280,6 +263,12 @@
             ApiaryChecklist,
             DeedPoll,
             ManageUser,
+        },
+        watch: {
+            expiry_date_local: function(){
+                let vm = this;
+                vm.$emit('expiry_date_changed', vm.expiry_date_local)
+            }
         },
         computed:{
             showVacantWhenSubmitted: function(){
@@ -334,11 +323,6 @@
                 }
                 return url;
             },
-            /*
-            referralChecklistTitle: function() {
-                let title = 'Referral Checklist ';
-                if (this.referral &&
-                */
             readonly: function() {
                 let readonlyStatus = true;
                 if (this.proposal.customer_status === 'Draft' && !this.is_internal) {
@@ -370,14 +354,6 @@
                 }
                 return readonlyStatus;
             },
-            // referrerChecklistVisibility: function() {
-            //     let visibility = false;
-            //     // must be relevant referral
-            //     if ((!this.referrerChecklistReadonly && r.id === this.referral.id) || this.assessorChecklistVisibility) {
-            //         visibility = true;
-            //     }
-            //     return visibility;
-            // },
             getUnansweredChecklistQuestions: function() {
                 let UnansweredChecklistQuestions = false;
                 if(this.applicantChecklistAnswers){
@@ -389,12 +365,6 @@
                     }
                 }
                 return UnansweredChecklistQuestions;
-            },
-            apiary_sites: function() {
-                if (this.proposal && this.proposal.proposal_apiary) {
-                    return this.proposal.proposal_apiary.apiary_sites;
-                }
-                return [];
             },
             draftApiaryApplication: function() {
                 let draftStatus = false;
@@ -424,9 +394,6 @@
                 }
                 return [];
             },
-          //applicantType: function(){
-          //  return this.proposal.applicant_type;
-          //},
         },
         methods:{
             fee_remote_renewal: function(value){
@@ -458,36 +425,9 @@
             },
             addEventListeners: function () {
                 let vm = this;
-                let el_fr = $(vm.$refs.expiryDatePicker);
-                let options = {
-                    format: "DD/MM/YYYY",
-                    showClear: true ,
-                    useCurrent: false,
-                };
-                el_fr.datetimepicker(options);
-                el_fr.on("dp.change", function(e) {
-                    if (e.date){
-                        // Date selected
-                        vm.expiry_date_local= e.date.format('DD/MM/YYYY')  // e.date is moment object
-                    } else {
-                        // Date not selected
-                        vm.expiry_date_local = null;
-                    }
-                    vm.$emit('expiry_date_changed', vm.expiry_date_local)
-                });
-                //***
-                // Set dates in case they are passed from the parent component
-                //***
                 let searchPattern = /^[0-9]{4}/
                 let expiry_date_passed = vm.proposal.proposal_apiary.public_liability_insurance_expiry_date;
-                console.log('passed')
-                console.log(expiry_date_passed)
                 if (expiry_date_passed) {
-                    // If date passed
-                    if (searchPattern.test(expiry_date_passed)) {
-                        // Convert YYYY-MM-DD to DD/MM/YYYY
-                        expiry_date_passed = moment(expiry_date_passed, 'YYYY-MM-DD').format('DD/MM/YYYY');
-                    }
                     $('#expiry_date_input_element').val(expiry_date_passed);
                 }
             },
@@ -516,7 +456,6 @@
                         }
                     }
                 }
-                console.log(siteList)
                 return siteList;
             },
             num_of_sites_south_west_to_add_as_remainder: function(value){
@@ -561,19 +500,27 @@
             remove_apiary_site: function(apiary_site_id){
                 this.$refs.apiary_site_locations.removeApiarySiteById(apiary_site_id)
             },
-            /*
-            getChecklistAnswers: function() {
-                let vm = this;
-                this.checklist_answers.push({
-                    'id' : 'this.proposal.proposal_apiary.checklist_answers.id',
-                    'answer' : 'this.proposal.proposal_apiary.checklist_answers.answer'
-                 })
-             return checklist_answers;
-            },
-            */
         },
         created: function() {
             this.fetchDeedPollUrl()
+            if (this.proposal && this.proposal.proposal_apiary) {
+                let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/apiary_sites/'
+                console.log('apiary_sites')
+                fetch(url_sites).then(
+                    async (response) => {
+                        if (response.ok) {
+                            let apiary_sites_req = await response.json();
+                            this.apiary_sites = JSON.parse(JSON.stringify(apiary_sites_req)).features
+                        }
+                        this.loading_sites = false;
+                    }
+                ).catch((error) => {
+                    console.log(error);
+                    this.loading_sites = false;
+                })
+            } else {
+                this.loading_sites = false;
+            }
         },
         mounted: function() {
             let vm = this;
@@ -581,9 +528,6 @@
             this.$nextTick(() => {
                 vm.addEventListeners();
             });
-            //vm.form = document.forms.new_proposal;
-            //window.addEventListener('beforeunload', vm.leaving);
-            //window.addEventListener('onblur', vm.leaving);
         }
     }
 </script>

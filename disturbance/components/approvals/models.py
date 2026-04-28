@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import datetime
+from django.forms.models import model_to_dict
 from django.db import models,transaction
 from django.db.models import Q, Max
 from django.dispatch import receiver
@@ -14,7 +15,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from disturbance.components.approvals.pdf import create_approval_document
 from disturbance.components.organisations.models import Organisation
 from disturbance.components.proposals.models import Proposal, ProposalUserAction, ApiarySite, ApiarySiteOnProposal
-from disturbance.components.main.models import CommunicationsLogEntry, UserAction, Document, RevisionedMixin
+from disturbance.components.main.models import CommunicationsLogEntry, UserAction, Document, RevisionedMixin, SanitiseMixin
 from disturbance.components.approvals.email import (
     send_approval_expire_email_notification,
     send_approval_cancel_email_notification,
@@ -28,10 +29,7 @@ from disturbance.settings import SITE_STATUS_CURRENT, SITE_STATUS_NOT_TO_BE_REIS
 from disturbance.utils import search_keys, search_multiple_keys
 from django_countries.fields import CountryField
 
-#TODO: improvable - these three lines are repeated throughout the models and ought to be set in one place
-from django.conf import settings
-from django.core.files.storage import FileSystemStorage
-private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
+from disturbance.components.main.models import private_storage
 
 import logging
 logger = logging.getLogger(__name__)
@@ -52,7 +50,7 @@ def update_approval_comms_log_filename(instance, filename):
 
 class ApprovalDocument(Document):
     approval = models.ForeignKey('Approval',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_approval_doc_filename, storage=private_storage)
+    _file = models.FileField(max_length=255, upload_to=update_approval_doc_filename, storage=private_storage)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
 
     def delete(self):
@@ -66,7 +64,7 @@ class ApprovalDocument(Document):
 
 class RenewalDocument(Document):
     approval = models.ForeignKey('Approval',related_name='renewal_documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_approval_doc_filename, storage=private_storage)
+    _file = models.FileField(max_length=255, upload_to=update_approval_doc_filename, storage=private_storage)
     can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
 
     def delete(self):
@@ -78,12 +76,11 @@ class RenewalDocument(Document):
         app_label = 'disturbance'
 
 
-class ApiarySiteOnApproval(models.Model):
+class ApiarySiteOnApproval(SanitiseMixin):
     apiary_site = models.ForeignKey('ApiarySite', on_delete=models.CASCADE)
     approval = models.ForeignKey('Approval', on_delete=models.CASCADE)
     available = models.BooleanField(default=False)
     site_status = models.CharField(default=SITE_STATUS_CURRENT, max_length=20, db_index=True)
-    # site_available = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     wkb_geometry = PointField(srid=4326, blank=True, null=True)  # store approved coordinates
@@ -168,13 +165,12 @@ class Approval(RevisionedMixin):
         unique_together = ('lodgement_number', 'issue_date')
 
     def add_apiary_sites_to_proposal_apiary_for_renewal(self, proposal_apiary):
-        for apiary_site in self.apiary_sites.all():  # Exclude just in case there is.
-            relation = self.get_relation(apiary_site)
+        for apiary_site_on_approval in self.get_relations():
             ApiarySiteOnProposal.objects.create(
-                apiary_site=apiary_site,
+                apiary_site=apiary_site_on_approval.apiary_site,
                 proposal_apiary=proposal_apiary,
-                wkb_geometry_draft=relation.wkb_geometry,
-                site_category_draft=relation.site_category,
+                wkb_geometry_draft=apiary_site_on_approval.wkb_geometry,
+                site_category_draft=apiary_site_on_approval.site_category,
                 for_renewal=True,
             )
 
@@ -185,7 +181,6 @@ class Approval(RevisionedMixin):
         return relation_obj
 
     def get_relations(self):
-        # relation_objs = ApiarySiteOnApproval.objects.filter(apiary_site__in=self.apiary_sites.all(), approval=self)
         relation_objs = ApiarySiteOnApproval.objects.filter(apiary_site__in=self.apiary_sites.all(), approval=self).exclude(site_status=SITE_STATUS_TRANSFERRED)
         return relation_objs
 
@@ -236,7 +231,18 @@ class Approval(RevisionedMixin):
         elif self.proxy_applicant:
             return self.proxy_applicant.email
         else:
-            return self.current_proposal.submitter.email
+            from disturbance.components.main.models import ApplicationType
+            if self.current_proposal and self.current_proposal.application_type and self.current_proposal.application_type.name != ApplicationType.SITE_TRANSFER:
+                return self.current_proposal.submitter.email if self.current_proposal.submitter else ""
+            else:
+                #find latest non-site_transfer proposal for Approval (unless the approval belongs to the transferer)
+                latest_proposal = Proposal.objects.filter(approval=self).filter(
+                    ~Q(application_type__name=ApplicationType.SITE_TRANSFER)|
+                    (Q(application_type__name=ApplicationType.SITE_TRANSFER)&Q(proposal_apiary__originating_approval=self))
+                ).filter(
+                    processing_status=Proposal.PROCESSING_STATUS_APPROVED
+                ).order_by("-id").first()
+                return latest_proposal.submitter.email if latest_proposal and latest_proposal.submitter else ""
 
     @property
     def relevant_applicant_name(self):
@@ -250,13 +256,15 @@ class Approval(RevisionedMixin):
     @property
     def relevant_applicant_address(self):
         if self.applicant:
-            # return self.applicant.address
-            return self.applicant.address_string
+            return self.applicant.address
         elif self.proxy_applicant:
-            #return self.proxy_applicant.addresses.all().first()
-            return self.proxy_applicant.residential_address
+            data = model_to_dict(self.proxy_applicant.residential_address, fields=["line1", "locality", "state", "postcode"])
+            data["country"] = self.proxy_applicant.residential_address.country.code
+            return data
         else:
-            return self.current_proposal.submitter.residential_address
+            data = model_to_dict(self.current_proposal.submitter.residential_address, fields=["line1", "locality", "state", "postcode"])
+            data["country"] = self.current_proposal.submitter.residential_address.country.code
+            return data
 
     @property
     def region(self):
@@ -646,9 +654,7 @@ class ApprovalLogEntry(CommunicationsLogEntry):
 
 class ApprovalLogDocument(Document):
     log_entry = models.ForeignKey('ApprovalLogEntry',related_name='documents', null=True, on_delete=models.CASCADE)
-    #approval = models.ForeignKey(Approval, related_name='comms_logs1')
-    _file = models.FileField(upload_to=update_approval_comms_log_filename, null=True, storage=private_storage)
-    #_file = models.FileField(upload_to=update_approval_doc_filename)
+    _file = models.FileField(max_length=255, upload_to=update_approval_comms_log_filename, null=True, storage=private_storage)
 
     class Meta:
         app_label = 'disturbance'
@@ -683,7 +689,7 @@ class ApprovalUserAction(UserAction):
 
     approval= models.ForeignKey(Approval, related_name='action_logs', on_delete=models.CASCADE)
 
-class MigratedApiaryLicence(models.Model):
+class MigratedApiaryLicence(SanitiseMixin):
 # Records imported from CSV
     LICENCEE_TYPE_ORGANISATION = 'organisation'
     LICENCEE_TYPE_INDIVIDUAL = 'individual'
@@ -706,11 +712,9 @@ class MigratedApiaryLicence(models.Model):
     abn = models.CharField(max_length=50, null=True, blank=True, verbose_name='ABN')
     first_name = models.CharField(max_length=128, blank=False, verbose_name='Given name(s)')
     last_name = models.CharField(max_length=128, blank=False)
-    #data.update({'other_contact': row[12].strip()})
     address_line1 = models.CharField('Line 1', max_length=255)
     address_line2 = models.CharField('Line 2', max_length=255, blank=True)
     address_line3 = models.CharField('Line 3', max_length=255, blank=True)
-    #locality = models.CharField('Suburb / Town', max_length=255)
     suburb = models.CharField('Suburb / Town', max_length=255)
     state = models.CharField(max_length=255, default='WA', blank=True)
     country = CountryField(default='AU')

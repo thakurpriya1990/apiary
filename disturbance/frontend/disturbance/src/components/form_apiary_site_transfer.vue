@@ -9,23 +9,9 @@
         </div>
 
         <div :class="apiary_sections_classname">
-            <!--FormSection :formCollapse="false" label="Site Locations" Index="site_locations">
-                <SiteLocations
-                    :proposal="proposal"
-                    id="site_locations"
-                    ref="apiary_site_locations"
-                    :is_external="is_external"
-                    :is_internal="is_internal"
-                    @button_text="button_text"
-                />
-            </FormSection-->
             <FormSection :formCollapse="false" label="Transferee" Index="transferee">
-                <!--span class="row col-sm-12"-->
                 <div v-if="is_external" class="row col-sm-12">
                     <div class="form-group">
-                        <!--div class="row form-control">
-                            <label class="inline">Title:</label>
-                        </div-->
                         <label class="col-sm-6 emailLabel">Enter the email address of the licence holder you want to transfer sites to:</label>
                         <input
                             type="text"
@@ -44,10 +30,8 @@
                                     {{lookupNotification}}
                                 </div>
                                 <div v-else-if="licenceHolders && licenceHolders.length">
-                                    <!--label class="col-sm-6 emailLabel">Select the licence you want to transfer to:</label-->
                                     <label>Select the licence you want to transfer to:</label>
                                     <div v-for="holder in licenceHolders" :key="holder.id">
-                                        <!--input type="radio" name="approval_choice" :value="approval.id" v-model="proposal.proposal_apiary.selected_licence"/-->
                                         <input type="radio" name="holder_choice" :value="holder" v-model="selectedLicenceHolder" :disabled="readonlyLicenceHolders"/>
                                         <span v-if="holder.lodgement_number">
 
@@ -87,26 +71,9 @@
                         </span>
                     </div>
                 </div>
-                <!--/span-->
-                <!--div class="row col-sm-12">
-                    <div class="form-group">
-                        <div v-if="lookupErrorText">
-                            Error: {{lookupErrorText}}
-                        </div>
-                        <div v-else-if="apiaryApprovals">
-                            <div v-for="approval in apiaryApprovals">
-                                <input type="radio" name="approval_choice" :value="approval.id" v-model="proposal.proposal_apiary.selected_licence"/>
-                                Licence: {{approval.lodgement_number}}
-                            </div>
-                        </div>
-                        <div v-else-if="targetApprovalLodgementNumber">
-                            Licence: {{targetApprovalLodgementNumber}}
-                        </div>
-                    </div>
-                </div-->
 
             </FormSection>
-            <FormSection :formCollapse="false" label="Site" Index="site_locations">
+            <FormSection :formCollapse="false" label="Site" Index="site_locations" v-if="!loading_sites">
                 <ComponentSiteSelection
                     :apiary_sites="apiary_sites"
                     :is_internal="is_internal"
@@ -120,28 +87,6 @@
                   />
             </FormSection>
 
-            <!--
-            <FormSection :formCollapse="false" label="Deed Poll" Index="deed_poll">
-                <div class="row">
-                    <div class="col-sm-12">
-                        <label>Print <a :href="deedPollUrl" target="_blank">the deed poll</a>, sign it, have it witnessed and attach it to this application.</label>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-12">
-                        <FileField
-                            ref="deed_poll_documents"
-                            name="deed-poll-documents"
-                            :isRepeatable="false"
-                            :documentActionUrl="deedPollDocumentUrl"
-                            :readonly="readonly"
-                            :replace_button_by_text="true"
-                        />
-                    </div>
-                </div>
-            </FormSection>
-            -->
-
             <FormSection :formCollapse="false" label="Deed Poll" Index="deed_poll">
                 <DeedPoll
                     ref="deed_poll_component"
@@ -151,6 +96,7 @@
                 />
             </FormSection>
 
+            <div v-if="applicantChecklistAnswers.length > 0">
             <ApiaryChecklist
                 :checklist="applicantChecklistAnswers"
                 section_title="Applicant Checklist"
@@ -158,7 +104,8 @@
                 ref="applicant_checklist"
                 index="1"
             />
-            <div v-if="assessorChecklistVisibility">
+            </div>
+            <div v-if="assessorChecklistVisibility && assessorChecklistAnswers.length > 0">
                 <ApiaryChecklist
                 :checklist="assessorChecklistAnswers"
                 section_title="Assessor Checklist"
@@ -167,6 +114,7 @@
                 index="2"
                 />
                 <div v-for="site in apiary_sites" :key="site.id">
+                    <div v-if="assessorChecklistAnswersPerSite(site.id).length > 0">
                     <ApiaryChecklist
                     :checklist="assessorChecklistAnswersPerSite(site.id)"
                     :section_title="'Assessor checklist for site ' + site.id"
@@ -174,12 +122,11 @@
                     v-bind:key="'assessor_checklist_per_site_' + site.id"
                     :index="'2_' + site.id"
                     />
+                    </div>
                 </div>
             </div>
             <div v-for="r in referrerChecklistAnswers" :key="r.id">
-                <!--div v-if="(referral && r.referral_id === referral.id) || (assessorChecklistVisibility && proposal.processing_status === 'With Assessor')"-->
-                <div v-if="(referral && r.referral_id === referral.id) || (assessorChecklistVisibility)">
-                <!--div v-if="r.id = referral.id"-->
+                <div v-if="((referral && r.referral_id === referral.id) || (assessorChecklistVisibility)) && r.referral_data.length > 0">
                     <ApiaryChecklist
                     :checklist="r.referral_data"
                     :section_title="'Referral Checklist: ' + r.referrer_group_name"
@@ -188,6 +135,7 @@
                     index="3"
                     />
                     <div v-for="site in apiary_sites" :key="site.id">
+                        <div v-if="referrerChecklistAnswersPerSite(r.apiary_referral_id, site.id).length > 0">
                         <ApiaryChecklist
                         :checklist="referrerChecklistAnswersPerSite(r.apiary_referral_id, site.id)"
                         :section_title="'Referral Checklist: ' + r.referrer_group_name + ' for site ' + site.id"
@@ -195,39 +143,16 @@
                         v-bind:key="'referrer_checklist_per_site_' + r.apiary_referral_id + site.id"
                         :index="'3_' + r.apiary_referral_id + '_' + site.id"
                         />
+                        </div>
                     </div>
                 </div>
             </div>
-
-
-            <!--FormSection :formCollapse="false" label="Checklist" Index="checklist">
-                <ul class="list-unstyled col-sm-12" v-for="q in proposal.proposal_apiary.checklist_answers">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <li class="col-sm-6">
-                                <label class="control-label">{{q.question.text}}</label>
-                            </li>
-
-                            <ul  class="list-inline col-sm-6">
-                                <li class="list-inline-item">
-                                    <input  class="form-check-input" v-model="q.answer" ref="Checkbox" type="radio" :name="'option'+q.id" :id="'answer_one'+q.id":value="true" data-parsley-required :disabled="readonly"/> Yes
-                                </li>
-                                <li class="list-inline-item">
-                                    <input  class="form-check-input" v-model="q.answer" ref="Checkbox" type="radio" :name="'option'+q.id" :id="'answer_two'+q.id" :value="false" data-parsley-required :disabled="readonly"/> No
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </ul>
-            </FormSection-->
         </div>
 
     </div>
 </template>
 
 <script>
-
-    //import SiteLocations from '@/components/common/apiary/site_locations.vue'
     import { v4 as uuid } from 'uuid';
     import FormSection from "@/components/forms/section_toggle.vue"
     import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
@@ -276,14 +201,11 @@
             },
         },
         data:function () {
-            let vm=this;
             return{
                 values:null,
-                pBody: 'pBody'+vm.uuid(),
+                pBody: 'pBody'+uuid(),
                 checklist_answers : [],
                 transfereeEmail: '',
-                //apiaryApprovals: {},
-                //apiaryApprovals: null,
                 licenceHolders: null,
                 lookupErrorText: '',
                 lookupNotification: '',
@@ -292,11 +214,11 @@
                 apiary_sites_local: [],
                 siteTransferFees: [],
                 num_of_sites_selected: null,
-                //applicationFee: null,
+                apiary_sites: [],
+                loading_sites: true,
             }
         },
         components: {
-            //SiteLocations,
             ComponentSiteSelection,
             FormSection,
             ApiaryChecklist,
@@ -310,7 +232,6 @@
             },
             licenceHolders: function() {
                 this.$nextTick(() => {
-                    console.log(this.readonlyLicenceHolders)
                     if (this.readonlyLicenceHolders) {
                         // only one option available
                         this.selectedLicenceHolder = this.licenceHolders[0];
@@ -375,16 +296,12 @@
                 if (this.apiary_sites_local && this.apiary_sites_local.length && this.southWestSiteTransferFee && this.remoteSiteTransferFee) {
                     for (let site of this.apiary_sites_local) {
                         if (site.checked && site.properties.site_category === 'remote') {
-                            //totalFee += parseFloat(this.remoteSiteTransferFee);
                             totalFee += parseFloat(this.remoteSiteTransferFee);
                         } else if (site.checked && site.properties.site_category === 'south_west') {
-                            //totalFee += parseFloat(this.southWestSiteTransferFee);
                             totalFee += parseFloat(this.southWestSiteTransferFee);
                         }
                     }
                 }
-                //console.log(totalFee)
-                //console.log(typeof(totalFee))
                 return parseFloat(totalFee).toFixed(2);
             },
 
@@ -458,7 +375,6 @@
                 let url = '';
                 if (this.proposal && this.proposal.proposal_apiary) {
                     url = helpers.add_endpoint_join(
-                        //api_endpoints.proposal_apiary,
                         '/api/proposal_apiary/',
                         this.proposal.proposal_apiary.id + '/process_deed_poll_document/'
                         )
@@ -475,34 +391,6 @@
                 }
                 return readonlyStatus;
             },
-            /*
-            getUnansweredChecklistQuestions: function() {
-                let UnansweredChecklistQuestions = false;
-
-                if(this.proposal && this.proposal.proposal_apiary.checklist_answers){
-                    let numOfAnswers = this.proposal.proposal_apiary.checklist_answers.length;
-                    for( let i=0; i< numOfAnswers ; i ++){
-                        //console.log('ans [ '+i+'] '+this.proposal.proposal_apiary.checklist_answers[i].answer)
-                        if(this.proposal.proposal_apiary.checklist_answers[i].answer == null){
-                            UnansweredChecklistQuestions = true;
-                        }
-                    }
-                }
-                return UnansweredChecklistQuestions;
-            },
-            */
-            apiary_sites: function() {
-                let sites = []
-                if (this.proposal && this.proposal.proposal_apiary) {
-                    for (let site of this.proposal.proposal_apiary.transfer_apiary_sites) {
-                        // show all sites in Draft; only selected sites after customer submits
-                        if (this.proposal.customer_status === 'Draft' || site.customer_selected) {
-                            sites.push(site.apiary_site);
-                        }
-                    }
-                }
-                return sites;
-            },
             showColCheckbox: function() {
                 let show = false;
                 if (this.proposal && this.proposal.customer_status === 'Draft') {
@@ -510,43 +398,8 @@
                 }
                 return show;
             },
-            /*
-            receivingApprovalLodgementNumber: function() {
-                let lodgement_number = '';
-                if (this.proposal && this.proposal.proposal_apiary && this.proposal.proposal_apiary.receiving_approval_lodgement_number) {
-                    lodgement_number = this.proposal.proposal_apiary.receiving_approval_lodgement_number;
-                }
-                return lodgement_number;
-            },
-            */
-            /*
-            selectedLicence: function() {
-                let licence = null;
-                if (this.proposal && this.proposal.proposal_apiary && this.proposal.proposal_apiary.target_approval_lodgement_number) {
-                    licence = this.proposal.proposal_apiary.target_approval_lodgement_number;
-                } else if (this.proposal && this.proposal.proposal_apiary && this.proposal.proposal_apiary.selected_licence) {
-                    licence = this.proposal.proposal_apiary.selected_licence;
-                }
-                return licence;
-            },
-            */
-            /*
-            site_transfer_apiary_sites: function(){
-                let sites = []
-                if (this.proposal && this.proposal.proposal_apiary) {
-                    for (let site of this.proposal.proposal_apiary.site_transfer_apiary_sites) {
-                        sites.push({'id': site.id, 'checked': site.apiary_site.checked})
-                    }
-                }
-                return sites;
-            },
-            */
-          //applicantType: function(){
-          //  return this.proposal.applicant_type;
-          //},
             assessorChecklistReadonly: function() {
                 let readonlyStatus = true;
-                //if (this.proposal.processing_status === 'With Assessor' && this.is_internal) {
                 if (this.is_internal && this.proposal && this.proposal.assessor_mode && this.proposal.assessor_mode.assessor_can_assess) {
                     readonlyStatus = false;
                 }
@@ -554,7 +407,6 @@
             },
             assessorChecklistVisibility: function() {
                 let visibility = false;
-                //if (this.proposal.processing_status === 'With Assessor' && this.is_internal) {
                 if (this.is_internal && this.proposal && this.proposal.assessor_mode && this.proposal.assessor_mode.has_assessor_mode) {
                     visibility = true;
                 }
@@ -570,14 +422,6 @@
                 }
                 return readonlyStatus;
             },
-            // referrerChecklistVisibility: function() {
-            //     let visibility = false;
-            //     // must be relevant referral
-            //     if ((!this.referrerChecklistReadonly && r.id === this.referral.id) || this.assessorChecklistVisibility) {
-            //         visibility = true;
-            //     }
-            //     return visibility;
-            // },
             assessorChecklistAnswers: function() {
                 if (this.proposal && this.proposal.proposal_apiary && this.proposal.proposal_apiary.site_transfer_assessor_checklist_answers &&
                     this.proposal.proposal_apiary.site_transfer_assessor_checklist_answers.length > 0) {
@@ -620,7 +464,6 @@
                         }
                     }
                 }
-                console.log(siteList)
                 return siteList;
             },
 
@@ -648,8 +491,6 @@
             lookupTransferee: function() {
                 this.lookupErrorText = '';
                 this.lookupNotification = '';
-                console.log(this.transfereeEmail);
-                //let url = `/api/proposal_apiary/${this.proposal.proposal_apiary.id}/get_apiary_approvals.json`
                 fetch(helpers.add_endpoint_json(
                     api_endpoints.proposal_apiary,this.proposal.proposal_apiary.id+'/get_licence_holders'),
                     {
@@ -662,21 +503,15 @@
                             'originating_approval_id': this.proposal.proposal_apiary.originating_approval_id,
                         })
                     })
-                    .then(response => response.json())
-                    .then(res => {
-                        if (!res.ok) {
-                            throw new Error(`HTTP error! Status: ${res.status}`);
+                    .then(async response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
                         }
-                        console.log(res);
+                        return response.json();
+                    })
+                    .then(res => {
                         if (res && res.licence_holders) {
                             this.licenceHolders = res.licence_holders.licence_holders;
-                            //this.apiaryApprovals = res.apiary_approvals.approvals;
-                            /*
-                            if (this.licenceHolders.length < 1) {
-                                //this.lookupErrorText = 'No current licence for the transferee';
-                                this.lookupNotification = 'No current licence for the transferee - one will be created';
-                            }
-                            */
                         } else {
                             this.lookupErrorText = res || 'Error looking up transferee details';
                         }
@@ -685,36 +520,10 @@
                     .catch(err => {
                         console.error(err);
                     });
-
-
             },
 
         },
         mounted: function() {
-            //let vm = this;
-            this.component_site_selection_key = uuid()
-            // set initial checked status
-            if (this.proposal && this.proposal.proposal_apiary) {
-                for (let site of this.proposal.proposal_apiary.transfer_apiary_sites) {
-                    if (this.is_external) {
-                        site.apiary_site.checked = site.customer_selected;
-                    } else {
-                        site.apiary_site.checked = site.internal_selected;
-                    }
-                }
-            }
-            fetch(api_endpoints.apiary_site_transfer_fees)
-            .then(async (response) => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw err });
-                }
-                const data = await response.json();
-                for (let fee of data) {
-                    this.siteTransferFees.push(fee)
-                }
-            }).catch(err => {
-                console.error(err);
-            })
             // update transferreeEmail
             if (this.proposal && this.proposal.proposal_apiary) {
                 this.transfereeEmail = this.proposal.proposal_apiary.transferee_email_text;
@@ -724,11 +533,58 @@
                     this.lookupTransferee();
                 }
             })
-
-            //vm.form = document.forms.new_proposal;
-            //window.addEventListener('beforeunload', vm.leaving);
-            //window.addEventListener('onblur', vm.leaving);
         },
+        created: function() {
+            if (this.proposal && this.proposal.proposal_apiary) {
+
+                let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/transfer_apiary_sites/'
+                console.log('transfer_apiary_sites')
+                fetch(url_sites).then(
+                    async (response) => {
+                        if (response.ok) {
+                            let transfer_apiary_sites_req = await response.json();
+                            for (let site of transfer_apiary_sites_req) {
+                                // show all sites in Draft; only selected sites after customer submits
+                                if (this.proposal.customer_status === 'Draft' || site.customer_selected) {
+                                    site.apiary_site.customer_selected = site.customer_selected;
+                                    site.apiary_site.internal_selected = site.internal_selected;
+
+                                    if (this.is_external) {
+                                        site.apiary_site.checked = site.customer_selected;
+                                    } else {
+                                        site.apiary_site.checked = site.internal_selected;
+                                    }
+
+                                    this.apiary_sites.push(site.apiary_site);
+                                }
+                            }
+                        }
+
+                        this.apiary_sites_local = this.apiary_sites;
+                        this.component_site_selection_key = uuid()
+                        this.loading_sites = false;
+                        
+                        fetch(api_endpoints.apiary_site_transfer_fees)
+                        .then(async (response) => {
+                            if (!response.ok) {
+                                return response.json().then(err => { throw err });
+                            }
+                            const data = await response.json();
+                            for (let fee of data) {
+                                this.siteTransferFees.push(fee)
+                            }
+                        }).catch(err => {
+                            console.error(err);
+                        })
+                    }
+                ).catch((error) => {
+                    console.log(error);
+                    this.loading_sites = false;
+                })
+            } else {
+                this.loading_sites = false;
+            }
+        }
     }
 </script>
 

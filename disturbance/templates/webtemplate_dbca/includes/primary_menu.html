@@ -1,3 +1,40 @@
+{% load users %}
+{% load utils %}
+{% load tagutils %}
+{% load static %}
+
+{% is_internal as is_internal_login %}
+
+{% if is_internal_login %}
+    <li class="nav-item">
+        <a class="nav-link{% if 'approvals' in request.path %} active{% endif %}" href="/internal/approvals">
+            Licences
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link{% if 'compliances' in request.path %} active{% endif %}" href="/internal/compliances">
+            Compliance with Requirements
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link{% if 'organisations' in request.path %} active{% endif %}" href="/internal/organisations/access">
+            Organisation Access
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/internal/search">
+            Search
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/internal/sites">
+            Sites
+        </a>
+    </li>
+{% else %}
+    <li class="nav-item"><a class="nav-link" href="{% url 'ds_contact' %}">Contact Us</a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'ds_further_info' %}">Further Information</a></li>
+{% endif %}
 <script>
     var payment_processing = 
     {

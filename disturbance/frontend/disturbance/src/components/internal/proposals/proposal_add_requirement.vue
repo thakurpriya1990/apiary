@@ -7,19 +7,19 @@
                         <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label class="radio-inline control-label"><input type="radio" name="requirementType" :value="true" v-model="requirement.standard">Standard Requirement</label>
-                                <label class="radio-inline"><input type="radio" name="requirementType" :value="false" v-model="requirement.standard">Free Text Requirement</label>
+                                <label class="form-check form-check-inline col-form-label"><input type="radio" class="form-check-input" name="requirementType" :value="true" v-model="requirement.standard">Standard Requirement</label>
+                                <label class="form-check form-check-inline col-form-label"><input type="radio" class="form-check-input" name="requirementType" :value="false" v-model="requirement.standard">Free Text Requirement</label>
                             </div>
                         </div>
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left"  for="Name">Requirement</label>
+                                        <label class="col-form-label pull-left"  for="Name">Requirement</label>
                                     </div>
                                     <div class="col-sm-9" v-if="requirement.standard">
                                         <div style="width:70% !important">
-                                            <select class="form-control" ref="standard_req" name="standard_requirement" v-model="requirement.standard_requirement">
+                                            <select class="form-select" ref="standard_req" name="standard_requirement" v-model="requirement.standard_requirement">
                                                 <option v-for="r in requirements" :value="r.id" :key="r.id">{{r.code}} {{r.text}}</option>
                                             </select>
                                         </div>
@@ -30,13 +30,14 @@
                                 </div>
                             </div>
                             <div class="form-group">
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left"  for="Name">Due Date</label>
+                                        <label class="col-form-label pull-left"  for="Name">Due Date</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="due_date" style="width: 70%;">
-                                            <input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="requirement.due_date">
+                                            <!-- <input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="requirement.due_date"> -->
+                                            <input type="date" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="requirement.due_date">
                                             <span class="input-group-addon">
                                                 <span class="glyphicon glyphicon-calendar"></span>
                                             </span>
@@ -46,12 +47,12 @@
                             </div>
                             <template v-if="validDate">
                                 <div class="form-group">
-                                    <div class="row">
+                                    <div class="row mb-3">
                                         <div class="col-sm-3">
-                                            <label class="control-label pull-left"  for="Name">Recurrence</label>
+                                            <label class="col-form-label pull-left"  for="Name">Recurrence</label>
                                         </div>
                                         <div class="col-sm-9">
-                                            <label class="checkbox-inline"><input type="checkbox" v-model="requirement.recurrence"></label>
+                                            <label class="checkbox-inline"><input type="checkbox" class="form-check-input" v-model="requirement.recurrence"></label>
                                         </div>
                                     </div>
                                 </div>
@@ -59,19 +60,19 @@
                                     <div class="form-group">
                                         <div class="row">
                                             <div class="col-sm-3">
-                                                <label class="control-label pull-left"  for="Name">Recurrence pattern</label>
+                                                <label class="col-form-label pull-left"  for="Name">Recurrence pattern</label>
                                             </div>
                                             <div class="col-sm-9">
-                                                <label class="radio-inline control-label"><input type="radio" name="recurrenceSchedule" value="1" v-model="requirement.recurrence_pattern">Weekly</label>
-                                                <label class="radio-inline control-label"><input type="radio" name="recurrenceSchedule" value="2" v-model="requirement.recurrence_pattern">Monthly</label>
-                                                <label class="radio-inline control-label"><input type="radio" name="recurrenceSchedule" value="3" v-model="requirement.recurrence_pattern">Yearly</label>
+                                                <label class="radio-inline col-form-label"><input type="radio" class="form-check-input" name="recurrenceSchedule" value="1" v-model="requirement.recurrence_pattern">Weekly</label>
+                                                <label class="radio-inline col-form-label"><input type="radio" class="form-check-input" name="recurrenceSchedule" value="2" v-model="requirement.recurrence_pattern">Monthly</label>
+                                                <label class="radio-inline col-form-label"><input type="radio" class="form-check-input" name="recurrenceSchedule" value="3" v-model="requirement.recurrence_pattern">Yearly</label>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <div class="row">
                                             <div class="col-sm-12">
-                                                <label class="control-label"  for="Name">
+                                                <label class="col-form-label"  for="Name">
                                                     <strong class="pull-left">Recur every</strong> 
                                                     <input class="pull-left" style="width:10%; margin-left:10px;" type="number" name="schedule" v-model="requirement.recurrence_schedule"/> 
                                                     <strong v-if="requirement.recurrence_pattern == '1'" class="pull-left" style="margin-left:10px;">week(s)</strong>
@@ -94,16 +95,16 @@
                 </template>
                 <template v-else>
                     <button type="button" v-if="addingRequirement" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Adding</button>
-                    <button type="button" v-else class="btn btn-default" @click="ok">Add</button>
+                    <button type="button" v-else class="btn btn-primary" @click="ok">Add</button>
                 </template>
-                <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
+                <button type="button" class="btn btn-secondary" @click="cancel">Cancel</button>
             </template>
         </modal>
     </div>
 </template>
 
 <script>
-//import $ from 'jquery'
+import $ from 'jquery'
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 import {helpers,api_endpoints} from "@/utils/hooks.js"
@@ -177,7 +178,7 @@ export default {
     },
     watch: {
         due_date: function(){
-            this.validDate = moment(this.requirement.due_date,'DD/MM/YYYY').isValid();
+            this.validDate = moment(this.requirement.due_date,'YYYY-MM-DD').isValid();
         },
     },
     methods:{
@@ -194,7 +195,11 @@ export default {
         ok:function () {
             let vm =this;
             if($(vm.form).valid()){
+                vm.errors = false;
                 vm.sendData();
+            } else {
+                vm.errorString = "Missing required fields.";
+                vm.errors = true;
             }
         },
         cancel:function () {
@@ -212,7 +217,7 @@ export default {
             };
             this.errors = false;
             $('.has-error').removeClass('has-error');
-            $(this.$refs.due_date).data('DateTimePicker').clear();
+            // $(this.$refs.due_date).data('DateTimePicker').clear();
             //$(this.$refs.due_date).clear();
             this.validation_form.resetForm();
         },
@@ -244,14 +249,14 @@ export default {
                 delete requirement.recurrence_pattern;
                 requirement.recurrence_schedule ? delete requirement.recurrence_schedule : '';
             }
+            else{
+                requirement.due_date = moment(requirement.due_date,'YYYY-MM-DD').format('DD/MM/YYYY');
+            }
             if (vm.requirement.id){
                 vm.updatingRequirement = true;
                 fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements, requirement.id), {
                     method: 'PUT',
-                    headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded' // emulateJSON
-                    },
-                    body: new URLSearchParams(requirement)
+                    body: JSON.stringify({"data":requirement})
                 })
                 .then(response => {
                     if (!response.ok) throw response;
@@ -278,10 +283,7 @@ export default {
                 vm.addingRequirement = true;
                 fetch(api_endpoints.proposal_requirements, {
                     method: 'POST',
-                    headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded' // emulateJSON
-                    },
-                    body: new URLSearchParams(requirement)
+                    body: JSON.stringify({"data":requirement})
                 })
                 .then(response => {
                     if (!response.ok) throw response;
@@ -298,10 +300,10 @@ export default {
                     vm.addingRequirement = false;
 
                     try {
-                    const errData = await error.json();
-                    vm.errorString = helpers.apiVueResourceError(errData);
+                        const errData = await error;
+                        vm.errorString = helpers.apiVueResourceError(errData);
                     } catch {
-                    vm.errorString = 'An unexpected error occurred.';
+                        vm.errorString = 'An unexpected error occurred.';
                     }
                 });
             }
@@ -332,47 +334,24 @@ export default {
                         }
                     }
                 },
-                messages: {
-                    arrival:"field is required",
-                    departure:"field is required",
-                    campground:"field is required",
-                    campsite:"field is required"
-                },
-                showErrors: function(errorMap, errorList) {
-                    $.each(this.validElements(), function(index, element) {
-                        var $element = $(element);
-                        $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
-                    });
-                    // destroy tooltips on valid elements
-                    $("." + this.settings.validClass).tooltip("destroy");
-                    // add or update tooltips
-                    for (var i = 0; i < errorList.length; i++) {
-                        var error = errorList[i];
-                        $(error.element)
-                            .tooltip({
-                                trigger: "focus"
-                            })
-                            .attr("data-original-title", error.message)
-                            .parents('.form-group').addClass('has-error');
-                    }
-                }
             });
        },
        eventListeners:function () {
             let vm = this;
             // Initialise Date Picker
-            $(vm.$refs.due_date).datetimepicker(vm.datepickerOptions);
-            $(vm.$refs.due_date).on('dp.change', function(e){
-                if ($(vm.$refs.due_date).data('DateTimePicker').date()) {
-                    vm.requirement.due_date =  e.date.format('DD/MM/YYYY');
-                }
-                else if ($(vm.$refs.due_date).data('date') === "") {
-                    vm.requirement.due_date = "";
-                }
-             });
+            // $(vm.$refs.due_date).datetimepicker(vm.datepickerOptions);
+            // $(vm.$refs.due_date).on('dp.change', function(e){
+            //     if ($(vm.$refs.due_date).data('DateTimePicker').date()) {
+            //         vm.requirement.due_date =  e.date.format('DD/MM/YYYY');
+            //     }
+            //     else if ($(vm.$refs.due_date).data('date') === "") {
+            //         vm.requirement.due_date = "";
+            //     }
+            //  });
 
             // Intialise select2
             $(vm.$refs.standard_req).select2({
+                dropdownParent: $(vm.$refs.standard_req).parent(),
                 "theme": "bootstrap",
                 allowClear: true,
                 minimumInputLength: 2,

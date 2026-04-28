@@ -1,14 +1,17 @@
 from django.urls import reverse
 from django.shortcuts import redirect
 
+import hashlib
 import re
 import logging
 
-from django.conf import settings
-from disturbance.components.ap_payments.models import ApplicationFee
 from reversion.middleware  import RevisionMiddleware
 from reversion.views import _request_creates_revision
 from urllib.parse import quote_plus
+from django.http import HttpResponse
+
+from disturbance.helpers import is_internal
+from disturbance.components.proposals.models import Proposal
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +40,7 @@ class FirstTimeNagScreenMiddleware(object):
         else:
             return response
 
+
 class FirstTimeDefaultNag(object):
     '''
     A specialised FirstTimeNagScreenMiddleware for non WildlifeLicensing.
@@ -57,12 +61,8 @@ class FirstTimeDefaultNag(object):
             and "/firsttime/" not in request.get_full_path()):
 
             path_first_time = '/ledger-ui/accounts-firsttime'
-
             if (not request.user.first_name) or \
                 (not request.user.last_name) or \
-                (not request.user.legal_first_name) or \
-                (not request.user.legal_last_name) or \
-                (not request.user.dob and not request.user.legal_dob) or \
                 (not request.user.residential_address) or \
                 (not (
                     request.user.phone_number or request.user.mobile_number
@@ -87,8 +87,14 @@ class RevisionOverrideMiddleware(RevisionMiddleware):
         return _request_creates_revision(request) and 'checkout' not in request.get_full_path()
 
 
-class CacheControlMiddleware(object):
-    def process_response(self, request, response):
+class CacheControlMiddleware:
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+
         if request.path[:5] == '/api/' or request.path == '/':
             response['Cache-Control'] = 'private, no-store'
         elif request.path[:8] == '/static/':
@@ -98,3 +104,84 @@ class CacheControlMiddleware(object):
         return response
 
 
+class PaymentSessionMiddleware(object):
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+
+        redirect_path = 'internal' if is_internal(request) else 'external'
+
+        if (request.user.is_authenticated 
+        and (CHECKOUT_PATH.match(request.path)
+        or request.path.startswith("/ledger-api/process-payment") 
+        or request.path.startswith('/ledger-api/payment-details'))):
+            if 'payment_pk' in request.session:
+                if request.path.startswith("/ledger-api/process-payment"):
+
+                    checkouthash =  hashlib.sha256(str(request.session["payment_pk"]).encode('utf-8')).hexdigest() 
+                    checkouthash_cookie = request.COOKIES.get('checkouthash')
+                    validation_cookie = request.COOKIES.get(request.POST.get('payment-csrfmiddlewaretoken'))
+
+                    proposal_count = Proposal.objects.filter(pk=request.session['payment_pk']).count()
+
+                    if checkouthash_cookie != checkouthash or checkouthash_cookie != validation_cookie or proposal_count == 0:                         
+                        url_redirect = reverse(redirect_path)
+                        response = HttpResponse("<script> window.location='"+url_redirect+"';</script> <center><div class='container'><div class='alert alert-primary' role='alert'><a href='"+url_redirect+"'> Redirecting please wait: "+url_redirect+"</a><div></div></center>")
+                        return response  
+            else:
+                 if request.path.startswith("/ledger-api/process-payment"):
+                    url_redirect = reverse(redirect_path)
+                    response = HttpResponse("<script> window.location='"+url_redirect+"';</script> <center><div class='container'><div class='alert alert-primary' role='alert'><a href='"+url_redirect+"'> Redirecting please wait: "+url_redirect+"</a><div></div></center>")
+                    return response
+                 
+        return None
+
+
+    def __call__(self, request):
+        
+        response= self.get_response(request)
+        redirect_path = 'internal' if is_internal(request) else 'external'
+        
+        if (request.user.is_authenticated 
+        and (CHECKOUT_PATH.match(request.path)
+        or request.path.startswith("/ledger-api/process-payment") 
+        or request.path.startswith('/ledger-api/payment-details'))):
+            if 'payment_pk' in request.session:
+                try:
+                    proposal_count = Proposal.objects.get(pk=request.session['payment_pk'])
+                except Exception as e:
+                    del request.session['payment_pk']
+                    return response
+
+                if request.path.startswith("/ledger-api/process-payment"):
+                    
+                    if "payment_pk" not in request.session:
+                         url_redirect = reverse(redirect_path)
+                         response = HttpResponse("<script> window.location='"+url_redirect+"';</script> <center><div class='container'><div class='alert alert-primary' role='alert'><a href='"+url_redirect+"'> Redirecting please wait: "+url_redirect+"</a><div></div></center>")
+                         return response    
+
+                    checkouthash =  hashlib.sha256(str(request.session["payment_pk"]).encode('utf-8')).hexdigest() 
+                    checkouthash_cookie = request.COOKIES.get('checkouthash')
+                    validation_cookie = request.COOKIES.get(request.POST.get('payment-csrfmiddlewaretoken'))
+
+                    proposal_count = Proposal.objects.filter(pk=request.session['payment_pk']).count()
+
+                    if checkouthash_cookie != checkouthash or checkouthash_cookie != validation_cookie or proposal_count == 0:                         
+                         url_redirect = reverse(redirect_path)
+                         response = HttpResponse("<script> window.location='"+url_redirect+"';</script> <center><div class='container'><div class='alert alert-primary' role='alert'><a href='"+url_redirect+"'> Redirecting please wait: "+url_redirect+"</a><div></div></center>")
+                         return response                                                                                                 
+            else:
+                 if request.path.startswith("/ledger-api/process-payment"):
+                    url_redirect = reverse(redirect_path)
+                    response = HttpResponse("<script> window.location='"+url_redirect+"';</script> <center><div class='container'><div class='alert alert-primary' role='alert'><a href='"+url_redirect+"'> Redirecting please wait: "+url_redirect+"</a><div></div></center>")
+                    return response
+
+            # force a redirect if in the checkout
+            if ('payment_pk' not in request.session) and CHECKOUT_PATH.match(request.path):
+                url_redirect = reverse(redirect_path)
+                response = HttpResponse("<script> window.location='"+url_redirect+"';</script> <center><div class='container'><div class='alert alert-primary' role='alert'><a href='"+url_redirect+"'> Redirecting please wait: "+url_redirect+"</a><div></div></center>")
+                return response
+                
+        return response

@@ -32,6 +32,8 @@ import {
 from '@/utils/hooks'
 import datatable from '@vue-utils/datatable.vue'
 import RequirementDetail from './apiary_proposal_add_requirement.vue'
+import $ from 'jquery';
+
 export default {
     name: 'ApiaryProposalRequirements',
     props: {
@@ -62,25 +64,33 @@ export default {
                     "dataSrc": ''
                 },
                 order: [],
-                dom: 'lBfrtip',
+                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'d-flex align-items-center'<'me-auto'i>p>",
                 // buttons:[
                 // 'excel', 'csv', ], //'copy'
                 buttons:[
                 {
                     extend: 'excelHtml5',
+                    className: 'btn btn-primary me-2 rounded',
                     text:"Excel",
                     exportOptions:{
                         orthogonal:'export'
                     }
                 },
                 {
-                    extend: 'csv',
+                    extend: 'csvHTML5',
+                    className: 'btn btn-primary me-2 rounded',
                     text:"CSV",
                     exportOptions:{
                         orthogonal:'export'
                     }
                 }
                 ], //'copy'
+                columnDefs: [
+                    { responsivePriority: 1, targets: 0 }, // First visible column has top priority (e.g. proposal_number
+                    { responsivePriority: 2, targets: -1 }, // If the actions is the last entry in columns then this will make it 2nd top priority soo as long as the screen is a decent size it will always be shown
+                ],
                 columns: [
                     {
                         data: "requirement",
@@ -112,13 +122,6 @@ export default {
                         },
                         'createdCell': helpers.dtPopoverCellFn,
                         defaultContent: '',
-
-                        /*'createdCell': function (cell) {
-                            //TODO why this is not working?
-                            // the call to popover is done in the 'draw' event
-                            $(cell).popover();
-                        }*/
-
                     },
                     {
                         data: "due_date",
@@ -177,7 +180,6 @@ export default {
                     {
                         mRender:function (data,type,full) {
                             let links = '';
-                            // TODO check permission to change the order
                             if (vm.proposal.assessor_mode.has_assessor_mode){
                                 links +=  `<a class="dtMoveUp" data-id="${full.id}" href='#'><i class="fa fa-angle-up fa-2x"></i></a><br/>`;
                                 links +=  `<a class="dtMoveDown" data-id="${full.id}" href='#'><i class="fa fa-angle-down fa-2x"></i></a><br/>`;

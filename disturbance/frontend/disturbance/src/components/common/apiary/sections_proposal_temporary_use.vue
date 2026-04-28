@@ -2,7 +2,7 @@
     <div>
 
         <FormSection :formCollapse="false" label="Period and Site(s)" Index="period_and_sites">
-            <template v-if="proposal && proposal.apiary_temporary_use">
+            <template v-if="proposal && proposal.apiary_temporary_use && !loading_sites">
                 <PeriodAndSites 
                     :is_external="is_external" 
                     :is_internal="is_internal" 
@@ -11,7 +11,7 @@
                     :processing_status="proposal.processing_status"
                     :from_date="proposal.apiary_temporary_use.from_date"
                     :to_date="proposal.apiary_temporary_use.to_date"
-                    :temporary_use_apiary_sites="proposal.apiary_temporary_use.temporary_use_apiary_sites"
+                    :temporary_use_apiary_sites="temporary_use_apiary_sites"
                     :existing_temporary_uses="existing_temporary_uses"
                     @from_date_changed="fromDateChanged"
                     @to_date_changed="toDateChanged"
@@ -58,19 +58,16 @@
                         name="public-liability-insurance-documents"
                         :isRepeatable="false"
                         :documentActionUrl="publicLiabilityInsuranceDocumentUrl"
-                        :readonly="readonly"
+                        :readonly="is_readonly"
                         :replace_button_by_text="true"
                     />
                 </div>
-                <div class="grow1">
+                <div v-if="proposal && proposal.proposal_apiary" class="grow1">
                     <label>Expiry Date</label>
                 </div>
-                <div class="grow1">
+                <div v-if="proposal && proposal.proposal_apiary" class="grow1">
                     <div class="input-group date" ref="expiryDatePicker">
-                        <input type="text" class="form-control" placeholder="DD/MM/YYYY" id="expiry_date_input_element" :readonly="readonly"/>
-                        <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-calendar"></span>
-                        </span>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" :v-model="proposal.proposal_apiary.public_liability_insurance_expiry_date" id="expiry_date_input_element" :disabled="is_readonly"/>
                     </div>
                 </div>
             </div>
@@ -87,29 +84,12 @@
                 />
             </template>
         </FormSection>
-<!--
-        <div style="margin-bottom: 50px">
-            <div class="navbar navbar-fixed-bottom" style="background-color: #f5f5f5 ">
-                <div class="navbar-inner">
-                    <div class="container">
-                        <p class="pull-right" style="margin-top:5px;">
-                            <input type="button" @click.prevent="save_exit" class="btn btn-primary" value="Save and Exit"/>
-                            <input type="button" @click.prevent="save" class="btn btn-primary" value="Save and Continue"/>
-                            <input v-if="!isSubmitting" type="button" @click.prevent="submit" class="btn btn-primary" value="Submit"/>
-                            <button v-else disabled class="btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Submitting</button>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
--->
 
     </div>
 </template>
 
 <script>
     import { v4 as uuid } from 'uuid';
-    // import datatable from '@vue-utils/datatable.vue'
     import { helpers, } from '@/utils/hooks'
     import FormSection from "@/components/forms/section_toggle.vue"
     import PeriodAndSites from "@/components/common/apiary/section_period_and_sites.vue"
@@ -130,7 +110,7 @@
             },
             proposal: {
                 type: Object,
-                default: null,
+                required: true,
             }
         },
         data:function () {
@@ -142,10 +122,14 @@
                 licence: null,
                 from_date_enabled: true,
                 to_date_enabled: true,
+                to_date: null,
+                from_date: null,
                 isSubmitting: false,
                 application: {},
                 apiary_sites_available: [],
                 existing_temporary_uses: [],
+                temporary_use_apiary_sites: [],
+                loading_sites: true,
             }
         },
         components: {
@@ -171,14 +155,12 @@
             },
             publicLiabilityInsuranceDocumentUrl: function() {
                 let url = '';
-                console.log('0: ' + this.proposal.apiary_temporary_use.id);
                 if (this.proposal && this.proposal.apiary_temporary_use) {
                     url = helpers.add_endpoint_join(
                         '/api/proposal_apiary/',
                         this.proposal.id + '/process_public_liability_insurance_document/'
                     )
                 }
-                console.log('1: ' + url);
                 return url;
             },
             is_readonly: function() {
@@ -197,69 +179,45 @@
                 this.proposal.apiary_temporary_use.temporary_occupier_email = value.occupier_email
             },
             fromDateChanged: function(value){
-                this.proposal.apiary_temporary_use.from_date = moment(value, 'DD/MM/YYYY');
+                //this.proposal.apiary_temporary_use.from_date = moment(value, 'DD/MM/YYYY');
+                this.from_date = value;
             },
             toDateChanged: function(value){
-                this.proposal.apiary_temporary_use.to_date = moment(value, 'DD/MM/YYYY');
+                //this.proposal.apiary_temporary_use.to_date = moment(value, 'DD/MM/YYYY');
+                this.to_date = value;
             },
             apiarySitesUpdated: function(apiary_sites){
-                console.log('apiary_sites')
-                console.log(apiary_sites)
                 for (let i=0; i<apiary_sites.length; i++){
-                    let temporary_use_apiary_site = this.proposal.apiary_temporary_use.temporary_use_apiary_sites.find(element => element.apiary_site.id == apiary_sites[i].id)
+                    let temporary_use_apiary_site = this.temporary_use_apiary_sites.find(element => element.apiary_site.id == apiary_sites[i].id)
                     // Update temporary_use_apiary_site, which is sent to the backend when saving
                     temporary_use_apiary_site.apiary_site = apiary_sites[i]
                 }
             },
-            addEventListeners: function () {
-                let vm = this;
-                let el_fr = $(vm.$refs.expiryDatePicker);
-                let options = {
-                    format: "DD/MM/YYYY",
-                    showClear: true ,
-                    useCurrent: false,
-                };
-
-                el_fr.datetimepicker(options);
-
-                el_fr.on("dp.change", function(e) {
-                    if (e.date){
-                        // Date selected
-                        vm.expiry_date_local= e.date.format('DD/MM/YYYY')  // e.date is moment object
-                    } else {
-                        // Date not selected
-                        vm.expiry_date_local = null;
-                    }
-                    vm.$emit('expiry_date_changed', vm.expiry_date_local)
-                });
-
-                //***
-                // Set dates in case they are passed from the parent component
-                //***
-                let searchPattern = /^[0-9]{4}/
-
-                let expiry_date_passed = vm.proposal.proposal_apiary.public_liability_insurance_expiry_date;
-                console.log('passed')
-                console.log(expiry_date_passed)
-                if (expiry_date_passed) {
-                    // If date passed
-                    if (searchPattern.test(expiry_date_passed)) {
-                        // Convert YYYY-MM-DD to DD/MM/YYYY
-                        expiry_date_passed = moment(expiry_date_passed, 'YYYY-MM-DD').format('DD/MM/YYYY');
-                    }
-                    $('#expiry_date_input_element').val(expiry_date_passed);
-                }
-            },
-
-        },
-        created: function() {
-
         },
         mounted: function() {
-            let vm = this;
-            this.$nextTick(() => {
-                vm.addEventListeners();
-            });
+            this.from_date = this.proposal.apiary_temporary_use.from_date;
+            this.to_date = this.proposal.apiary_temporary_use.to_date;
+        },
+        created: function() {
+            if (this.proposal && this.proposal.apiary_temporary_use) {
+                let url_sites = '/api/proposal/' + this.proposal.id + '/temporary_use_apiary_sites/'
+                fetch(url_sites).then(
+                    async (response) => {
+                        if (response.ok) {
+                            let transfer_apiary_sites_req = await response.json();
+                            for (let site of transfer_apiary_sites_req) {
+                                this.temporary_use_apiary_sites.push(site);
+                            }
+                        }
+                        this.loading_sites = false;
+                    }
+                ).catch((error) => {
+                    console.log(error);
+                    this.loading_sites = false;
+                })
+            } else {
+                this.loading_sites = false;
+            }
         }
     }
 </script>

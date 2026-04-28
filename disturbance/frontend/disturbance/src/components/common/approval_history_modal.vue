@@ -47,9 +47,6 @@ export default {
         return {
             isModalOpen: false,
             processingDetails: false,
-            apiaryTemplateGroup: false,
-            dasTemplateGroup: false,
-
             //approval_history_id: '0',
             approval_history_id: null,
             historyTable: null,
@@ -62,10 +59,11 @@ export default {
                 deferRender: true, 
                 autowidth: true,
                 order: [[2, 'desc']],
+                buttons: [],
                 dom:
-                    "<'row'<'col-sm-5'l><'col-sm-6'f>>" +
+                    "<'d-flex align-items-center'<'me-auto'l>fB>" +
                     "<'row'<'col-sm-12'tr>>" +
-                    "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+                    "<'d-flex align-items-center'<'me-auto'i>p>",
                 processing:true,
                 ajax: {
                     "url": vm.history_url, 
@@ -97,11 +95,7 @@ export default {
     },
     computed: {
         dtHeadersApprovalHistory: function() {
-            if (this.apiaryTemplateGroup) {
-                return  ["order","Date","Licence"]
-            } else {
-                return  ["order","Date","Approval"]
-            }
+            return  ["order","Date","Licence"]
         },
 
         is_external: function(){
@@ -114,13 +108,7 @@ export default {
             return this.isModalOpen
         },
         dashboardTitle: function() {
-            let title = ''
-            if (this.apiaryTemplateGroup) {
-                title = 'Licence History';
-            } else {
-                title = 'Approval History';
-            }
-            return title;
+            return 'Licence History';
         },
 
     },
@@ -139,22 +127,5 @@ export default {
             this.$refs.approval_history_table.vmDataTable.ajax.reload();
         }
     },
-    created: function() {
-        // retrieve template group
-        fetch('/template_group',{
-            emulateJSON:true
-            }).then(async res=>{
-                //this.template_group = res.body.template_group;
-                const template_group_res = await res.json();
-                if (template_group_res.template_group === 'apiary') {
-                    this.apiaryTemplateGroup = true;
-                } else {
-                    this.dasTemplateGroup = true;
-                }
-        }).catch(err=>{
-                console.log(err);
-        });
-    },
-
 }
 </script>

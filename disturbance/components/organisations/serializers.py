@@ -15,33 +15,9 @@ from disturbance.components.organisations.utils import (
                                 is_consultant,
                                 can_approve,
                                 can_relink,
-                                is_last_admin,
                             )
 from disturbance.components.main.serializers import CommunicationLogEntrySerializer
 from rest_framework import serializers
-import rest_framework_gis.serializers as gis_serializers
-
-
-#class LedgerOrganisationSerializer(serializers.ModelSerializer):
-#    class Meta:
-#        model = ledger_organisation
-#        fields = '__all__'
-
-#class LedgerOrganisationFilterSerializer(serializers.ModelSerializer):
-#    #address = serializers.SerializerMethodField(read_only=True)
-#    email = serializers.SerializerMethodField(read_only=True)
-#
-#    class Meta:
-#        model = ledger_organisation
-#        fields = (
-#            'id',
-#            'name',
-#            'email',
-#            #'address',
-#        )
-#
-#    def get_email(self, obj):
-#        return ''
 
 class OrganisationCheckSerializer(serializers.Serializer):
     abn = serializers.CharField()
@@ -83,8 +59,8 @@ class DelegateSerializer(serializers.ModelSerializer):
 class OrganisationSerializer(serializers.ModelSerializer):
     address = OrganisationAddressSerializer(read_only=True) 
     pins = serializers.SerializerMethodField(read_only=True)
-    #delegates = DelegateSerializer(many=True,read_only=True)
     delegates = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Organisation
         fields = (

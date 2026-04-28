@@ -1,26 +1,15 @@
 <template id="proposal_requirements">
-    <div class="col-md-12">
-        <div class="row">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Requirements
-                        <a class="panelClicker" :href="'#'+panelBody" data-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="panelBody">
-                            <span class="glyphicon glyphicon-chevron-down pull-right "></span>
-                        </a>
-                    </h3>
-                </div>
-                <div class="panel-body panel-collapse collapse in" :id="panelBody">
-                    <form class="form-horizontal" action="index.html" method="post">
-                        <div class="col-sm-12">
-                            <button v-if="hasAssessorMode" @click.prevent="addRequirement()" style="margin-bottom:10px;" class="btn btn-primary pull-right">Add Requirement</button>
-                        </div>
-                        <datatable ref="requirements_datatable" :id="'requirements-datatable-'+_uid" :dtOptions="requirement_options" :dtHeaders="requirement_headers"/>
-                    </form>
+    <FormSection :formCollapse="false" label="Requirements" Index="requirements">
+        <form class="form-horizontal" action="index.html" method="post">
+            <div class="row">
+                <div class="col-sm-12">
+                    <button v-if="hasAssessorMode" @click.prevent="addRequirement()" style="margin-bottom:10px;" class="btn btn-primary pull-right">Add Requirement</button>
                 </div>
             </div>
-        </div>
-        <RequirementDetail ref="requirement_detail" :proposal_id="proposal.id" :requirements="requirements"/>
-    </div>
+            <datatable ref="requirements_datatable" :id="datatableId" :dtOptions="requirement_options" :dtHeaders="requirement_headers"/>
+        </form>
+    </FormSection>
+    <RequirementDetail ref="requirement_detail" :proposal_id="proposal.id" :requirements="requirements"/>
 </template>
 <script>
 import { v4 as uuid } from 'uuid';
@@ -32,6 +21,9 @@ import {
 from '@/utils/hooks'
 import datatable from '@vue-utils/datatable.vue'
 import RequirementDetail from './proposal_add_requirement.vue'
+import FormSection from "@/components/forms/section_toggle.vue";
+import $ from 'jquery';
+
 export default {
     name: 'InternalProposalRequirements',
     props: {
@@ -40,7 +32,7 @@ export default {
     data: function() {
         let vm = this;
         return {
-            panelBody: "proposal-requirements-"+uuid(),
+            datatableId: "proposal-requirements-datatable"+uuid(),
             requirements: [],
             requirement_headers:["Requirement","Due Date","Recurrence","Action","Order"],
             requirement_options:{
@@ -54,9 +46,31 @@ export default {
                     "dataSrc": ''
                 },
                 order: [],
-                dom: 'lBfrtip',
+                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons:[
-                'excel', 'csv', ], //'copy'
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-primary me-2 rounded',
+                        exportOptions: {
+                            columns: ':not(.noexport)',
+                            orthogonal:'export'
+                        }
+                    },
+                    {
+                        extend: 'csv',
+                        className: 'btn btn-primary me-2 rounded',
+                        exportOptions: {
+                            columns: ':not(.noexport)',
+                            orthogonal:'export'
+                        }
+                    },
+                ],
+                columnDefs: [
+                    { responsivePriority: 1, targets: 0 }, // First visible column has top priority (e.g. proposal_number
+                    { responsivePriority: 2, targets: -1 }, // If the actions is the last entry in columns then this will make it 2nd top priority soo as long as the screen is a decent size it will always be shown
+                ],
                 columns: [
                     {
                         data: "requirement",
@@ -87,13 +101,6 @@ export default {
                         },
                         'createdCell': helpers.dtPopoverCellFn,
                         defaultContent: '',
-
-                        /*'createdCell': function (cell) {
-                            //TODO why this is not working?
-                            // the call to popover is done in the 'draw' event
-                            $(cell).popover();
-                        }*/
-
                     },
                     {
                         data: "due_date",
@@ -142,7 +149,6 @@ export default {
                     {
                         mRender:function (data,type,full) {
                             let links = '';
-                            // TODO check permission to change the order
                             if (vm.proposal.assessor_mode.has_assessor_mode){
                                 links +=  `<a class="dtMoveUp" data-id="${full.id}" href='#'><i class="fa fa-angle-up fa-2x"></i></a><br/>`;
                                 links +=  `<a class="dtMoveDown" data-id="${full.id}" href='#'><i class="fa fa-angle-down fa-2x"></i></a><br/>`;
@@ -188,7 +194,8 @@ export default {
     },
     components:{
         datatable,
-        RequirementDetail
+        RequirementDetail,
+        FormSection
     },
     computed:{
         hasAssessorMode(){

@@ -12,7 +12,7 @@
                                         <label class="control-label pull-left"  for="Name">To</label>
                                     </div>
                                     <div class="col-sm-4">
-                                        <input type="text" class="form-control" name="to" v-model="comms.to">
+                                        <input type="text" class="form-control" name="to" v-model="to">
                                     </div>
                                 </div>
                             </div>
@@ -22,7 +22,7 @@
                                         <label class="control-label pull-left"  for="Name">From</label>
                                     </div>
                                     <div class="col-sm-4">
-                                        <input type="text" class="form-control" name="fromm" v-model="comms.fromm">
+                                        <input type="text" class="form-control" name="from" v-model="from">
                                     </div>
                                 </div>
                             </div>
@@ -32,7 +32,7 @@
                                         <label class="control-label pull-left"  for="Name">Type</label>
                                     </div>
                                     <div class="col-sm-4">
-                                        <select class="form-control" name="type" v-model="comms.type">
+                                        <select class="form-select" name="type" v-model="log_type">
                                             <option value="">Select Type</option>
                                             <option value="email">Email</option>
                                             <option value="mail">Mail</option>
@@ -47,7 +47,7 @@
                                         <label class="control-label pull-left"  for="Name">Subject/Description</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <input type="text" class="form-control" name="subject" style="width:70%;" v-model="comms.subject">
+                                        <input type="text" class="form-control" name="subject" style="width:70%;" v-model="subject">
                                     </div>
                                 </div>
                             </div>
@@ -57,7 +57,7 @@
                                         <label class="control-label pull-left"  for="Name">Text</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <textarea name="text" class="form-control" style="width:70%;" v-model="comms.text"></textarea>
+                                        <textarea name="text" class="form-control" style="width:70%;" v-model="text"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -103,10 +103,11 @@
 </template>
 
 <script>
-//import $ from 'jquery'
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
-import {helpers} from "@/utils/hooks.js"
+import {
+    helpers
+} from '@/utils/hooks'
 export default {
     name:'Add-Comms',
     components:{
@@ -138,12 +139,12 @@ export default {
                 keepInvalid:true,
                 allowInputToggle:true
             },
-            files: [
-                {
-                    'file': null,
-                    'name': ''
-                }
-            ]
+            to: "",
+            from: "",
+            log_type: "",
+            subject: "",
+            text: "",
+            files: [],
         }
     },
     computed: {
@@ -159,8 +160,13 @@ export default {
         ok:function () {
             let vm =this;
             if($(vm.form).valid()){
+                vm.errors = false;
                 vm.sendData();
+            } else {
+                vm.errorString = "Missing required fields.";
+                vm.errors = true;
             }
+
         },
         uploadFile(target,file_obj){
             let _file = null;
@@ -200,6 +206,13 @@ export default {
             this.errors = false;
             $('.has-error').removeClass('has-error');
             this.validation_form.resetForm();
+
+            this.to = "";
+            this.from = "";
+            this.log_type = "";
+            this.subject = "";
+            this.text = "";
+
             let file_length = vm.files.length;
             this.files = [];
             for (var i = 0; i < file_length;i++){
@@ -212,24 +225,34 @@ export default {
         sendData:function(){
             let vm = this;
             vm.errors = false;
-            let comms = new FormData(vm.form); 
+            let comms = new FormData(); 
+            comms.append('to',this.to);
+            comms.append('fromm',this.from);
+            comms.append('type',this.log_type);
+            comms.append('subject',this.subject);
+            comms.append('text',this.text);
+            comms.append('files',this.files);
+            for (let i = 0; i < vm.files.length; i++) {
+                comms.append('files', vm.files[i].file);
+            }
+            console.log(comms)
             vm.addingComms = true;
-             fetch(vm.url,{
+
+            fetch(vm.url,{
                 method: 'POST',
                 body: comms,
             }).then(async (response)=>{
                 if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    vm.errors = true;
+                    vm.errorString = await helpers.apiVueResourceError(response);
+                } else {
+                    vm.close();
                 }
                 vm.addingComms = false;
-                vm.close();
-                //vm.$emit('refreshFromResponse',response);
             }).catch((error) => {
                 vm.errors = true;
                 vm.addingComms = false;
-                //TODO the apiVueResourceError need to be updated
-                // vm.errorString = helpers.apiVueResourceError(error);
-                vm.errorString = error;
+                vm.errorString = (error && error.message) || 'Network error';
             });
             
         },
@@ -238,31 +261,11 @@ export default {
             vm.validation_form = $(vm.form).validate({
                 rules: {
                     to:"required",
-                    fromm:"required",
+                    from:"required",
                     type:"required",
                     subject:"required",
                     text:"required",
                 },
-                messages: {
-                },
-                showErrors: function(errorMap, errorList) {
-                    $.each(this.validElements(), function(index, element) {
-                        var $element = $(element);
-                        $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
-                    });
-                    // destroy tooltips on valid elements
-                    $("." + this.settings.validClass).tooltip("destroy");
-                    // add or update tooltips
-                    for (var i = 0; i < errorList.length; i++) {
-                        var error = errorList[i];
-                        $(error.element)
-                            .tooltip({
-                                trigger: "focus"
-                            })
-                            .attr("data-original-title", error.message)
-                            .parents('.form-group').addClass('has-error');
-                    }
-                }
             });
        },
    },

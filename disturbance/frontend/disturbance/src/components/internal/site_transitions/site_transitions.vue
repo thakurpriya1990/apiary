@@ -1,8 +1,5 @@
 <template>
     <div class="container">
-        <template v-if="is_local">
-            site_transitions.vue
-        </template>
         <FormSection :formCollapse="false" label="Site(s)" Index="site_avaiability">
             <ComponentSiteSelection
                 :apiary_sites="apiary_sites"
@@ -10,7 +7,6 @@
                 :is_external="false"
                 :show_col_checkbox="false"
                 :show_col_status="true"
-                :show_col_previous_site_holder="true"
                 :show_action_make_vacant="true"
                 :key="component_site_selection_key"
                 @apiary_sites_updated="apiarySitesUpdated"
@@ -31,7 +27,6 @@
             return {
                 component_site_selection_key: uuid(),
                 apiary_sites: [],
-                is_local: helpers.is_local(),
             }
         },
         components: {
@@ -50,31 +45,13 @@
             },
             loadSites: async function() {
                 let vm = this
-
+                console.log('transitable_sites')
                 fetch('/api/apiary_site/transitable_sites/')
                 .then(async (res) => {
                     if (!res.ok) { return res.json().then(err => { throw err }); }
                     const data = await res.json();
                     vm.apiary_sites = data.features
                     this.component_site_selection_key = uuid()
-
-                    ////let temp_use = data.apiary_temporary_use
-                    //vm.apiary_temporary_use = data.apiary_temporary_use
-                    //if (vm.apiary_temporary_use.from_date){
-                    //    console.log(vm.apiary_temporary_use.from_date);
-                    //    vm.apiary_temporary_use.from_date = moment(vm.apiary_temporary_use.from_date, 'YYYY-MM-DD');
-                    //    console.log(vm.apiary_temporary_use.from_date);
-                    //}
-                    //if (vm.apiary_temporary_use.to_date){
-                    //    console.log(vm.apiary_temporary_use.to_date);
-                    //    vm.apiary_temporary_use.to_date = moment(vm.apiary_temporary_use.to_date, 'YYYY-MM-DD');
-                    //    console.log(vm.apiary_temporary_use.to_date);
-                    //}
-
-                    //// Update PeriodAndSites component
-                    //vm.period_and_sites_key = uuid();
-                    //// Update TemporaryOccupier component
-                    //vm.temporary_occupier_key = uuid();
                 }).catch(err => {
                     console.log(err);
                 });

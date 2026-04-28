@@ -1,5 +1,6 @@
 {% extends "ledgerui/accounts_base_b5.html" %}
 {% load static %}
+{% load django_vite %}
 
 {% block myaccount_nav %}
 <button class="nav-link managed-account-nav" id="nav-organisation-tab" data-bs-toggle="tab" data-bs-target="#nav-organisation" type="button" role="tab" aria-controls="nav-organisation" aria-selected="false">Organisation</button>
@@ -8,8 +9,12 @@
 <div id="nav-organisation-tab-page" style="display:none;">
     <div id="app"></div>
 </div>
-<script type="text/javascript" src="{% static 'disturbance_vue/js/chunk-vendors.js' %}?v={{build_tag}}"></script>
-<script type="text/javascript" src="{% static 'disturbance_vue/js/app.js' %}?v={{build_tag}}"></script>
 
+<!--<script type="text/javascript" src="{% static 'disturbance_vue/js/chunk-vendors.js' %}?v={{GIT_COMMIT_HASH}}"></script>
+<script type="text/javascript" src="{% static 'disturbance_vue/js/app.js' %}?v={{GIT_COMMIT_HASH}}"></script>-->
 
 {% endblock %}
+
+{% block custom_js %}
+{% vite_asset vue3_entry_script app='default' %}
+{% endblock custom_js %}

@@ -49,6 +49,7 @@ class TemplateEmailBase(object):
         :return:
         """
         email_instance = env('EMAIL_INSTANCE','DEV')
+        systemid = env('SYSTEM_ID','')
         # The next line will throw a TemplateDoesNotExist if html template cannot be found
         html_template = loader.get_template(self.html_template)
         # render html
@@ -81,7 +82,7 @@ class TemplateEmailBase(object):
             else:
                 _attachments.append(attachment)
         msg = EmailMultiAlternatives(self.subject, txt_body, from_email=from_address, to=to_addresses,
-                attachments=_attachments, cc=cc, bcc=bcc, headers={'System-Environment': email_instance})
+                attachments=_attachments, cc=cc, bcc=bcc, headers={'System-Environment': email_instance, 'ITSystem-ID': systemid +"-"+email_instance})
         msg.attach_alternative(html_body, 'text/html')
         try:
             if not settings.DISABLE_EMAIL:

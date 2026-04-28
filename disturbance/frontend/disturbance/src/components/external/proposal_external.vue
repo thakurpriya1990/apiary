@@ -1,35 +1,19 @@
 <template lang="html">
     <div class="container" >
-        <template v-if="is_local">
-            proposal_external.vue
-        </template>
         <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
             <div v-if="!proposal_readonly">
               <div v-if="hasAmendmentRequest" class="row" style="color:red;">
                 <div class="col-lg-12 pull-right">
-                    <div class="panel panel-default">
-                      <div class="panel-heading">
-                          <h3 class="panel-title" style="color:red;">{{ amendmentRequestText }}
-                          <a class="panelClicker" :href="'#'+pBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="pBody">
-                                <span class="glyphicon glyphicon-chevron-down pull-right "></span>
-                          </a>
-                        </h3>
-                      </div>
-                      <div class="panel-body collapse in" :id="pBody">
+                    <FormSection :formCollapse="false" :label="amendmentRequestText" Index="amendment_request">
                         <div v-for="a in amendment_request" :key="a.id">
                           <p>Reason: {{a.reason}}</p>
                           <p v-if="a.amendment_request_documents">Documents: </p><p v-for="d in a.amendment_request_documents" :key="d.id"><a :href="d._file" target="_blank" class="control-label pull-left">{{d.name   }}</a><br></p>
                           <p>Details: </p> <p v-for="t in splitText(a.text)" :key="t.text">{{t}}</p>
-                      </div>
-                    </div>
-                  </div>
+                        </div>
+                    </FormSection>
                 </div>
               </div>
             </div>
-            <!--
-            <label for="region-label">Region(*)</label>
-            <input type="text" name="region-text"class="form-control" disabled="true">
-            -->
 
             <div id="error" v-if="missing_fields.length > 0" style="margin: 10px; padding: 5px; color: red; border:1px solid red;">
                 <b>Please answer the following mandatory question(s):</b>
@@ -65,6 +49,7 @@
                     @total_num_of_sites_on_map="total_num_of_sites_on_map_changed"
                     @fee_remote_renewal="update_fee_remote_renewal"
                     @fee_south_west_renewal="update_fee_south_west_renewal"
+                    class="row"
                 />
             </template>
             <template v-else-if="proposal && proposal.application_type=='Site Transfer'">
@@ -183,73 +168,23 @@
                     </div>
                 </div>
             </template>
-            <!-- <template v-else>
-                <ProposalDisturbance v-if="proposal" :proposal="proposal" id="proposalStart" :showSections="sectionShow">
-                <NewApply v-if="proposal" :proposal="proposal" ref="proposal_apply"></NewApply>
-                <div>
-                    <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
-                    <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
-                    <input type='hidden' name="proposal_id" :value="1" />
-
-                    <div class="row" style="margin-bottom: 50px">
-                      <div class="navbar navbar-fixed-bottom" style="background-color: #f5f5f5 ">
-                      <div class="navbar-inner">
-                        <div v-if="proposal && !proposal.readonly" class="container">
-                            <template v-if="proposal && proposal.apiary_group_application_type">
-                            </template>
-                            <template v-else>
-                                <p class="pull-right" style="margin-top:5px;">
-                                    <button id="sectionHide" @click.prevent="sectionHide" class="btn btn-primary">Show/Hide sections</button>
-                                    <span v-if="!isSubmitting">
-                                        <input type="button" @click.prevent="save_exit" class="btn btn-primary" value="Save and Exit"/>
-                                        <input type="button" @click.prevent="save(true)" class="btn btn-primary" value="Save and Continue"/>
-                                        <span v-if="!isSaving">
-                                            <input type="button" @click.prevent="submit" class="btn btn-primary" value="Submit"/>
-                                        </span>
-                                    </span>
-                                    <span v-else-if="isSubmitting">
-                                        <button disabled class="btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Submitting</button>
-                                    </span>
-                                    <input id="save_and_continue_btn" type="hidden" @click.prevent="save_wo_confirm" class="btn btn-primary" value="Save Without Confirmation"/>
-                                </p>
-                            </template>
-                        </div>
-                        <div v-else class="container">
-                          <p class="pull-right" style="margin-top:5px;">
-                            <input
-                            id="sectionHide"
-                            v-if="proposal && !proposal.apiary_group_application_type"
-                            type="button"
-                            @click.prevent="sectionHide"
-                            class="btn btn-primary"
-                            value="Show/Hide Sections"/>
-
-                            <router-link class="btn btn-primary" :to="{name: 'external-proposals-dash'}">Back to Dashboard</router-link>
-                          </p>
-                        </div>
-                      </div>
-                      </div>
-                    </div>
-                </div>
-                </ProposalDisturbance>
-            </template> -->
-
-
         </form>
         <div v-if="isSubmitting" id="overlay">
         </div>
     </div>
 </template>
 <script>
-// import ProposalDisturbance from '../form.vue'
+
 import ProposalApiary from '../form_apiary.vue'
 import ApiarySiteTransfer from '../form_apiary_site_transfer.vue'
-// import NewApply from './proposal_apply_new.vue'
 import {
   api_endpoints,
   helpers
 }
 from '@/utils/hooks'
+import FormSection from "@/components/forms/section_toggle.vue"
+import $ from 'jquery';
+
 export default {
     data: function() {
         return {
@@ -257,7 +192,6 @@ export default {
             "loading": [],
             form: null,
             amendment_request: [],
-            //isDataSaved: false,
             proposal_readonly: true,
             hasAmendmentRequest: false,
             submitting: false,
@@ -267,9 +201,7 @@ export default {
             pBody: 'pBody',
             missing_fields: [],
             sectionShow: true,
-            //submit_button_text: 'Pay and submit',
             submit_button_text: 'Submit',
-            //pay_button_disabled: true,
             selectedHolder: null,
 
             // Fee
@@ -287,29 +219,19 @@ export default {
             num_of_sites_remote_to_add_as_remainder: 0,
             num_of_sites_south_west_renewal_to_add_as_remainder: 0,
             num_of_sites_remote_renewal_to_add_as_remainder: 0,
-            // Template group
-            apiaryTemplateGroup: false,
-            dasTemplateGroup: false,
             siteTransferApplicationFee: "0.00",
             total_num_of_sites_on_map_unpaid: 0,
             total_num_of_sites_on_map: 0,
-
-            is_local: helpers.is_local(),
         }
     },
     components: {
-        // ProposalDisturbance,
         ProposalApiary,
-        // NewApply,
         ApiarySiteTransfer,
+        FormSection,
     },
     computed: {
         amendmentRequestText: function() {
-            let requestText = 'An amendment has been requested for this proposal';
-            if (this.apiaryTemplateGroup) {
-                requestText = 'An amendment has been requested for this application';
-            }
-            return requestText;
+            return 'An amendment has been requested for this application';
         },
         show_renewal_price_section: function(){
             if (this.fee_remote_renewal + this.fee_south_west_renewal > 0){
@@ -367,18 +289,10 @@ export default {
         },
         proposal_submit_url: function() {
           return (this.proposal) ? `/api/proposal/${this.proposal.id}/submit.json` : '';
-          //return this.submit();
         },
         remove_apiary_site_url: function() {
           return (this.proposal) ? `/api/proposal/${this.proposal.id}/remove_apiary_site.json` : '';
         },
-        //submit_button_text: function() {
-        //    if (!this.proposal.fee_paid && this.proposal.application_type=='Apiary') {
-        //        return 'Pay and submit'
-        //    } else {
-        //        return 'Submit'
-        //    }
-        //}
         sum_of_total_fees: function(){
             let sum = this.total_fee_south_west + this.total_fee_remote + this.total_fee_south_west_renewal + this.total_fee_remote_renewal
             return sum
@@ -430,13 +344,6 @@ export default {
                 this.submit_button_text = 'Submit'
             }
         },
-        //siteTransferApplicationFee: function(){
-        //    if (this.siteTransferApplicationFee> 0){
-        //        this.pay_button_disabled = false
-        //    } else {
-        //        this.pay_button_disabled = true
-        //    }
-        //}
     },
     methods: {
         update_fee_remote_renewal: function(value){
@@ -455,7 +362,7 @@ export default {
             this.total_num_of_sites_on_map = value
         },
         expiry_date_changed: function(value){
-            this.proposal.proposal_apiary.public_liability_insurance_expiry_date = moment(value, 'DD/MM/YYYY');
+            this.proposal.proposal_apiary.public_liability_insurance_expiry_date = value;
         },
         setSiteTransferApplicationFee: function(fee) {
             this.siteTransferApplicationFee = fee;
@@ -504,22 +411,10 @@ export default {
             console.log('button text updated: ' + button_text)
             this.submit_button_text = button_text
         },
-        //updateApiarySitesData: function() {
-        //    if (this.proposal && this.proposal.proposal_apiary){
-        //        this.$refs.proposal_apiary.$refs.apiary_site_locations.updateApiarySitesData()
-        //    }
-        //},
-        //getFeatures: function() {
-        //    let ret_obj = null
-        //    if (this.proposal && this.proposal.proposal_apiary){
-        //        ret_obj = this.$refs.proposal_apiary.$refs.apiary_site_locations.getFeatures()
-        //    }
-        //    return ret_obj
-        //},
         attach_apiary_sites_data: function(formData){
             try {
                 // Append apiary_sites edited data
-                if (this.proposal && this.proposal.proposal_apiary){
+                if (this.proposal && this.proposal.proposal_apiary && this.$refs.proposal_apiary){
                     let allFeatures = this.$refs.proposal_apiary.$refs.apiary_site_locations.getFeatures()
                     let json_features = JSON.stringify(allFeatures)
                     formData.append('all_the_features', json_features)
@@ -541,19 +436,11 @@ export default {
             let formData = new FormData(vm.form);
             // Add apiary_sites data if needed
             formData = this.attach_apiary_sites_data(formData)
-            // Add site_transfer_apiary_sites data if needed
-            /*
-            if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.site_transfer_apiary_sites) {
-                console.log(this.$refs.apiary_site_transfer.site_transfer_apiary_sites)
-                formData.append('site_transfer_apiary_sites', JSON.stringify(this.$refs.apiary_site_transfer.site_transfer_apiary_sites));
-            }
-            */
+
             if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.apiary_sites_local) {
-                //console.log(this.$refs.apiary_site_transfer.site_transfer_apiary_sites)
                 formData.append('apiary_sites_local', JSON.stringify(this.$refs.apiary_site_transfer.apiary_sites_local));
             }
             if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.selectedLicenceHolder){
-                //let selectedLicenceHolder = this.$refs.apiary_site_transfer.selectedLicenceHolder
                 formData.append('selected_licence_holder', JSON.stringify(this.$refs.apiary_site_transfer.selectedLicenceHolder));
             }
             if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.transfereeEmail){
@@ -571,20 +458,22 @@ export default {
                     const errorData = await response.json();
                     throw { body: errorData };
                 }
-                const res = await response.json();
 
                 if (confirmation_required) {
                     swal.fire({
                         title: 'Saved',
-                        text: 'Your application has been saved',
+                        text: 'Your application has been saved. The page will be refreshed.',
                         icon: 'success',
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
+                    }).then((result) => {
+                        vm.$router.go(0);
                     });
                 }
 
                 vm.isSaving = false;
+                
             })
             .catch(err => {
                 console.log('err');
@@ -755,7 +644,6 @@ export default {
         },
 
         check_org_details_complete: function(org) {
-            //let org = this.$refs.proposal_apiary.$refs.mu_details.org
             let blank_fields = []
 
             // Org Details
@@ -778,8 +666,6 @@ export default {
             let vm=this;
             let blank_fields = []
 
-            //console.log('can_submit checklistq check' +vm.$refs.proposal_apiary.getUnansweredChecklistQuestions());
-
              if(vm.proposal.application_type == 'Apiary'){
                 let org = vm.$refs.proposal_apiary.$refs.mu_details.org
                 if( vm.$refs.proposal_apiary.getUnansweredChecklistQuestions ){
@@ -795,8 +681,6 @@ export default {
                     blank_fields.push(' Public liability expiry date is missing')
                 }
 
-                //this.$refs.proposal_apiary.$refs.mu_details.updateDetails(false);
-                //this.$refs.proposal_apiary.$refs.mu_details.updateAddress(false);
                 let blank_org_fields = vm.check_org_details_complete(org)
                 if(blank_org_fields.length>0){
                     blank_fields.push(' Organisation details missing: [' + blank_org_fields.join(", ") + ']')
@@ -897,13 +781,10 @@ export default {
 
             // remove the confirm prompt when navigating away from window (on button 'Submit' click)
             vm.submitting = true;
-            let swalTitle = "Submit Proposal";
-            let swalText = "Are you sure you want to submit this proposal?";
-            if (this.apiaryTemplateGroup) {
-                swalTitle = "Submit Application";
-                swalText = "Are you sure you want to submit this application?";
-            }
-             swal.fire({
+
+            let swalTitle = "Submit Application";
+            let swalText = "Are you sure you want to submit this application?";
+            swal.fire({
                 title: swalTitle,
                 text: swalText,
                 icon: "question",
@@ -929,8 +810,6 @@ export default {
                             console.log('http.post(submit)')
                             console.log('http.post: ' + helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'))
 
-                            // const res = await vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'),formData);
-                            // vm.proposal = res.body;
                             const response = await fetch(
                                 helpers.add_endpoint_json(api_endpoints.proposals, vm.proposal.id + '/submit'),
                                 {
@@ -939,42 +818,29 @@ export default {
                                 }
                             );
                             if (!response.ok) {
-                                const errorData = await response.json();
-                                throw errorData;
+                                let errorString = await helpers.apiVueResourceError(response);
+                                throw errorString;
                             }
                             const resBody = await response.json();
                             vm.proposal = resBody;
                             vm.$router.push({
                                 name: 'submit_proposal',
-                                //params: { proposal: vm.proposal}
                                 state:
                                     { proposal: JSON.stringify(vm.proposal) }
                             });
                         } catch (err) {
+                            
+                            let errorString = typeof err === 'string' ? err : (err && err.message) || 'Network error';
+
                             swal.fire({
                                 title: 'Submit Error',
-                                text: helpers.apiVueResourceError(err),
+                                text: String(errorString),
                                 icon: 'error',
                                 customClass: {
                                     confirmButton: 'btn btn-primary',
                                 },
                             })
                         }
-                        /*
-                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'),formData).then(res=>{
-                            vm.proposal = res.body;
-                            vm.$router.push({
-                                name: 'submit_proposal',
-                                params: { proposal: vm.proposal}
-                            });
-                        },err=>{
-                            swal(
-                                'Submit Error',
-                                helpers.apiVueResourceError(err),
-                                'error'
-                            )
-                        });
-                        */
                     }
                 }
             },(error) => {
@@ -1100,18 +966,8 @@ export default {
     },
     mounted: function() {
         console.log('in mounted')
-
         let vm = this;
         vm.form = document.forms.new_proposal;
-        window.addEventListener('beforeunload', vm.leaving);
-        window.addEventListener('onblur', vm.leaving);
-        // this.$nextTick(() => {
-        //   console.log("I am here1");
-        //         if(vm.hasAmendmentRequest){
-        //           console.log("I am here2");
-        //             vm.deficientFields();
-        //         }
-        //     });
     },
     updated: function(){
         let vm=this;
@@ -1129,51 +985,29 @@ export default {
         let vm = this;
         vm.loading.push('Loading Proposal')
         fetch(`/api/proposal/${ proposal_id }.json`).then(
-            async (res) => {
-                //vm.loading.push('fetching proposal')
-                if (!res.ok) {
-                    return await res.json().then(err => { throw err });
-                }
-                vm.proposal = await res.json();
-                vm.loading.splice('Loading Proposal', 1);
-                vm.setdata(vm.proposal.readonly);
+        async (res) => {
+            if (!res.ok) {
+                return await res.json().then(err => { throw err });
+            }
+            vm.proposal = await res.json();
+            vm.loading.splice('Loading Proposal', 1);
+            vm.setdata(vm.proposal.readonly);
 
-                fetch(helpers.add_endpoint_json(api_endpoints.proposals, proposal_id + '/amendment_request')).then(
-                    async (res) => {
-                        if (!res.ok) {
-                            return await res.json().then(err => { throw err });
-                        }
-                        let data = await res.json()
-                        vm.setAmendmentData(data);
-                    }).catch(err => {
-                        console.log(err);
-                        vm.loading.splice('Loading Proposal', 1);
-                    });
-            }).catch(err => {
-                console.log(err);
-            });
-        // retrieve template group
-        fetch('/template_group',{ emulateJSON:true }).then(
-            async res=>{
-                if (!res.ok) {
-                    return await res.json().then(err => { throw err });
-                }
-                //this.template_group = res.body.template_group;
-                let data = await res.json();
-                if (data.template_group === 'apiary') {
-                    this.apiaryTemplateGroup = true;
-                } else {
-                    this.dasTemplateGroup = true;
-                }
-            }).catch(err=>{
-                console.log(err);
-            });
+            fetch(helpers.add_endpoint_json(api_endpoints.proposals, proposal_id + '/amendment_request')).then(
+                async (res) => {
+                    if (!res.ok) {
+                        return await res.json().then(err => { throw err });
+                    }
+                    let data = await res.json()
+                    vm.setAmendmentData(data);
+                }).catch(err => {
+                    console.log(err);
+                    vm.loading.splice('Loading Proposal', 1);
+                });
+        }).catch(err => {
+            console.log(err);
+        });
     },
-
-    beforeRouteEnter: function(to) {
-        console.log('in beforeRouteEnter')
-        console.log('id: ' + to.params.proposal_id)
-    }
 }
 </script>
 

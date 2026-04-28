@@ -8,4 +8,4 @@ class ReferralOwnerMixin(object):
     def dispatch(self, request, *args, **kwargs):
         if not self.check_owner(request.user):    
             raise PermissionDenied
-        return super(ReferralMixin, self).dispatch(request, *args, **kwargs)
+        return super(ReferralOwnerMixin, self).dispatch(request, *args, **kwargs)

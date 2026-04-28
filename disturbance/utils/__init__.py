@@ -34,8 +34,9 @@ def search(dictionary, search_list):
     result = []
     flat_dict = flatten(dictionary)
     for k, v in flat_dict.items():
-        if any(x.lower() in v.lower() for x in search_list):
-            result.append( {k: v} )
+        if v:
+            if any(x.lower() in v.lower() for x in search_list):
+                result.append( {k: v} )
 
     return result
 
@@ -186,7 +187,9 @@ def convert_moment_str_to_python_datetime_obj(moment_str):
     This function convert moment-obj-str to python datetime obj
     """
     # Serialized moment obj is supposed to be sent. Which is UTC timezone.
-    date_utc = datetime.strptime(moment_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+    #TODO on-cleanup - we should not have code in __init__ and this func is only used for dates with a different format to original code (commented below)...
+    #date_utc = datetime.strptime(moment_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+    date_utc = datetime.strptime(moment_str, '%Y-%m-%d')
     # Add timezone (UTC)
     date_utc = date_utc.replace(tzinfo=pytz.UTC)
     # Convert the timezone to TIME_ZONE

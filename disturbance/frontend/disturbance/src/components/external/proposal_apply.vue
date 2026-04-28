@@ -12,70 +12,31 @@
                                 </a>
                             </h3>
                         </div>
-                        <div class="panel-body collapse in" :id="pBody">
+                        <div class="panel-body panel-collapse in" :id="pBody">
 
                             <div class="col-sm-12">
                                 <div class="form-group" v-if="!isLoading">
-                                    <template v-if="apiaryTemplateGroup && !(profile.disturbance_organisations.length)">
+                                    <div v-if="!(profile.disturbance_organisations.length)">
                                         <div class="radio">
                                             <label :title="individualHasNoLicenceTitle()">
                                               <input :disabled="individualDisableApplyRadioButton()" type="radio" name="behalf_of_individual" v-model="behalf_of" value="individual"> On behalf of yourself
                                               <span v-html="individualExistingRecordText"></span>
                                             </label>
                                         </div>
-                                    </template>
-                                    <div v-if="profile.disturbance_organisations.length > 0">
+                                    </div>
+                                    <div v-else-if="profile.disturbance_organisations.length > 0">
                                         <div v-for="org in profile.disturbance_organisations" class="radio" :key="org.id">
                                             <label :title="orgHasNoLicenceTitle(org)">
                                               <input :disabled="orgDisableApplyRadioButton(org)" type="radio" name="behalf_of_org" v-model="behalf_of"  :value="org.id"> On behalf of {{org.name}}
                                               <span v-html="org.existing_record_text.notification"></span>
                                             </label>
                                         </div>
-                                        <!--
-                                        <div class="radio">
-                                            <label class="radio-inline">
-                                              <input type="radio" name="behalf_of_org" v-model="behalf_of"  value="other" > On behalf of an organisation (as an authorised agent)
-                                            </label>
-                                        </div>
-                                        -->
                                     </div>
-                                    <div v-else-if="behalf_of !== 'individual' && dasTemplateGroup">
+                                    <div v-else-if="behalf_of !== 'individual'">
                                         <p style="color:red"> You cannot add a New Disturbance because you do not have an associated Organisation. First add an Organisation. </p>
                                     </div>
                                 </div>
                             </div>
-                            <!--
-                            <div v-if="behalf_of == 'other'" class="col-sm-12">
-                                <div class="row">
-                                    <div class="form-group col-sm-5">
-                                        <label for="" class="control-label">Organisation</label>
-                                        <input type="text" class="form-control" name="first_name" placeholder="" v-model="agent.organisation">
-                                    </div>
-                                    <div class="form-group col-sm-1"></div>
-                                    <div class="form-group col-sm-5">
-                                        <label for="" class="control-label" >ABN / ACN</label>
-                                        <input type="text" class="form-control" name="last_name" placeholder="" v-model="agent.abn">
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="form-group col-sm-5">
-                                        <label for="" class="control-label" >Organisation contact given name(s)</label>
-                                        <input type="text" class="form-control" name="last_name" placeholder="" v-model="agent.given_names">
-                                    </div>
-                                    <div class="form-group col-sm-1"></div>
-                                    <div class="form-group col-sm-5">
-                                        <label for="" class="control-label" >Orgnisation contact surname</label>
-                                        <input type="text" class="form-control" name="last_name" placeholder="" v-model="agent.surname">
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="form-group col-sm-5">
-                                        <label for="" class="control-label" >Organisation contact email address</label>
-                                        <input type="text" class="form-control" name="last_name" placeholder="" v-model="agent.email">
-                                    </div>
-                                </div>
-                            </div>
-                            -->
                         </div>
                     </div>
 
@@ -87,12 +48,12 @@
                                 </a>
                             </h3>
                         </div>
-                        <div class="panel-body collapse in" :id="pBody2">
+                        <div class="panel-body panel-collapse in" :id="pBody2">
                             <div>
-                                <label for="" class="control-label" >{{ objectTypeLabel }}<a v-if="dasTemplateGroup" :href="proposal_type_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
+                                <label for="" class="control-label" >{{ objectTypeLabel }}</label>
                                 <div class="col-sm-12">
                                     <div class="form-group">
-                                        <select class="form-control" style="width:40%" v-model="selected_application_id" @change="chainedSelectAppType(selected_application_id)">
+                                        <select class="form-select" style="width:40%" v-model="selected_application_id" @change="chainedSelectAppType(selected_application_id)">
                                             <option value="" selected disabled>{{ objectTypeListLabel }}</option>
                                             <option v-for="application_type in applicationTypesList" :value="application_type.value" :key="application_type.value">
                                                 {{ application_type.display_text }}
@@ -106,7 +67,7 @@
                                 <label for="" class="control-label" >Region * <a :href="region_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a> </label>
                                 <div class="col-sm-12">
                                     <div class="form-group">
-                                        <select v-model="selected_region" class="form-control" style="width:40%" @change="chainedSelectDistricts(selected_region)">
+                                        <select v-model="selected_region" class="form-select" style="width:40%" @change="chainedSelectDistricts(selected_region)">
 											<option value="" selected disabled>Select region</option>
                                             <option v-for="region in regions" :value="region.value" :key="region.value">
                                                 {{ region.text }}
@@ -120,7 +81,7 @@
                                 <label for="" class="control-label" style="font-weight: normal;">District <a :href="district_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
                                 <div class="col-sm-12">
                                     <div class="form-group">
-                                        <select  v-model="selected_district" class="form-control" style="width:40%">
+                                        <select  v-model="selected_district" class="form-select" style="width:40%">
 											<option value="" selected disabled>Select district</option>
                                             <option v-for="district in districts" :value="district.value" :key="district.value">
                                                 {{ district.text }}
@@ -135,7 +96,7 @@
 									<label for="" class="control-label" >Activity Type * <a :href="activity_type_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
 									<div class="col-sm-12">
 										<div class="form-group">
-											<select v-model="selected_activity" @change="chainedSelectSubActivities1(selected_activity)" class="form-control" style="width:40%">
+											<select v-model="selected_activity" @change="chainedSelectSubActivities1(selected_activity)" class="form-select" style="width:40%">
 												<option value="" selected disabled>Select activity</option>
 												<option v-for="activity in activities" :value="activity.value" :key="activity.value">
 													{{ activity.text }}
@@ -149,7 +110,7 @@
 									<label for="" class="control-label" >Sub Activity 1 * <a :href="sub_activity_1_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
 									<div class="col-sm-12">
 										<div class="form-group">
-											<select v-model="selected_sub_activity1" @change="chainedSelectSubActivities2(selected_sub_activity1)" class="form-control" style="width:40%">
+											<select v-model="selected_sub_activity1" @change="chainedSelectSubActivities2(selected_sub_activity1)" class="form-select" style="width:40%">
 												<option value="" selected disabled>Select sub_activity 1</option>
 												<option v-for="sub_activity1 in sub_activities1" :value="sub_activity1.value" :key="sub_activity1.value">
 													{{ sub_activity1.text }}
@@ -163,7 +124,7 @@
 									<label for="" class="control-label" >Sub Activity 2 * <a :href="sub_activity_2_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
 									<div class="col-sm-12">
 										<div class="form-group">
-											<select v-model="selected_sub_activity2" @change="chainedSelectCategories(selected_sub_activity2)" class="form-control" style="width:40%">
+											<select v-model="selected_sub_activity2" @change="chainedSelectCategories(selected_sub_activity2)" class="form-select" style="width:40%">
 												<option value="" selected disabled>Select sub_activity 2</option>
 												<option v-for="sub_activity2 in sub_activities2" :value="sub_activity2.value" :key="sub_activity2.value">
 													{{ sub_activity2.text }}
@@ -177,7 +138,7 @@
 									<label for="" class="control-label" >Category * <a :href="category_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
 									<div class="col-sm-12">
 										<div class="form-group">
-											<select v-model="selected_category" @change="get_approval_level(selected_category)" class="form-control" style="width:40%">
+											<select v-model="selected_category" @change="get_approval_level(selected_category)" class="form-select" style="width:40%">
 												<option value="" selected disabled>Select category</option>
 												<option v-for="category in categories" :value="category.value" :name="category.approval" :key="category.value">
 													{{ category.text }}
@@ -187,13 +148,6 @@
 									</div>
 								</div>
                             </div>
-                            <!-- For Testing
-                            <div v-if="approval_level">
-                                <label>Approval level required: </label>  {{ approval_level }}
-                            </div>
-                            -->
-
-
                         </div>
                     </div>
 
@@ -248,26 +202,16 @@ export default {
         display_region_selectbox: false,
         display_activity_matrix_selectbox: false,
         site_url: (api_endpoints.site_url.endsWith("/")) ? (api_endpoints.site_url): (api_endpoints.site_url + "/"),
-        apiaryTemplateGroup: false,
-        dasTemplateGroup: false,
     }
   },
   components: {
   },
   computed: {
       objectTypeLabel: function() {
-          let returnStr = 'Proposal Type * ';
-          if (this.apiaryTemplateGroup) {
-              returnStr = 'Application Type';
-          }
-          return returnStr;
+        return 'Application Type';
       },
       objectTypeListLabel: function() {
-          let returnStr = 'Select proposal type* ';
-          if (this.apiaryTemplateGroup) {
-              returnStr = 'Select application type';
-          }
-          return returnStr;
+          return 'Select application type';
       },
       individualExistingRecordText: function() {
           let approvalText = '';
@@ -304,31 +248,22 @@ export default {
       applicationTypesList: function() {
           let returnList = [];
           for (let applicationType of this.application_types) {
-              // for individual applications, only Apiary should show
-              //if (this.behalf_of === 'individual') {
-              if (this.apiaryTemplateGroup) {
-                  if (applicationType.domain_used.toLowerCase() === "apiary") {
-                      if (applicationType.text.toLowerCase() === "apiary" && !this.currentApiaryButtonDisabled){
-                          applicationType.display_text = "Apiary Sites";
-                          returnList.push(applicationType);
-                      }
-                      // add Site Transfer if selected applicant has an associated current_apiary_approval
-                      if (applicationType.text.toLowerCase() === "site transfer" && this.currentApiaryApproval && !this.currentApiaryButtonDisabled){
-                          applicationType.display_text = "Transfer Apiary Sites";
-                          returnList.push(applicationType);
-                      }
-                      if (applicationType.text.toLowerCase() === "temporary use" && this.currentApiaryApproval){
-                          // always allow New Temp Use Applications
-                          applicationType.display_text = "Temporary Use of Apiary Sites";
-                          returnList.push(applicationType);
-                      }
-                  }
-              } else if (this.dasTemplateGroup){
-                  if (applicationType.domain_used === 'das') {
-                      applicationType.display_text = applicationType.text;
-                      returnList.push(applicationType);
-                  }
-              }
+            if (applicationType.domain_used.toLowerCase() === "apiary") {
+                if (applicationType.text.toLowerCase() === "apiary" && !this.currentApiaryButtonDisabled){
+                    applicationType.display_text = "Apiary Sites";
+                    returnList.push(applicationType);
+                }
+                // add Site Transfer if selected applicant has an associated current_apiary_approval
+                if (applicationType.text.toLowerCase() === "site transfer" && this.currentApiaryApproval && !this.currentApiaryButtonDisabled){
+                    applicationType.display_text = "Transfer Apiary Sites";
+                    returnList.push(applicationType);
+                }
+                if (applicationType.text.toLowerCase() === "temporary use" && this.currentApiaryApproval){
+                    // always allow New Temp Use Applications
+                    applicationType.display_text = "Temporary Use of Apiary Sites";
+                    returnList.push(applicationType);
+                }
+            } 
           }
           return returnList;
       },
@@ -349,28 +284,6 @@ export default {
     manyDistricts: function() {
       return this.districts.length > 1;
     },
-    proposal_type_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_proposal_type"
-    },
-    region_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_region"
-    },
-    district_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_district"
-    },
-    activity_type_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_activity_type"
-    },
-    sub_activity_1_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_sub_activity_1"
-    },
-    sub_activity_2_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_sub_activity_2"
-    },
-    category_help_url: function() {
-      return this.site_url + "help/disturbance/user/#apply_category"
-    }
-
   },
   methods: {
     submit: function() {
@@ -384,7 +297,6 @@ export default {
 
         swal.fire({
             title: "Create " + vm.selected_application_name,
-            //text: "Are you sure you want to create " + this.alertText() + " proposal on behalf of "+vm.org+" ?",
             text: text,
             icon: "question",
             showCancelButton: true,
@@ -403,20 +315,15 @@ export default {
         return this.profile.current_apiary_approval===null && this.profile.existing_record_text.disable_radio_button;
     },
     orgDisableApplyRadioButton: function(org) {
-        //let org = this.profile.disturbance_organisations.find(item => item.id === _org.id)
         return org.current_apiary_approval===null && org.existing_record_text.disable_radio_button;
     },
     individualHasNoLicenceTitle: function() {
-      console.log(3);
       if (this.individualDisableApplyRadioButton()) {
-          //console.log(this.profile.full_name + ' has no current licence');
           return this.profile.full_name + ' has no current licence'
       }
     },
     orgHasNoLicenceTitle: function(org) {
-      console.log(1);
       if (this.orgDisableApplyRadioButton(org)) {
-          //console.log(this.name + ' has no current licence');
           return org.name + ' has no current licence'
       }
     },
@@ -429,55 +336,91 @@ export default {
         	return "a " + vm.selected_application_name.toLowerCase();
 		}
 	},
-    createProposal:function () {
+    createProposal:async function () {
         console.log('createProposal');
         let vm = this;
         vm.creatingProposal = true;
-		vm.$http.post('/api/proposal.json',{
-			behalf_of: vm.behalf_of,
-			application: vm.selected_application_id,
-			region: vm.selected_region,
-			district: vm.selected_district,
-			//tenure: vm.selected_tenure,
-			activity: vm.selected_activity,
+        
+        const payload = {
+            behalf_of: vm.behalf_of,
+            application: vm.selected_application_id,
+            region: vm.selected_region,
+            district: vm.selected_district,
+            // tenure: vm.selected_tenure,
+            activity: vm.selected_activity,
             sub_activity1: vm.selected_sub_activity1,
             sub_activity2: vm.selected_sub_activity2,
             category: vm.selected_category,
             approval_level: vm.approval_level,
-            profile: this.profile.id,
+            profile: vm.profile.id,
             // Site Transfer
             originating_approval_id: vm.currentApiaryApproval,
             // Temporary Use
             approval_id: vm.currentApiaryApproval,
-		}).then(res => {
-		    vm.proposal = res.body;
-			vm.$router.push({
-			    name:"draft_proposal",
-				params:{proposal_id:vm.proposal.id}
-			});
-            vm.creatingProposal = false;
-		},
-		err => {
-			console.log(err);
-            console.log(err.bodyText);
-            if (err.bodyText.includes("null_applicant_address")) {
-                swal.fire({
-                    title: "Cannot create application",
-                    text: "Please add your address",
-                    icon: "error",
-                    confirmButtonText: 'Ok',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                }).then((result) => {
-                    if(result.isConfirmed){
-                        vm.$router.push({
-                            name:"account",
-                        });
-                    }
-                });
+        };
+
+        
+        try {
+            const response = await fetch('/api/proposal.json', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                return response.json().then(err => { throw err });
             }
-		});
+            
+            const bodyText = await response.text();
+            let data;
+            try {
+                data = JSON.parse(bodyText);
+            } catch {
+                data = bodyText;
+            }
+
+            // Success
+            vm.proposal = data;
+            vm.$router.push({
+                name: 'draft_proposal',
+                params: { proposal_id: vm.proposal.id },
+            });
+        } catch (err) {
+            console.log(err);
+            const bodyText = err.bodyText || err.message || '';
+
+            console.log(bodyText);
+
+            if (typeof bodyText === 'string' && bodyText.includes('null_applicant_address')) {
+            const result = await swal.fire({
+                title: 'Cannot create application',
+                text: 'Please add your address',
+                icon: 'error',
+                confirmButtonText: 'Ok',
+                customClass: {
+                confirmButton: 'btn btn-primary',
+                },
+            });
+
+            if (result.isConfirmed) {
+                vm.$router.push({ name: 'account' });
+            }
+            } else {
+            await swal.fire({
+                title: 'Error',
+                text: 'Something went wrong creating the proposal.',
+                icon: 'error',
+                confirmButtonText: 'Ok',
+                customClass: {
+                confirmButton: 'btn btn-primary',
+                },
+            });
+            }
+        } finally {
+            vm.creatingProposal = false;
+        }
     },
     isDisabled: function() {
         let vm = this;
@@ -496,16 +439,20 @@ export default {
 	fetchRegions: function(){
 		let vm = this;
 
-		vm.$http.get(api_endpoints.regions).then((response) => {
-				vm.api_regions = response.body;
+		fetch(api_endpoints.regions).then(
+            async (response) => {
+                if (!response.ok) {
+                    return await response.json().then(err => { throw err });
+                }
+				vm.api_regions = await response.json();
 				//console.log('api_regions ' + response.body);
 
                 for (var i = 0; i < vm.api_regions.length; i++) {
                     this.regions.push( {text: vm.api_regions[i].name, value: vm.api_regions[i].id, districts: vm.api_regions[i].districts} );
                 }
-		},(error) => {
-			console.log(error);
-		})
+            }).catch((error) => {
+                console.log(error);
+            });
 	},
 
 	searchList: function(id, search_list){
@@ -531,22 +478,24 @@ export default {
     fetchApplicationTypes: function(){
 		let vm = this;
 
-		vm.$http.get(api_endpoints.application_types).then((response) => {
-				vm.api_app_types = response.body;
-				//console.log('api_app_types ' + response.body);
+		fetch("/api/application_types/searchable_application_types").then(
+            async (response) => {
+                if (!response.ok) {
+                    return await response.json().then(err => { throw err });
+                }
+				vm.api_app_types = await response.json();
+				console.log('api_app_types ' + vm.api_app_types);
 
                 for (var i = 0; i < vm.api_app_types.length; i++) {
                     this.application_types.push( {
-                        text: vm.api_app_types[i].name,
-                        value: vm.api_app_types[i].id,
+                        text: vm.api_app_types[i].name, 
+                        value: vm.api_app_types[i].id, 
                         domain_used: vm.api_app_types[i].domain_used,
-                        //activities: (vm.api_app_types[i].activity_app_types.length > 0) ? vm.api_app_types[i].activity_app_types : [],
-                        //tenures: (vm.api_app_types[i].tenure_app_types.length > 0) ? vm.api_app_types[i].tenure_app_types : [],
                     } );
                 }
-		},(error) => {
-			console.log(error);
-		})
+            }).catch((error) => {
+                console.log(error);
+            });
 	},
     chainedSelectAppType: function(application_id){
         /* reset */
@@ -558,9 +507,6 @@ export default {
         vm.display_activity_matrix_selectbox = false;
 
         vm.selected_application_name = this.searchList(application_id, vm.application_types).text
-        //this.chainedSelectActivities(application_id);
-        //this.chainedSelectActivities(application_id);
-
         if (['Apiary', 'Site Transfer', 'Temporary Use'].includes(vm.selected_application_name)) {
             vm.display_region_selectbox = false;
             vm.display_activity_matrix_selectbox = false;
@@ -578,18 +524,24 @@ export default {
         vm.categories = [];
         vm.approval_level = '';
 
-		vm.$http.get(api_endpoints.activity_matrix).then((response) => {
-				this.activity_matrix = response.body[0].schema[0];
-				this.keys_ordered = response.body[0].ordered;
+		fetch(api_endpoints.activity_matrix).then(
+            async (response) => {
+                if (!response.ok) {
+                    return await response.json().then(err => { throw err });
+                }
+                let matrix_res = await response.json();
+				this.activity_matrix = matrix_res[0].schema[0];
+				this.keys_ordered = matrix_res[0].ordered;
 				//console.log('this.activity_matrix ' + response.body[0].schema);
 
                 var keys = this.keys_ordered ? Object.keys(this.activity_matrix).sort() : Object.keys(this.activity_matrix)
                 for (var i = 0; i < keys.length; i++) {
                     this.activities.push( {text: keys[i], value: keys[i]} );
                 }
-		},(error) => {
-			console.log(error);
-		})
+                // vm.fetchRegions();
+            }).catch((error) => {
+                console.log(error);
+            });
 	},
     chainedSelectSubActivities1: function(activity_name){
 		let vm = this;
@@ -751,32 +703,16 @@ export default {
     })
 
   },
-    created: function() {
-        // retrieve template group
-        this.$http.get('/template_group',{
-            emulateJSON:true
-            }).then(res=>{
-                //this.template_group = res.body.template_group;
-                if (res.body.template_group === 'apiary') {
-                    this.apiaryTemplateGroup = true;
-                } else {
-                    this.dasTemplateGroup = true;
-                }
-        },err=>{
-        console.log(err);
-        });
-    },
-
 }
 </script>
 
-<style lang="css">
+<style lang="css" scoped>
 input[type=text], select{
     width:40%;
     box-sizing:border-box;
 
     min-height: 34px;
-    padding: 0;
+    /* padding: 0; */
     height: auto;
 }
 

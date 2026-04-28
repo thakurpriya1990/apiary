@@ -1,94 +1,45 @@
-<template id="proposal_dashboard">
+<template id="compliances_dashboard">
     <div class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Compliance with requirements <small v-if="is_external">View submitted compliances and submit new ones</small>
-                        <a :href="'#'+pBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="pBody">
-                            <span class="glyphicon glyphicon-chevron-up pull-right "></span>
-                        </a>
-                    </h3>
+            <div class="row">
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Status</label>
+                        <select class="form-select" v-model="filterComplianceStatus">
+                            <option value="All">All</option>
+                            <option v-for="s in status_values" :value="s" :key="s">{{s}}</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="panel-body collapse in" :id="pBody">
-                    <div class="row">
-                        <div v-show="!apiaryTemplateGroup && select2Applied">
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="">Region</label>
-                                    <select style="width:100%" class="form-control input-sm" ref="filterRegion" >
-                                        <template v-if="select2Applied">
-                                            <option v-for="r in proposal_regions" :value="r" :key="r">{{r}}</option>
-                                        </template>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="">Activity</label>
-                                    <select class="form-control" v-model="filterProposalActivity">
-                                        <option value="All">All</option>
-                                        <option v-for="a in proposal_activityTitles" :value="a" :key="a">{{a}}</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="">Status</label>
-                                <select class="form-control" v-model="filterComplianceStatus">
-                                    <option value="All">All</option>
-                                    <option v-for="s in status_values" :value="s" :key="s">{{s}}</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <!--<div class="row">
-                        <div class="col-md-3">
-                            <label for="">Start date From</label>
-                            <div class="input-group date" ref="complianceStartDateFromPicker">
-                                <input type="text" class="form-control" placeholder="DD/MM/YYYY" v-model="filterComplianceStartFrom">
-                                <span class="input-group-addon">
-                                    <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="">Start date To</label>
-                            <div class="input-group date" ref="complianceStartDateToPicker">
-                                <input type="text" class="form-control" placeholder="DD/MM/YYYY" v-model="filterComplianceStartTo">
-                                <span class="input-group-addon">
-                                    <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                            </div>
-                        </div>
-                    </div>-->
-                    <div class="row">
-                        <div class="col-md-3">
-                            <label for="">Due date From</label>
-                            <div class="input-group date" ref="complianceDueDateFromPicker">
-                                <input type="text" class="form-control" placeholder="DD/MM/YYYY" v-model="filterComplianceDueFrom">
-                                <span class="input-group-addon">
-                                    <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="">Due date To</label>
-                            <div class="input-group date" ref="complianceDueDateToPicker">
-                                <input type="text" class="form-control" placeholder="DD/MM/YYYY" v-model="filterComplianceDueTo">
-                                <span class="input-group-addon">
-                                    <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-lg-12" style="margin-top:25px;">
-                            <div v-if="datatableReady">
-                                <datatable ref="proposal_datatable" :id="datatable_id" :dtOptions="proposal_options" :dtHeaders="proposal_headers"/>
-                            </div>
-                        </div>
+                <div class="col-md-3">
+                    <label for="">Due date From</label>
+                    <input
+                                id="compliance-due-from"
+                                type="date"
+                                class="form-control"
+                                v-model="compliance_due_from"
+                                placeholder="DD/MM/YYYY"
+                    >
+                               
+                </div>
+                <div class="col-md-3">
+                    <label for="">Due date To</label>
+                    <input
+                                id="compliance-due-to"
+                                type="date"
+                                class="form-control"
+                                v-model="compliance_due_to"
+                                placeholder="DD/MM/YYYY"
+                                :min="compliance_due_from"
+                            >
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12" style="margin-top:25px;">
+                    <div v-if="datatableReady">
+                        <datatable ref="proposal_datatable" :id="datatable_id" :dtOptions="proposal_options" :dtHeaders="proposal_headers"/>
                     </div>
                 </div>
             </div>
@@ -98,13 +49,12 @@
 <script>
 import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue'
-require("select2/dist/css/select2.min.css");
-require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
 import {
     api_endpoints,
     helpers,
     constants
 }from '@/utils/hooks'
+import $ from 'jquery';
 export default {
     name: 'CompliancesTableDash',
     props: {
@@ -129,9 +79,6 @@ export default {
             datatable_id: 'compliances-datatable-'+ uuid(),
             //Profile to check if user has access to process Proposal
             profile: {},
-            dasTemplateGroup: false,
-            apiaryTemplateGroup: false,
-            templateGroupDetermined: false,
             datatableReady: false,
             // Filters for Proposals
             filterProposalRegion: [],
@@ -139,8 +86,8 @@ export default {
             filterComplianceStatus: 'All',
             filterComplianceStartFrom: '',
             filterComplianceStartTo: '',
-            filterComplianceDueFrom: '',
-            filterComplianceDueTo: '',
+            compliance_due_from: '',
+            compliance_due_to: '',
             filterProposalSubmitter: 'All',
             dateFormat: 'DD/MM/YYYY',
             datepickerOptions:{
@@ -151,25 +98,9 @@ export default {
                 allowInputToggle:true
             },
             select2Applied: false,
-            /*
-            external_status:[
-                'Due',
-                'Future',
-                'Under Review',
-                'Approved',
-            ],
-            internal_status:[
-                'Due',
-                'Future',
-                'With Assessor',
-                'Approved',
-
-            ],
-            */
             proposal_activityTitles : [],
             proposal_regions: [],
             proposal_submitters: [],
-            //proposal_headers:["Number","Region/District","Activity","Title","Approval","Holder","Status","Due Date","Assigned To", "CustomerStatus", "Reference","Action"],
             proposal_options: {},
         }
     },
@@ -177,22 +108,9 @@ export default {
         datatable
     },
     watch:{
-        templateGroupDetermined: function(){
-            //this.showHideColumns()
-            this.set_proposal_options();
-        },
         filterProposalRegion: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
         },
-        //filterProposalRegion: function() {
-        //    //this.$refs.proposal_datatable.vmDataTable.draw();
-        //    let vm = this;
-        //    if (vm.filterProposalRegion!= 'All') {
-        //        vm.$refs.proposal_datatable.vmDataTable.column('proposal__region__name:name').search(vm.filterProposalRegion).draw();
-        //    } else {
-        //        vm.$refs.proposal_datatable.vmDataTable.column('proposal__region__name:name').search('').draw();
-        //    }
-        //},
         filterProposalActivity: function() {
             let vm = this;
             if (vm.filterProposalActivity!= 'All') {
@@ -207,24 +125,32 @@ export default {
         filterProposalSubmitter: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
         },
-        filterComplianceStartFrom: function(){
+        dateRangeIdentifierForReloadProposalTable: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
         },
-        filterComplianceStartTo: function(){
-            this.$refs.proposal_datatable.vmDataTable.draw();
-        },
-        filterComplianceDueFrom: function(){
-            this.$refs.proposal_datatable.vmDataTable.draw();
-        },
-        filterComplianceDueTo: function(){
-            this.$refs.proposal_datatable.vmDataTable.draw();
-        }
     },
     computed: {
-        /* status: function(){
-            return this.is_external ? this.external_status : this.internal_status;
-            //return [];
-        }, */
+        filterComplianceDueFrom: {
+            get() {
+                // If our internal date exists, convert it for submission, etc
+                if (this.compliance_due_from) {
+                    return moment(this.compliance_due_from, 'YYYY-MM-DD').format('DD/MM/YYYY');
+                }
+                return ''; // Otherwise, return an empty string.
+            }
+        },
+        filterComplianceDueTo : {
+            get() {
+                // If our internal date exists, convert it for submission, etc
+                if (this.compliance_due_to) {
+                    return moment(this.compliance_due_to, 'YYYY-MM-DD').format('DD/MM/YYYY');
+                }
+                return ''; // Otherwise, return an empty string.
+            }
+        },
+        dateRangeIdentifierForReloadProposalTable() {
+            return `${this.compliance_due_from}|${this.compliance_due_to}`;
+        },
         is_external: function(){
             return this.level == 'external';
         },
@@ -241,30 +167,14 @@ export default {
             ]
         },
         proposal_headers: function() {
-            let approval_or_licence = this.dasTemplateGroup ? 'Approval' : 'Licence';
-            let holder_or_organisation = this.dasTemplateGroup ? 'Organisation' : 'Holder';
             let columnHeaders = [
-                "Number"]
-            if (this.dasTemplateGroup) {
-                columnHeaders.push("Region")
-            };
-            columnHeaders.push("Activity");
-            if (this.dasTemplateGroup) {
-                columnHeaders.push("Title");
-            };
-            if (this.dasTemplateGroup) {
-                columnHeaders.push("Requirement");
-            };
-            if (this.dasTemplateGroup) {
-                columnHeaders.push("Proposal");
-            };
-            columnHeaders.push(
+                "Number",
+                "Activity",
                 "Due Date",
-                "District",
-                holder_or_organisation,
-                approval_or_licence,
+                "Holder",
+                "Licence",
                 "Status",
-                );
+            ];
             if (!this.is_external) {
                 columnHeaders.push("Assigned To");
             }
@@ -276,87 +186,22 @@ export default {
             let columnList = [
                     {
                         // 1. Number
-                        data: "id",
+                        data: "lodgement_number",
                         mRender:function (data,type,full) {
-                            //return `C${data}`;
-                            return full.reference;
+                            return full.lodgement_number;
                         },
-                        name: "id, lodgement_number",
+                        name: "lodgement_number",
+                        searchable: true,
                         defaultContent: '',
                     }]
-            if (this.dasTemplateGroup) {
-                columnList.push(
-                    {
-                        // 2. Region/District
-                        data: "regions",
-                        name: "proposal__region__name", // will be use like: Approval.objects.filter(proposal__region__name='Kimberley')
-                        //visible: false,
-                        defaultContent: '',
-                    });
-            };
             columnList.push(
                     {
                         // 3. Activity
                         data: "activity",
                         name: "proposal__activity",
-                        //visible: true,
                         defaultContent: '',
                     });
-            if (this.dasTemplateGroup) {
-                columnList.push(
-                    {
-                        // 4. Title
-                        data: "title",
-                        name: "proposal__title",
-                        //visible: false,
-                        defaultContent: '',
-                    });
-            };
-            if (this.dasTemplateGroup) {
-                columnList.push(
-                    {
-                        // 5. Requirement
-                        data: "requirement",
-                        //name: "proposal__title",
-                        //visible: false,
-                        'render': function (value, type) {
-                            var ellipsis = '...',
-                                truncated = _.truncate(value, {
-                                    length: 25,
-                                    omission: ellipsis,
-                                    separator: ' '
-                                }),
-                                result = '<span>' + truncated + '</span>',
-                                popTemplate = _.template('<a href="#" ' +
-                                    'role="button" ' +
-                                    'data-toggle="popover" ' +
-                                    'data-trigger="click" ' +
-                                    'data-placement="top auto"' +
-                                    'data-html="true" ' +
-                                    'data-content="<%= text %>" ' +
-                                    '>more</a>');
-                            if (_.endsWith(truncated, ellipsis)) {
-                                result += popTemplate({
-                                    text: value
-                                });
-                            }
-                            //return result;
-                            return type=='export' ? value : result;
-                        },
-                        defaultContent: '',
-                        'createdCell': helpers.dtPopoverCellFn,
-                    });
-            };
-            if (this.dasTemplateGroup) {
-                columnList.push(
-                    {
-                        // 6. Proposal
-                        data: "proposal_lodgement_number",
-                        name: "proposal__lodgement_number",
-                        //visible: false,
-                        defaultContent: '',
-                    });
-            };
+
             columnList.push(
                     {
                         // 7. Due Date
@@ -365,18 +210,15 @@ export default {
                             return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
                         },
                         defaultContent: '',
-                    },
-                    {
-                        // 8. District
-                        data: "district",
-                        searchable: false,
-                        defaultContent: '',
+                        searchable: true,
                     },
                     {
                         // 9. Holder
                         data: "holder",
                         name: "proposal__applicant__organisation__name",
                         defaultContent: '',
+                        orderable: false,
+                        searchable: false,
                     },
                     {
                         // 10. Approval/Licence
@@ -392,6 +234,7 @@ export default {
                         data: vm.level == 'external'? "customer_status" : "processing_status",
                         searchable: false,  // There is a filter dropdown for 'Status'
                         defaultContent: '',
+                        orderable: false,
                     },
                     );
 
@@ -402,6 +245,8 @@ export default {
                         name: "assigned_to__first_name, assigned_to__last_name, assigned_to__email",
                         // visible: false
                         defaultContent: '',
+                        orderable: false,
+                        searchable: false,
                     });
             }
             columnList.push(
@@ -409,7 +254,6 @@ export default {
                         // 13. Action
                         data: '',
                         mRender:function (data,type,full) {
-                            //console.log(full)
                             let links = '';
                             if (!vm.is_external){
                                 if (full.processing_status=='With Assessor' && vm.check_assessor(full)) {
@@ -435,30 +279,6 @@ export default {
                         className: "noexport",
                         defaultContent: '',
                     },
-                    {
-                        data: "reference", 
-                        visible: false,
-                        className: "noexport",
-                        defaultContent: '',
-                    },
-                    {
-                        data: "customer_status", 
-                        visible: false,
-                        className: "noexport",
-                        defaultContent: '',
-                    },
-                    {
-                        data: "can_user_view", 
-                        visible: false,
-                        className: "noexport",
-                        defaultContent: '',
-                    },
-                    {
-                        data: "allowed_assessors", 
-                        visible: false,
-                        className: "noexport",
-                        defaultContent: '',
-                    }
             );
             return columnList;
         },
@@ -475,17 +295,15 @@ export default {
                 },
                 responsive: true,
                 serverSide: true,
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
                 ajax: {
                     "url": vm.url,
                     "dataSrc": 'data',
 
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
-                        //d.start_date_from = vm.filterComplianceStartFrom != '' && vm.filterComplianceStartFrom != null ? moment(vm.filterComplianceStartFrom, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
-                        //d.start_date_to = vm.filterComplianceStartTo != '' && vm.filterComplianceStartTo != null ? moment(vm.filterComplianceStartTo, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
-                        d.due_date_from = vm.filterComplianceDueFrom != '' && vm.filterComplianceDueFrom != null ? moment(vm.filterComplianceDueFrom, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
-                        d.due_date_to = vm.filterComplianceDueTo != '' && vm.filterComplianceDueTo != null ? moment(vm.filterComplianceDueTo, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
+                        d.due_date_from = vm.compliance_due_from != '' && vm.compliance_due_from != null ? moment(vm.compliance_due_from, 'YYYY-MM-DD').format('YYYY-MM-DD'): '';
+                        d.due_date_to = vm.compliance_due_to != '' && vm.compliance_due_to != null ? moment(vm.compliance_due_to, 'YYYY-MM-DD').format('YYYY-MM-DD'): '';
                         d.compliance_status = vm.filterComplianceStatus;
                         d.region = vm.filterProposalRegion;
                         d.proposal_activity = vm.filterProposalActivity;
@@ -498,14 +316,21 @@ export default {
                     }
 
                 },
-                dom: 'lBfrtip',
+                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'d-flex align-items-center'<'me-auto'i>p>",
                 /*
                 buttons:[
                 'excel', 'csv', ],
                 */
+                columnDefs: [
+                    { responsivePriority: 1, targets: 0 }, // First visible column has top priority (e.g. proposal_number
+                    { responsivePriority: 2, targets: -5 }, // If the actions is the last entry in columns then this will make it 2nd top priority soo as long as the screen is a decent size it will always be shown
+                ],
                 buttons:[
                     {
                         extend: 'excel',
+                        className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
                             columns: ':not(.noexport)',
                             orthogonal:'export'
@@ -513,6 +338,7 @@ export default {
                     },
                     {
                         extend: 'csv',
+                        className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
                             columns: ':not(.noexport)',
                             orthogonal:'export'
@@ -528,24 +354,8 @@ export default {
             this.datatableReady = true;
             this.$nextTick(() => {
                 this.initialiseSearch();
-                this.addEventListeners();
             });
         },
-
-        /*
-        showHideColumns: function(){
-            let vm = this
-            // set column visibility and headers according to template group
-            let regionColumn = vm.$refs.proposal_datatable.vmDataTable.column('proposal__region__name:name');
-            let activityColumn = vm.$refs.proposal_datatable.vmDataTable.column('proposal__activity:name');
-            let titleColumn = vm.$refs.proposal_datatable.vmDataTable.column('proposal__title:name');
-            if (vm.dasTemplateGroup) {
-                regionColumn.visible(true);
-                activityColumn.visible(true);
-                titleColumn.visible(true);
-            }
-        },
-        */
         fetchFilterLists: function(){
             let vm = this;
 
@@ -559,78 +369,6 @@ export default {
                     console.log(error);
                 })
                 //console.log(vm.regions);
-        },
-
-
-        addEventListeners: function(){
-            let vm = this;
-            // Initialise Proposal Date Filters
-            $(vm.$refs.complianceStartDateToPicker).datetimepicker(vm.datepickerOptions);
-            $(vm.$refs.complianceStartDateToPicker).on('dp.change', function(e){
-                if ($(vm.$refs.complianceStartDateToPicker).data('DateTimePicker').date()) {
-                    vm.filterComplianceStartTo =  e.date.format('DD/MM/YYYY');
-                }
-                else if ($(vm.$refs.complianceStartDateToPicker).data('date') === "") {
-                    vm.filterProposaLodgedTo = "";
-                }
-             });
-            $(vm.$refs.complianceStartDateFromPicker).datetimepicker(vm.datepickerOptions);
-            $(vm.$refs.complianceStartDateFromPicker).on('dp.change',function (e) {
-                if ($(vm.$refs.complianceStartDateFromPicker).data('DateTimePicker').date()) {
-                    vm.filterComplianceStartFrom = e.date.format('DD/MM/YYYY');
-                    $(vm.$refs.complianceStartDateToPicker).data("DateTimePicker").minDate(e.date);
-                }
-                else if ($(vm.$refs.complianceStartDateFromPicker).data('date') === "") {
-                    vm.filterComplianceStartFrom = "";
-                }
-            });
-            
-            $(vm.$refs.complianceDueDateToPicker).datetimepicker(vm.datepickerOptions);
-            $(vm.$refs.complianceDueDateToPicker).on('dp.change', function(e){
-                if ($(vm.$refs.complianceDueDateToPicker).data('DateTimePicker').date()) {
-                    vm.filterComplianceDueTo =  e.date.format('DD/MM/YYYY');
-                }
-                else if ($(vm.$refs.complianceDueDateToPicker).data('date') === "") {
-                    vm.filterProposaLodgedTo = "";
-                }
-             });
-            $(vm.$refs.complianceDueDateFromPicker).datetimepicker(vm.datepickerOptions);
-            $(vm.$refs.complianceDueDateFromPicker).on('dp.change',function (e) {
-                if ($(vm.$refs.complianceDueDateFromPicker).data('DateTimePicker').date()) {
-                    vm.filterComplianceDueFrom = e.date.format('DD/MM/YYYY');
-                    $(vm.$refs.complianceDueDateToPicker).data("DateTimePicker").minDate(e.date);
-                }
-                else if ($(vm.$refs.complianceDueDateFromPicker).data('date') === "") {
-                    vm.filterComplianceDueFrom = "";
-                }
-            });
-            // End Proposal Date Filters
-
-            // Initialise select2 for region
-            //vm.applySelect2()
-        },
-        applySelect2: function(){
-            //console.log('in applySelect2')
-            let vm = this
-
-            if (!vm.select2Applied){
-                //console.log('select2 is being applied')
-                $(vm.$refs.filterRegion).select2({
-                    "theme": "bootstrap",
-                    allowClear: true,
-                    placeholder: "Select Region",
-                    multiple: true,
-                }).
-                on("select2:select",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.filterProposalRegion = selected.val();
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.filterProposalRegion = selected.val();
-                });
-            }
-            vm.select2Applied = true
         },
         initialiseSearch:function(){
             this.regionSearch();
@@ -733,22 +471,7 @@ export default {
         }
     },
     created: function() {
-        let vm = this
-        fetch('/template_group',{
-            emulateJSON:true
-            }).then(
-                async res=>{
-                    let template_group_res = await res.json();
-                    if (template_group_res.template_group === 'apiary') {
-                        vm.apiaryTemplateGroup = true;
-                    } else {
-                        vm.dasTemplateGroup = true;
-                    }
-                    vm.templateGroupDetermined = true
-                    vm.applySelect2()
-            },err=>{
-                console.log(err);
-            });
+        this.set_proposal_options();
     },
     mounted: function(){
         //console.log('in mounted')

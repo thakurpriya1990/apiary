@@ -6,30 +6,22 @@
                     <input :id="search_input_id" class="search-input" placeholder="latitude, longitude OR address to search"/>
                 </div>
                 <div class="basemap-button">
-                    <img id="basemap_sat" src="../../../assets/satellite_icon.jpg" @click="setBaseLayer('sat')" />
-                    <img id="basemap_osm" src="../../../assets/map_icon.png" @click="setBaseLayer('osm')" />
+                    <img id="basemap_sat" :src="satelliteIconUrl" @click="setBaseLayer('sat')" />
+                    <img id="basemap_osm" :src="mapIconUrl" @click="setBaseLayer('osm')" />
                 </div>
                 <div class="optional-layers-wrapper">
                     <div class="optional-layers-button">
                         <template v-if="mode === 'layer'">
-                            <img src="../../../assets/info-bubble.svg" @click="set_mode('measure')" />
+                            <img :src="infoBubbleSvgUrl" @click="set_mode('measure')" />
                         </template>
                         <template v-else>
-                            <img src="../../../assets/ruler.svg" @click="set_mode('layer')" />
+                            <img :src="rulerSvgUrl" @click="set_mode('layer')" />
                         </template>
                     </div>
-                    <!--div class="optional-layers-button" @click="set_mode(mode)">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" >
-                            <path
-                                d="M18.342 0l-2.469 2.47 2.121 2.121-.707.707-2.121-2.121-1.414 1.414 1.414 1.414-.707.707-1.414-1.414-1.414 1.414 1.414 1.414-.707.707-1.414-1.414-1.414 1.414 2.121 2.122-.707.707-2.121-2.121-1.414 1.414 1.414 1.414-.708.707-1.414-1.414-1.414 1.414 1.414 1.414-.708.709-1.414-1.414-1.414 1.413 2.121 2.121-.706.706-2.122-2.121-2.438 2.439 5.656 5.657 18.344-18.343z"
-                                :fill="ruler_colour"
-                            />
-                        </svg>
-                    </div-->
                     <div style="position:relative">
                         <transition v-if="optionalLayers.length">
                             <div v-if="optionalLayers.length" class="optional-layers-button" @mouseover="hover=true">
-                                <img src="../../../assets/layers.svg" />
+                                <img :src="layersSvgUrl" />
                             </div>
                         </transition>
                         <transition v-if="optionalLayers.length">
@@ -70,33 +62,26 @@
     import { v4 as uuid } from 'uuid';
     import 'ol/ol.css';
     import 'ol-layerswitcher/dist/ol-layerswitcher.css'
-    //import 'index.css';  // copy-and-pasted the contents of this file at the <style> section below in this file
-
     import Map from 'ol/Map';
     import View from 'ol/View';
-    // import WMTSCapabilities from 'ol/format/WMTSCapabilities';
     import TileLayer from 'ol/layer/Tile';
     import OSM from 'ol/source/OSM';
     import TileWMS from 'ol/source/TileWMS';
-    // import WMTS, {optionsFromCapabilities} from 'ol/source/WMTS';
-    // import Collection from 'ol/Collection';
     import { Draw, Modify } from 'ol/interaction';
     import VectorLayer from 'ol/layer/Vector';
     import VectorSource from 'ol/source/Vector';
     import { Circle as CircleStyle, Fill, Style } from 'ol/style';
     import { FullScreen as FullScreenControl, MousePosition as MousePositionControl } from 'ol/control';
-    // import { Feature } from 'ol';
     import { LineString, Point } from 'ol/geom';
-    // import { getDistance } from 'ol/sphere';
-    // import { circular} from 'ol/geom/Polygon';
     import GeoJSON from 'ol/format/GeoJSON';
     import Overlay from 'ol/Overlay';
     import { getDisplayNameFromStatus, getDisplayNameOfCategory, getStatusForColour, getApiaryFeatureStyle, zoomToCoordinates, checkIfValidlatitudeAndlongitude } from '@/components/common/apiary/site_colours.js'
-    // import { getArea, getLength } from 'ol/sphere'
     import MeasureStyles, { formatLength } from '@/components/common/apiary/measure.js'
     import Awesomplete from 'awesomplete'
     import { api_endpoints } from '@/utils/hooks'
-
+    import { toRaw } from 'vue';
+    import $ from 'jquery';
+    
     export default {
         props:{
             is_external:{
@@ -151,26 +136,28 @@
                 segmentStyles: null,
                 
                 awe: null,
-                mapboxAccessToken: null,
                 search_box_id: uuid(),
                 search_input_id: uuid(),
+                // AT the moment (specify the path) this works but not ideal, need to find a way to load images from assets folder
+                satelliteIconUrl: '/static/disturbance_vue/src/satellite_icon.jpg',
+                mapIconUrl: '/static/disturbance_vue/src/map_icon.png',
+                layersSvgUrl: '/static/disturbance_vue/src/layers.svg',
+                rulerSvgUrl: '/static/disturbance_vue/src/ruler.svg',
+                infoBubbleSvgUrl: '/static/disturbance_vue/src/info-bubble.svg',
             }
-        },
-        created: async function(){
-            let temp_token = await this.retrieveMapboxAccessToken()
-            this.mapboxAccessToken = temp_token.access_token
         },
         mounted: function(){
             let vm = this;
-            this.$nextTick(() => {
-                vm.addEventListeners()
-            });
+            
             vm.initMap()
             vm.setBaseLayer('osm')
             vm.set_mode('layer')
             vm.addOptionalLayers()
             vm.displayAllFeatures()
             vm.initAwesomplete()
+            this.$nextTick(() => {
+                vm.addEventListeners()
+            });
         },
         components: {
 
@@ -185,39 +172,37 @@
             }
         },
         methods: {
-            retrieveMapboxAccessToken: async function(){
-                let ret_val = await $.ajax('/api/geocoding_address_search_token')
-                return ret_val
-            },
             initAwesomplete: function(){
                 var vm = this;
                 var element_search = document.getElementById(vm.search_input_id);
-                this.awe = new Awesomplete(element_search);
-                $(element_search).on('keyup', function(ev){
-                    var keyCode = ev.keyCode || ev.which;
-                    if ((48 <= keyCode && keyCode <= 90)||(96 <= keyCode && keyCode <= 105)||(keyCode===8)||(keyCode===46)){
-                        vm.search(ev.target.value);
-                        return false;
-                    }
-                }).on('awesomplete-selectcomplete', function(ev){
-                    ev.preventDefault();
-                    ev.stopPropagation();
-
-                    let currentZoomLevel = vm.map.getView().getZoom()
-                    let targetZoomLevel = 14
-                    if (targetZoomLevel < currentZoomLevel){
-                        targetZoomLevel = currentZoomLevel
-                    }
-
-                    /* User selected one of the search results */
-                    for (var i=0; i<vm.suggest_list.length; i++){
-                        if (vm.suggest_list[i].value == ev.target.value){
-                            var latlng = {lat: vm.suggest_list[i].feature.geometry.coordinates[1], lng: vm.suggest_list[i].feature.geometry.coordinates[0]};
-                            zoomToCoordinates(vm.map, [latlng.lng, latlng.lat], targetZoomLevel)
+                if (element_search) {
+                    this.awe = new Awesomplete(element_search);
+                    $(element_search).on('keyup', function(ev){
+                        var keyCode = ev.keyCode || ev.which;
+                        if ((48 <= keyCode && keyCode <= 90)||(96 <= keyCode && keyCode <= 105)||(keyCode===8)||(keyCode===46)){
+                            vm.search(ev.target.value);
+                            return false;
                         }
-                    }
-                    return false;
-                });
+                    }).on('awesomplete-selectcomplete', function(ev){
+                        ev.preventDefault();
+                        ev.stopPropagation();
+
+                        let currentZoomLevel = vm.map.getView().getZoom()
+                        let targetZoomLevel = 14
+                        if (targetZoomLevel < currentZoomLevel){
+                            targetZoomLevel = currentZoomLevel
+                        }
+
+                        /* User selected one of the search results */
+                        for (var i=0; i<vm.suggest_list.length; i++){
+                            if (vm.suggest_list[i].value == ev.target.value){
+                                var latlng = {lat: vm.suggest_list[i].feature.geometry.coordinates[1], lng: vm.suggest_list[i].feature.geometry.coordinates[0]};
+                                zoomToCoordinates(vm.map, [latlng.lng, latlng.lat], targetZoomLevel)
+                            }
+                        }
+                        return false;
+                    });
+                }
             },
             search: function(place){
                 var vm = this;
@@ -228,7 +213,6 @@
                     var latlng = vm.map.getView().getCenter();
                     $.ajax({
                         url: api_endpoints.geocoding_address_search + encodeURIComponent(place)+'.json?'+ $.param({
-                            access_token: vm.mapboxAccessToken,
                             country: 'au',
                             limit: 10,
                             proximity: ''+latlng[0]+','+latlng[1],
@@ -354,9 +338,10 @@
                         let layers = await response.json();
                         for (var i = 0; i < layers.length; i++){
                             let l = new TileWMS({
-                                url: env['kmi_server_url'] + '/geoserver/' + layers[i].layer_group_name + '/wms',
+                                //url: env['kmi_server_url'] + '/geoserver/' + layers[i].layer_group_name + '/wms',
                                 //url: '/kb-proxy/geoserver/' + layers[i].layer_group_name + '/wms',
                                 // url: layers[i].layer_group_name ? '/kb-proxy/geoserver/' + layers[i].layer_group_name + '/wms' : '/kb-proxy/geoserver/wms',
+                                url: layers[i].layer_group_name ? '/kb-proxy/geoserver/' + layers[i].layer_group_name + '/wms' : '/kb-proxy/geoserver/wms',
                                 params: {
                                     'FORMAT': 'image/png',
                                     'VERSION': '1.1.1',
@@ -438,8 +423,10 @@
 
                 vm.map = new Map({
                     layers: [
-                        vm.tileLayerOsm,
-                        vm.tileLayerSat,
+                        // vm.tileLayerOsm,
+                        // vm.tileLayerSat,
+                        toRaw(vm.tileLayerOsm), 
+                        toRaw(vm.tileLayerSat),
                     ],
                     //target: 'map',
                     target: vm.elem_id,
@@ -524,10 +511,12 @@
                     offest: [0, -10]
                 })
 
-                closer.onclick = function() {
-                    vm.closePopup()
-                    closer.blur()
-                    return false
+                if (closer) {
+                    closer.onclick = function() {
+                        vm.closePopup()
+                        closer.blur()
+                        return false
+                    }
                 }
 
                 vm.map.addOverlay(vm.overlay)
@@ -755,9 +744,13 @@
                 let vm = this
 
                 let searchLatLng = document.getElementById(this.search_input_id)
-                searchLatLng.addEventListener('input', function(ev){
-                    vm.search(ev.target.value);
-                })
+                if (searchLatLng) {
+                    searchLatLng.addEventListener('input', function(ev){
+                        vm.search(ev.target.value);
+                    });
+                } else {
+                    console.error('searchLatLng is null');
+                }
             },
             displayAllFeatures: function() {
                 if (this.apiarySitesQuerySource.getFeatures().length>0){
@@ -776,6 +769,7 @@
 </script>
 
 <style lang="css" scoped>
+    @import './map_address_search_scoped.css';
     .map-wrapper {
         position: relative;
         padding: 0;
@@ -906,7 +900,11 @@
     .layer_option:hover {
         cursor: pointer;
     }
-    @import './map_address_search_scoped.css'
+     .map {
+        width: 100%;
+        height: 500px;
+    }
+    
 </style>
 
 <style>

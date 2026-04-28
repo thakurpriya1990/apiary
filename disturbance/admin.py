@@ -55,21 +55,12 @@ class CustomSystemGroupAdmin(SystemGroupAdmin):
             return fieldsets
         if request.user.is_superuser:
             return fieldsets
-        elif helpers.is_disturbance_admin(request):
-            fieldsets = deepcopy(fieldsets)
-            for fieldset in fieldsets:
-                if "permissions" in fieldset[1]["fields"]:
-                    if isinstance(fieldset[1]["fields"], tuple):
-                        fieldset[1]["fields"] = list(fieldset[1]["fields"])
-                    fieldset[1]["fields"].remove("permissions")
 
         return fieldsets
 
     def get_readonly_fields(self, request, obj=None):
         if request.user.is_superuser:
             return []
-        elif helpers.is_disturbance_admin(request):
-            return ["name"]  # make fields readonly when editing an existing object
 
 
 admin.site.unregister(SystemGroup)

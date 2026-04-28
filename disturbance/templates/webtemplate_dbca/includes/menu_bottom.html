@@ -1,16 +1,18 @@
+{% load users %}
+{% load tagutils %}
 {% if is_apiary_admin_user or request.user.is_superuser %}
 <li><a class="dropdown-item" href="{% url 'mgt-commands' %}">Management Commands</a></li>
 {% endif %}
-{% if is_apiary_admin_user or request.user.is_superuser %}
+<!-- {% if is_apiary_admin_user or request.user.is_superuser %}
     <li><a class="dropdown-item" href="/ledger-ui/accounts-management">Accounts Management</a></li>
-{% endif %}
-<li><a class="dropdown-item" href="/ledger-ui/system-accounts">Manage Account</a></li>
+{% endif %} -->
+<li><a class="dropdown-item" href="/ledger-ui/accounts">Manage Account</a></li>
 {% for org in request.user.disturbance_organisations.all %}
     {% for org_contact in org.contacts.all%}
         {% if org_contact.email == request.user.email %}
             {% if org_contact.user_status == 'active' %}
                 {% if org_contact.is_admin or org_contact.check_consultant %}
-                    <li><a href="/ledger-ui/organisation/{{org.organisation_id}}/">Manage {{org.name}} </a></li>
+                    <li><a class="dropdown-item" href="/ledger-ui/organisation/{{org.organisation_id}}/">Manage {{org.name}} </a></li>
                 {% endif %}
             {% endif %}
         {% endif %}

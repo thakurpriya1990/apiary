@@ -10,7 +10,7 @@
                                 <div class="col-sm-offset-2 col-sm-8">
                                     <div class="form-group">
                                         <label class="control-label pull-left"  for="Name">Reason</label>
-                                        <select class="form-control" name="reason" ref="reason" v-model="amendment.reason">
+                                        <select class="form-select" name="reason" ref="reason" v-model="amendment.reason">
                                             <option v-for="r in reason_choices" :value="r.key" :key="r.key">{{r.value}}</option>
                                         </select>
                                     </div>
@@ -35,7 +35,7 @@
 <script>
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
-
+import $ from 'jquery';
 // import {helpers, api_endpoints} from "@/utils/hooks.js"
 export default {
     name:'compliance-amendment-request',
@@ -75,7 +75,11 @@ export default {
         ok:function () {
             let vm =this;
             if($(vm.form).valid()){
+                vm.errors = false;
                 vm.sendData();
+            } else {
+                vm.errorString = "Missing required fields.";
+                vm.errors = true;
             }
         },
         cancel:function () {
@@ -149,31 +153,7 @@ export default {
             vm.validation_form = $(vm.form).validate({
                 rules: {
                     reason: "required"
-
-
                 },
-                messages: {
-                    reason: "field is required",
-
-                },
-                showErrors: function(errorMap, errorList) {
-                    $.each(this.validElements(), function(index, element) {
-                        var $element = $(element);
-                        $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
-                    });
-                    // destroy tooltips on valid elements
-                    $("." + this.settings.validClass).tooltip("destroy");
-                    // add or update tooltips
-                    for (var i = 0; i < errorList.length; i++) {
-                        var error = errorList[i];
-                        $(error.element)
-                            .tooltip({
-                                trigger: "focus"
-                            })
-                            .attr("data-original-title", error.message)
-                            .parents('.form-group').addClass('has-error');
-                    }
-                }
             });
        },
        eventListerners:function () {
@@ -183,7 +163,8 @@ export default {
             $(vm.$refs.reason).select2({
                 "theme": "bootstrap",
                 allowClear: true,
-                placeholder:"Select Reason"
+                placeholder:"Select Reason",
+                dropdownParent: $(vm.$refs.reason).parent(),
             }).
             on("select2:select",function (e) {
                 var selected = $(e.currentTarget);

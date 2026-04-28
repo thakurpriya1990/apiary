@@ -185,12 +185,6 @@ class Remittance(Flowable):
         self.__footer_line()
 
 
-#def _set_template_group(mooring_var):
-
-
-#def get_template_group(mooring_var):
-
-
 def _create_header(canvas, doc, draw_page_number=True):
     canvas.saveState()
     canvas.setTitle('Confirmation')
@@ -219,7 +213,7 @@ def _create_header(canvas, doc, draw_page_number=True):
     #bi = proposal.bookings.filter(invoices__invoice_reference=invoice.reference)
     #licence_number = proposal.approval.lodgement_number if proposal.approval else None
 
-    # TODO need to fix, since individual parks can be exempt, Below calculation assumes NO PARK IS exempt
+    #TODO on cleanup: review, remove/adjust (old comment) need to fix, since individual parks can be exempt, Below calculation assumes NO PARK IS exempt
 
     canvas.setFont(BOLD_FONTNAME, SMALL_FONTSIZE)
     current_x = PAGE_MARGIN + 5

@@ -3,7 +3,7 @@ import traceback
 from django.db.models import Q
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from rest_framework import viewsets, serializers, views
+from rest_framework import viewsets, serializers, views, mixins
 from rest_framework.decorators import action, renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
@@ -24,7 +24,9 @@ from disturbance.components.main.utils import handle_validation_error
 from disturbance.helpers import is_internal
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from rest_framework_datatables.filters import DatatablesFilterBackend
-
+from disturbance.components.compliances.permissions import (
+    InternalCompliancePermission,
+)
 
 class ComplianceFilterBackend(DatatablesFilterBackend):
     """
@@ -33,6 +35,9 @@ class ComplianceFilterBackend(DatatablesFilterBackend):
 
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
+
+        search_text = request.GET.get('search[value]', '')
+        print(search_text)
 
         def get_processing_choice(status, choices=Compliance.PROCESSING_STATUS_CHOICES):
             for i in choices:
@@ -46,12 +51,10 @@ class ComplianceFilterBackend(DatatablesFilterBackend):
                     return i[0]
             return None
         
-        regions = request.GET.get('regions')
-        if regions:
-            queryset = queryset.filter(proposal__region__name__iregex=regions.replace(',', '|'))
         proposal_activity = request.GET.get('proposal_activity')
         if proposal_activity and not proposal_activity.lower() == 'all':
             queryset = queryset.filter(proposal__activity=proposal_activity)
+
         compliance_status = request.GET.get('compliance_status')
         if compliance_status and not compliance_status.lower() == 'all':
             is_external = request.GET.get('is_external')
@@ -89,13 +92,12 @@ class ComplianceFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class CompliancePaginatedViewSet(viewsets.ModelViewSet):
+class CompliancePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (ComplianceFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
     page_size = 10
     queryset = Compliance.objects.none()
     serializer_class = ComplianceSerializer
-
 
     def get_queryset(self):
         if is_internal(self.request):
@@ -128,13 +130,12 @@ class CompliancePaginatedViewSet(viewsets.ModelViewSet):
         if applicant_id:
             qs = qs.filter(approval__applicant_id=applicant_id)
 
-        self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ComplianceSerializer(result_page, context={'request':request}, many=True)
         return self.paginator.get_paginated_response(serializer.data)
 
 
-class ComplianceViewSet(viewsets.ModelViewSet):
+class ComplianceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     serializer_class = ComplianceSerializer
     queryset = Compliance.objects.none()
 
@@ -157,17 +158,6 @@ class ComplianceViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         return ComplianceSerializer
 
-    #TODO remove (check if used and replace first)
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        # Filter by org
-        org_id = request.GET.get('org_id',None)
-        if org_id:
-            queryset = queryset.filter(proposal__applicant_id=org_id)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
-    #TODO relocate to paginated viewset class (?)
     @action(detail=False,methods=['GET',])
     def filter_list(self, request, *args, **kwargs):
         """ Used by the external dashboard filters """
@@ -204,14 +194,6 @@ class ComplianceViewSet(viewsets.ModelViewSet):
                 else:
                     instance.submit(request)
                 serializer = self.get_serializer(instance)
-                #TODO do we need this or not? if not, remove
-                # Save the files
-                '''for f in request.FILES:
-                    document = instance.documents.create()
-                    document.name = str(request.FILES[f])
-                    document._file = request.FILES[f]
-                    document.save()
-                # End Save Documents'''
                 return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -223,7 +205,7 @@ class ComplianceViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalCompliancePermission])
     def assign_request_user(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -258,7 +240,7 @@ class ComplianceViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[InternalCompliancePermission])
     def assign_to(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -283,7 +265,7 @@ class ComplianceViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalCompliancePermission])
     def unassign(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -300,7 +282,7 @@ class ComplianceViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalCompliancePermission])
     def accept(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -335,7 +317,7 @@ class ComplianceViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalCompliancePermission])
     def action_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -352,7 +334,7 @@ class ComplianceViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['GET',])
+    @action(detail=True,methods=['GET',], permission_classes=[InternalCompliancePermission])
     def comms_log(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -369,7 +351,7 @@ class ComplianceViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
-    @action(detail=True,methods=['POST',])
+    @action(detail=True,methods=['POST',], permission_classes=[InternalCompliancePermission])
     @renderer_classes((JSONRenderer,))
     def add_comms_log(self, request, *args, **kwargs):
         try:
@@ -401,26 +383,30 @@ class ComplianceViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
-class ComplianceAmendmentRequestViewSet(viewsets.GenericViewSet):
+class ComplianceAmendmentRequestViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     serializer_class = ComplianceAmendmentRequestSerializer
+    permission_classes=[InternalCompliancePermission]
 
-    #TODO permissions
     def create(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
-                serializer = self.get_serializer(data=request.data)
-                serializer.is_valid(raise_exception=True)
-                instance = serializer.save()
-                instance.generate_amendment(request)
-                serializer = self.get_serializer(instance)
-                return Response(serializer.data)
+                if is_internal(request):
+                    serializer = self.get_serializer(data=request.data)
+                    serializer.is_valid(raise_exception=True)
+                    instance = serializer.save()
+                    instance.generate_amendment(request)
+                    serializer = self.get_serializer(instance)
+                    return Response(serializer.data)
+                else:
+                    raise serializers.ValidationError("User not authorised to create a Compliance Amendment Request")
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
 
 class ComplianceAmendmentReasonChoicesView(views.APIView):
-
+    permission_classes=[InternalCompliancePermission]
+    
     def get(self,request, format=None):
         choices_list = []
         choices=ComplianceAmendmentReason.objects.all()

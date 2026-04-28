@@ -16,16 +16,14 @@ from taggit.models import TaggedItemBase
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from disturbance import exceptions
 from disturbance.components.organisations.models import Organisation
-from disturbance.components.main.models import CommunicationsLogEntry, Region, UserAction, Document, RevisionedMixin
+from disturbance.components.main.models import CommunicationsLogEntry, Region, UserAction, Document, RevisionedMixin, SanitiseMixin
 from disturbance.components.proposals.models import ProposalRequirement, AmendmentReason
 from disturbance.components.compliances.email import (
                         send_compliance_accept_email_notification,
                         send_amendment_email_notification,
-                        send_reminder_email_notification,
                         send_external_submit_email_notification,
                         send_submit_email_notification,
                         send_internal_reminder_email_notification,
-                        send_due_email_notification,
                         send_internal_due_email_notification,
                         send_apiary_amendment_email_notification,
                         send_apiary_external_submit_email_notification,
@@ -37,9 +35,7 @@ from disturbance.components.compliances.email import (
                         send_apiary_submit_email_notification,
                         )
 
-from django.conf import settings
-from django.core.files.storage import FileSystemStorage
-private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
+from disturbance.components.main.models import private_storage
 
 import logging
 logger = logging.getLogger(__name__)
@@ -97,12 +93,7 @@ class Compliance(RevisionedMixin):
 
     @property
     def holder(self):
-        return self.proposal.applicant
-
-    @property
-    def reference(self):
-        #return 'C{0:06d}'.format(self.id)
-        return self.lodgement_number
+        return self.approval.applicant
 
     @property
     def allowed_assessors(self):
@@ -250,7 +241,7 @@ class Compliance(RevisionedMixin):
             try:
                 if self.processing_status =='due':
                     if self.due_date < today and self.lodgement_date==None and self.post_reminder_sent==False:
-                        send_reminder_email_notification(self)
+                        send_apiary_reminder_email_notification(self)
                         send_internal_reminder_email_notification(self)
                         self.post_reminder_sent=True
                         self.reminder_sent=True
@@ -259,7 +250,7 @@ class Compliance(RevisionedMixin):
                         logger.info('Post due date reminder sent for Compliance {} '.format(self.lodgement_number))
                     elif self.due_date >= today and today >= self.due_date - datetime.timedelta(days=14) and self.reminder_sent==False:
                         # second part: if today is with 14 days of due_date, and email reminder is not sent (deals with Compliances created with the reminder period)
-                        send_due_email_notification(self)
+                        send_apiary_due_email_notification(self)
                         send_internal_due_email_notification(self)
                         self.reminder_sent=True
                         self.save()
@@ -343,12 +334,12 @@ def update_compliance_comms_log_filename(instance, filename):
 
 class ComplianceLogDocument(Document):
     log_entry = models.ForeignKey('ComplianceLogEntry',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_compliance_comms_log_filename, storage=private_storage)
+    _file = models.FileField(max_length=255, upload_to=update_compliance_comms_log_filename, storage=private_storage)
 
     class Meta:
         app_label = 'disturbance'
 
-class CompRequest(models.Model):
+class CompRequest(SanitiseMixin):
     compliance = models.ForeignKey(Compliance, on_delete=models.CASCADE)
     subject = models.CharField(max_length=200, blank=True)
     text = models.TextField(blank=True)
@@ -357,7 +348,7 @@ class CompRequest(models.Model):
     class Meta:
         app_label = 'disturbance'
 
-class ComplianceAmendmentReason(models.Model):
+class ComplianceAmendmentReason(SanitiseMixin):
     reason = models.CharField('Reason', max_length=125)
 
     class Meta:
@@ -369,20 +360,7 @@ class ComplianceAmendmentReason(models.Model):
 
 class ComplianceAmendmentRequest(CompRequest):
     STATUS_CHOICES = (('requested', 'Requested'), ('amended', 'Amended'))
-    # try:
-    #     # model requires some choices if AmendmentReason does not yet exist or is empty
-    #     REASON_CHOICES = list(AmendmentReason.objects.values_list('id', 'reason'))
-    #     if not REASON_CHOICES:
-    #         REASON_CHOICES = ((0, 'The information provided was insufficient'),
-    #                           (1, 'There was missing information'),
-    #                           (2, 'Other'))
-    # except:
-    #     REASON_CHOICES = ((0, 'The information provided was insufficient'),
-    #                       (1, 'There was missing information'),
-    #                       (2, 'Other'))
-
     status = models.CharField('Status', max_length=30, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
-    # reason = models.CharField('Reason', max_length=30, choices=REASON_CHOICES, default=REASON_CHOICES[0][0])
     reason = models.ForeignKey(ComplianceAmendmentReason, blank=True, null=True, on_delete=models.CASCADE)
 
     class Meta:

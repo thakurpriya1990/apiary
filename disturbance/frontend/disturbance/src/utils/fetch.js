@@ -19,7 +19,7 @@ export default {
                         `There was an error fetching from ${url}`,
                         error
                     );
-                    error = new Error(ERRORS.NETWORK_ERROR);
+                    error = new Error(error.NETWORK_ERROR);
                     reject(error);
                 }
             );

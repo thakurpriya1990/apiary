@@ -2,12 +2,9 @@ import csv
 import pytz
 from six.moves import StringIO
 from django.utils import timezone
-#from ledger.payments.models import CashTransaction, BpointTransaction, BpayTransaction,Invoice
-
-# TODO: AnnualRentalFee, ApplicationFeeInvoice in the Apiary case
 from disturbance.components.ap_payments.models import ApplicationFeeInvoice, AnnualRentalFee
 
-
+#TODO on cleanup: remove
 def booking_bpoint_settlement_report(_date):
     try:
         bpoint, bpay, cash = [], [], []

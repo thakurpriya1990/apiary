@@ -1,9 +1,8 @@
 <template lang="html">
-    <div>
         <div class="row col-sm-12" style="margin-bottom: 0.5em;">
-            <template v-if="is_external">
+            <div v-if="is_external">
                 <button :disabled="!onSiteInformationEnabled" class="btn btn-primary pull-right" @click="openOnSiteInformationModalToAdd">Add</button>
-            </template>
+            </div>
         </div>
 
         <div class="row col-sm-12">
@@ -15,7 +14,7 @@
             />
         </div>
 
-        <template v-if="approval_id">
+        <div v-if="approval_id">
             <OnSiteInformationModal
                 ref="on_site_information_modal"
                 :on_site_information="on_site_information_to_edit"
@@ -23,16 +22,15 @@
                 :key="modalBindId"
                 @on_site_information_added="onSiteInformationAdded"
             />
-        </template>
-    </div>
+        </div>
 </template>
 
 <script>
     import datatable from '@vue-utils/datatable.vue'
     import { v4 as uuid } from 'uuid';
     import { helpers, constants } from '@/utils/hooks'
-    import OnSiteInformationModal from './on_site_information_modal'
-
+    import OnSiteInformationModal from './on_site_information_modal.vue'
+    import $ from 'jquery';
     export default {
         props:{
             approval_id: {
@@ -76,9 +74,9 @@
                     'To',
                     'Site',
                     'Comments',
-                    'The proposed location <br />of the hives',
-                    'Number of hives proposed<br />to be placed on the site',
-                    'The names of the people <br />who are expected to be <br />entering the people_names',
+                    'The proposed location of the hives',
+                    'Number of hives proposed to be placed on the site',
+                    'The names of the people who are expected to be entering the people_names',
                     'Flora targeted',
                     'Action',
                 ],
@@ -86,7 +84,7 @@
                     serverSide: false,
                     searchDelay: 1000,
                     autoWidth: false,
-                    lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                    lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
                     order: [
                         [1, 'desc'], [0, 'desc'],
                     ],
@@ -212,9 +210,9 @@
                                     if (full.action) {
                                         return full.action;
                                     } else {
-                                        let ret = '<a><span class="delete_on_site_information" data-on-site-information-id="' + full.id + '"/>Delete</span></a>';
+                                        let ret = '<a  class="delete_on_site_information" data-on-site-information-id="' + full.id + '"/>Delete</a>';
                                         ret += '<br />'
-                                        ret += '<a><span class="edit_on_site_information" data-on-site-information-id="' + full.id + '"/>Edit</span></a>';
+                                        ret += '<a class="edit_on_site_information" data-on-site-information-id="' + full.id + '"/>Edit<//a>';
                                         return ret;
                                     }
                                 } else {
@@ -269,8 +267,8 @@
         methods:{
             get_content: function(data){
                 let hives_loc = '<tr><td><strong>The proposed location of the hives</strong></td><td>' + data.hives_loc + '</td></tr>'
-                let hives_num = '<tr><td><strong>Number of hives proposed to be <br />placed on the site</strong></td><td>' + data.hives_num + '</td></tr>'
-                let people_names = '<tr><td><strong>The names of the people who <br />are expected to be entering the <br />site for apiary purposes</strong></td><td>' + data.people_names + '</td></tr>'
+                let hives_num = '<tr><td><strong>Number of hives proposed to be placed on the site</strong></td><td>' + data.hives_num + '</td></tr>'
+                let people_names = '<tr><td><strong>The names of the people who are expected to be entering the site for apiary purposes</strong></td><td>' + data.people_names + '</td></tr>'
                 let flora = '<tr><td><strong>Flora targeted</strong></td><td>' + data.flora + '</td></tr>'
 
                 let contents = '<table class="child_table">' + hives_loc + hives_num + people_names + flora + '</table>'
@@ -455,7 +453,6 @@
                     text: "Are you sure you want to delete this?",
                     icon: "warning",
                     showCancelButton: true,
-                    confirmButtonClass: "btn-danger",
                     confirmButtonText: "Yes, delete it",
                     customClass: {
                         confirmButton: 'btn btn-primary',

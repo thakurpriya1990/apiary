@@ -1,104 +1,107 @@
 <template>
     <div class="container">
-        <!-- <div @click="fixCanvasCss">Fix</div> -->
-        <FormSection :formCollapse="false" label="Sites" Index="available_sites">
-            <div class="map-wrapper">
-                <div v-show="!fullscreen" id="filter_search_row_wrapper">
-                    <div class="filter_search_wrapper" style="margin-bottom: 5px;" id="filter_search_row">
-                        <div v-show="select2Applied">
-                            <div class="row" id="filters_parent">
-                                <div class="col-sm-1">
-                                    <label class="control-label">Status</label>
-                                </div>
-                                <div class="col-sm-3">
-                                    <select class="form-control" ref="filterStatus" ></select>
-                                </div>
-                                <div class="col-sm-1">
-                                    <label class="control-label">Availability</label>
-                                </div>
-                                <div class="col-sm-3">
-                                    <select class="form-control" ref="filterAvailability" ></select>
-                                </div>
-                                <div class="col-sm-1">
-                                    <label :for="search_text" class="control-label">Search</label>
-                                </div>
-                                <div class="col-sm-3">
-                                    <input v-model="search_text" pattern="[0-9]*" id="search_text" required class="form-control" />
+        <div class="row">
+            <div class="col-sm-12">
+                <FormSection :formCollapse="false" label="Sites" Index="available_sites">
+                    <div class="map-wrapper">
+                        <div v-show="!fullscreen" id="filter_search_row_wrapper">
+                            <div class="filter_search_wrapper" style="margin-bottom: 5px;" id="filter_search_row">
+                                <div v-show="select2Applied">
+                                    <div class="row" id="filters_parent">
+                                        <div class="col-sm-1">
+                                            <label class="control-label">Status</label>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <select class="form-select" ref="filterStatus" ></select>
+                                        </div>
+                                        <div class="col-sm-1">
+                                            <label class="control-label">Availability</label>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <select class="form-select" ref="filterAvailability" ></select>
+                                        </div>
+                                        <div class="col-sm-1">
+                                            <label :for="search_text" class="control-label">Search</label>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <input v-model="search_text" pattern="[0-9]*" id="search_text" required class="form-control" />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div :id="elem_id" class="map" style="position: relative;">
-                    <div :id="search_box_id" class="search-box">
-                        <input :id="search_input_id" class="search-input" placeholder="longitude, latitude OR address to search"/>
-                    </div>
-                    <div v-show="fullscreen" id="filter_search_on_map">
+                        <div :id="elem_id" class="map" style="position: relative;">
+                            <div :id="search_box_id" class="search-box">
+                                <input :id="search_input_id" class="search-input" placeholder="longitude, latitude OR address to search"/>
+                            </div>
+                            <div v-show="fullscreen" id="filter_search_on_map">
 
-                        <!-- filters on map here -->
+                                <!-- filters on map here -->
 
-                    </div>
-                    <div v-if="loading_sites" class="spinner_on_map">
-                        <i class='fa fa-4x fa-spinner fa-spin'></i>
-                    </div>
-                    <div class="basemap-button">
-                        <img id="basemap_sat" src="../../../assets/satellite_icon.jpg" @click="setBaseLayer('sat')" />
-                        <img id="basemap_osm" src="../../../assets/map_icon.png" @click="setBaseLayer('osm')" />
-                    </div>
-                    <div class="optional-layers-wrapper">
-                        <div class="optional-layers-button">
-                            <template v-if="mode === 'layer'">
-                                <img src="../../../assets/info-bubble.svg" @click="set_mode('measure')" />
-                            </template>
-                            <template v-else>
-                                <img src="../../../assets/ruler.svg" @click="set_mode('layer')" />
-                            </template>
-                        </div>
-                        <div style="position:relative">
-                            <transition v-if="optionalLayers.length">
-                                <div class="optional-layers-button" @mouseover="hover=true" v-if="optionalLayers.length">
-                                    <img src="../../../assets/layers.svg" />
+                            </div>
+                            <div v-if="loading_sites" class="spinner_on_map">
+                                <i class='fa fa-4x fa-spinner fa-spin'></i>
+                            </div>
+                            <div class="basemap-button">
+                                <img id="basemap_sat" :src="satelliteIconUrl" @click="setBaseLayer('sat')" />
+                                <img id="basemap_osm" :src="mapIconUrl" @click="setBaseLayer('osm')" />
+                            </div>
+                            <div class="optional-layers-wrapper">
+                                <div class="optional-layers-button">
+                                    <template v-if="mode === 'layer'">
+                                        <img :src="infoBubbleSvgUrl" @click="set_mode('measure')" />
+                                    </template>
+                                    <template v-else>
+                                        <img :src="rulerSvgUrl" @click="set_mode('layer')" />
+                                    </template>
                                 </div>
-                            </transition>
-                            <transition v-if="optionalLayers.length">
-                                <div div class="layer_options" v-show="hover" @mouseleave="hover=false" >
-                                    <div v-for="layer in optionalLayers" :key="layer.ol_uid">
-                                        <input
-                                            type="checkbox"
-                                            :id="layer.ol_uid"
-                                            :checked="layer.values_.visible"
-                                            @change="changeLayerVisibility(layer)"
-                                            class="layer_option"
-                                        />
-                                        <label :for="layer.ol_uid" class="layer_option">{{ layer.get('title') }}</label>
-                                    </div>
+                                <div style="position:relative">
+                                    <transition v-if="optionalLayers.length">
+                                        <div class="optional-layers-button" @mouseover="hover=true" v-if="optionalLayers.length">
+                                            <img :src="layersSvgUrl" />
+                                        </div>
+                                    </transition>
+                                    <transition v-if="optionalLayers.length">
+                                        <div div class="layer_options" v-show="hover" @mouseleave="hover=false" >
+                                            <div v-for="layer in optionalLayers" :key="layer.ol_uid">
+                                                <input
+                                                    type="checkbox"
+                                                    :id="layer.ol_uid"
+                                                    :checked="layer.values_.visible"
+                                                    @change="changeLayerVisibility(layer)"
+                                                    class="layer_option"
+                                                />
+                                                <label :for="layer.ol_uid" class="layer_option">{{ layer.get('title') }}</label>
+                                            </div>
+                                        </div>
+                                    </transition>
                                 </div>
-                            </transition>
+                            </div>
+                        </div>
+                        <div class="button_row">
+                            <span class="view_all_button" @click="displayAllFeatures">View All On Map</span>
                         </div>
                     </div>
-                </div>
-                <div class="button_row">
-                    <span class="view_all_button" @click="displayAllFeatures">View All On Map</span>
-                </div>
-            </div>
-            <div :id="popup_id" class="ol-popup">
-                <a href="#" :id="popup_closer_id" class="ol-popup-closer">
-                    <svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='20' width='20' class="close-icon">
-                        <g transform='scale(3)'>
-                            <path d     ="M 5.2916667,2.6458333 A 2.6458333,2.6458333 0 0 1 2.6458335,5.2916667 2.6458333,2.6458333 0 0 1 0,2.6458333 2.6458333,2.6458333 0 0 1 2.6458335,0 2.6458333,2.6458333 0 0 1 5.2916667,2.6458333 Z" style="fill:#ffffff;fill-opacity:1;stroke-width:0.182031" id="path846" />
-                            <path d     ="M 1.5581546,0.94474048 2.6457566,2.0324189 3.7334348,0.94474048 4.3469265,1.5581547 3.2592475,2.6458334 4.3469265,3.7334353 3.7334348,4.3469261 2.6457566,3.2593243 1.5581546,4.3469261 0.9447402,3.7334353 2.0323422,2.6458334 0.9447402,1.5581547 Z" style="fill:#f46464;fill-opacity:1;stroke:none;stroke-width:0.0512157" id="path2740-3" />
-                        </g>
-                    </svg>
-                </a>
-                <div :id="popup_content_id"></div>
-            </div>
-        </FormSection>
+                    <div :id="popup_id" class="ol-popup">
+                        <a href="#" :id="popup_closer_id" class="ol-popup-closer">
+                            <svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='20' width='20' class="close-icon">
+                                <g transform='scale(3)'>
+                                    <path d     ="M 5.2916667,2.6458333 A 2.6458333,2.6458333 0 0 1 2.6458335,5.2916667 2.6458333,2.6458333 0 0 1 0,2.6458333 2.6458333,2.6458333 0 0 1 2.6458335,0 2.6458333,2.6458333 0 0 1 5.2916667,2.6458333 Z" style="fill:#ffffff;fill-opacity:1;stroke-width:0.182031" id="path846" />
+                                    <path d     ="M 1.5581546,0.94474048 2.6457566,2.0324189 3.7334348,0.94474048 4.3469265,1.5581547 3.2592475,2.6458334 4.3469265,3.7334353 3.7334348,4.3469261 2.6457566,3.2593243 1.5581546,4.3469261 0.9447402,3.7334353 2.0323422,2.6458334 0.9447402,1.5581547 Z" style="fill:#f46464;fill-opacity:1;stroke:none;stroke-width:0.0512157" id="path2740-3" />
+                                </g>
+                            </svg>
+                        </a>
+                        <div :id="popup_content_id"></div>
+                    </div>
+                </FormSection>
 
-        <ContactLicenceHolderModal
-            ref="contact_licence_holder_modal"
-            :key="modalBindId"
-            @contact_licence_holder="contactLicenceHolderOK"
-        />
+                <ContactLicenceHolderModal
+                    ref="contact_licence_holder_modal"
+                    :key="modalBindId"
+                    @contact_licence_holder="contactLicenceHolderOK"
+                />
+            </div>
+        </div>
     </div>
 </template>
 
@@ -111,34 +114,26 @@
     import 'ol-layerswitcher/dist/ol-layerswitcher.css'
     import Map from 'ol/Map';
     import View from 'ol/View';
-    // import WMTSCapabilities from 'ol/format/WMTSCapabilities';
     import TileLayer from 'ol/layer/Tile';
     import OSM from 'ol/source/OSM';
     import TileWMS from 'ol/source/TileWMS';
-    // import WMTS, {optionsFromCapabilities} from 'ol/source/WMTS';
-    // import Collection from 'ol/Collection';
     import { Draw, Modify} from 'ol/interaction';
     import VectorLayer from 'ol/layer/Vector';
     import VectorSource from 'ol/source/Vector';
     import { Circle as CircleStyle, Fill, Stroke, Style, Text } from 'ol/style';
     import { FullScreen as FullScreenControl, MousePosition as MousePositionControl } from 'ol/control';
-    // import { Feature } from 'ol';
     import { LineString, Point } from 'ol/geom';
-    // import { getDistance } from 'ol/sphere';
-    // import { circular} from 'ol/geom/Polygon';
     import GeoJSON from 'ol/format/GeoJSON';
     import Overlay from 'ol/Overlay';
     import { getDisplayNameFromStatus, getDisplayNameOfCategory, getStatusForColour, getApiaryFeatureStyle, zoomToCoordinates, checkIfValidlatitudeAndlongitude } from '@/components/common/apiary/site_colours.js'
-    // import { getArea, getLength } from 'ol/sphere'
     import MeasureStyles, { formatLength } from '@/components/common/apiary/measure.js'
-    // import Datatable from '@vue-utils/datatable.vue'
     import Cluster from 'ol/source/Cluster';
     import 'select2/dist/css/select2.min.css'
     import 'select2-bootstrap-theme/dist/select2-bootstrap.min.css'
     import Awesomplete from 'awesomplete'
     import { api_endpoints } from '@/utils/hooks'
-    // import { fromLonLat } from 'ol/proj'
-
+    import $ from 'jquery';
+    
     export default {
         name: 'AvailableSites',
         data: function(){
@@ -300,10 +295,16 @@
                     },
                 ],
                 awe: null,
-                mapboxAccessToken: null,
                 search_box_id: uuid(),
                 search_input_id: uuid(),
                 search_address_latlng_text: '',
+
+                 // AT the moment (specify the path) this works but not ideal, need to find a way to load images from assets folder
+                satelliteIconUrl: '/static/disturbance_vue/src/satellite_icon.jpg',
+                mapIconUrl: '/static/disturbance_vue/src/map_icon.png',
+                layersSvgUrl: '/static/disturbance_vue/src/layers.svg',
+                rulerSvgUrl: '/static/disturbance_vue/src/ruler.svg',
+                infoBubbleSvgUrl: '/static/disturbance_vue/src/info-bubble.svg',
             }
         },
         components: {
@@ -398,10 +399,6 @@
             }
         },
         methods: {
-            retrieveMapboxAccessToken: async function(){
-                let ret_val = await $.ajax('/api/geocoding_address_search_token')
-                return ret_val
-            },
             initAwesomplete: function(){
                 var vm = this;
                 var element_search = document.getElementById(vm.search_input_id);
@@ -441,7 +438,6 @@
                     var latlng = vm.map.getView().getCenter();
                     $.ajax({
                         url: api_endpoints.geocoding_address_search + encodeURIComponent(place)+'.json?'+ $.param({
-                            access_token: vm.mapboxAccessToken,
                             country: 'au',
                             limit: 10,
                             proximity: ''+latlng[0]+','+latlng[1],
@@ -628,6 +624,7 @@
                 let vm = this
 
                 $("#app").on('click', 'a[data-contact-licence-holder]', this.contactLicenceHolder)
+                $("#app").on('click', 'a[data-make-vacant]', this.makeVacantClicked)
 
                 let search_input_elem = $('#' + vm.search_input_id)
                 search_input_elem.on('input', function(ev){
@@ -650,7 +647,7 @@
                 e.stopPropagation()
 
                 try {
-                    const response = await fetch('/api/apiary_site/' + apiary_site_id + '/', {
+                    const response = await fetch('/api/apiary_site/' + apiary_site_id + '/toggle_availability/', {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
@@ -658,7 +655,7 @@
                         },
                         body: JSON.stringify({ available: requested_availability })
                     });
-
+                    console.log(response)
                     if (!response.ok) {
                         const errorText = await response.text();
                         throw new Error(errorText);
@@ -681,8 +678,8 @@
 
             },
             makeVacantClicked: function(e){
+                console.log("makeVacantClicked")
                 let vm = this;
-                //let apiary_site_id = e.target.getAttribute("data-apiary-site-id");
                 let apiary_site_id = e.target.getAttribute("data-make-vacant");
                 e.stopPropagation()
 
@@ -699,7 +696,7 @@
                 }).then(
                     (result) => {
                         if (result.isConfirmed) {
-                            fetch('/api/apiary_site/' + apiary_site_id + '/',{
+                            fetch('/api/apiary_site/' + apiary_site_id + '/make_vacant/',{
                                 method: 'PATCH',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -712,15 +709,10 @@
                                     throw new Error(errorText);
                                 }
                                 // Remove the row from the table
-                                // TODO: Update table
                                 $(e.target).closest('tr').fadeOut('slow', function(){
                                     // Remove the site table which the table is based on
                                     vm.removeApiarySiteById(apiary_site_id)
                                 })
-
-                                // TODO: Update map
-                                // Remove the site from the map
-                                this.$refs.component_map.removeApiarySiteById(apiary_site_id)
                             }).catch((error) => {
                                 console.log(error);
                                 swal.fire({
@@ -1157,15 +1149,6 @@
                     let features = vm.apiarySitesQuerySource.getFeaturesInExtent(extent)
                     vm.$emit('featuresDisplayed', features)
                 });
-                //vm.map.on('postrender', function(){
-                //   console.log('postrender')
-                //});
-                //vm.map.on('loadstart', function(){
-                //   console.log('loadstart')
-                //});
-                //vm.map.on('loadend', function(){
-                //   console.log('loadend')
-                //});
                 if (vm.can_modify){
                     let modifyTool = new Modify({
                         source: vm.apiarySitesQuerySource,
@@ -1214,7 +1197,6 @@
                 return approval_link
             },
             get_actions: function(feature, contactLicenceHolder){
-                console.log(contactLicenceHolder);
                 let action_list = []
 
                 let a_status = getStatusForColour(feature, false, this.display_at_time_of_submitted)
@@ -1222,7 +1204,7 @@
                 if (this.is_internal && this.show_action_make_vacant){
                     if (['denied', 'not_to_be_reissued',].includes(a_status)){
                         let display_text = 'Make Vacant'
-                        let ret = '<a data-make-vacant="' + feature.id_ + '">' + display_text + '</a>';
+                        let ret = '<a href="#' + feature.id_ + '" data-make-vacant="' + feature.id_ + '">' + display_text + '</a>';
                         action_list.push(ret);
                     }
                 }
@@ -1231,7 +1213,7 @@
                         let available = feature.get('available')
                         if (available){
                             let display_text = 'Contact licence holder'
-                            let ret = '<a data-contact-licence-holder="' + feature.id_ + '">' + display_text + '</a>';
+                            let ret = '<a href="#' + feature.id_ + '" data-contact-licence-holder="' + feature.id_ + '">' + display_text + '</a>';
                             action_list.push(ret);
                         }
                     }
@@ -1406,7 +1388,7 @@
                     {
                         headers: { 'Content-Type': 'application/json' },
                         method: 'POST',
-                        body: obj,
+                        body: JSON.stringify(obj)
                     }
                 ).then(
                     async (res) => {
@@ -1449,10 +1431,6 @@
                         // Options (sub categories) exist, which means this site_status is 'current' (for current implementation)
                         for (let option of site_status.options){
                             if (site_status.show && option.show){
-                                //if (option.ajax_obj != null) {
-                                //    option.ajax_obj.abort();
-                                //    option.ajax_obj = null;
-                                //}
                                 option.loading_sites = true
                                 option.ajax_obj = $.ajax('/api/apiary_site/' + option.api + '/?search_text=' + vm.search_text, {
                                     dataType: 'json',
@@ -1493,11 +1471,6 @@
                             // Add the features to the table
                             // Store data in the data storage
 
-                            /* Cancel all the previous requests */
-                            //if (site_status.ajax_obj != null) {
-                            //    site_status.ajax_obj.abort();
-                            //    site_status.ajax_obj = null;
-                            //}
                             site_status.loading_sites = true
                             site_status.ajax_obj = $.ajax('/api/apiary_site/' + site_status.api + '/?search_text=' + vm.search_text, {
                                 dataType: 'json',
@@ -1528,10 +1501,6 @@
                 } // END: loop for show_hide_instructions
             }, // END: showHideApiarySites()
         },
-        created: async function() {
-            let temp_token = await this.retrieveMapboxAccessToken()
-            this.mapboxAccessToken = temp_token.access_token
-        },
         mounted: function() {
             let vm = this;
             this.$nextTick(() => {
@@ -1550,6 +1519,7 @@
 </script>
 
 <style lang="css" scoped>
+    @import '../apiary/map_address_search_scoped.css';
     .map-wrapper {
         position: relative;
         padding: 0;
@@ -1765,7 +1735,6 @@
         left: 50%;
         z-index: 100000;
     }
-    @import './map_address_search_scoped.css'
 </style>
 
 <style>

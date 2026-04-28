@@ -68,25 +68,25 @@
                     <input :id="search_input_id" class="search-input" placeholder="longitude, latitude OR address to search"/>
                 </div>
                 <div id="basemap-button">
-                    <img id="basemap_sat" src="../../../assets/satellite_icon.jpg" @click="setBaseLayer('sat')" />
-                    <img id="basemap_osm" src="../../../assets/map_icon.png" @click="setBaseLayer('osm')" />
+                    <img id="basemap_sat" :src="satelliteIconUrl" @click="setBaseLayer('sat')" />
+                    <img id="basemap_osm" :src="mapIconUrl" @click="setBaseLayer('osm')" />
                 </div>
                 <div class="optional-layers-wrapper" @mouseleave="hover=false">
                     <div class="optional-layers-button">
                         <template v-if="mode === 'normal'">
-                            <img src="../../../assets/normal.svg" @click="set_mode('layer')" />
+                            <img :src="normalSvgUrl" @click="set_mode('layer')" />
                         </template>
                         <template v-else-if="mode === 'layer'">
-                            <img src="../../../assets/info-bubble.svg" @click="set_mode('measure')" />
+                            <img :src="infoBubbleSvgUrl" @click="set_mode('measure')" />
                         </template>
                         <template v-else>
-                            <img src="../../../assets/ruler.svg" @click="set_mode('normal')" />
+                            <img :src="rulerSvgUrl" @click="set_mode('normal')" />
                         </template>
                     </div>
                     <div style="position:relative">
                         <transition v-if="optionalLayers.length">
                             <div class="optional-layers-button" v-if="optionalLayers.length" @mouseover="hover=true">
-                                <img src="../../../assets/layers.svg" />
+                                <img :src="layersSvgUrl" />
                             </div>
                         </transition>
                         <transition v-if="optionalLayers.length">
@@ -166,6 +166,8 @@
     // import { getArea, getLength } from 'ol/sphere'
     import Awesomplete from 'awesomplete'
     import { api_endpoints, constants } from '@/utils/hooks'
+
+    import $ from 'jquery';
 
     // create the WMTS tile grid in the google projection
     const projection = getProjection('EPSG:4326');
@@ -363,7 +365,7 @@
                 dtOptions: {
                     serverSide: false,
                     searchDelay: 1000,
-                    lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                    lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
                     order: [
                         [0, 'desc']
                     ],
@@ -464,9 +466,16 @@
                 measuring: false,
 
                 awe: null,
-                mapboxAccessToken: null,
                 search_box_id: uuid(),
                 search_input_id: uuid(),
+
+                // AT the moment (specify the path) this works but not ideal, need to find a way to load images from assets folder
+                satelliteIconUrl: '/static/disturbance_vue/src/satellite_icon.jpg',
+                mapIconUrl: '/static/disturbance_vue/src/map_icon.png',
+                layersSvgUrl: '/static/disturbance_vue/src/layers.svg',
+                rulerSvgUrl: '/static/disturbance_vue/src/ruler.svg',
+                infoBubbleSvgUrl: '/static/disturbance_vue/src/info-bubble.svg',
+                normalSvgUrl: '/static/disturbance_vue/src/normal.svg',
             }
         },
         components: {
@@ -715,10 +724,6 @@
             }
         },
         methods:{
-            retrieveMapboxAccessToken: async function(){
-                let ret_val = await $.ajax('/api/geocoding_address_search_token')
-                return ret_val
-            },
             initAwesomplete: function(){
                 var vm = this;
                 var element_search = document.getElementById(vm.search_input_id);
@@ -758,7 +763,6 @@
                     var latlng = vm.map.getView().getCenter();
                     $.ajax({
                         url: api_endpoints.geocoding_address_search + encodeURIComponent(place)+'.json?'+ $.param({
-                            access_token: vm.mapboxAccessToken,
                             country: 'au',
                             limit: 10,
                             proximity: ''+latlng[0]+','+latlng[1],
@@ -1027,23 +1031,38 @@
             load_apiary_sites_in_this_proposal: function(){
                 // Load the apiary sites in this proposal on the map
                 let vm = this
-                for (let i=0; i<vm.proposal.proposal_apiary.apiary_sites.length; i++){
-                     let apiary_site = vm.proposal.proposal_apiary.apiary_sites[i]
 
-                    if (apiary_site.properties.status === 'vacant'){
-                        // apiary_site is 'vacant' site
-                        let feature = vm.apiarySitesQuerySource.getFeatureById(apiary_site.id)
-                        // Set new attribute to apply a specific style for the 'vacant' selected site
-                        feature.set('vacant_selected', true)
+                if (this.proposal && this.proposal.proposal_apiary) {
+                    let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/apiary_sites/'
+                    console.log('apiary_sites')
+                    fetch(url_sites).then(
+                        async (response) => {
+                            if (response.ok) {
+                                let apiary_sites_req = await response.json();
+                                let apiary_sites = JSON.parse(JSON.stringify(apiary_sites_req)).features
+                                for (let i=0; i<apiary_sites.length; i++){
+                                    let apiary_site = apiary_sites[i]
 
-                        vm.drawingLayerSource.addFeature(feature);
-                    } else {
-                        let feature = (new GeoJSON).readFeature(apiary_site)
-                        this.drawingLayerSource.addFeature(feature)
-                        this.createBufferForSite(feature);
-                    }
+                                    if (apiary_site.properties.status === 'vacant'){
+                                        // apiary_site is 'vacant' site
+                                        let feature = vm.apiarySitesQuerySource.getFeatureById(apiary_site.id)
+                                        // Set new attribute to apply a specific style for the 'vacant' selected site
+                                        feature.set('vacant_selected', true)
+
+                                        vm.drawingLayerSource.addFeature(feature);
+                                    } else {
+                                        let feature = (new GeoJSON).readFeature(apiary_site)
+                                        this.drawingLayerSource.addFeature(feature)
+                                        this.createBufferForSite(feature);
+                                    }
+                                }
+                                this.constructSiteLocationsTable();
+                            }
+                        }
+                    ).catch((error) => {
+                        console.log(error);
+                    })
                 }
-                this.constructSiteLocationsTable();
             },
             is_feature_new_or_renewal: function(feature){
                 if (feature.get('for_renewal')){
@@ -1179,9 +1198,6 @@
                     this.bufferLayerSource.removeFeature(buffer);
                 }
             },
-            existingSiteAvailableClicked: function() {
-                alert("TODO: open screen 45: External - Contact Holder of Available Site in a different tab page.");
-            },
             make_remainders_reactive: function(){
                 let remainders = null;
                 if (this.proposal.application_type === 'Apiary') {
@@ -1250,7 +1266,7 @@
                 }
 
                 let button_text = 'Pay and Submit'
-                // TODO: improve this logic
+                // TODO on cleanup: remove/review (old comment): improve this logic
                 if (this.num_of_sites_remain_south_west >= 0 && this.num_of_sites_remain_remote >=0 && !this.proposal.proposal_type === 'renewal'){
                     button_text = 'Submit'
                 }
@@ -1277,6 +1293,7 @@
                 //this.updateApiarySitesData()
             },
             getFeatures: function() {
+                console.log("getFeatures")
                 let allFeatures = this.drawingLayerSource.getFeatures()
                 return allFeatures
             },
@@ -1346,7 +1363,17 @@
                 this.deleteApiarySite(myFeature)
 
                 // Remove the row from the table
-                $(e.target).closest('tr').fadeOut('slow', function(){ })
+                let $tr = $(e.target).closest('tr');
+                if ($tr.hasClass('child')) {
+                    //if the delete link if in an expanded row, remove the parent row
+                    $tr.prev('tr').fadeOut('slow', function () {
+                        $(this).remove();
+                    });
+                } 
+                $tr.fadeOut('slow', function () {
+                    $(this).remove();
+                });
+
             },
             initMap: async function() {
                 let vm = this;
@@ -1979,8 +2006,6 @@
             this.startTime = new Date()
             await this.load_existing_sites()
             this.make_remainders_reactive()
-            let temp_token = await this.retrieveMapboxAccessToken()
-            this.mapboxAccessToken = temp_token.access_token
         },
         mounted: function() {
             let vm = this;
@@ -1995,6 +2020,7 @@
 </script>
 
 <style lang="css">
+@import './map_address_search_scoped.css';
     .delete_button {
         color: #337ab7 !important;
     }
@@ -2207,7 +2233,7 @@
     .v-leave-active {
           transition: 0.4s;
     }
-    @import './map_address_search_scoped.css'
+    
 </style>
 
 <style>

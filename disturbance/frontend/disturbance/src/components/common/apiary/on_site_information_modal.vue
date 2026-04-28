@@ -2,39 +2,31 @@
     <div>
         <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="modalTitle" large force>
             <div class="container-fluid">
-                <div class="row col-sm-12">
+                <div class="row">
 
-                    <div class="form-group"><div class="row">
-                        <label class="col-sm-3">Period From</label>
-                        <div class="col-sm-4">
+                    <div class="form-group"><div class="row mb-3">
+                        <label class="col-sm-4 col-form-label">Period From</label>
+                        <div class="col-sm-8">
                             <div class="input-group date" ref="periodFromDatePicker">
-                                <input type="text" class="form-control" placeholder="DD/MM/YYYY" id="period_from_input_element"/>
-                                <span class="input-group-addon">
-                                    <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
+                                <input type="date" class="form-control" name="period_from_input_element" placeholder="DD/MM/YYYY" v-model="on_site_information.period_from" :max="on_site_information.period_to">
                             </div>
                         </div>
                     </div></div>
 
-                    <div class="form-group"><div class="row">
-                        <label class="col-sm-3">Period To</label>
-                        <div class="col-sm-4">
+                    <div class="form-group"><div class="row mb-3">
+                        <label class="col-sm-4 col-form-label">Period To</label>
+                        <div class="col-sm-8">
                             <div class="input-group date" ref="periodToDatePicker">
-                                <input type="text" class="form-control" placeholder="DD/MM/YYYY" id="period_to_input_element"/>
-                                <span class="input-group-addon">
-                                    <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
+                                <input type="date" class="form-control" name="period_to_input_element" placeholder="DD/MM/YYYY" v-model="on_site_information.period_to" :min="on_site_information.period_from">
                             </div>
                         </div>
                     </div></div>
 
-                    <div class="form-group"><div class="row">
-                        <label class="col-sm-3">Site</label>
-                        <div class="col-sm-3">
-                            <!-- select class="form-control" v-model="on_site_information.apiary_site" -->
-                            <select class="form-control" v-model="on_site_information.apiary_site_id">
+                    <div class="form-group"><div class="row mb-3">
+                        <label class="col-sm-4 col-form-label">Site</label>
+                        <div class="col-sm-8">
+                            <select class="form-select" v-model="on_site_information.apiary_site_id">
                                 <option value=""></option>
-                                <!-- option v-for="site in apiary_sites_options" :value="site" :key="site.id" -->
                                 <option v-for="site in apiary_sites_options" :value="site.id" :key="site.id">
                                     Site: {{ site.id }}
                                 </option>
@@ -42,38 +34,38 @@
                         </div>
                     </div></div>
 
-                    <div class="form-group"><div class="row">
-                        <label class="col-sm-3">The proposed location of the hives</label>
-                        <div class="col-sm-3">
+                    <div class="form-group"><div class="row mb-3">
+                        <label class="col-sm-4 col-form-label">The proposed location of the hives</label>
+                        <div class="col-sm-8">
                             <textarea class="form-control" v-model="on_site_information.hives_loc"/>
                         </div>
                     </div></div>
 
-                    <div class="form-group"><div class="row">
-                        <label class="col-sm-3">Number of hives proposed to be placed on the site</label>
-                        <div class="col-sm-3">
+                    <div class="form-group"><div class="row mb-3">
+                        <label class="col-sm-4 col-form-label">Number of hives proposed to be placed on the site</label>
+                        <div class="col-sm-8">
                             <input type='number' value="0" class="form-control" v-model="on_site_information.hives_num"/>
                         </div>
                     </div></div>
 
-                    <div class="form-group"><div class="row">
-                        <label class="col-sm-3">The names of the people who are expected to be entering the site for apiary purposes</label>
-                        <div class="col-sm-3">
+                    <div class="form-group"><div class="row mb-3">
+                        <label class="col-sm-4 col-form-label">The names of the people who are expected to be entering the site for apiary purposes</label>
+                        <div class="col-sm-8">
                             <textarea class="form-control" v-model="on_site_information.people_names"/>
                         </div>
                     </div></div>
 
-                    <div class="form-group"><div class="row">
-                        <label class="col-sm-3">Flora targeted</label>
-                        <div class="col-sm-3">
+                    <div class="form-group"><div class="row mb-3">
+                        <label class="col-sm-4 col-form-label">Flora targeted</label>
+                        <div class="col-sm-8">
                             <textarea class="form-control" v-model="on_site_information.flora"/>
                         </div>
                     </div></div>
 
 
-                    <div class="form-group"><div class="row">
-                        <label class="col-sm-3">Comments</label>
-                        <div class="col-sm-3">
+                    <div class="form-group"><div class="row mb-3">
+                        <label class="col-sm-4 col-form-label">Comments</label>
+                        <div class="col-sm-8">
                             <textarea class="form-control" v-model="on_site_information.comments"/>
                         </div>
                     </div></div>
@@ -90,9 +82,9 @@
                         </div>
                     </div>
                 </div>
-                <button type="button" v-if="processingDetails" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Adding</button>
-                <button type="button" v-else class="btn btn-default" @click="ok">Ok</button>
-                <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
+                <button type="button" v-if="processingDetails" disabled class="btn btn-primary" @click="ok"><i class="fa fa-spinner fa-spin"></i> Adding</button>
+                <button type="button" v-else class="btn btn-primary" @click="ok">Ok</button>
+                <button type="button" class="btn btn-secondary" @click="cancel">Cancel</button>
             </template>
         </modal>
     </div>
@@ -134,11 +126,6 @@
                 return 'Add on site info'
             },
         },
-        mounted: function () {
-            this.$nextTick(() => {
-                this.addEventListeners();
-            });
-        },
         created: function() {
             this.loadApiarySites()
         },
@@ -155,72 +142,6 @@
                 }).catch((error) => {
                     console.log(error);
                 });
-            },
-            addEventListeners: function () {
-                let vm = this;
-                let el_fr = $(vm.$refs.periodFromDatePicker);
-                let el_to = $(vm.$refs.periodToDatePicker);
-                let options = {
-                    format: "DD/MM/YYYY",
-                    showClear: true ,
-                    useCurrent: false,
-                };
-
-                el_fr.datetimepicker(options);
-                el_to.datetimepicker(options);
-
-                el_fr.on("dp.change", function(e) {
-                    let selected_date = null;
-                    if (e.date){
-                        // Date selected
-                        selected_date = e.date.format('DD/MM/YYYY')  // e.date is moment object
-                        vm.on_site_information.period_from = selected_date;
-                        el_to.data('DateTimePicker').minDate(selected_date);
-                    } else {
-                        // Date not selected
-                        vm.on_site_information.period_from = selected_date;
-                        el_to.data('DateTimePicker').minDate(false);
-                    }
-                });
-
-                el_to.on("dp.change", function(e) {
-                    let selected_date = null;
-                    if (e.date){
-                        selected_date = e.date.format('DD/MM/YYYY');
-                        vm.on_site_information.period_to = selected_date;
-                        el_fr.data('DateTimePicker').maxDate(selected_date);
-                    } else {
-                        vm.on_site_information.period_to = '';
-                        el_fr.data('DateTimePicker').maxDate(false);
-                    }
-                });
-
-                //***
-                // Set dates in case they are passed from the parent component
-                //***
-                let searchPattern = /^[0-9]{4}/
-
-                let period_from_passed = vm.on_site_information.period_from;
-                if (period_from_passed) {
-                    // If date passed
-                    if (searchPattern.test(period_from_passed)) {
-                        // Convert YYYY-MM-DD to DD/MM/YYYY
-                        period_from_passed = moment(period_from_passed, 'YYYY-MM-DD').format('DD/MM/YYYY');
-                    }
-                    $('#period_from_input_element').val(period_from_passed);
-                    el_to.data('DateTimePicker').minDate(period_from_passed);
-                }
-
-                let period_to_passed = vm.on_site_information.period_to;
-                if (period_to_passed) {
-                    // If date passed
-                    if (searchPattern.test(period_to_passed)) {
-                        // Convert YYYY-MM-DD to DD/MM/YYYY
-                        period_to_passed = moment(period_to_passed, 'YYYY-MM-DD').format('DD/MM/YYYY');
-                    }
-                    $('#period_to_input_element').val(period_to_passed);
-                    el_fr.data('DateTimePicker').maxDate(period_to_passed);
-                }
             },
             ok: async function () {
                 try {

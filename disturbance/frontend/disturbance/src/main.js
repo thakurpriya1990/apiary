@@ -1,68 +1,49 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
-import { createApp } from 'vue';
-import App from './App'
-import router from './router'
-import 'bootstrap'
-import helpers from '@/utils/helpers'
-// import api_endpoints from './api'
+//import './jquery-global.js';
 
-import $ from 'jquery';
-import { extendMoment } from 'moment-range';
+import 'bootstrap'
+import 'bootstrap/dist/css/bootstrap.css'; // CSS first
+
+import 'vite/modulepreload-polyfill';
+import { createApp } from 'vue';
+import App from './App.vue'
+import router from './router'
+import helpers from '@/utils/helpers'
+
+import select2 from 'select2';
+import swal from 'sweetalert2';
+window.swal = swal;
+select2();
 import jsZip from 'jszip';
 window.JSZip = jsZip;
-window.$ = $;
+import _ from 'lodash';
+window._ = _;
+
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 import 'datatables.net';
-import 'datatables.net-bs';
-import 'datatables.net-responsive-bs';
+import 'datatables.net-bs5';
+
 import 'datatables.net-buttons/js/dataTables.buttons.js'
+import 'datatables.net-buttons-bs5';
 import 'datatables.net-buttons/js/buttons.html5.js'
 
-import "datatables.net-bs/css/dataTables.bootstrap.css"
-import "datatables.net-responsive-bs/css/responsive.bootstrap.css"
+import 'datatables.net-responsive/js/dataTables.responsive.js';
+import 'datatables.net-responsive-bs5';
+
+import '@/../node_modules/datatables.net-bs5/css/dataTables.bootstrap5.min.css';
+import '@/../node_modules/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css';
 
 import "sweetalert2/dist/sweetalert2.css"
 
 import 'jquery-validation'
 
-import 'select2';
 import 'select2/dist/css/select2.min.css';
 import 'select2-bootstrap-theme/dist/select2-bootstrap.min.css';
 
-extendMoment(moment);
-
-// require( '../node_modules/bootstrap/dist/css/bootstrap.css' );
-//require('../node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css')
-require( '../node_modules/font-awesome/css/font-awesome.min.css' )
-require('../node_modules/eonasdan-bootstrap-datetimepicker')
-require('../node_modules/jquery.easing')
-
-// Vue.config.devtools = true;
-// Vue.config.productionTip = false
-// Vue.use( resource );
-// Vue.prototype.$log = console.log
-
-// Add CSRF Token to every request
-// Vue.http.interceptors.push( function ( request, next ) {
-//   // modify headers
-//   if ( request.url != api_endpoints.countries ) {
-//     request.headers.set( 'X-CSRFToken', helpers.getCookie( 'csrftoken' ) );
-//   }
-
-//   // continue to next interceptor
-//   next();
-// } );
-
-
-// new Vue( {
-//   el: '#app',
-//   router,
-//   template: '<App/>',
-//   components: {
-//     App
-//   }
-// } )
+import 'font-awesome/css/font-awesome.min.css';
+import 'jquery.easing';
 
 const app = createApp(App);
 

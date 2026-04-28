@@ -19,7 +19,7 @@
                                     </div>
                                     <div class="col-sm-9" v-if="requirement.standard">
                                         <div style="width:70% !important">
-                                            <select class="form-control" ref="standard_req" name="standard_requirement" v-model="requirement.standard_requirement">
+                                            <select class="form-select" ref="standard_req" name="standard_requirement" v-model="requirement.standard_requirement">
                                                 <option v-for="r in requirements" :value="r.id" :key="r.id">{{r.code}} {{r.text}}</option>
                                             </select>
                                         </div>
@@ -48,8 +48,6 @@
                                 <div class="row">
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="add_attachments" style="width: 70%;">
-                                            <!--FileField2 ref="filefield" :uploaded_documents="requirement.requirement_documents" :delete_url="delete_url" :proposal_id="proposal_id" isRepeatable="true" name="requirements_file" @refreshFromResponse="refreshFromResponse"/-->
-
                                             <FileField
                                                 ref="deed_poll_documents"
                                                 name="deed-poll-documents"
@@ -121,13 +119,12 @@
 </template>
 
 <script>
-//import $ from 'jquery'
-//import FileField from '@/components/forms/file.vue'
-//import FileField2 from '@/components/forms/filefield2.vue'
 import FileField from '@/components/forms/filefield_immediate.vue'
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 import {helpers,api_endpoints} from "@/utils/hooks.js"
+import $ from 'jquery';
+
 export default {
     name:'Apiary-Requirement-Detail',
     components:{
@@ -232,8 +229,12 @@ export default {
         ok:function () {
             let vm =this;
             if($(vm.form).valid()){
+                vm.errors = false;
                 vm.sendData();
                 vm.$refs.filefield.reset_files();
+            } else {
+                vm.errorString = "Missing required fields.";
+                vm.errors = true;
             }
         },
         cancel:function () {
@@ -291,8 +292,6 @@ export default {
             }
 
             let formData = new FormData()
-            //formData.append('files', vm.$refs.filefield.files, 'my_filenames');
-
             // Add files to formData
             var files = vm.$refs.filefield.files;
             $.each(files, function (idx, v) {
@@ -307,7 +306,6 @@ export default {
 
             if (vm.requirement.id){
                 vm.updatingRequirement = true;
-                //vm.$http.put(helpers.add_endpoint_json(api_endpoints.proposal_requirements,requirement.id),JSON.stringify(requirement),{
                 requirement.update = true;
                 formData.append('data', JSON.stringify(requirement));
                 fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements,requirement.id),{
@@ -327,24 +325,23 @@ export default {
                     });
             } else {
                 vm.addingRequirement = true;
-                //vm.$http.post(api_endpoints.proposal_requirements,JSON.stringify(requirement),{
                 requirement.update = false;
                 formData.append('data', JSON.stringify(requirement));
                 fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements),{
-                        method: 'POST',
-                        body: formData,
-                    }).then(async (response)=>{
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! Status: ${response.status}`);
-                        }
-                        vm.addingRequirement = false;
-                        vm.close();
-                        vm.$parent.updatedRequirements();
-                    }).catch((error) => {
-                        vm.errors = true;
-                        vm.addingRequirement = false;
-                        vm.errorString = error;
-                    });
+                    method: 'POST',
+                    body: formData,
+                }).then(async (response)=>{
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    vm.addingRequirement = false;
+                    vm.close();
+                    vm.$parent.updatedRequirements();
+                }).catch((error) => {
+                    vm.errors = true;
+                    vm.addingRequirement = false;
+                    vm.errorString = error;
+                });
             }
         },
         addFormValidations: function() {
@@ -373,30 +370,6 @@ export default {
                         }
                     }
                 },
-                messages: {
-                    arrival:"field is required",
-                    departure:"field is required",
-                    campground:"field is required",
-                    campsite:"field is required"
-                },
-                showErrors: function(errorMap, errorList) {
-                    $.each(this.validElements(), function(index, element) {
-                        var $element = $(element);
-                        $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
-                    });
-                    // destroy tooltips on valid elements
-                    $("." + this.settings.validClass).tooltip("destroy");
-                    // add or update tooltips
-                    for (var i = 0; i < errorList.length; i++) {
-                        var error = errorList[i];
-                        $(error.element)
-                            .tooltip({
-                                trigger: "focus"
-                            })
-                            .attr("data-original-title", error.message)
-                            .parents('.form-group').addClass('has-error');
-                    }
-                }
             });
        },
        eventListeners:function () {
@@ -427,12 +400,6 @@ export default {
                 var selected = $(e.currentTarget);
                 vm.requirement.standard_requirement = selected.val();
             });
-
-            //vm.$refs.filefield.on('click', '.delete_document', function(e) {
-            //    e.preventDefault();
-            //    vm.requirement.requirement_documents = vm.$refs.filefield.uploaded_documents;
-            //});
-
        }
    },
    mounted:function () {

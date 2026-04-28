@@ -5,11 +5,10 @@ import pytz
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.db import transaction
-from django.contrib.gis.geos import Point, GEOSGeometry
-from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Document
+from django.contrib.gis.geos import GEOSGeometry
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from rest_framework import serializers
 
-from disturbance.components.main.decorators import timeit
 from disturbance.components.proposals.models import ProposalDocument, ProposalUserAction, ApiarySite, SiteCategory, \
     ProposalApiaryTemporaryUse, TemporaryUseApiarySite, ApiarySiteOnProposal, Proposal
 from disturbance.components.proposals.serializers import SaveProposalSerializer
@@ -19,12 +18,6 @@ from disturbance.components.proposals.models import (
     SiteTransferApiarySite,
     ApiaryChecklistQuestion,
     ApiaryChecklistAnswer,
-    QuestionOption,
-    MasterlistQuestion,
-    ProposalTypeSection,
-    SectionQuestion,
-    HelpPage,
-    ApplicationType,
 )
 from disturbance.components.proposals.serializers_apiary import (
     ProposalApiarySerializer,
@@ -41,14 +34,463 @@ import json
 
 import logging
 
-from disturbance.settings import RESTRICTED_RADIUS, TIME_ZONE, DEBUG
+from disturbance.settings import TIME_ZONE, DEBUG
 from disturbance.utils import convert_moment_str_to_python_datetime_obj
 from disturbance.helpers import is_internal
+
+from django.db.models import JSONField, Func, FloatField, Value, F
+from django.db.models.functions import JSONObject, Cast
 
 logger = logging.getLogger(__name__)
 
 richtext = u''
 richtext_assessor=u''
+
+def rename_site_id_to_id(rows):
+    #transform site_id to id NOTE: this is not ideal, but the original serializer overwrote id so for now we have to as well...
+    #TODO on cleanup - change all references to this dataset to site_id instead of id
+    for row in rows:
+        row["id"] = row.pop("site_id")
+
+    return rows
+
+def annotate_apiary_site_on_proposal_draft_geometry(qs):
+    annotated = qs.annotate(
+            lat=Func("wkb_geometry_draft", function="ST_Y", output_field=FloatField()),
+            lng=Func("wkb_geometry_draft", function="ST_X", output_field=FloatField()),
+        ).annotate(
+            site_id=F("apiary_site__id")
+        ).annotate(
+            stable_coords=JSONObject(
+                lng=F('lng'),
+                lat=F('lat'),
+            )
+        ).annotate(
+            site_guid=F("apiary_site__site_guid")
+        ).annotate(
+            site_category=F("site_category_draft__name")
+        ).annotate(
+            status=F("site_status")
+        ).annotate(
+            is_vacant=F("apiary_site__is_vacant")
+        ).annotate(
+            geometry=JSONObject(
+                type=Value("Point"),
+                coordinates=Func(
+                    Cast(F('lng'), FloatField()),
+                    Cast(F('lat'), FloatField()),
+                    function='jsonb_build_array',
+                    output_field=JSONField(),
+                )
+            )
+        ).annotate(
+            type=Value("Feature") #we are returning a list of features
+        ).annotate(
+            properties=JSONObject(
+                stable_coords=F('stable_coords'),
+                site_guid=F('site_guid'),
+                is_vacant=F('is_vacant'),
+                wkb_geometry_processed=F('wkb_geometry_draft'),
+                site_category=F('site_category'),
+                status=F('status'),
+                workflow_selected_status=F('workflow_selected_status'),
+                for_renewal=F('for_renewal'),
+                making_payment=F('making_payment'),
+                application_fee_paid=F('application_fee_paid'),
+                apiary_site_status_when_submitted=F('apiary_site_status_when_submitted'),
+                apiary_site_is_vacant_when_submitted=F('apiary_site_is_vacant_when_submitted'),
+                licensed_site=F('licensed_site'),
+                issuance_details=F('issuance_details'),
+                batch_no=F('batch_no'),
+                approval_cpc_date=F('approval_cpc_date'),
+                approval_minister_date=F('approval_minister_date'),
+                map_ref=F('map_ref'),
+                forest_block=F('forest_block'),
+                cog=F('cog'),
+                roadtrack=F('roadtrack'),
+                zone=F('zone'),
+                catchment=F('catchment'),
+                dra_permit=F('dra_permit'),
+            )
+        ).values(
+            'site_id',
+            'type',
+            'geometry',
+            'properties',
+        )
+
+    annotated = rename_site_id_to_id(annotated)
+
+    return annotated
+
+def annotate_apiary_site_on_proposal_processed_geometry(qs):
+    
+    annotated = qs.annotate(
+            lat=Func("wkb_geometry_processed", function="ST_Y", output_field=FloatField()),
+            lng=Func("wkb_geometry_processed", function="ST_X", output_field=FloatField()),
+        ).annotate(
+            stable_coords=JSONObject(
+                lng=F('lng'),
+                lat=F('lat'),
+            )
+        ).annotate(
+            site_id=F("apiary_site__id")
+        ).annotate(
+            site_guid=F("apiary_site__site_guid")
+        ).annotate(
+            site_category=F("site_category_processed__name")
+        ).annotate(
+            status=F("site_status")
+        ).annotate(
+            is_vacant=F("apiary_site__is_vacant")
+        ).annotate(
+            geometry=JSONObject(
+                type=Value("Point"),
+                coordinates=Func(
+                    Cast(F('lng'), FloatField()),
+                    Cast(F('lat'), FloatField()),
+                    function='jsonb_build_array',
+                    output_field=JSONField(),
+                )
+            )
+        ).annotate(
+            type=Value("Feature") #we are returning a list of features
+        ).annotate(
+            properties=JSONObject(
+                stable_coords=F('stable_coords'),
+                site_guid=F('site_guid'),
+                is_vacant=F('is_vacant'),
+                wkb_geometry_processed=F('wkb_geometry_processed'),
+                site_category=F('site_category'),
+                status=F('status'),
+                workflow_selected_status=F('workflow_selected_status'),
+                for_renewal=F('for_renewal'),
+                making_payment=F('making_payment'),
+                application_fee_paid=F('application_fee_paid'),
+                apiary_site_status_when_submitted=F('apiary_site_status_when_submitted'),
+                apiary_site_is_vacant_when_submitted=F('apiary_site_is_vacant_when_submitted'),
+                licensed_site=F('licensed_site'),
+                issuance_details=F('issuance_details'),
+                batch_no=F('batch_no'),
+                approval_cpc_date=F('approval_cpc_date'),
+                approval_minister_date=F('approval_minister_date'),
+                map_ref=F('map_ref'),
+                forest_block=F('forest_block'),
+                cog=F('cog'),
+                roadtrack=F('roadtrack'),
+                zone=F('zone'),
+                catchment=F('catchment'),
+                dra_permit=F('dra_permit'),
+            )
+        ).values(
+            'site_id',
+            'type',
+            'geometry',
+            'properties',
+        )
+
+    annotated = rename_site_id_to_id(annotated)
+
+    return annotated
+
+def annotate_site_transfer_apiary_site(qs):
+    
+    annotated = qs.annotate(
+            lat=Func("apiary_site_on_approval__wkb_geometry", function="ST_Y", output_field=FloatField()),
+            lng=Func("apiary_site_on_approval__wkb_geometry", function="ST_X", output_field=FloatField()),
+        ).annotate(
+            stable_coords=JSONObject(
+                lng=F('lng'),
+                lat=F('lat'),
+            )
+        ).annotate(
+            site_id=F("apiary_site_on_approval__apiary_site__id")
+        ).annotate(
+            site_guid=F("apiary_site_on_approval__apiary_site__site_guid")
+        ).annotate(
+            status=F("apiary_site_on_approval__site_status")
+        ).annotate(
+            is_vacant=F("apiary_site_on_approval__apiary_site__is_vacant")
+        ).annotate(
+            geometry=JSONObject(
+                type=Value("Point"),
+                coordinates=Func(
+                    Cast(F('lng'), FloatField()),
+                    Cast(F('lat'), FloatField()),
+                    function='jsonb_build_array',
+                    output_field=JSONField(),
+                )
+            )
+        ).annotate(
+            type=Value("Feature") #we are returning a list of features
+        ).annotate(
+            properties=JSONObject(
+                stable_coords=F('stable_coords'),
+                site_guid=F('site_guid'),
+                is_vacant=F('is_vacant'),
+                available=F('apiary_site_on_approval__available'),
+                wkb_geometry=F('apiary_site_on_approval__wkb_geometry'),
+                site_category=F('apiary_site_on_approval__site_category__name'),
+                status=F('status'),
+                licensed_site=F('apiary_site_on_approval__licensed_site'),
+                batch_no=F('apiary_site_on_approval__batch_no'),
+                approval_cpc_date=F('apiary_site_on_approval__approval_cpc_date'),
+                approval_minister_date=F('apiary_site_on_approval__approval_minister_date'),
+                map_ref=F('apiary_site_on_approval__map_ref'),
+                forest_block=F('apiary_site_on_approval__forest_block'),
+                cog=F('apiary_site_on_approval__cog'),
+                roadtrack=F('apiary_site_on_approval__roadtrack'),
+                zone=F('apiary_site_on_approval__zone'),
+                catchment=F('apiary_site_on_approval__catchment'),
+                dra_permit=F('apiary_site_on_approval__dra_permit'),
+            )
+        ).annotate(
+            apiary_site=JSONObject(
+                id=F('apiary_site_on_approval__apiary_site__id'),
+                type=F('type'),
+                geometry=F('geometry'),
+                properties=F('properties'),
+            )
+        ).values(
+            'site_id',
+            'apiary_site',
+            'customer_selected',
+            'internal_selected',
+        )
+
+    annotated = rename_site_id_to_id(annotated)
+
+    return annotated
+
+def annotate_temporary_use_apiary_site(qs):
+
+    annotated = qs.annotate(
+            lat=Func("apiary_site_on_approval__wkb_geometry", function="ST_Y", output_field=FloatField()),
+            lng=Func("apiary_site_on_approval__wkb_geometry", function="ST_X", output_field=FloatField()),
+        ).annotate(
+            stable_coords=JSONObject(
+                lng=F('lng'),
+                lat=F('lat'),
+            )
+        ).annotate(
+            site_guid=F("apiary_site_on_approval__apiary_site__site_guid")
+        ).annotate(
+            status=F("apiary_site_on_approval__site_status")
+        ).annotate(
+            is_vacant=F("apiary_site_on_approval__apiary_site__is_vacant")
+        ).annotate(
+            geometry=JSONObject(
+                type=Value("Point"),
+                coordinates=Func(
+                    Cast(F('lng'), FloatField()),
+                    Cast(F('lat'), FloatField()),
+                    function='jsonb_build_array',
+                    output_field=JSONField(),
+                )
+            )
+        ).annotate(
+            type=Value("Feature") #we are returning a list of features
+        ).annotate(
+            properties=JSONObject(
+                stable_coords=F('stable_coords'),
+                site_guid=F('site_guid'),
+                is_vacant=F('is_vacant'),
+                available=F('apiary_site_on_approval__available'),
+                wkb_geometry=F('apiary_site_on_approval__wkb_geometry'),
+                site_category=F('apiary_site_on_approval__site_category__name'),
+                status=F('status'),
+                licensed_site=F('apiary_site_on_approval__licensed_site'),
+                batch_no=F('apiary_site_on_approval__batch_no'),
+                approval_cpc_date=F('apiary_site_on_approval__approval_cpc_date'),
+                approval_minister_date=F('apiary_site_on_approval__approval_minister_date'),
+                map_ref=F('apiary_site_on_approval__map_ref'),
+                forest_block=F('apiary_site_on_approval__forest_block'),
+                cog=F('apiary_site_on_approval__cog'),
+                roadtrack=F('apiary_site_on_approval__roadtrack'),
+                zone=F('apiary_site_on_approval__zone'),
+                catchment=F('apiary_site_on_approval__catchment'),
+                dra_permit=F('apiary_site_on_approval__dra_permit'),
+            )
+        ).annotate(
+            apiary_site=JSONObject(
+                id=F('apiary_site_on_approval__apiary_site__id'),
+                type=F('type'),
+                geometry=F('geometry'),
+                properties=F('properties'),
+            )
+        ).values(
+            'id',
+            'proposal_apiary_temporary_use_id',
+            'apiary_site_on_approval_id',
+            'apiary_site',
+            'selected',
+        )
+
+    return annotated
+
+def annotate_apiary_site_on_proposal_vacant_draft_minimal_geometry(qs):
+    annotated = qs.annotate(
+            lat=Func("wkb_geometry_draft", function="ST_Y", output_field=FloatField()),
+            lng=Func("wkb_geometry_draft", function="ST_X", output_field=FloatField()),
+        ).annotate(
+            site_id=F("apiary_site__id")
+        ).annotate(
+            stable_coords=JSONObject(
+                lng=F('lng'),
+                lat=F('lat'),
+            )
+        ).annotate(
+            site_guid=F("apiary_site__site_guid")
+        ).annotate(
+            site_category=F("site_category_draft__name")
+        ).annotate(
+            status=F("site_status")
+        ).annotate(
+            is_vacant=F("apiary_site__is_vacant")
+        ).annotate(
+            geometry=JSONObject(
+                type=Value("Point"),
+                coordinates=Func(
+                    Cast(F('lng'), FloatField()),
+                    Cast(F('lat'), FloatField()),
+                    function='jsonb_build_array',
+                    output_field=JSONField(),
+                )
+            )
+        ).annotate(
+            type=Value("Feature") #we are returning a list of features
+        ).annotate(
+            properties=JSONObject(
+                stable_coords=F('stable_coords'),
+                site_guid=F('site_guid'),
+                is_vacant=F('is_vacant'),
+                site_category=F('site_category'),
+                status=F('status'),
+                workflow_selected_status=F('workflow_selected_status'),
+                for_renewal=F('for_renewal'),
+                making_payment=F('making_payment'),
+                application_fee_paid=F('application_fee_paid'),
+                apiary_site_status_when_submitted=F('apiary_site_status_when_submitted'),
+                apiary_site_is_vacant_when_submitted=F('apiary_site_is_vacant_when_submitted'),
+            )
+        ).values(
+            'site_id',
+            'type',
+            'geometry',
+            'properties',
+        )
+
+    annotated = rename_site_id_to_id(annotated)
+
+    return annotated
+
+def annotate_apiary_site_on_proposal_minimal_geometry(qs):
+    annotated = qs.annotate(
+            lat=Func("wkb_geometry_draft", function="ST_Y", output_field=FloatField()),
+            lng=Func("wkb_geometry_draft", function="ST_X", output_field=FloatField()),
+        ).annotate(
+            site_id=F("apiary_site__id")
+        ).annotate(
+            stable_coords=JSONObject(
+                lng=F('lng'),
+                lat=F('lat'),
+            )
+        ).annotate(
+            site_guid=F("apiary_site__site_guid")
+        ).annotate(
+            site_category=F("site_category_draft__name")
+        ).annotate(
+            status=F("site_status")
+        ).annotate(
+            is_vacant=F("apiary_site__is_vacant")
+        ).annotate(
+            geometry=JSONObject(
+                type=Value("Point"),
+                coordinates=Func(
+                    Cast(F('lng'), FloatField()),
+                    Cast(F('lat'), FloatField()),
+                    function='jsonb_build_array',
+                    output_field=JSONField(),
+                )
+            )
+        ).annotate(
+            type=Value("Feature") #we are returning a list of features
+        ).annotate(
+            properties=JSONObject(
+                stable_coords=F('stable_coords'),
+                site_guid=F('site_guid'),
+                is_vacant=F('is_vacant'),
+                site_category=F('site_category'),
+                status=F('status'),
+                for_renewal=F('for_renewal'),
+                application_fee_paid=F('application_fee_paid'),
+            )
+        ).values(
+            'site_id',
+            'type',
+            'geometry',
+            'properties',
+        )
+
+    annotated = rename_site_id_to_id(annotated)
+
+    return annotated
+
+def annotate_apiary_site_on_proposal_processed_minimal_geometry(qs):
+    annotated = qs.annotate(
+            lat=Func("wkb_geometry_processed", function="ST_Y", output_field=FloatField()),
+            lng=Func("wkb_geometry_processed", function="ST_X", output_field=FloatField()),
+        ).annotate(
+            site_id=F("apiary_site__id")
+        ).annotate(
+            stable_coords=JSONObject(
+                lng=F('lng'),
+                lat=F('lat'),
+            )
+        ).annotate(
+            site_guid=F("apiary_site__site_guid")
+        ).annotate(
+            site_category=F("site_category_draft__name")
+        ).annotate(
+            status=F("site_status")
+        ).annotate(
+            is_vacant=F("apiary_site__is_vacant")
+        ).annotate(
+            geometry=JSONObject(
+                type=Value("Point"),
+                coordinates=Func(
+                    Cast(F('lng'), FloatField()),
+                    Cast(F('lat'), FloatField()),
+                    function='jsonb_build_array',
+                    output_field=JSONField(),
+                )
+            )
+        ).annotate(
+            type=Value("Feature") #we are returning a list of features
+        ).annotate(
+            properties=JSONObject(
+                stable_coords=F('stable_coords'),
+                site_guid=F('site_guid'),
+                is_vacant=F('is_vacant'),
+                site_category=F('site_category'),
+                status=F('status'),
+                workflow_selected_status=F('workflow_selected_status'),
+                for_renewal=F('for_renewal'),
+                making_payment=F('making_payment'),
+                application_fee_paid=F('application_fee_paid'),
+                apiary_site_status_when_submitted=F('apiary_site_status_when_submitted'),
+                apiary_site_is_vacant_when_submitted=F('apiary_site_is_vacant_when_submitted'),
+            )
+        ).values(
+            'site_id',
+            'type',
+            'geometry',
+            'properties',
+        )
+
+    annotated = rename_site_id_to_id(annotated)
+
+    return annotated
 
 def create_data_from_form(schema, post_data, file_data, post_data_index=None,special_fields=[],assessor_data=False):
     data = {}
@@ -78,10 +520,6 @@ def create_data_from_form(schema, post_data, file_data, post_data_index=None,spe
 
     return [data],special_fields_list
 
-
-def _extend_item_name(name, suffix, repetition):
-    return '{}{}-{}'.format(name, suffix, repetition)
-
 def _create_data_from_item(item, post_data, file_data, repetition, suffix):
     item_data = {}
 
@@ -92,12 +530,11 @@ def _create_data_from_item(item, post_data, file_data, repetition, suffix):
 
     if 'children' not in item:
         if item['type'] in ['checkbox' 'declaration']:
-            #item_data[item['name']] = post_data[item['name']]
             item_data[item['name']] = extended_item_name in post_data
         elif item['type'] == 'file':
             if extended_item_name in file_data:
                 item_data[item['name']] = str(file_data.get(extended_item_name))
-                # TODO save the file here
+                #TODO on cleanup: remove/review (old comment) save the file here
             elif extended_item_name + '-existing' in post_data and len(post_data[extended_item_name + '-existing']) > 0:
                 item_data[item['name']] = post_data.get(extended_item_name + '-existing')
             else:
@@ -389,7 +826,6 @@ class SpecialFieldsSearch(object):
 
 def save_proponent_data(instance, request, viewset):
     if instance.application_type.name == 'Site Transfer':
-    #if instance.application_type.name == ApplicationType.SITE_TRANSFER:
         save_proponent_data_apiary_site_transfer(instance, request, viewset)
         instance.log_user_action(ProposalUserAction.APIARY_ACTION_SAVE_APPLICATION.format(instance.lodgement_number), request)
     elif instance.apiary_group_application_type:
@@ -539,7 +975,6 @@ def save_proponent_data_apiary(proposal_obj, request, viewset):
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
-                # site_locations_received = proposal_apiary_data['apiary_sites']
                 all_features = request.data.get('all_the_features')
                 
                 try:
@@ -561,17 +996,10 @@ def save_proponent_data_apiary(proposal_obj, request, viewset):
                             site_ids_received.append(site_already_saved.id)
                         except:
                             pass
-                # site_ids_existing = [site.id for site in ApiarySite.objects.filter(proposal_apiary_id=proposal_apiary_data['id'])]
-                site_ids_existing = [site.id for site in proposal_obj.proposal_apiary.apiary_sites.all()]
-                # site_ids_existing_vacant = [site.id for site in proposal_obj.proposal_apiary.vacant_apiary_sites.all()]
-                site_ids_existing_vacant = []  # TODO implement
-                site_ids_delete = [id for id in site_ids_existing if id not in site_ids_received]
-                # site_ids_delete_vacant = [id for id in site_ids_existing_vacant if id not in site_ids_received] # TODO implement
-                site_ids_delete_vacant = []
 
-                # Handle ApiarySites here
-                # for index, feature in enumerate(site_locations_received):
-                #     feature['proposal_apiary_id'] = proposal_obj.proposal_apiary.id
+                site_ids_existing = [site.id for site in proposal_obj.proposal_apiary.apiary_sites.all()]
+                site_ids_delete = [id for id in site_ids_existing if id not in site_ids_received]
+
                 # only internal users can add/update apiary sites on renewal applications
                 renewal = proposal_obj.proposal_type == "renewal"
                 if is_internal(request) or not renewal:
@@ -651,10 +1079,7 @@ def save_proponent_data_apiary(proposal_obj, request, viewset):
                     proposal_obj.processing_status = Proposal.PROCESSING_STATUS_WITH_ASSESSOR
                     proposal_obj.customer_status = Proposal.CUSTOMER_STATUS_WITH_ASSESSOR
                     proposal_obj.documents.all().update(can_delete=False)
-                    #proposal.required_documents.all().update(can_delete=False)
                     proposal_obj.save()
-
-                # return redirect(reverse('external-proposal-temporary-use-submit-success', kwargs={'proposal_pk': proposal_obj.id}))
 
             # save/update any additonal special propoerties here
             proposal_obj.title = proposal_obj.proposal_apiary.title if hasattr(proposal_obj, 'proposal_apiary') else proposal_obj.title
@@ -809,28 +1234,6 @@ def save_proponent_data_disturbance(instance,request,viewset):
             viewset.perform_update(serializer)
             instance.log_user_action(ProposalUserAction.ACTION_SAVE_APPLICATION.format(instance.lodgement_number), request)
 
-            # Save Documents
-        #            for f in request.FILES:
-        #                try:
-        #                    #document = instance.documents.get(name=str(request.FILES[f]))
-        #                    document = instance.documents.get(input_name=f)
-        #                except ProposalDocument.DoesNotExist:
-        #                    document = instance.documents.get_or_create(input_name=f)[0]
-        #                document.name = str(request.FILES[f])
-        #                if document._file and os.path.isfile(document._file.path):
-        #                    os.remove(document._file.path)
-        #                document._file = request.FILES[f]
-        #                document.save()
-
-        #            for f in request.FILES:
-        #                try:
-        #                   document = instance.documents.get(input_name=f, name=request.FILES[f].name)
-        #                except ProposalDocument.DoesNotExist:
-        #                   document = instance.documents.get_or_create(input_name=f, name=request.FILES[f].name)[0]
-        #                document._file = request.FILES[f]
-        #                document.save()
-
-        # End Save Documents
         except:
             raise
 
@@ -855,7 +1258,6 @@ def save_assessor_data(instance,request,viewset):
             # Save Documents
             for f in request.FILES:
                 try:
-                    #document = instance.documents.get(name=str(request.FILES[f]))
                     document = instance.documents.get(input_name=f)
                 except ProposalDocument.DoesNotExist:
                     document = instance.documents.get_or_create(input_name=f)[0]
@@ -870,12 +1272,12 @@ def save_assessor_data(instance,request,viewset):
             raise
 
 
-def save_apiary_assessor_data(instance,request,viewset):
+def save_apiary_assessor_data(instance,request):
     with transaction.atomic():
         try:
             serializer = SaveProposalSerializer(instance, request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            viewset.perform_update(serializer)
+
             # Save Documents
             for f in request.FILES:
                 try:
@@ -940,11 +1342,14 @@ def save_apiary_assessor_data(instance,request,viewset):
         except:
             raise
 
+
 def proposal_submit_apiary(proposal, request):
     with transaction.atomic():
         if proposal.can_user_edit:
-            proposal.submitter = request.user
-            #proposal.lodgement_date = datetime.datetime.strptime(timezone.now().strftime('%Y-%m-%d'),'%Y-%m-%d').date()
+
+            if request.user and isinstance(request.user,EmailUser):
+                proposal.submitter = request.user
+
             proposal.lodgement_date = timezone.now()
             proposal.training_completed = True
             if (proposal.amendment_requests):
@@ -954,22 +1359,13 @@ def proposal_submit_apiary(proposal, request):
                         q.status = 'amended'
                         q.save()
 
-            # Create a log entry for the proposal
-            proposal.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.lodgement_number), request)
-            # Create a log entry for the organisation
-            #proposal.applicant.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id),request)
-            applicant_field=getattr(proposal, proposal.applicant_field)
-            #applicant_field.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.lodgement_number), request)
-
             ret1 = send_submit_email_notification(request, proposal)
             ret2 = send_external_submit_email_notification(request, proposal)
 
-            #proposal.save_form_tabs(request)
             if ret1 and ret2  or DEBUG:
                 proposal.processing_status = Proposal.PROCESSING_STATUS_WITH_ASSESSOR
                 proposal.customer_status = Proposal.CUSTOMER_STATUS_WITH_ASSESSOR
                 proposal.documents.all().update(can_delete=False)
-                #proposal.required_documents.all().update(can_delete=False)
                 proposal.save()
             else:
                 raise ValidationError('An error occurred while submitting proposal (Submit email notifications failed)')
@@ -1013,578 +1409,3 @@ def proposal_submit_apiary(proposal, request):
 
         else:
             raise ValidationError('You can\'t edit this proposal at this moment')
-
-
-def clone_proposal_with_status_reset(proposal):
-    with transaction.atomic():
-        try:
-            proposal.customer_status = 'draft'
-            proposal.processing_status = 'draft'
-            proposal.assessor_data = {}
-            proposal.comment_data = {}
-
-            #proposal.id_check_status = 'not_checked'
-            #proposal.character_check_status = 'not_checked'
-            #proposal.compliance_check_status = 'not_checked'
-            #Sproposal.review_status = 'not_reviewed'
-
-            proposal.lodgement_number = ''
-            proposal.lodgement_sequence = 0
-            proposal.lodgement_date = None
-
-            proposal.assigned_officer = None
-            proposal.assigned_approver = None
-
-            proposal.approval = None
-
-            original_proposal_id = proposal.id
-
-            proposal.previous_proposal = proposal.objects.get(id=original_proposal_id)
-
-            proposal.id = None
-
-            #proposal.save(no_revision=True)
-            proposal.save()
-
-
-            # clone documents
-            for proposal_document in ProposalDocument.objects.filter(proposal=original_proposal_id):
-                proposal_document.proposal = proposal
-                proposal_document.id = None
-                proposal_document.save()
-
-            return proposal
-        except:
-            raise
-
-help_site_url='site_url:/help/disturbance/user'
-help_site_assessor_url='site_url:/help/disturbance/assessor'
-
-def create_richtext_help(question, name):
-    global richtext
-    global richtext_assessor
-    
-    if question.help_text_url and question.help_text:
-       
-        richtext += u'<h1><a id="{0}" name="{0}"> {1} </a></h1>'.format(name, question.question)
-        richtext += question.help_text
-        richtext += u'<p>&nbsp;</p>'
-
-    if question.help_text_assessor_url and question.help_text_assessor:
-       
-        richtext_assessor += u'<h1><a id="{0}" name="{0}"> {1} </a></h1>'.format(name, question.question)
-        richtext_assessor += question.help_text_assessor
-        richtext_assessor += u'<p>&nbsp;</p>'
-
-    return richtext
-
-def create_helppage_object(proposal_type, help_type=HelpPage.HELP_TEXT_EXTERNAL):
-    """
-    Create a new HelpPage object, with latest help_text/label anchors defined in the latest ProposalType.schema
-    """
-    application_type=proposal_type.name
-    try:
-        application_type_id = ApplicationType.objects.get(name=application_type).id
-    except Exception as e:
-        print('application type: {} does not exist, maybe!'.format(application_type, e))
-
-    try:
-        help_page = HelpPage.objects.filter(application_type_id=application_type_id, help_type=help_type).latest('version')
-        next_version = help_page.version + 1
-    except Exception as e:
-        next_version = 1
-
-    help_type_assessor=HelpPage.HELP_TEXT_INTERNAL
-    try:
-        help_page_assessor = HelpPage.objects.filter(application_type_id=application_type_id, help_type=help_type_assessor).latest('version')
-        next_version_assessor = help_page_assessor.version + 1
-    except Exception as e:
-        next_version_assessor = 1
-    
-    HelpPage.objects.create(application_type_id=application_type_id, help_type=help_type, version=next_version, content=richtext)
-    HelpPage.objects.create(application_type_id=application_type_id, help_type=help_type_assessor, version=next_version_assessor, content=richtext_assessor)
-
-
-def get_options(section_question, question):
-    options=[]
-    special_types=['radiobuttons', 'multi-select',]
-    if question.option.count()>0:
-        for op in question.option.all().order_by('-disturbance_masterlistquestion_option.id'):
-            op_dict={
-                'label': op.label,
-                'value': op.label.replace(" ","").lower(),
-            }
-            options.append(op_dict)
-    #For multi-select type questions, the isRequired flag goes to the first option dict instead of question dict
-    if 'isRequired' in section_question.get_tag_list() and question.answer_type in special_types:
-        if options:
-            options[0]['isRequired']='true'
-    return options
-
-def get_condition_children(question,section, parent_name=''):
-    conditions={}
-    options=question.option.all().order_by('-disturbance_masterlistquestion_option.id')
-    special_types=['checkbox',]
-    group_types=['checkbox', 'radiobuttons', 'multi-select']
-    option_count=0
-    for op in options:
-        condition_questions=SectionQuestion.objects.filter(section=section,parent_question=question,parent_answer=op).order_by('order')
-        if condition_questions:
-            option_section=[]
-            option_children=[]
-            condition_question_count=1
-            for q in condition_questions:
-                #question_name=parent_name+'-'+op.label+condition_question_count
-                #question_name='{}-{}{}'.format(parent_name,op.label,condition_question_count)
-                question_name='{}-{}{}'.format(parent_name,op.label.replace(" ",""),condition_question_count)
-                child={
-                    'name': question_name,
-                    'type': q.question.answer_type,
-                    'label': q.question.question,
-                }
-                if q.question.answer_type in special_types:
-                        q_option_children=get_checkbox_option_children(q, q.question, section, question_name)
-                        child['children']=q_option_children
-                        child['type']='group'
-                else:
-                    if q.question.option.count()>0:
-                        q_options= get_options(q,q.question)
-                        child['options']=q_options
-                    if q.question.children_question.exists():
-                        q_conditions=get_condition_children(q.question, section, question_name)
-                        child['conditions']=q_conditions
-                if q.tag:
-                    for t in q.tag:
-                        if t=='isRequired':
-                            if q.question.answer_type not in group_types:
-                                child[t]='true'
-                        else:
-                            child[t]='true'
-                        #child[t]='true'
-                if q.question.help_text_url:
-                    child['help_text_url']='{0}/anchor={1}'.format(help_site_url, question_name)
-                if q.question.help_text_assessor_url:
-                    child['help_text_assessor_url']='{0}/anchor={1}'.format(help_site_assessor_url, question_name)
-                create_richtext_help(q.question, question_name)
-                option_children.append(child)
-                condition_question_count+=1
-            #section_group_name=parent_name+'-'+op.label+'Group'
-            section_group_name=parent_name+'-'+op.label.replace(" ","")+'Group'
-            option_section_dict={
-                'name':section_group_name,
-                'type': 'group',
-                'label':'',
-                'children': option_children
-            }
-            option_section.append(option_section_dict)
-            conditions[op.label.replace(" ","").lower()]=option_section
-            option_count+=1
-    return conditions
-
-
-def get_checkbox_option_children(section_question,question,section, parent_name=''):
-    conditions={}
-    options=question.option.all().order_by('-disturbance_masterlistquestion_option.id')
-    options_list=[]
-    special_types=['checkbox',]
-    group_types=['checkbox', 'radiobuttons', 'multi-select']
-    option_count=0
-    for op in options:
-        #op_name=parent_name+'-'+option_count
-        op_name='{}-{}'.format(parent_name,option_count)
-        op_dict={
-                #'name': op.label,#function generated name
-                'name': op_name,
-                'label': op.label,
-                'type': 'checkbox',
-                'group': parent_name #function generated name of parent question
-        }
-        condition_questions=SectionQuestion.objects.filter(section=section,parent_question=question,parent_answer=op).order_by('order')
-        if condition_questions:
-            option_section=[]
-            option_children=[]
-            condition_question_count=1
-            for q in condition_questions:
-                #question_name=op_name+'-On-'+condition_question_count
-                question_name='{}-On-{}'.format(op_name,condition_question_count)
-                child={
-                    'name': question_name,
-                    'type': q.question.answer_type,
-                    'label': q.question.question,
-                }
-                if q.question.answer_type in special_types:
-                        q_option_children=get_checkbox_option_children(q,q.question, section, question_name)
-                        child['children']=q_option_children
-                        child['type']='group'
-                else:
-                    if q.question.option.count()>0:
-                        q_options= get_options(q,q.question)
-                        child['options']=q_options
-                    if q.question.children_question.exists():
-                        q_conditions=get_condition_children(q.question, section, question_name)
-                        child['conditions']=q_conditions
-
-                if q.tag:
-                    for t in q.tag:
-                        #child[t]='true'
-                        if t=='isRequired':
-                            if q.question.answer_type not in group_types:
-                                child[t]='true'
-                        else:
-                            child[t]='true'
-                if q.question.help_text_url:
-                    child['help_text_url']='{0}/anchor={1}'.format(help_site_url, question_name)
-                if q.question.help_text_assessor_url:
-                    child['help_text_assessor_url']='{0}/anchor={1}'.format(help_site_assessor_url, question_name)
-                create_richtext_help(q.question, question_name)
-                option_children.append(child)
-                condition_question_count+=1
-            section_group_name=op_name+'-OnGroup'
-            option_section_dict={
-                'name':section_group_name,
-                'type': 'group',
-                'label':'',
-                'children': option_children
-            }
-            option_section.append(option_section_dict)
-            conditions['on']=option_section
-            op_dict['conditions']=conditions
-        options_list.append(op_dict)
-        option_count+=1
-    if 'isRequired' in section_question.get_tag_list():
-        if options_list:
-            options_list[0]['isRequired']='true'
-    return options_list
-
-def get_options_new(section_question, question):
-    options=[]
-    special_types=['radiobuttons', 'multi-select',]
-    if len(section_question.get_options()) > 0:
-        for op in section_question.get_options():
-            op_dict = {
-                    'label': op['label'],
-                    'value': op['label'].replace(" ", "").lower(),
-                }
-            options.append(op_dict)
-    #For multi-select type questions, the isRequired flag goes to the first option dict instead of question dict
-    if 'isRequired' in section_question.get_tag_list() and question.answer_type in special_types:
-        if options:
-            options[0]['isRequired']='true'
-    return options
-
-def get_condition_children_new(question,section, parent_name=''):
-    conditions={}
-    # options=question.option.all().order_by('-disturbance_masterlistquestion_option.id')
-    options = []
-    special_types=['checkbox',]
-    group_types=['checkbox', 'radiobuttons', 'multi-select']
-    option_count=0
-    if len(question.get_options()) > 0:
-            for op in question.get_options():
-                op_dict = {
-                    'label': op.label,
-                    'value': op.label.replace(" ", "").lower(),
-                    'id': op.value,
-                }
-                options.append(op_dict)
-    for op in options:
-        condition_questions=SectionQuestion.objects.filter(section=section,parent_question=question,parent_answer=op['id']).order_by('order')
-        if condition_questions:
-            option_section=[]
-            option_children=[]
-            condition_question_count=1
-            for q in condition_questions:
-                #question_name=parent_name+'-'+op.label+condition_question_count
-                question_name='{}-{}{}'.format(parent_name,op['label'].replace(" ", ""),condition_question_count)
-                child={
-                    'name': question_name,
-                    'type': q.question.answer_type,
-                    'label': q.question.question,
-                }
-                if q.question.answer_type in special_types:
-                        q_option_children=get_checkbox_option_children_new(q, q.question, section, question_name)
-                        child['children']=q_option_children
-                        child['type']='group'
-                else:
-                    if len(q.question.get_options()) > 0:
-                        q_options= get_options_new(q,q.question)
-                        child['options']=q_options
-                    if q.question.children_question.exists():
-                        q_conditions=get_condition_children_new(q.question, section, question_name)
-                        child['conditions']=q_conditions
-                if q.tag:
-                    for t in q.tag:
-                        if t=='isRequired':
-                            if q.question.answer_type not in group_types:
-                                child[t]='true'
-                        else:
-                            child[t]='true'
-                        #child[t]='true'
-                if q.question.help_text_url:
-                    child['help_text_url']='{0}/anchor={1}'.format(help_site_url, question_name)
-                if q.question.help_text_assessor_url:
-                    child['help_text_assessor_url']='{0}/anchor={1}'.format(help_site_assessor_url, question_name)
-                create_richtext_help(q.question, question_name)
-                option_children.append(child)
-                condition_question_count+=1
-            section_group_name=parent_name+'-'+op['label'].replace(" ", "")+'Group'
-            option_section_dict={
-                'name':section_group_name,
-                'type': 'group',
-                'label':'',
-                'children': option_children
-            }
-            option_section.append(option_section_dict)
-            conditions[op['label'].replace(" ","").lower()]=option_section
-            option_count+=1
-    return conditions
-
-
-def get_checkbox_option_children_new(section_question,question,section, parent_name=''):
-    conditions={}
-    # options=question.option.all().order_by('-disturbance_masterlistquestion_option.id')
-    options = []
-    options_list=[]
-    special_types=['checkbox',]
-    group_types=['checkbox', 'radiobuttons', 'multi-select']
-    option_count=0
-    if len(question.get_options()) > 0:
-            for op in question.get_options():
-                op_dict = {
-                    'label': op.label,
-                    'value': op.label.replace(" ", "").lower(),
-                    'id': op.value,
-                }
-                options.append(op_dict)
-    for op in options:
-        conditions={}
-        #op_name=parent_name+'-'+option_count
-        op_name='{}-{}'.format(parent_name,option_count)
-        op_dict={
-                #'name': op.label,#function generated name
-                'name': op_name,
-                'label': op['label'],
-                'type': 'checkbox',
-                'group': parent_name #function generated name of parent question
-        }
-        condition_questions=SectionQuestion.objects.filter(section=section,parent_question=question,parent_answer=op['id']).order_by('order')
-        if condition_questions:
-            option_section=[]
-            option_children=[]
-            condition_question_count=1
-            for q in condition_questions:
-                #question_name=op_name+'-On-'+condition_question_count
-                question_name='{}-On-{}'.format(op_name,condition_question_count)
-                child={
-                    'name': question_name,
-                    'type': q.question.answer_type,
-                    'label': q.question.question,
-                }
-                if q.question.answer_type in special_types:
-                        q_option_children=get_checkbox_option_children_new(q,q.question, section, question_name)
-                        child['children']=q_option_children
-                        child['type']='group'
-                else:
-                    if len(q.question.get_options()) > 0:
-                        q_options= get_options_new(q,q.question)
-                        child['options']=q_options
-                    if q.question.children_question.exists():
-                        q_conditions=get_condition_children_new(q.question, section, question_name)
-                        child['conditions']=q_conditions
-
-                if q.tag:
-                    for t in q.tag:
-                        #child[t]='true'
-                        if t=='isRequired':
-                            if q.question.answer_type not in group_types:
-                                child[t]='true'
-                        else:
-                            child[t]='true'
-                if q.question.help_text_url:
-                    child['help_text_url']='{0}/anchor={1}'.format(help_site_url, question_name)
-                if q.question.help_text_assessor_url:
-                    child['help_text_assessor_url']='{0}/anchor={1}'.format(help_site_assessor_url, question_name)
-                create_richtext_help(q.question, question_name)
-                option_children.append(child)
-                condition_question_count+=1
-            section_group_name=op_name+'-OnGroup'
-            option_section_dict={
-                'name':section_group_name,
-                'type': 'group',
-                'label':'',
-                'children': option_children
-            }
-            option_section.append(option_section_dict)
-            conditions['on']=option_section
-            op_dict['conditions']=conditions
-        options_list.append(op_dict)
-        option_count+=1
-    if 'isRequired' in section_question.get_tag_list():
-        if options_list:
-            options_list[0]['isRequired']='true'
-    return options_list
-
-def generate_schema_original(proposal_type, request):
-    section_list=ProposalTypeSection.objects.filter(proposal_type=proposal_type).order_by('index')
-    section_count=0
-    schema=[]
-    special_types=['checkbox',]
-    #'isRequired' tag for following types is added to first option dict instead of question.
-    group_types=['checkbox', 'radiobuttons', 'multi-select']
-    global richtext
-    global richtext_assessor
-    global help_site_url, help_site_assessor_url
-    richtext = u''
-    richtext_assessor=u''
-    help_site_url='site_url:/help/{}/user'.format(proposal_type.name)
-    help_site_assessor_url='site_url:/help/{}/assessor'.format(proposal_type.name)
-    for section in section_list:
-        section_dict={
-            'name': '{}{}'.format(section.section_label.replace(" ",""), section_count),
-            'type': 'section',
-            'label': section.section_label,
-        }
-        section_children=[]
-        section_questions=SectionQuestion.objects.filter(section=section,parent_question__isnull=True,parent_answer__isnull=True).order_by('order')
-        if section_questions:
-            sq_count=0
-            for sq in section_questions:
-                #sq_name='Section'+section_count+'-'+sq_count
-                sq_name='Section{}-{}'.format(section_count,sq_count)
-                sc={
-                    # 'name': sq.question.name,
-                    'name': sq_name,
-                    'type': sq.question.answer_type,
-                    'label': sq.question.question,                    
-                }
-                if sq.question.answer_type in special_types:
-                    sq_option_children=get_checkbox_option_children(sq,sq.question, section,sq_name)
-                    sc['children']=sq_option_children
-                    sc['type']='group'
-                else:
-                    if sq.question.option.count()>0:
-                        sq_options= get_options(sq,sq.question)
-                        sc['options']=sq_options
-                    if sq.question.children_question.exists():
-                        sq_children=get_condition_children(sq.question,section, sq_name)
-                        sc['conditions']=sq_children
-                if sq.tag:
-                    for t in sq.tag:
-                        if t=='isRequired':
-                            if sq.question.answer_type not in group_types:
-                                sc[t]='true'
-                        else:
-                            sc[t]='true'
-                if sq.question.help_text_url:
-                    sc['help_text_url']='{0}/anchor={1}'.format(help_site_url, sq_name)
-                if sq.question.help_text_assessor_url:
-                    sc['help_text_assessor_url']='{0}/anchor={1}'.format(help_site_assessor_url, sq_name)
-                create_richtext_help(sq.question, sq_name) 
-                section_children.append(sc)
-                sq_count+=1
-        if section_children:
-            section_dict['children']= section_children
-        section_count+=1
-        schema.append(section_dict)
-    import json
-    new_schema=json.dumps(schema)
-    new_Schema_return=json.loads(new_schema)
-    if request.method=='POST':
-        create_helppage_object(proposal_type)
-    return new_Schema_return
-
-
-def generate_schema(proposal_type, request):
-    section_list=ProposalTypeSection.objects.filter(proposal_type=proposal_type).order_by('index')
-    section_count=0
-    schema=[]
-    special_types=['checkbox',]
-    select_types = ['select', 'multi-select']
-    #'isRequired' tag for following types is added to first option dict instead of question.
-    group_types=['checkbox', 'radiobuttons', 'multi-select']
-    global richtext
-    global richtext_assessor
-    global help_site_url, help_site_assessor_url
-    richtext = u''
-    richtext_assessor=u''
-    help_site_url='site_url:/help/{}/user'.format(proposal_type.name)
-    help_site_assessor_url='site_url:/help/{}/assessor'.format(proposal_type.name)
-    for section in section_list:
-        section_dict={
-            'name': '{}{}'.format(section.section_label.replace(" ",""), section_count),
-            'type': 'section',
-            'label': section.section_label,
-        }
-        section_children=[]
-        section_questions=SectionQuestion.objects.filter(section=section,parent_question__isnull=True,parent_answer__isnull=True).order_by('order')
-        if section_questions:
-            sq_count=0
-            for sq in section_questions:
-                #sq_name='Section'+section_count+'-'+sq_count
-                sq_name='Section{}-{}'.format(section_count,sq_count)
-                sc={
-                    # 'name': sq.question.name,
-                    'name': sq_name,
-                    'type': sq.question.answer_type,
-                    'label': sq.question.question,                    
-                }
-                if sq.question.answer_type in special_types:
-                    sq_option_children=get_checkbox_option_children_new(sq,sq.question, section,sq_name)
-                    sc['children']=sq_option_children
-                    sc['type']='group'
-                elif sq.question.answer_type in select_types:
-                    '''
-                        NOTE: Select type option are defaulted from Masterlist
-                        not from the SectionQuestion. Conditions are NOT added.
-                        '''
-                    if len(sq.question.get_options()) > 0:
-                        #sq_options= get_options(sq,sq.question)
-                        opts = [
-                                {
-                                    'label': o.label,
-                                    'value': o.label.replace(" ", "").lower(),
-                                } for o in sq.question.get_options()
-                            ]
-                        sq.set_property_cache_options(opts)
-                        sq_options = get_options_new(
-                                sq, sq.question
-                            )
-                        sc['options']=sq_options
-                    if sq.question.children_question.exists():
-                        sq_children=get_condition_children_new(sq.question,section, sq_name)
-                        sc['conditions']=sq_children
-
-                else:
-                    if len(sq.question.get_options()) > 0:
-                        sq_options = get_options_new(
-                                sq, sq.question
-                            )
-                        sc['options']=sq_options
-                    if sq.question.children_question.exists():
-                        sq_children=get_condition_children_new(sq.question,section, sq_name)
-                        sc['conditions']=sq_children
-
-                if sq.tag:
-                    for t in sq.tag:
-                        if t=='isRequired':
-                            if sq.question.answer_type not in group_types:
-                                sc[t]='true'
-                        else:
-                            sc[t]='true'
-                if sq.question.help_text_url:
-                    sc['help_text_url']='{0}/anchor={1}'.format(help_site_url, sq_name)
-                if sq.question.help_text_assessor_url:
-                    sc['help_text_assessor_url']='{0}/anchor={1}'.format(help_site_assessor_url, sq_name)
-                create_richtext_help(sq.question, sq_name) 
-                section_children.append(sc)
-                sq_count+=1
-        if section_children:
-            section_dict['children']= section_children
-        section_count+=1
-        schema.append(section_dict)
-    import json
-    new_schema=json.dumps(schema)
-    new_Schema_return=json.loads(new_schema)
-    if request.method=='POST':
-        create_helppage_object(proposal_type)
-    return new_Schema_return            

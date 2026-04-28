@@ -30,3 +30,7 @@ def dept_name():
 def dept_support_phone():
     return settings.DEP_PHONE_SUPPORT
 
+@register.simple_tag()
+def application_version():
+    return settings.APPLICATION_VERSION
+

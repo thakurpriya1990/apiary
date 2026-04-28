@@ -1,116 +1,68 @@
-<template id="proposal_dashboard">
+<template id="approvals_dashboard">
     <div class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">{{dashboardTitle}} <small v-if="is_external">{{dashboardDescription}}</small>
-                        <a :href="'#'+pBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="pBody">
-                            <span class="glyphicon glyphicon-chevron-up pull-right "></span>
-                        </a>
-                    </h3>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="">Status</label>
+                        <select class="form-select" v-model="filterProposalStatus">
+                            <option value="All">All</option>
+                            <option v-for="s in approval_status" :value="s" :key="s">{{s}}</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="panel-body collapse in" :id="pBody">
-                    <div class="row">
-                        <div v-if="templateGroupDetermined && !apiaryTemplateGroup">
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="">Region</label>
-                                    <select class="form-control" v-model="filterProposalRegion">
-                                        <option value="All">All</option>
-                                        <option v-for="r in proposal_regions" :value="r" :key="r">{{r}}</option>
-                                    </select>
-                                    <!--
-                                    <select style="width:100%" class="form-control input-sm" multiple ref="filterRegion" >
-                                        <option v-for="r in proposal_regions" :value="r">{{r}}</option>
-                                    </select>
-                                    -->
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="">Activity</label>
-                                    <select class="form-control" v-model="filterProposalActivity">
-                                        <option value="All">All</option>
-                                        <option v-for="a in proposal_activityTitles" :value="a" :key="a">{{a}}</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!--div class="col-md-3">
-                            <div class="form-group">
-                                <label for="">Region</label>
-                                <select class="form-control" v-model="filterProposalRegion">
-                                    <option value="All">All</option>
-                                    <option v-for="r in proposal_regions" :value="r">{{r}}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="">Activity</label>
-                                <select class="form-control" v-model="filterProposalActivity">
-                                    <option value="All">All</option>
-                                    <option v-for="a in proposal_activityTitles" :value="a">{{a}}</option>
-                                </select>
-                            </div>
-                        </div-->
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="">Status</label>
-                                <select class="form-control" v-model="filterProposalStatus">
-                                    <option value="All">All</option>
-                                    <option v-for="s in approval_status" :value="s" :key="s">{{s}}</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <label for="">Start From</label>
-                            <div class="input-group date" ref="proposalStartDateFromPicker">
-                                <input type="text" class="form-control" placeholder="DD/MM/YYYY" v-model="filterProposalStartFrom">
-                                <span class="input-group-addon">
-                                    <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="">Start To</label>
-                            <div class="input-group date" ref="proposalStartDateToPicker">
-                                <input type="text" class="form-control" placeholder="DD/MM/YYYY" v-model="filterProposalStartTo">
-                                <span class="input-group-addon">
-                                    <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <label for="">Expiry From</label>
-                            <div class="input-group date" ref="proposalExpiryDateFromPicker">
-                                <input type="text" class="form-control" placeholder="DD/MM/YYYY" v-model="filterProposalExpiryFrom">
-                                <span class="input-group-addon">
-                                    <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="">Expiry To</label>
-                            <div class="input-group date" ref="proposalExpiryDateToPicker">
-                                <input type="text" class="form-control" placeholder="DD/MM/YYYY" v-model="filterProposalExpiryTo">
-                                <span class="input-group-addon">
-                                    <span class="glyphicon glyphicon-calendar"></span>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-lg-12" style="margin-top:25px;">
-                            <div v-if="datatableReady">
-                                <datatable ref="proposal_datatable" :id="datatable_id" :dtOptions="proposal_options" :dtHeaders="proposal_headers"/>
-                            </div>
-                        </div>
+                <div class="col-md-3">
+                    <label for="">Start From</label>
+                    <input
+                        id="proposal-start-from"
+                        type="date"
+                        class="form-control"
+                        v-model="proposal_start_from"
+                        placeholder="DD/MM/YYYY"
+                        :max="proposal_start_to"
+                    >
+                </div>
+                <div class="col-md-3">
+                    <label for="">Start To</label>
+                    <input
+                        id="proposal-start-to"
+                        type="date"
+                        class="form-control"
+                        v-model="proposal_start_to"
+                        placeholder="DD/MM/YYYY"
+                        :min="proposal_start_from"
+                    >
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="">Expiry From</label>
+                    <input
+                        id="proposal-expiry-from"
+                        type="date"
+                        class="form-control"
+                        v-model="proposal_expiry_from"
+                        placeholder="DD/MM/YYYY"
+                        :max="proposal_expiry_to"
+                    >
+                </div>
+                <div class="col-md-3">
+                    <label for="">Expiry To</label>
+                    <input
+                        id="proposal-expiry-to"
+                        type="date"
+                        class="form-control"
+                        v-model="proposal_expiry_to"
+                        placeholder="DD/MM/YYYY"
+                        :min="proposal_expiry_from"
+                    >
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12" style="margin-top:25px;">
+                    <div v-if="datatableReady">
+                        <datatable ref="proposal_datatable" :id="datatable_id" :dtOptions="proposal_options" :dtHeaders="proposal_headers"/>
                     </div>
                 </div>
             </div>
@@ -134,6 +86,9 @@ import {
     helpers,
     constants
 }from '@/utils/hooks'
+
+import $ from 'jquery';
+
 export default {
     name: 'ApprovalsTableDash',
     props: {
@@ -167,10 +122,10 @@ export default {
             filterProposalRegion: 'All',
             filterProposalActivity: 'All',
             filterProposalStatus: 'All',
-            filterProposalStartFrom: '',
-            filterProposalStartTo: '',
-            filterProposalExpiryFrom: '',
-            filterProposalExpiryTo: '',
+            proposal_start_from: '',
+            proposal_start_to: '',
+            proposal_expiry_from: '',
+            proposal_expiry_to: '',
             filterProposalSubmitter: 'All',
             dashboardTitle: '',
             dashboardDescription: '',
@@ -186,10 +141,6 @@ export default {
             proposal_activityTitles : [],
             proposal_regions: [],
             proposal_submitters: [],
-            //template_group: '',
-            dasTemplateGroup: false,
-            apiaryTemplateGroup: false,
-            templateGroupDetermined: false,
             select2Applied: false,
             proposal_options: {},
             datatableReady: false,
@@ -203,12 +154,7 @@ export default {
         ApprovalHistory
     },
     watch:{
-        templateGroupDetermined: function(){
-            //this.showHideColumns()
-            this.set_proposal_options();
-        },
         filterProposalRegion: function(){
-            //this.$refs.proposal_datatable.vmDataTable.draw();
             let vm = this;
             if (vm.filterProposalRegion!= 'All') {
                 vm.$refs.proposal_datatable.vmDataTable.column('current_proposal__region__name:name').search(vm.filterProposalRegion).draw();
@@ -225,7 +171,6 @@ export default {
             }
         },
         filterProposalSubmitter: function(){
-            //this.$refs.proposal_datatable.vmDataTable.draw();
             let vm = this;
             if (vm.filterProposalSubmitter!= 'All') {
                 vm.$refs.proposal_datatable.vmDataTable.columns(4).search(vm.filterProposalSubmitter).draw();
@@ -241,20 +186,50 @@ export default {
                 vm.$refs.proposal_datatable.vmDataTable.column('status:name').search('').draw();
             }
         },
-        filterProposalStartFrom: function(){
+        dateRangeIdentifierForReloadProposalTable: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
         },
-        filterProposalStartTo: function(){
-            this.$refs.proposal_datatable.vmDataTable.draw();
-        },
-        filterProposalExpiryFrom: function(){
-            this.$refs.proposal_datatable.vmDataTable.draw();
-        },
-        filterProposalExpiryTo: function(){
-            this.$refs.proposal_datatable.vmDataTable.draw();
-        }
     },
     computed: {
+        filterProposalExpiryFrom: {
+            get() {
+                // If our internal date exists, convert it for submission, etc
+                if (this.proposal_expiry_from) {
+                    return moment(this.proposal_expiry_from, 'YYYY-MM-DD').format('DD/MM/YYYY');
+                }
+                return ''; // Otherwise, return an empty string.
+            }
+        },
+        filterProposalExpiryTo : {
+            get() {
+                // If our internal date exists, convert it for submission, etc
+                if (this.proposal_expiry_to) {
+                    return moment(this.proposal_expiry_to, 'YYYY-MM-DD').format('DD/MM/YYYY');
+                }
+                return ''; // Otherwise, return an empty string.
+            }
+        },
+        dateRangeIdentifierForReloadProposalTable() {
+            return `${this.proposal_expiry_from}|${this.proposal_expiry_to}|${this.proposal_start_from}|${this.proposal_start_to}`;
+        },
+        filterProposalStartFrom: {
+            get() {
+                // If our internal date exists, convert it for submission, etc
+                if (this.proposal_start_from) {
+                    return moment(this.proposal_start_from, 'YYYY-MM-DD').format('DD/MM/YYYY');
+                }
+                return ''; // Otherwise, return an empty string.
+            }
+        },
+        filterProposaStartTo : {
+            get() {
+                // If our internal date exists, convert it for submission, etc
+                if (this.proposal_start_to) {
+                    return moment(this.proposal_start_to, 'YYYY-MM-DD').format('DD/MM/YYYY');
+                }
+                return ''; // Otherwise, return an empty string.
+            }
+        },
         status: function(){
             //return this.is_external ? this.external_status : this.internal_status;
             return [];
@@ -266,23 +241,15 @@ export default {
             return this.level == 'referral';
         },
         proposal_headers: function() {
-            let approval_or_licence = this.dasTemplateGroup ? 'Approval' : 'Licence';
-            let columnHeaders = ["Number",];
-            if (this.dasTemplateGroup) {
-                columnHeaders.push("Region",
-                "Activity",
-                "Title");
-            }
-            columnHeaders.push("Holder",
+            let columnHeaders = [
+                "Number",
+                "Holder",
                 "Status",
                 "Start Date",
                 "Expiry Date",
-                approval_or_licence,
-                "Action");
-                /*
-                "Action", 
-                "");
-                */
+                "Licence",
+                "Action"
+            ];
             return columnHeaders;
         },
         tableColumns: function() {
@@ -345,46 +312,17 @@ export default {
                     searchable: true,
                     defaultContent: '',
                 }];
-            if (this.dasTemplateGroup) {
-                columnList.push({
-                    data: "region",
-                    'render': function (value) {
-                        return helpers.dtPopover(value);
-                    },
-                    'createdCell': helpers.dtPopoverCellFn,
-                    name: 'current_proposal__region__name',
-                    //visible: false,
-                    searchable: true,
-                    defaultContent: '',
-                },
-                {
-                    data: "activity",
-                    name: "current_proposal__activity",
-                    //visible: false,
-                    searchable: true,
-                    defaultContent: '',
-                },
-                {
-                    data: "title",
-                    'render': function (value) {
-                        return helpers.dtPopover(value);
-                    },
-                    'createdCell': helpers.dtPopoverCellFn,
-                    name: "current_proposal__title",
-                    //visible: false,
-                    searchable: true,
-                    defaultContent: '',
-                });
-            };
             columnList.push({
                     data: "applicant",
                     name: "applicant__organisation__name, proxy_applicant__first_name, proxy_applicant__last_name, proxy_applicant__email",
-                    searchable: true,
+                    searchable: false,
+                    orderable: false,
                     defaultContent: '',
                 },
                 {
                     data: "status",
                     name: 'status',
+                    orderable: false,
                     defaultContent: '',
                 },
                 {
@@ -392,7 +330,7 @@ export default {
                     mRender:function (data) {
                         return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
                     },
-                    searchable: false,
+                    searchable: true,
                     defaultContent: '',
                 },
                 {
@@ -423,7 +361,7 @@ export default {
                     },
                     name: 'licence_document__name',
                     searchable: false,
-                    //visible: false,
+                    orderable: false,
                     className: "noexport",
                     defaultContent: '',
                 },
@@ -432,14 +370,10 @@ export default {
                     mRender:function (data,type,full) {
                         let links = '';
                         if (!vm.is_external){
-                            //if(full.can_approver_reissue && full.current_proposal && full.current_proposal.application_type !== 'Site Transfer'){
                             if(full.can_approver_reissue && full.current_proposal){
                                     links +=  `<a href='#${full.id}' data-reissue-approval='${full.current_proposal_id}'>Reissue</a><br/>`;
                             }
                             if(vm.check_assessor(full)){
-                                // if(full.can_approver_reissue){
-                                //     links +=  `<a href='#${full.id}' data-reissue-approval='${full.current_proposal}'>Reissue</a><br/>`;
-                                // }
                                 if(full.can_reissue && full.can_action){
                                     links +=  `<a href='#${full.id}' data-cancel-approval='${full.id}'>Cancel</a><br/>`;
                                     links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
@@ -461,9 +395,6 @@ export default {
                               links +=  `<a href='${full.renewal_document}' target='_blank'>Renewal Notice</a><br/>`;
 
                             }
-                            // if(full.can_approver_reissue){
-                            //         links +=  `<a href='#${full.id}' data-reissue-approval='${full.current_proposal}'>Reissue</a><br/>`;
-                            // }
                         }
                         else{
                             if (full.can_reissue) {
@@ -471,11 +402,11 @@ export default {
                                 if(full.can_action){
                                     links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
                                     if(full.can_amend){
-                                       links +=  `<a href='#${full.id}' data-amend-approval='${full.current_proposal_id}'>Amend</a><br/>`;
+                                       links +=  `<a href='#${full.id}' data-amend-approval='${full.current_proposal_id}' data-approval-id='${full.id}'>Amend</a><br/>`;
                                    }
                                 }
                                 if(full.renewal_document && full.renewal_sent && full.can_renew) {
-                                    links +=  `<a href='#${full.id}' data-renew-approval='${full.current_proposal_id}'>Renew</a><br/>`;
+                                    links +=  `<a href='#${full.id}' data-renew-approval='${full.current_proposal_id}' data-approval-id='${full.id}'>Renew</a><br/>`;
                                 }
                             }
                             else {
@@ -522,7 +453,7 @@ export default {
                 },
                 responsive: true,
                 serverSide: true,
-                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
                 order: [
                     [0, 'desc']
                     ],
@@ -532,26 +463,38 @@ export default {
                     // adding extra GET params for Custom filtering
                     "data": function ( d ) {
                         //d.regions = vm.filterProposalRegion.join(); // no need to add this since we can filter normally (filter is not multi-select in Approval table)
-                        d.start_date_from = vm.filterProposalStartFrom != '' && vm.filterProposalStartFrom != null ? moment(vm.filterProposalStartFrom, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
-                        d.start_date_to = vm.filterProposalStartTo != '' && vm.filterProposalStartTo != null ? moment(vm.filterProposalStartTo, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
-                        d.expiry_date_from = vm.filterProposalExpiryFrom != '' && vm.filterProposalExpiryFrom != null ? moment(vm.filterProposalExpiryFrom, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
-                        d.expiry_date_to = vm.filterProposalExpiryTo != '' && vm.filterProposalExpiryTo != null ? moment(vm.filterProposalExpiryTo, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
+                        // d.start_date_from = vm.filterProposalStartFrom != '' && vm.filterProposalStartFrom != null ? moment(vm.filterProposalStartFrom, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
+                        // d.start_date_to = vm.filterProposalStartTo != '' && vm.filterProposalStartTo != null ? moment(vm.filterProposalStartTo, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
+                        d.start_date_from = vm.proposal_start_from != '' && vm.proposal_start_from != null ? moment(vm.proposal_start_from, 'YYYY-MM-DD').format('YYYY-MM-DD'): '';
+                        d.start_date_to = vm.proposal_start_to != '' && vm.proposal_start_to != null ? moment(vm.proposal_start_to, 'YYYY-MM-DD').format('YYYY-MM-DD'): '';
+                        // d.expiry_date_from = vm.filterProposalExpiryFrom != '' && vm.filterProposalExpiryFrom != null ? moment(vm.filterProposalExpiryFrom, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
+                        // d.expiry_date_to = vm.filterProposalExpiryTo != '' && vm.filterProposalExpiryTo != null ? moment(vm.filterProposalExpiryTo, 'DD/MM/YYYY').format('YYYY-MM-DD'): '';
+                        d.expiry_date_from = vm.proposal_expiry_from != '' && vm.proposal_expiry_from != null ? moment(vm.proposal_expiry_from, 'YYYY-MM-DD').format('YYYY-MM-DD'): '';
+                        d.expiry_date_to = vm.proposal_expiry_to != '' && vm.proposal_expiry_to != null ? moment(vm.proposal_expiry_to, 'YYYY-MM-DD').format('YYYY-MM-DD'): '';
                         d.region = vm.filterProposalRegion;
                         d.proposal_activity = vm.filterProposalActivity;
                         d.approval_status = vm.filterProposalStatus;
                     }
                 },
-                dom: 'lBfrtip',
+                columnDefs: [
+                    { responsivePriority: 1, targets: 0 }, // First visible column has top priority (e.g. proposal_number
+                    { responsivePriority: 2, targets: -2 }, // If the actions is the last entry in columns then this will make it 2nd top priority soo as long as the screen is a decent size it will always be shown
+                ],
+                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons:[
                     {
-                        extend: 'excel',
+                        extend: 'excelHtml5',
+                        className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
                             //columns: ':not(:last-child)'
                             columns: ':not(.noexport)'
                         }
                     },
                     {
-                        extend: 'csv',
+                        extend: 'csvHtml5',
+                        className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
                             //columns: ':not(:last-child)'
                             columns: ':not(.noexport)'
@@ -570,34 +513,9 @@ export default {
                 this.addEventListeners();
             });
         },
-        /*
-        showHideColumns: function(){
-            let vm = this
-            // set column visibility and headers according to template group
-            let regionColumn = vm.$refs.proposal_datatable.vmDataTable.column('current_proposal__region__name:name');
-            let activityColumn = vm.$refs.proposal_datatable.vmDataTable.column('current_proposal__activity:name');
-            let titleColumn = vm.$refs.proposal_datatable.vmDataTable.column('current_proposal__title:name');
-            let approvalColumn = vm.$refs.proposal_datatable.vmDataTable.column('licence_document__name:name');
-            if (vm.dasTemplateGroup) {
-                regionColumn.visible(true);
-                activityColumn.visible(true);
-                titleColumn.visible(true)
-                approvalColumn.visible(true)
-            } else {
-                approvalColumn.visible(true)
-            }
-        },
-        */
         setDashboardText: function() {
-            //let title = ''
-            if (this.apiaryTemplateGroup) {
-                this.dashboardTitle = 'Licences';
-                this.dashboardDescription = 'View existing licences and amend or renew them';
-            } else {
-                this.dashboardTitle = 'Approvals';
-                this.dashboardDescription = 'View existing approvals and amend or renew them';
-            }
-            //return title;
+            this.dashboardTitle = 'Licences';
+            this.dashboardDescription = 'View existing licences and amend or renew them';
         },
 
         fetchFilterLists: function(){
@@ -618,47 +536,6 @@ export default {
 
         addEventListeners: function(){
             let vm = this;
-            // Initialise Proposal Date Filters
-            $(vm.$refs.proposalStartDateToPicker).datetimepicker(vm.datepickerOptions);
-            $(vm.$refs.proposalStartDateToPicker).on('dp.change', function(e){
-                if ($(vm.$refs.proposalStartDateToPicker).data('DateTimePicker').date()) {
-                    vm.filterProposalStartTo =  e.date.format('DD/MM/YYYY');
-                }
-                else if ($(vm.$refs.proposalStartDateToPicker).data('date') === "") {
-                    vm.filterProposaStartTo = "";
-                }
-             });
-            $(vm.$refs.proposalStartDateFromPicker).datetimepicker(vm.datepickerOptions);
-            $(vm.$refs.proposalStartDateFromPicker).on('dp.change',function (e) {
-                if ($(vm.$refs.proposalStartDateFromPicker).data('DateTimePicker').date()) {
-                    vm.filterProposalStartFrom = e.date.format('DD/MM/YYYY');
-                    $(vm.$refs.proposalStartDateToPicker).data("DateTimePicker").minDate(e.date);
-                }
-                else if ($(vm.$refs.proposalStartDateFromPicker).data('date') === "") {
-                    vm.filterProposalStartFrom = "";
-                }
-            });
-            $(vm.$refs.proposalExpiryDateToPicker).datetimepicker(vm.datepickerOptions);
-            $(vm.$refs.proposalExpiryDateToPicker).on('dp.change', function(e){
-                if ($(vm.$refs.proposalExpiryDateToPicker).data('DateTimePicker').date()) {
-                    vm.filterProposalExpiryTo =  e.date.format('DD/MM/YYYY');
-                }
-                else if ($(vm.$refs.proposalExpiryDateToPicker).data('date') === "") {
-                    vm.filterProposaExpiryTo = "";
-                }
-             });
-            $(vm.$refs.proposalExpiryDateFromPicker).datetimepicker(vm.datepickerOptions);
-            $(vm.$refs.proposalExpiryDateFromPicker).on('dp.change',function (e) {
-                if ($(vm.$refs.proposalExpiryDateFromPicker).data('DateTimePicker').date()) {
-                    vm.filterProposalExpiryFrom = e.date.format('DD/MM/YYYY');
-                    $(vm.$refs.proposalExpiryDateToPicker).data("DateTimePicker").minDate(e.date);
-                }
-                else if ($(vm.$refs.proposalExpiryDateFromPicker).data('date') === "") {
-                    vm.filterProposalExpiryFrom = "";
-                }
-            });
-
-            // End Proposal Date Filters
             // Internal Reissue listener
             vm.$refs.proposal_datatable.vmDataTable.on('click', 'a[data-reissue-approval]', function(e) {
                 e.preventDefault();
@@ -698,14 +575,16 @@ export default {
             vm.$refs.proposal_datatable.vmDataTable.on('click', 'a[data-renew-approval]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-renew-approval');
-                vm.renewApproval(id);
+                var approval_id = $(this).attr('data-approval-id')
+                vm.renewApproval(id, approval_id);
             });
 
             // External amend listener
             vm.$refs.proposal_datatable.vmDataTable.on('click', 'a[data-amend-approval]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-amend-approval');
-                vm.amendApproval(id);
+                var approval_id = $(this).attr('data-approval-id')
+                vm.amendApproval(id, approval_id);
             });
 
             // Internal view pdf listener
@@ -922,7 +801,7 @@ export default {
             });
         },
 
-        renewApproval:function (proposal_id) {
+        renewApproval:function (proposal_id, approval_id) {
             let vm = this;
             // let status= 'with_approver'
             //let data = {'status': status}
@@ -935,7 +814,7 @@ export default {
                 //confirmButtonColor:'#d9534f'
             }).then((result) => {
                 if (result.isConfirmed){
-                    fetch(helpers.add_endpoint_json(api_endpoints.proposals,(proposal_id+'/renew_approval')),{}).then(
+                    fetch(helpers.add_endpoint_json(api_endpoints.proposals,(proposal_id+'/renew_approval'))+'?approval_id='+approval_id,{}).then(
                     async (response) => {
                         if (!response.ok) {
                             const data = await response.json();
@@ -971,7 +850,7 @@ export default {
             });
         },
 
-        amendApproval:function (proposal_id) {
+        amendApproval:function (proposal_id, approval_id) {
             let vm = this;
             swal.fire({
                 title: "Amend Approval",
@@ -985,7 +864,7 @@ export default {
                 },
             }).then((result) => {
                 if(result.isConfirmed){
-                    fetch(helpers.add_endpoint_json(api_endpoints.proposals,(proposal_id+'/amend_approval')))
+                    fetch(helpers.add_endpoint_json(api_endpoints.proposals,(proposal_id+'/amend_approval'))+'?approval_id='+approval_id)
                     .then(async (response) => {
                         if (!response.ok) {
                             const data = await response.json();
@@ -1057,29 +936,6 @@ export default {
             });
             window.open(media_link, '_blank');
         },
-        applySelect2: function(){
-            console.log('in applySelect2')
-            let vm = this
-
-            if (!vm.select2Applied){
-                console.log('select2 is being applied')
-                $(vm.$refs.filterRegion).select2({
-                    "theme": "bootstrap",
-                    allowClear: true,
-                    placeholder:"Select Region"
-                }).
-                on("select2:select",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.filterProposalRegion = selected.val();
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.filterProposalRegion = selected.val();
-                });
-            }
-            vm.select2Applied = true
-        },
-
     },
     mounted: function(){
 		this.fetchFilterLists();
@@ -1090,36 +946,9 @@ export default {
                 $( chev ).toggleClass( "glyphicon-chevron-down glyphicon-chevron-up" );
             }, 100 );
         });
-        /*
-        this.$nextTick(() => {
-            this.initialiseSearch();
-            this.addEventListeners();
-        });
-        */
     },
     created: function() {
-        // retrieve template group
-        fetch('/template_group',{
-            emulateJSON:true
-        }).then(
-            async res=>{
-                if (!res.ok) {
-                    return await res.json().then(err => { throw err });
-                }
-                //this.template_group = res.body.template_group;
-                let template_group_res = {}
-                template_group_res = await res.json()
-                if (template_group_res.template_group === 'apiary') {
-                    this.apiaryTemplateGroup = true;
-                } else {
-                    this.dasTemplateGroup = true;
-                }
-                this.setDashboardText();
-                this.templateGroupDetermined = true;
-            }).catch(err=>{
-                console.log(err);
-            }
-        );
+        this.set_proposal_options();
     },
 }
 </script>

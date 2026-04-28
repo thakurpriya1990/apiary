@@ -7,7 +7,11 @@ import logging
 
 from rest_framework import serializers
 
-from disturbance.components.organisations.models import Organisation
+from disturbance.components.organisations.models import ApiaryOrganisationAccessGroupMember
+from disturbance.components.main.models import MapLayer
+from disturbance.components.proposals.models import ApiaryAssessorGroupMember, ApiaryApproverGroupMember, ApiaryReferralGroupMember 
+from django.core.cache import cache
+
 logger = logging.getLogger(__name__)
 
 def belongs_to(user, group_name):
@@ -23,48 +27,43 @@ def belongs_to(user, group_name):
     else:
         return False
 
-def is_disturbance_admin(request):
-    return request.user.is_authenticated and in_dbca_domain(request) and (belongs_to(request.user, settings.ADMIN_GROUP))
-
+#NOTE: this is an env settings based group
 def is_apiary_admin(request):
-    return request.user.is_authenticated and in_dbca_domain(request) and (belongs_to(request.user, settings.APIARY_ADMIN_GROUP))
-
-def is_das_apiary_admin(request):
-    return request.user.is_authenticated and in_dbca_domain(request) and (belongs_to(request.user, settings.DAS_APIARY_ADMIN_GROUP))
-
-def user_in_dbca_domain(user):
-    domain = user.email.split('@')[1]
-    if domain in settings.DEPT_DOMAINS:
-        if not user.is_staff:
-            # hack to reset department user to is_staff==True, if the user logged in externally (external departmentUser login defaults to is_staff=False)
-            user.is_staff = True
-            user.save()
-        return True
-    return False
-
-def in_dbca_domain(request):
-    user = request.user
-    return user_in_dbca_domain(user)
+    return request.user.is_authenticated and (belongs_to(request.user, settings.APIARY_ADMIN_GROUP))
 
 def is_in_organisation_contacts(request, organisation):
     return request.user.email in organisation.contacts.all().values_list('email', flat=True)
 
+#NOTE: this is an env settings based group - consider renaming or replacing to avoid confusion
 def is_approved_external_user(request):
-    http_host = request.META.get('HTTP_HOST', None)
-    if http_host and ('apiary' in http_host.lower() or http_host in settings.APIARY_URL):
-        if belongs_to(request.user, settings.APPROVED_APIARY_EXTERNAL_USERS_GROUP):
-            return True
-    else:
-        if belongs_to(request.user, settings.APPROVED_DAS_EXTERNAL_USERS_GROUP):
-            return True
+    if belongs_to(request.user, settings.APPROVED_APIARY_EXTERNAL_USERS_GROUP):
+        return True
     return False
 
-def is_departmentUser(request):
-    return request.user.is_authenticated and ( in_dbca_domain(request) or is_approved_external_user(request) )
+def is_apiary_approver(request):
+    return request and request.user and (ApiaryApproverGroupMember.objects.filter(emailuser_id=request.user.id).exists() or request.user.is_superuser)
+
+def is_apiary_assessor(request):
+    return request and request.user and (ApiaryAssessorGroupMember.objects.filter(emailuser_id=request.user.id).exists() or request.user.is_superuser)
+
+def is_apiary_referrer(request):
+    return request and request.user and (ApiaryReferralGroupMember.objects.filter(emailuser_id=request.user.id).exists() or request.user.is_superuser)
+
+def is_apiary_org_request_assessor(request):
+    return request and request.user and (ApiaryOrganisationAccessGroupMember.objects.filter(emailuser_id=request.user.id).exists() or request.user.is_superuser)
 
 def is_internal(request):
-    #TODO change this to check auth groups
-    return is_departmentUser(request)
+    return(
+        request and request.user and (
+            request.user.is_superuser or 
+            is_apiary_admin(request) or
+            is_approved_external_user(request) or
+            is_apiary_approver(request) or
+            is_apiary_assessor(request) or
+            is_apiary_referrer(request) or
+            is_apiary_org_request_assessor(request)
+        )
+    )
 
 def get_all_officers():
     return EmailUser.objects.filter(groups__name='Disturbance Admin')
@@ -113,23 +112,17 @@ def is_authorised_to_modify(request, instance):
         raise serializers.ValidationError('You are not authorised to modify this application.')
 
 def is_authorised_to_modify_draft(request, instance):
-    #import ipdb; ipdb.set_trace()
     authorised = True
+    applicant = instance.relevant_applicant
 
-    # Getting Organisation is different in DAS and Apiary
-    if str(instance.application_type) == "Apiary":
-        # Get Organisation if in Apiary
-        applicant = instance.relevant_applicant
-    else:
-        # Get Organisation if in DAS
-        # There can only ever be one Organisation associated with an application so it is
-        # ok to just pull the first element from organisation_set.
-        applicant = instance.applicant.organisation.organisation_set.all()[0]
     applicantIsIndividual = isinstance(applicant, EmailUser)
     if instance.processing_status=='draft':
-        if request.user.is_authenticated:
+        if request.user and request.user.is_authenticated:
             # the status of the application must be DRAFT for customer to modify
-            if applicantIsIndividual:
+            #NOTE: internal users that are apiary assessors can also edit if in draft
+            if is_internal(request):   
+                authorised &= ((is_apiary_assessor(request) or request.user.is_superuser))
+            elif applicantIsIndividual:
                 # it is an individual so the applicant and submitter must be the same
                 authorised &= str(request.user.email) == str(instance.relevant_applicant)
             else:
@@ -147,3 +140,17 @@ def is_authorised_to_modify_draft(request, instance):
 
     if not authorised:
         raise serializers.ValidationError('You are not authorised to modify this application.')
+    
+def get_proxy_cache():
+    proxy_cache_dumped_data =cache.get('utils_cache.get_proxy_cache()')
+    proxy_cache_array = []
+    if proxy_cache_dumped_data is None:
+        proxy_cache_query = MapLayer.objects.all()
+        
+        for pr in proxy_cache_query:
+            proxy_cache_array.append({'layer_name': pr.layer_name, 'cache_expiry' : pr.cache_expiry})
+
+        cache.set('utils_cache.get_proxy_cache()', proxy_cache_array, 86400)
+    else:
+        proxy_cache_array =  proxy_cache_dumped_data
+    return proxy_cache_array

@@ -5,161 +5,100 @@
         <h4>Application Type: {{proposal.application_type }}</h4>
         <div class="col-md-3">
             <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url" :disable_add_entry="false"/>
-            <div class="row" v-if="canSeeSubmission">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
+            <div class="mb-3" v-if="canSeeSubmission">
+                <div class="card card-default">
+                    <div class="card-header">
                        Submission
                     </div>
-                    <div class="panel-body panel-collapse">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <strong>Submitted by</strong><br/>
-                                {{ proposal.submitter }}
-                            </div>
-                            <div class="col-sm-12 top-buffer-s">
-                                <strong>Lodged on</strong><br/>
-                                {{ formatDate(proposal.lodgement_date) }}
-                            </div>
-                            <div class="col-sm-12 top-buffer-s">
-                                <table class="table small-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Lodgement</th>
-                                            <th>Date</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
-                        </div>
+                    <div class="card-body py-2">
+                        <strong>Submitted by</strong><br/>
+                        {{ proposal.submitter }}
+                    </div>
+                    <div class="card-body border-top py-2">
+                        <strong>Lodged on</strong><br/>
+                        {{ formatDate(proposal.lodgement_date) }}
+                    </div>
+                    <div class="card-body border-top py-2">
+                        <table class="table small-table">
+                            <thead>
+                                <tr>
+                                    <th>Lodgement</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
+            <div class="mb-3">
+                <div class="card card-default sticky-top">
+                    <div class="card-header">
                         Workflow
                     </div>
-                    <div class="panel-body panel-collapse">
+                    <div class="card-body py-2">
+                        <strong>Status</strong><br/>
+                        {{ proposal.processing_status }}
+                    </div>
+                    <div v-if="!isFinalised" class="card-body py-2 border-top">
                         <div class="row">
-                            <div class="col-sm-12">
-                                <strong>Status</strong><br/>
-                                {{ proposal.processing_status }}
-                            </div>
-                            <div class="col-sm-12">
-                                <div class="separator"></div>
-                            </div>
-
-                            <!--
-                            <template v-if="proposal.processing_status == 'With Assessor' || proposal.processing_status == 'With Referral'">
-                                <div class="col-sm-12 top-buffer-s">
-                                    <strong>Referrals</strong>
-                                    <div class="form-group">
-                                        <select :disabled="!canLimitedAction" ref="apiary_referral_groups" class="form-control">
-                                            <option value="null"></option>
-                                            <option v-for="group in apiaryReferralGroups" :value="group.id">{{group.name}}</option>
-                                        </select>
-                                        <template v-if='!sendingReferral'>
-                                            <template v-if="selected_referral">
-                                                <label class="control-label pull-left"  for="Name">Comments</label>
-                                                <textarea class="form-control" name="name" v-model="referral_text"></textarea>
-                                                <a v-if="canLimitedAction" @click.prevent="sendReferral()" class="actionBtn pull-right">Send</a>
-                                            </template>
-                                        </template>
-                                        <template v-else>
-                                            <span v-if="canLimitedAction" @click.prevent="sendReferral()" disabled class="actionBtn text-primary pull-right">
-                                                Sending Referral&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
-                                            </span>
-                                        </template>
-                                    </div>
-                                    <table class="table small-table">
-                                        <tr>
-                                            <th>Referral</th>
-                                            <th>Status/Action</th>
-                                        </tr>
-                                        <tr v-for="r in proposal.latest_referrals">
-                                            <td>
-                                                <small><strong>{{r.apiary_referral.referral_group.name}}</strong></small><br/>
-                                                <small><strong>{{r.lodged_on | formatDate}}</strong></small>
-                                            </td>
-                                            <td>
-                                                <small><strong>{{r.processing_status}}</strong></small><br/>
-                                                <template v-if="r.processing_status == 'Awaiting'">
-                                                    <small v-if="canLimitedAction"><a @click.prevent="remindReferral(r)" href="#">Remind</a> / <a @click.prevent="recallReferral(r)"href="#">Recall</a></small>
-                                                </template>
-                                                <template v-else>
-                                                    <small v-if="canLimitedAction"><a @click.prevent="resendReferral(r)" href="#">Resend</a></small>
-                                                </template>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                    <ApiaryReferralsForProposal @refreshFromResponse="refreshFromResponse" :proposal="proposal" :canAction="canLimitedAction" :isFinalised="isFinalised" :referral_url="referralListURL"/>
-                                </div>
-                                <div class="col-sm-12">
-                                    <div class="separator"></div>
-                                </div>
-                            </template>
-                            -->
-                            <div v-if="!isFinalised" class="col-sm-12 top-buffer-s">
+                            <div class="col-sm-12 top-buffer-s">
                                 <strong>Currently assigned to</strong>
                                 <div class="form-group">
                                     <template v-if="proposal.processing_status == 'With Approver'">
-                                        <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="proposal.assigned_approver">
+                                        <select ref="assigned_officer" :disabled="!canAction" class="form-select" v-model="proposal.assigned_approver">
                                             <option v-for="member in proposal.allowed_assessors" :value="member.id" :key="member.id">{{member.first_name}} {{member.last_name}}</option>
                                         </select>
                                         <a v-if="canAssess && proposal.assigned_approver != proposal.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
                                     </template>
                                     <template v-else>
-                                        <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="proposal.assigned_officer">
+                                        <select ref="assigned_officer" :disabled="!canAction" class="form-select" v-model="proposal.assigned_officer">
                                             <option v-for="member in proposal.allowed_assessors" :value="member.id" :key="member.id">{{member.first_name}} {{member.last_name}}</option>
                                         </select>
                                         <a v-if="canAssess && proposal.assigned_officer != proposal.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
                                     </template>
                                 </div>
                             </div>
-                            <template v-if="proposal.processing_status == 'With Assessor (Requirements)' || proposal.processing_status == 'With Approver' || isFinalised">
-                                <div class="col-sm-12">
-                                    <strong>Proposal</strong>
-                                    <a class="actionBtn" v-if="!showingProposal" @click.prevent="toggleProposal()">Show Proposal</a>
-                                    <a class="actionBtn" v-else @click.prevent="toggleProposal()">Hide Proposal</a>
-                                </div>
-                                <div class="col-sm-12">
-                                    <div class="separator"></div>
-                                </div>
-                            </template>
-                            <template v-if="proposal.processing_status == 'With Approver' || isFinalised">
-                                <div class="col-sm-12">
-                                    <strong>Requirements</strong>
-                                    <a class="actionBtn" v-if="!showingRequirements" @click.prevent="toggleRequirements()">Show Requirements</a>
-                                    <a class="actionBtn" v-else @click.prevent="toggleRequirements()">Hide Requirements</a>
-                                </div>
-                                <div class="col-sm-12">
-                                    <div class="separator"></div>
-                                </div>
-                            </template>
-                            <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction">
-                                <template v-if="proposal.processing_status == 'With Assessor'">
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <strong>Action</strong>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="amendmentRequest()">Request Amendment</button>
-                                        </div>
-                                        <div class="col-sm-12" >
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="issueProposal()">Approve</button>
-                                        </div>
-                                        <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="declineProposal()">Decline</button>
-                                        </div>
-                                    </div>
-                                </template>
+                        </div>
+                    </div>
+                    <template v-if="proposal.processing_status == 'With Assessor (Requirements)' || proposal.processing_status == 'With Approver' || isFinalised">
+                        <div class="card-body py-2 border-top">
+                            <div class="col-sm-12">
+                                <strong>Proposal</strong>
+                                <a class="actionBtn" v-if="!showingProposal" @click.prevent="toggleProposal()">Show Proposal</a>
+                                <a class="actionBtn" v-else @click.prevent="toggleProposal()">Hide Proposal</a>
                             </div>
                         </div>
+                    </template>
+                    <template v-if="proposal.processing_status == 'With Approver' || isFinalised">
+                        <div class="card-body py-2 border-top">
+                            <div class="col-sm-12">
+                                <strong>Requirements</strong>
+                                <a class="actionBtn" v-if="!showingRequirements" @click.prevent="toggleRequirements()">Show Requirements</a>
+                                <a class="actionBtn" v-else @click.prevent="toggleRequirements()">Hide Requirements</a>
+                            </div>
+                        </div>
+                    </template>
+                    <div class="card-body border-top" v-if="!isFinalised && canAction">
+                        <template v-if="proposal.processing_status == 'With Assessor'">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="row mb-2">
+                                        <strong>Action</strong>
+                                    </div> 
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="amendmentRequest()">Request Amendment</button>
+                            </div>
+                            <div class="col-sm-12" >
+                                <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="issueProposal()">Approve</button>
+                            </div>
+                            <div class="col-sm-12">
+                                <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="declineProposal()">Decline</button>
+                            </div>
+                        </template>
                     </div>
                 </div>
             </div>
@@ -177,8 +116,6 @@
                     <div v-else>
                         <ApprovalScreen :proposal="proposal" @refreshFromResponse="refreshFromResponse"/>
                     </div>
-
-                    <!--ApprovalScreen :proposal="proposal" @refreshFromResponse="refreshFromResponse"/-->
                 </template>
                 <template v-if="proposal.processing_status == 'With Assessor (Requirements)' || ((proposal.processing_status == 'With Approver' || isFinalised) && showingRequirements)">
                     <Requirements :proposal="proposal"/>
@@ -299,40 +236,20 @@
         </div>
         <ProposedDecline ref="proposed_decline" :processing_status="proposal.processing_status" :proposal_id="proposal.id" @refreshFromResponse="refreshFromResponse"></ProposedDecline>
         <AmendmentRequest ref="amendment_request" :proposal_id="proposal.id" @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
-        <!--
-        <ProposedApproval 
-        ref="proposed_approval" 
-        :processing_status="proposal.processing_status" 
-        :proposal_apiary_id="apiaryProposal.id" 
-        :proposal_id="proposal.id" 
-        :proposal_type='proposal.proposal_type' 
-        :isApprovalLevelDocument="isApprovalLevelDocument" 
-        :submitter_email="proposal.submitter_email" 
-        :applicant_email="applicant_email" 
-        @refreshFromResponse="refreshFromResponse"
-        />
-        -->
     </div>
 </template>
 <script>
 import { v4 as uuid } from 'uuid';
-// import ProposalDisturbance from '../../form.vue'
-//import ProposalApiary from '../../form_apiary.vue'
-// import ProposalApiary from '@/components/form_apiary.vue'
-// import NewApply from '../../external/proposal_apply_new.vue'
 import ProposedDecline from './proposal_proposed_decline.vue'
 import AmendmentRequest from './amendment_request.vue'
-//import datatable from '@vue-utils/datatable.vue'
 import Requirements from './proposal_requirements.vue'
-// import ProposedApproval from './proposed_apiary_issuance.vue'
 import ApprovalScreen from './proposal_approval.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
-//import MoreReferrals from '@common-utils/more_referrals.vue'
-// import ApiaryReferralsForProposal from '@common-utils/apiary/apiary_referrals_for_proposal.vue'
 import { api_endpoints, helpers, constants } from '@/utils/hooks'
 import SectionsProposalTemporaryUse from '@/components/common/apiary/sections_proposal_temporary_use.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
 import ApprovalScreenSiteTransferTemporaryUse from './proposal_approval_site_transfer_temporary_use.vue'
+import $ from 'jquery';
 
 export default {
     name: 'InternalProposalTemporaryUse',
@@ -352,7 +269,6 @@ export default {
             approver_comment: '',
             form: null,
             members: [],
-            //department_users : [],
             apiaryReferralGroups: [],
             contacts_table_initialised: false,
             initialisedSelects: false,
@@ -372,7 +288,12 @@ export default {
                 },
                 columns: [
                     {
+                        data: 'id',
+                        visible: false,
+                    },
+                    {
                         title: 'Name',
+                        data: 'id',
                         mRender:function (data,type,full) {
                             return full.first_name + " " + full.last_name;
                         }
@@ -406,19 +327,12 @@ export default {
         }
     },
     components: {
-        // ProposalDisturbance,
-        // ProposalApiary,
-        // datatable,
         ProposedDecline,
         AmendmentRequest,
         Requirements,
-        // ProposedApproval,
         ApprovalScreen,
         ApprovalScreenSiteTransferTemporaryUse,
         CommsLogs,
-        //MoreReferrals,
-        // ApiaryReferralsForProposal,
-        // NewApply,
         FormSection,
         SectionsProposalTemporaryUse,
     },
@@ -431,9 +345,6 @@ export default {
         contactsURL: function(){
             return this.proposal!= null ? helpers.add_endpoint_json(api_endpoints.organisations,this.proposal.applicant.id+'/contacts') : '';
         },
-        //referralListURL: function(){
-        //    return this.proposal!= null ? helpers.add_endpoint_json(api_endpoints.apiary_referrals,'datatable_list')+'?proposal='+this.proposal.id : '';
-        //},
         isLoading: function() {
           return this.loading.length > 0
         },
@@ -441,7 +352,6 @@ export default {
           return helpers.getCookie('csrftoken')
         },
         proposal_form_url: function() {
-          //return (this.proposal) ? `/api/proposal/${this.proposal.id}/assessor_save.json` : '';
             if (this.apiaryProposal) {
                 return `/api/proposal_apiary/${this.apiaryProposal.id}/assessor_save.json`;
             }
@@ -559,26 +469,6 @@ export default {
         commaToNewline(s){
             return s.replace(/[,;]/g, '\n');
         },
-        //proposedDecline: function(){
-        //    this.save_wo();
-        //    this.$refs.proposed_decline.decline = this.proposal.proposaldeclineddetails != null ? helpers.copyObject(this.proposal.proposaldeclineddetails): {};
-        //    this.$refs.proposed_decline.isModalOpen = true;
-        //},
-        //proposedApproval: function(){
-        //    this.$refs.proposed_approval.approval = this.proposal.proposed_issuance_approval != null ? helpers.copyObject(this.proposal.proposed_issuance_approval) : {};
-        //    if(this.proposal.proposed_issuance_approval == null){
-        //        var test_approval={
-        //        'cc_email': this.proposal.referral_email_list
-        //    };
-        //    this.$refs.proposed_approval.approval=helpers.copyObject(test_approval);
-        //        // this.$refs.proposed_approval.$refs.bcc_email=this.proposal.referral_email_list;
-        //    }
-        //    //this.$refs.proposed_approval.submitter_email=helpers.copyObject(this.proposal.submitter_email);
-        //    // if(this.proposal.applicant.email){
-        //    //     this.$refs.proposed_approval.applicant_email=helpers.copyObject(this.proposal.applicant.email);
-        //    // }
-        //    this.$refs.proposed_approval.isModalOpen = true;
-        //},
         issueProposal:function(){
             let vm = this
             swal.fire({
@@ -657,12 +547,10 @@ export default {
             });
         },
         amendmentRequest: function(){
-            this.save_wo();
             let values = '';
             $('.deficiency').each((i,d) => {
                 values +=  $(d).val() != '' ? `Question - ${$(d).data('question')}\nDeficiency - ${$(d).val()}\n\n`: '';
             });
-            //this.deficientFields();
             this.$refs.amendment_request.amendment.text = values;
 
             this.$refs.amendment_request.isModalOpen = true;
@@ -755,9 +643,6 @@ export default {
         },
         refreshFromResponse:function(response_data){
             let vm = this;
-            // TODO  check the response_data if that's send in .json() wherever it's emitted as per new fetch calls.
-            // vm.original_proposal = helpers.copyObject(response.body);
-            // vm.proposal = helpers.copyObject(response.body);
             vm.original_proposal = helpers.copyObject(response_data);
             vm.proposal = helpers.copyObject(response_data);
             vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
@@ -836,98 +721,6 @@ export default {
                 });
             }
         },
-        //switchStatus: function(status){
-        //    let vm = this;
-        //    //vm.save_wo();
-        //    //let vm = this;
-        //    if(vm.proposal.processing_status == 'With Assessor' && status == 'with_assessor_requirements'){
-        //    vm.checkAssessorData();
-        //    let formData = new FormData(vm.form);
-        //    vm.$http.post(vm.proposal_form_url,formData).then(res=>{ //save Proposal before changing status so that unsaved assessor data is saved.
-
-        //    let data = {'status': status, 'approver_comment': vm.approver_comment}
-        //    vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/switch_status')),JSON.stringify(data),{
-        //        emulateJSON:true,
-        //    })
-        //    .then((response) => {
-        //        vm.proposal = response.body;
-        //        vm.original_proposal = helpers.copyObject(response.body);
-        //        vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-        //        vm.approver_comment='';
-        //        vm.$nextTick(() => {
-        //            vm.initialiseAssignedOfficerSelect(true);
-        //            vm.updateAssignedOfficerSelect();
-        //        });
-
-        //    }, (error) => {
-        //        vm.proposal = helpers.copyObject(vm.original_proposal)
-        //        vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-        //        swal(
-        //            'Proposal Error',
-        //            helpers.apiVueResourceError(error),
-        //            'error'
-        //        )
-        //    });
-
-        //  },err=>{
-        //  });
-        //}
-
-        ////if approver is pushing back proposal to Assessor then navigate the approver back to dashboard page
-        //if(vm.proposal.processing_status == 'With Approver' && (status == 'with_assessor_requirements' || status=='with_assessor')) {
-        //    let data = {'status': status, 'approver_comment': vm.approver_comment}
-        //    vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/switch_status')),JSON.stringify(data),{
-        //        emulateJSON:true,
-        //    })
-        //    .then((response) => {
-        //        vm.proposal = response.body;
-        //        vm.original_proposal = helpers.copyObject(response.body);
-        //        vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-        //        vm.approver_comment='';
-        //        vm.$nextTick(() => {
-        //            vm.initialiseAssignedOfficerSelect(true);
-        //            vm.updateAssignedOfficerSelect();
-        //        });
-        //        vm.$router.push({ path: '/internal' });
-        //    }, (error) => {
-        //        vm.proposal = helpers.copyObject(vm.original_proposal)
-        //        vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-        //        swal(
-        //            'Proposal Error',
-        //            helpers.apiVueResourceError(error),
-        //            'error'
-        //        )
-        //    });
-
-        //}
-
-        //else{
-
-
-        // let data = {'status': status, 'approver_comment': vm.approver_comment}
-        //    vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/switch_status')),JSON.stringify(data),{
-        //        emulateJSON:true,
-        //    })
-        //    .then((response) => {
-        //        vm.proposal = response.body;
-        //        vm.original_proposal = helpers.copyObject(response.body);
-        //        vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-        //        vm.approver_comment='';
-        //        vm.$nextTick(() => {
-        //            vm.initialiseAssignedOfficerSelect(true);
-        //            vm.updateAssignedOfficerSelect();
-        //        });
-        //    }, (error) => {
-        //        vm.proposal = helpers.copyObject(vm.original_proposal)
-        //        vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-        //        swal(
-        //            'Proposal Error',
-        //            helpers.apiVueResourceError(error),
-        //            'error'
-        //        )
-        //    });
-        //    }
-        //},
         fetchApiaryReferralGroups: function() {
             this.loading.push('Loading Apiary Referral Groups');
             fetch(api_endpoints.apiary_referral_groups)
@@ -944,19 +737,6 @@ export default {
             })
 
         },
-        /*
-        fetchDeparmentUsers: function(){
-            let vm = this;
-            vm.loading.push('Loading Department Users');
-            vm.$http.get(api_endpoints.department_users).then((response) => {
-                vm.department_users = response.body
-                vm.loading.splice('Loading Department Users',1);
-            },(error) => {
-                console.log(error);
-                vm.loading.splice('Loading Department Users',1);
-            })
-        },
-        */
         initialiseAssignedOfficerSelect:function(reinit=false){
             let vm = this;
             if (reinit){
@@ -1013,152 +793,8 @@ export default {
                 vm.initialisedSelects = true;
             }
         },
-        //sendReferral: function(){
-        //    console.log("sendReferral")
-        //    let vm = this;
-        //    //vm.save_wo();
-        //    vm.checkAssessorData();
-        //    let formData = new FormData(vm.form);
-        //    vm.sendingReferral = true;
-        //    vm.$http.post(vm.proposal_form_url,formData).then(res=>{
-
-        //    let data = {'group_id':vm.selected_referral, 'text': vm.referral_text};
-        //    //vm.sendingReferral = true;
-        //    // need to create Referral, ApiaryReferral at this point
-        //    console.log(api_endpoints.proposal_apiary)
-        //    let url = helpers.add_endpoint_json(api_endpoints.proposal_apiary,(vm.proposal.proposal_apiary.id+'/apiary_assessor_send_referral'))
-        //    console.log(url)
-        //    //vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/assesor_send_referral')),JSON.stringify(data),{
-        //    //vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposal_apiary,(vm.proposal.id+'/apiary_assessor_send_referral')),JSON.stringify(data),{
-        //    vm.$http.post(url,JSON.stringify(data),{
-        //        emulateJSON:true
-        //    }).then((response) => {
-        //        vm.sendingReferral = false;
-        //        vm.original_proposal = helpers.copyObject(response.body);
-        //        vm.proposal = response.body;
-        //        //vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-        //        vm.proposal.relevant_applicant_address = vm.proposal.relevant_applicant_address != null ? vm.proposal.relevant_applicant_address : {};
-        //        swal(
-        //            'Referral Sent',
-        //            'The referral has been sent to '+vm.apiaryReferralGroups.find(d => d.id == vm.selected_referral).name,
-        //            'success'
-        //        )
-        //        $(vm.$refs.apiaryReferralGroups).val(null).trigger("change");
-        //        vm.selected_referral = '';
-        //        vm.referral_text = '';
-        //    }, (error) => {
-        //        console.log(error);
-        //        swal(
-        //            'Referral Error',
-        //            helpers.apiVueResourceError(error),
-        //            'error'
-        //        )
-        //        vm.sendingReferral = false;
-        //    });
-
-
-        //  },err=>{
-        //  });
-
-        ////this.$refs.referral_comment.selected_referral = vm.selected_referral;
-        ////this.$refs.referral_comment.isModalOpen = true;
-
-        //  /*  let data = {'email':vm.selected_referral};
-        //    vm.sendingReferral = true;
-        //    vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/assesor_send_referral')),JSON.stringify(data),{
-        //        emulateJSON:true
-        //    }).then((response) => {
-        //        vm.sendingReferral = false;
-        //        vm.original_proposal = helpers.copyObject(response.body);
-        //        vm.proposal = response.body;
-        //        vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-        //        swal(
-        //            'Referral Sent',
-        //            'The referral has been sent to '+vm.department_users.find(d => d.email == vm.selected_referral).name,
-        //            'success'
-        //        )
-        //        $(vm.$refs.department_users).val(null).trigger("change");
-        //        vm.selected_referral = '';
-        //    }, (error) => {
-        //        console.log(error);
-        //        swal(
-        //            'Referral Error',
-        //            helpers.apiVueResourceError(error),
-        //            'error'
-        //        )
-        //        vm.sendingReferral = false;
-        //    }); */
-        //},
-        //remindReferral:function(r){
-        //    console.log(r)
-        //    let vm = this;
-
-        //    vm.$http.get(helpers.add_endpoint_json(api_endpoints.apiary_referrals,r.apiary_referral.id+'/remind')).then(response => {
-        //        vm.original_proposal = helpers.copyObject(response.body);
-        //        vm.proposal = response.body;
-        //        vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-        //        swal(
-        //            'Referral Reminder',
-        //            'A reminder has been sent to '+r.apiary_referral.referral_group.name,
-        //            'success'
-        //        )
-        //    },
-        //    error => {
-        //        swal(
-        //            'Proposal Error',
-        //            helpers.apiVueResourceError(error),
-        //            'error'
-        //        )
-        //    });
-        //},
-        //resendReferral:function(r){
-        //    console.log(r)
-        //    let vm = this;
-
-        //    vm.$http.get(helpers.add_endpoint_json(api_endpoints.apiary_referrals,r.apiary_referral.id+'/resend')).then(response => {
-        //        vm.original_proposal = helpers.copyObject(response.body);
-        //        vm.proposal = response.body;
-        //        vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-        //        swal(
-        //            'Referral Resent',
-        //            'The referral has been resent to '+r.apiary_referral.referral_group.name,
-        //            'success'
-        //        )
-        //    },
-        //    error => {
-        //        swal(
-        //            'Proposal Error',
-        //            helpers.apiVueResourceError(error),
-        //            'error'
-        //        )
-        //    });
-        //},
-        //recallReferral:function(r){
-        //    console.log(r)
-        //    let vm = this;
-        //    vm.$http.get(helpers.add_endpoint_json(api_endpoints.apiary_referrals,r.apiary_referral.id+'/recall')).then(response => {
-        //        vm.original_proposal = helpers.copyObject(response.body);
-        //        vm.proposal = response.body;
-        //        vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-        //        swal(
-        //            'Referral Recall',
-        //            'The referall has been recalled from '+r.apiary_referral.referral_group.name,
-        //            'success'
-        //        )
-        //    },
-        //    error => {
-        //        swal(
-        //            'Proposal Error',
-        //            helpers.apiVueResourceError(error),
-        //            'error'
-        //        )
-        //    });
-        //}
-
     },
     mounted: function() {
-        //let vm = this;
-        //vm.fetchDeparmentUsers();
         this.fetchApiaryReferralGroups();
     },
     updated: function(){

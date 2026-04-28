@@ -10,7 +10,7 @@
                                 <div class="col-sm-offset-2 col-sm-8">
                                     <div class="form-group">
                                         <label class="control-label pull-left"  for="Name">Reason</label>
-                                        <select class="form-control" name="reason" ref="reason" v-model="amendment.reason">
+                                        <select class="form-select" name="reason" ref="reason" v-model="amendment.reason">
                                             <option v-for="r in reason_choices" :value="r.key" :key="r.key">{{r.value}}</option>
                                         </select>
                                     </div>
@@ -20,11 +20,8 @@
                                 <div class="col-sm-offset-2 col-sm-8">
                                     <div class="form-group">
                                         <label class="control-label pull-left"  for="Name">Details</label>
-                                        <div v-if="is_apiary_proposal">
+                                        <div>
                                              <textarea class="form-control" name="name" v-model="amendment.text" id="amendment_text"></textarea>
-                                        </div>
-                                        <div v-else>
-                                            <textarea class="form-control" name="name" v-model="amendment.text" readonly="true"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -34,7 +31,6 @@
                                 <div class="col-sm-offset-2 col-sm-8">
                                     <div class="form-group">
                                         <div class="input-group date" ref="add_attachments" style="width: 70%;">
-                                            <!--FileField ref="filefield" :uploaded_documents="amendment.amendment_request_documents" :delete_url="delete_url" :proposal_id="proposal_id" isRepeatable="true" name="amendment_request_file" @refreshFromResponse="refreshFromResponse"/-->
                                             <FileField
                                             ref="filefield"
                                             :uploaded_documents="amendment.amendment_request_documents"
@@ -59,8 +55,8 @@
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 import FileField from '@/components/forms/filefield.vue'
+import $ from 'jquery';
 
-// import {helpers, api_endpoints} from "@/utils/hooks.js"
 export default {
     name:'amendment-request',
     components:{
@@ -111,7 +107,11 @@ export default {
         ok:function () {
             let vm =this;
             if($(vm.form).valid()){
+                vm.errors = false;
                 vm.sendData();
+            } else {
+                vm.errorString = "Missing required fields.";
+                vm.errors = true;
             }
         },
         cancel:function () {
@@ -204,41 +204,18 @@ export default {
             vm.validation_form = $(vm.form).validate({
                 rules: {
                     reason: "required"
-
-
                 },
-                messages: {
-                    reason: "field is required",
-
-                },
-                showErrors: function(errorMap, errorList) {
-                    $.each(this.validElements(), function(index, element) {
-                        var $element = $(element);
-                        $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
-                    });
-                    // destroy tooltips on valid elements
-                    $("." + this.settings.validClass).tooltip("destroy");
-                    // add or update tooltips
-                    for (var i = 0; i < errorList.length; i++) {
-                        var error = errorList[i];
-                        $(error.element)
-                            .tooltip({
-                                trigger: "focus"
-                            })
-                            .attr("data-original-title", error.message)
-                            .parents('.form-group').addClass('has-error');
-                    }
-                }
             });
        },
-       eventListerners:function () {
+       eventListeners:function () {
             let vm = this;
 
             // Intialise select2
             $(vm.$refs.reason).select2({
                 "theme": "bootstrap",
                 allowClear: true,
-                placeholder:"Select Reason"
+                placeholder:"Select Reason",
+                dropdownParent: $(vm.$refs.reason).parent(),
             }).
             on("select2:select",function (e) {
                 var selected = $(e.currentTarget);
@@ -258,7 +235,7 @@ export default {
        vm.fetchAmendmentChoices();
        vm.addFormValidations();
        this.$nextTick(()=>{
-            vm.eventListerners();
+            vm.eventListeners();
         });
     //console.log(validate);
    }

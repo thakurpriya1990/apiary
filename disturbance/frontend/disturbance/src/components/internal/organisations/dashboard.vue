@@ -1,90 +1,59 @@
 <template>
 <div class="container" id="internalOrgAccessDash">
-<div class="row">
-        <div class="col-sm-12">
-            <div class="panel panel-default">
-
-                <div class="panel-heading">
-                    <h3 class="panel-title">Organisation Access Requests
-                        <a :href="'#'+pBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="pBody">
-                            <span class="glyphicon glyphicon-chevron-up pull-right "></span>
-                        </a>
-                    </h3>
-                </div>
-
-
-<div class="panel-body collapse in" :id="pBody">
     <div class="row">
-        <div class="col-md-3">
-            <div class="form-group">
-                <label for="">Organisation</label>
-                <select class="form-control" v-model="filterOrganisation">
-                    <option value="All">All</option>
-                    <option v-for="o in organisationChoices" :value="o" :key="o">{{o}}</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="form-group">
-                <label for="">Applicant</label>
-                <select class="form-control" v-model="filterApplicant">
-                    <option value="All">All</option>
-                    <option v-for="a  in applicantChoices" :value="a" :key="a">{{a}}</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="form-group">
-                <label for="">Role</label>
-                <select class="form-control" v-model="filterRole">
-                    <option value="All">All</option>
-                    <option v-for="r in roleChoices" :value="r" :key="r">{{r}}</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="form-group">
-                <label for="">Status</label>
-                <select class="form-control" v-model="filterStatus">
-                    <option value="All">All</option>
-                    <option v-for="s in statusChoices" :value="s" :key="s">{{s}}</option>
-                </select>
-            </div>
+        <div class="col-sm-12">
+            <FormSection :form-collapse="false" label="Organisation Access Requests">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="">Role</label>
+                            <select class="form-select" v-model="filterRole">
+                                <option value="All">All</option>
+                                <option v-for="r in roleChoices" :value="r" :key="r">{{r}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="">Status</label>
+                            <select class="form-select" v-model="filterStatus">
+                                <option value="All">All</option>
+                                <option v-for="s in statusChoices" :value="s" :key="s">{{s}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <template v-if="table_id">
+                    <datatable
+                        ref="org_access_table"
+                        id="org-access-table"
+                        :dtOptions="dtOptions"
+                        :dtHeaders="dtHeaders"
+                        :key="table_id">
+                    </datatable>
+                </template>
+            </FormSection>
         </div>
     </div>
-    <template v-if="table_id">
-        <datatable
-            ref="org_access_table"
-            id="org-access-table"
-            :dtOptions="dtOptions"
-            :dtHeaders="dtHeaders"
-            :key="table_id">
-        </datatable>
-    </template>
-</div>
-</div>
-</div>
-</div>
-
-
 </div>
 </template>
 <script>
 import { v4 as uuid } from 'uuid';
 import datatable from '@vue-utils/datatable.vue'
+import FormSection from '@/components/forms/section_toggle.vue';
 import {
   api_endpoints,
   helpers,
   constants
 }
 from '@/utils/hooks'
+import $ from 'jquery';
+
 export default {
   name: 'OrganisationAccessDashboard',
   data() {
     let vm = this;
     return {
-        dasTemplateGroup: false,
-        apiaryTemplateGroup: false,
         // Filters
         pBody: 'pBody' + uuid(),
         filterOrganisation: 'All',
@@ -155,7 +124,6 @@ export default {
                                 else{
                                     column = "<a href='/internal/organisations/access/__ID__' >View </a>";
                                 }
-                                //var column = "<a href='/internal/organisations/access/__ID__'> Process </a>";
                             }
                             return column.replace(/__ID__/g, data);
                         },
@@ -239,7 +207,8 @@ export default {
         },
     },
     components: {
-        datatable
+        datatable,
+        FormSection
     },
     computed: {
         isLoading: function () {
@@ -251,16 +220,10 @@ export default {
     },
     methods: {
         fetchAccessGroupMembers: async function(){
-            //let vm = this;
-            //this.loading.push('Loading Access Group Members');
-            let url = api_endpoints.organisation_access_group_members;
-            if (this.apiaryTemplateGroup) {
-                url = api_endpoints.apiary_organisation_access_group_members;
-            }
+            let url = api_endpoints.apiary_organisation_access_group_members;
             const response = await fetch(url)
             if (!response.ok) { return response.json().then(err => { throw err }); }
             this.members = await response.json();
-            //this.loading.splice('Loading Access Group Members',1);
             this.table_id = uuid()
         },
         fetchProfile: async function(){
@@ -278,22 +241,7 @@ export default {
                 return false;
         },
     },
-    mounted: async function () {
-        //await this.fetchAccessGroupMembers();
-        //await this.fetchProfile();
-    },
     created: async function() {
-        // retrieve template group
-        const res = await fetch('/template_group',{
-            emulateJSON:true
-            })
-        if (!res.ok) { return res.json().then(err => { throw err }); }
-        const data = await res.json();
-        if (data.template_group === 'apiary') {
-            this.apiaryTemplateGroup = true;
-        } else {
-            this.dasTemplateGroup = true;
-        }
         await this.fetchProfile();
         await this.fetchAccessGroupMembers();
     },

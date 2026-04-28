@@ -1,97 +1,165 @@
 <template lang="html">
-    <div class="panel panel-default" >
-      <div v-if="!hideHeader" class="panel-heading">
-        <h3 class="panel-title">{{label}} <small v-if="subheading"> - {{subheading}}</small> 
-            <a :href="'#'+section_id" class="panelClicker" :id="custom_id" data-toggle="collapse" expanded="true" :aria-controls="section_id">
-                <span :class="panel_chevron_class"></span>
-            </a>
-        </h3>
-      </div>
-      <div :class="panel_collapse_class" :id="section_id">
-          <slot></slot>
-      </div>
+    <div :id="custom_id" class="card section-wrapper">
+        <div class="card-header h4 fw-bold p-4">
+            <div
+                :id="'show_hide_switch_' + section_body_id"
+                class="row show_hide_switch"
+                aria-expanded="true"
+                :aria-controls="section_body_id"
+                @click="toggle_show_hide"
+            >
+                <div class="col-11" :style="'color:' + customColor">
+                    {{ label }}
+                    <span v-if="subtitle" class="h6" :class="subtitleClass">{{
+                        subtitle
+                    }}</span>
+                    <!-- to display the assessor and referral comments textboxes -->
+                    <template v-if="displayCommentSection">
+                        <template v-if="!isShowComment">
+                            <a
+                                v-if="has_comment_value"
+                                href=""
+                                @click.prevent="toggleComment"
+                                ><i style="color: red" class="far fa-comment"
+                                    >&nbsp;</i
+                                ></a
+                            >
+                            <a v-else href="" @click.prevent="toggleComment"
+                                ><i class="far fa-comment">&nbsp;</i></a
+                            >
+                        </template>
+                        <a
+                            v-else-if="isShowComment"
+                            href=""
+                            @click.prevent="toggleComment"
+                            ><i class="fa fa-ban">&nbsp;</i></a
+                        >
+                    </template>
+                </div>
+                <div class="col-1 text-end">
+                    <i
+                        :id="chevron_elem_id"
+                        class="bi fw-bold chevron-toggle"
+                        :data-bs-target="'#' + section_body_id"
+                    >
+                    </i>
+                </div>
+            </div>
+        </div>
+        <div
+            :id="section_body_id"
+            :class="detailsClass"
+            :style="'color:' + customColor"
+        >
+            <slot></slot>
+        </div>
     </div>
 </template>
 
 <script>
 import { v4 as uuid } from 'uuid';
+import $ from 'jquery';
 
 export default {
-    name:"FormSection",
-    props:{
-        "label": {
+    name: 'FormSection',
+    props: {
+        label: {
             type: String,
-            default: ''
+            default: '',
         },
-        "subheading":{
+        subtitle: {
             type: String,
-            default: ''
+            default: '',
         },
-        "Index":{
+        subtitleClass: {
             type: String,
-            default: ''
+            default: 'text-muted',
         },
-        "formCollapse":{
-            type: Boolean,
-            default: false
+        Index: {
+            type: String,
+            default: '',
         },
-        "hideHeader": {
+        hideHeader: {
             type: Boolean,
-            default: false
+            default: false,
         },
-        "treeHeight": {
+        customColor: {
+            type: String,
+            default: '',
+        },
+        formCollapse: {
             type: Boolean,
-            default: false
+            default: false,
+        },
+        isShowComment: {
+            type: Boolean,
+            required: false,
+        },
+        has_comment_value: {
+            type: Boolean,
+            required: false,
+        },
+        displayCommentSection: {
+            type: Boolean,
+            default: false,
         },
     },
-    data:function () {
+    data: function () {
         return {
-            title:"Section title",
-            panel_chevron_class: null,
             custom_id: uuid(),
-        }
+            chevron_elem_id: 'chevron_elem_' + uuid(),
+        };
     },
-    computed:{
-        section_id: function () {
-            return "section_"+this.Index
-        },
-        panel_collapse_class: function() {
+    computed: {
+        detailsClass: function () {
+            let classText = 'card-body';
             if (this.formCollapse) {
-                this.panel_chevron_class = "glyphicon glyphicon-chevron-down pull-right";
-                return "panel-body collapse";
-            } else {
-                if (this.treeHeight) {
-                    this.panel_chevron_class = "glyphicon glyphicon-chevron-up pull-right";
-                    return "panel-body collapse in flex-container";
-                } else {
-                    this.panel_chevron_class = "glyphicon glyphicon-chevron-up pull-right";
-                    return "panel-body collapse in";
-                }
+                classText = 'card-body collapse';
             }
+            return classText;
+        },
+        section_header_id: function () {
+            return 'section_header_' + this.Index;
+        },
+        section_body_id: function () {
+            return 'section_body_' + this.Index;
         },
     },
-    mounted: function() {
-        $('#' + this.custom_id).on('click',function () {
-            var chev = $(this).children()[0];
-            window.setTimeout(function () {
-                $(chev).toggleClass("glyphicon-chevron-up glyphicon-chevron-down");
-            }, 100);
-        });
+    mounted: function () {
+        // eslint-disable-next-line no-undef
+        chevron_toggle.init();
     },
-    updated:function () {
+    methods: {
+        toggle_show_hide: function () {
+            // Bootstrap add a 'collapsed' class name to the element
+            let elem_expanded_when_clicked = $(
+                '#show_hide_switch_' + this.section_body_id
+            ).hasClass('collapsed');
+            this.elem_expanded = !elem_expanded_when_clicked;
+            this.$emit('toggle-collapse');
+        },
+        toggleComment: function () {
+            this.$emit('toggleComment', !this.isShowComment);
+        },
     },
-}
+};
 </script>
 
-<style lang="css">
-    h3.panel-title{
-        font-weight: bold;
-        font-size: 25px;
-        padding:20px;
-    }
-    .flex-container {
-        display: flex;
-        flex-direction: column;
-        min-height: 325px;
-    }
+<style scoped>
+.section-wrapper {
+    margin-bottom: 20px;
+    padding: 0;
+}
+
+.show_hide_switch {
+    cursor: pointer;
+}
+
+.rotate_icon {
+    transition: 0.5s;
+}
+
+.chev_rotated {
+    transform: rotate(90deg);
+}
 </style>

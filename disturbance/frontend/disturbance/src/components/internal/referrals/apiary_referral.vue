@@ -5,54 +5,48 @@
         <h3>Proposal: {{ proposal.lodgement_number }}</h3>
         <div class="col-md-3">
             <CommsLogs :comms_url="comms_url" :logs_url="logs_url" comms_add_url="test"/>
-            <div class="row">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
+            <div class="mb-3">
+                <div class="card card-default">
+                    <div class="card-header">
                        Submission 
                     </div>
-                    <div class="panel-body panel-collapse">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <strong>Submitted by</strong><br/>
-                                {{ proposal.submitter }}
-                            </div>
-                            <div class="col-sm-12 top-buffer-s">
-                                <strong>Lodged on</strong><br/>
-                                {{ formatDate(proposal.lodgement_date) }}
-                            </div>
-                            <div class="col-sm-12 top-buffer-s">
-                                <table class="table small-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Lodgement</th>
-                                            <th>Date</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
-                        </div>
+                    <div class="card-body py-2">
+                        <strong>Submitted by</strong><br/>
+                        {{ proposal.submitter }}
+                    </div>
+                    <div  class="card-body border-top py-2">
+                        <strong>Lodged on</strong><br/>
+                        {{ formatDate(proposal.lodgement_date) }}
+                    </div>
+                    <div  class="card-body border-top py-2">
+                        <table class="table small-table">
+                            <thead>
+                                <tr>
+                                    <th>Lodgement</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                        </table>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        Workflow 
+            <div class="mb-3">
+                <div class="card card-default sticky-top">
+                    <div class="card-header">
+                        Workflow
                     </div>
-                    <div class="panel-body panel-collapse">
+                    <div class="card-body py-2">
+                        <strong>Status</strong><br/>
+                        {{ proposal.processing_status }}
+                    </div>
+
+                    <div v-if="!isFinalised" class="card-body py-2 border-top">
                         <div class="row">
-                            <div class="col-sm-12">
-                                <strong>Status</strong><br/>
-                                {{ proposal.processing_status }}
-                            </div>
-                            <div class="col-sm-12">
-                                <div class="separator"></div>
-                            </div>
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Currently assigned to</strong><br/>
                                 <div class="form-group">
-                                    <select ref="assigned_officer_referral" :disabled="!canProcess" class="form-control" v-model="apiaryReferral.assigned_officer_id">
+                                    <select ref="assigned_officer_referral" :disabled="!canProcess" class="form-select" v-model="apiaryReferral.assigned_officer_id">
                                         <option :value="null"></option>
                                         <option v-for="member in apiaryReferral.allowed_assessors" :value="member.id" :key="member.id">{{member.first_name}} {{member.last_name}}</option>
                                     </select>
@@ -63,29 +57,8 @@
                                     </a>
                                 </div>
                             </div>
-
-                            <!--div v-if="!isFinalised" class="col-sm-12 top-buffer-s">
-                                <strong>Currently assigned to</strong><br/>
-                                <div class="form-group">
-                                    <template v-if="proposal.processing_status == 'With Approver'">
-                                        <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="proposal.assigned_approver">
-                                            <option v-for="member in proposal.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
-                                        </select>
-                                        <a v-if="canAssess && proposal.assigned_approver != proposal.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
-                                    </template>
-                                    <template v-else>
-                                        <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="proposal.assigned_officer">
-                                            <option v-for="member in proposal.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
-                                        </select>
-                                        <a v-if="canAssess && proposal.assigned_officer != proposal.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
-                                    </template>
-                                </div>
-                            </div-->
-
-
-                            <!--div class="col-sm-12">
-                                <div class="separator"></div>
-                            </div-->
+                        </div>
+                        <div class="card-body border-top" v-if="!isFinalised && canAction">
                             <div class="col-sm-12 top-buffer-s" v-if="canAction">
                                 <div class="row">
                                     <div class="col-sm-12">
@@ -119,123 +92,83 @@
                         </div>
                     </div>
                 </div>
-                <!--div v-if="siteTransfer">
-                    <OriginatingApprovalRequirements 
-                    :proposal="proposal" 
-                    :originatingApprovalId="originatingApprovalId"
-                    :originatingApprovalLodgementNumber="originatingApprovalLodgementNumber"
-                    />
-                    <TargetApprovalRequirements 
-                    :proposal="proposal" 
-                    :targetApprovalId="targetApprovalId"
-                    :targetApprovalLodgementNumber="targetApprovalLodgementNumber"
-                    />
-                </div-->
                 <div class="col-md-12">
                     <div class="row">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">Applicant
-                                    <a class="panelClicker" :href="'#'+detailsBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="detailsBody">
-                                        <span class="glyphicon glyphicon-chevron-up pull-right "></span>
-                                    </a>
-                                </h3> 
-                            </div>
+                        <FormSection :formCollapse="false" label="Applicant" Index="applicant">
                             <div v-if="organisationApplicant">
-                                <div class="panel-body panel-collapse collapse in" :id="detailsBody">
-                                      <form class="form-horizontal">
-                                          <div class="form-group">
-                                            <label for="" class="col-sm-3 control-label">Name</label>
-                                            <div class="col-sm-6">
-                                                <input disabled type="text" class="form-control" name="applicantName" placeholder="" v-model="proposal.applicant.name">
-                                            </div>
-                                          </div>
-                                          <div class="form-group">
-                                            <label for="" class="col-sm-3 control-label" >ABN/ACN</label>
-                                            <div class="col-sm-6">
-                                                <input disabled type="text" class="form-control" name="applicantABN" placeholder="" v-model="proposal.applicant.abn">
-                                            </div>
-                                          </div>
-                                      </form>
-                                </div>
+                                <form class="form-horizontal">
+                                    <div class="form-group">
+                                    <label for="" class="col-sm-3 control-label">Name</label>
+                                    <div class="col-sm-6">
+                                        <input disabled type="text" class="form-control" name="applicantName" placeholder="" v-model="proposal.applicant.name">
+                                    </div>
+                                    </div>
+                                    <div class="form-group">
+                                    <label for="" class="col-sm-3 control-label" >ABN/ACN</label>
+                                    <div class="col-sm-6">
+                                        <input disabled type="text" class="form-control" name="applicantABN" placeholder="" v-model="proposal.applicant.abn">
+                                    </div>
+                                    </div>
+                                </form>
                             </div>
                             <div v-else>
-                                <div class="panel-body panel-collapse collapse in" :id="detailsBody">
-                                      <form class="form-horizontal">
-                                          <div class="form-group">
-                                            <label for="" class="col-sm-3 control-label">Given Name(s)</label>
-                                            <div class="col-sm-6">
-                                                <input disabled type="text" class="form-control" name="applicantFirstName" placeholder="" v-model="proposal.applicant_first_name">
-                                            </div>
-                                          </div>
-                                          <div class="form-group">
-                                            <label for="" class="col-sm-3 control-label" >Last Name</label>
-                                            <div class="col-sm-6">
-                                                <input disabled type="text" class="form-control" name="applicantLastName" placeholder="" v-model="proposal.applicant_last_name">
-                                            </div>
-                                          </div>
-                                      </form>
+                                <form class="form-horizontal">
+                                    <div class="form-group">
+                                    <label for="" class="col-sm-3 control-label">Given Name(s)</label>
+                                    <div class="col-sm-6">
+                                        <input disabled type="text" class="form-control" name="applicantFirstName" placeholder="" v-model="proposal.applicant_first_name">
+                                    </div>
+                                    </div>
+                                    <div class="form-group">
+                                    <label for="" class="col-sm-3 control-label" >Last Name</label>
+                                    <div class="col-sm-6">
+                                        <input disabled type="text" class="form-control" name="applicantLastName" placeholder="" v-model="proposal.applicant_last_name">
+                                    </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </FormSection>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="row">
+                        <FormSection :formCollapse="true" label="Address Details" Index="address_details">
+                            <form class="form-horizontal">
+                                <div class="form-group">
+                                <label for="" class="col-sm-3 control-label">Street</label>
+                                <div class="col-sm-6">
+                                    <input disabled type="text" class="form-control" name="street" placeholder="" v-model="applicantAddress.line1">
                                 </div>
-                            </div>
-                        </div>
+                                </div>
+                                <div class="form-group">
+                                <label for="" class="col-sm-3 control-label" >Town/Suburb</label>
+                                <div class="col-sm-6">
+                                    <input disabled type="text" class="form-control" name="surburb" placeholder="" v-model="applicantAddress.locality">
+                                </div>
+                                </div>
+                                <div class="form-group">
+                                <label for="" class="col-sm-3 control-label">State</label>
+                                <div class="col-sm-2">
+                                    <input disabled type="text" class="form-control" name="country" placeholder="" v-model="applicantAddress.state">
+                                </div>
+                                <label for="" class="col-sm-2 control-label">Postcode</label>
+                                <div class="col-sm-2">
+                                    <input disabled type="text" class="form-control" name="postcode" placeholder="" v-model="applicantAddress.postcode">
+                                </div>
+                                </div>
+                                <div class="form-group">
+                                <label for="" class="col-sm-3 control-label" >Country</label>
+                                <div class="col-sm-4">
+                                    <input disabled type="text" class="form-control" name="country" v-model="applicantAddress.country"/>
+                                </div>
+                                </div>
+                            </form>
+                        </FormSection>
                     </div>
                 </div>
                 <div class="col-md-12">
                     <div class="row">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">Address Details
-                                    <a class="panelClicker" :href="'#'+addressBody" data-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="addressBody">
-                                        <span class="glyphicon glyphicon-chevron-down pull-right "></span>
-                                    </a>
-                                </h3> 
-                            </div>
-                            <div class="panel-body panel-collapse collapse" :id="addressBody">
-                                  <form class="form-horizontal">
-                                      <div class="form-group">
-                                        <label for="" class="col-sm-3 control-label">Street</label>
-                                        <div class="col-sm-6">
-                                            <input disabled type="text" class="form-control" name="street" placeholder="" v-model="applicantAddress.line1">
-                                        </div>
-                                      </div>
-                                      <div class="form-group">
-                                        <label for="" class="col-sm-3 control-label" >Town/Suburb</label>
-                                        <div class="col-sm-6">
-                                            <input disabled type="text" class="form-control" name="surburb" placeholder="" v-model="applicantAddress.locality">
-                                        </div>
-                                      </div>
-                                      <div class="form-group">
-                                        <label for="" class="col-sm-3 control-label">State</label>
-                                        <div class="col-sm-2">
-                                            <input disabled type="text" class="form-control" name="country" placeholder="" v-model="applicantAddress.state">
-                                        </div>
-                                        <label for="" class="col-sm-2 control-label">Postcode</label>
-                                        <div class="col-sm-2">
-                                            <input disabled type="text" class="form-control" name="postcode" placeholder="" v-model="applicantAddress.postcode">
-                                        </div>
-                                      </div>
-                                      <div class="form-group">
-                                        <label for="" class="col-sm-3 control-label" >Country</label>
-                                        <div class="col-sm-4">
-                                            <input disabled type="text" class="form-control" name="country" v-model="applicantAddress.country"/>
-                                        </div>
-                                      </div>
-                                   </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-12">
-                    <div class="row">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">Contact Details
-                                    <a class="panelClicker" :href="'#'+contactsBody" data-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="contactsBody">
-                                        <span class="glyphicon glyphicon-chevron-down pull-right "></span>
-                                    </a>
-                                </h3>
-                            </div>
-                            <div class="panel-body panel-collapse collapse" :id="contactsBody">
+                        <FormSection :formCollapse="true" label="Contact Details" Index="contact_details">
                                 <div v-if="organisationApplicant">
                                     <table ref="contacts_datatable" :id="contacts_table_id" class="hover table table-striped table-bordered dt-responsive" cellspacing="0" width="100%">
                                     </table>
@@ -262,8 +195,7 @@
                                       </div>
                                   </form>
                                 </div>
-                            </div>
-                        </div>
+                        </FormSection>
                     </div>
                 </div>
 
@@ -334,20 +266,16 @@
 import { v4 as uuid } from 'uuid';
 import ProposalApiary from '../../form_apiary.vue'
 import ApiarySiteTransfer from '../../form_apiary_site_transfer.vue'
-// import NewApply from '../../external/proposal_apply_new.vue'
-// import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
-//import MoreReferrals from '@common-utils/more_referrals.vue'
-//import ApiaryReferralsForProposal from '@common-utils/apiary/apiary_referrals_for_proposal.vue'
-//import OriginatingApprovalRequirements from '../proposals/originating_approval_requirements.vue'
-//import TargetApprovalRequirements from '../proposals/target_approval_requirements.vue'
-
+import FormSection from "@/components/forms/section_toggle.vue"
 import {
     api_endpoints,
     helpers,
     constants
 }
 from '@/utils/hooks'
+import $ from 'jquery';
+
 export default {
     name: 'ApiaryReferral',
     data: function() {
@@ -356,8 +284,6 @@ export default {
             detailsBody: 'detailsBody'+uuid(),
             addressBody: 'addressBody'+uuid(),
             contactsBody: 'contactsBody'+uuid(),
-            //"proposal": null,
-            //referral: null,
             assigned_officer_id: null,
             referral_sent_list: null,
             "loading": [],
@@ -383,6 +309,7 @@ export default {
                 columns: [
                     {
                         title: 'Name',
+                        data: 'id',
                         mRender:function (data,type,full) {
                             return full.first_name + " " + full.last_name;
                         }
@@ -416,6 +343,7 @@ export default {
         }
     },
     components: {
+        FormSection,
         ProposalApiary,
         // datatable,
         CommsLogs,
@@ -456,7 +384,7 @@ export default {
 
 
         proposal: function(){
-            return this.referral != null && this.referall != 'undefined' ? this.referral.proposal : null;
+            return this.referral != null && this.referral != 'undefined' ? this.referral.proposal : null;
         },
         proposalApiaryReferrerChecklistAnswers: function() {
             if (this.proposal && this.proposal.proposal_apiary) {
@@ -484,9 +412,6 @@ export default {
         },
         contactsURL: function(){
             return this.proposal!= null ? helpers.add_endpoint_json(api_endpoints.organisations,this.proposal.applicant.id+'/contacts') : '';
-        },
-        referralListURL: function(){
-            return this.referral!= null ? helpers.add_endpoint_json(api_endpoints.referrals,this.referral.id+'/referral_list') : '';
         },
         isLoading: function() {
           return this.loading.length > 0
@@ -605,22 +530,11 @@ export default {
             on("select2:select", async function (e) {
                 var selected = $(e.currentTarget);
                 vm.apiaryReferral.assigned_officer_id = selected.val();
-                //await vm.$nextTick();
                 await vm.assignTo();
-                /*
-            }).on("select2:unselecting", function(e) {
-                var self = $(this);
-                setTimeout(() => {
-                    self.select2('close');
-                }, 0);
-                */
             }).on("select2:unselect", async function () {
-                // var selected = $(e.currentTarget);
                 vm.apiaryReferral.assigned_officer_id = null;
-                //await vm.$nextTick();
                 await vm.unAssign();
             });
-            //});
         },
 
         refreshFromResponse:function(response){
@@ -672,31 +586,6 @@ export default {
                 console.log(err);
             });
         },
-        /*
-        assignTo: function(){
-            let vm = this;
-            if ( vm.proposal.assigned_officer != 'null'){
-                let data = {'user_id': vm.proposal.assigned_officer};
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.proposal.id+'/assign_to')),JSON.stringify(data),{
-                    emulateJSON:true
-                }).then((response) => {
-                    console.log(response);
-                    vm.proposal = response.body;
-                }, (error) => {
-                    console.log(error);
-                });
-            }
-            else{
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.proposal.id+'/unassign')))
-                .then((response) => {
-                    console.log(response);
-                    vm.proposal = response.body;
-                }, (error) => {
-                    console.log(error);
-                });
-            }
-        },
-        */
         fetchProposalGroupMembers: function(){
             let vm = this;
             vm.loading.push('Loading Proposal Group Members');
@@ -710,176 +599,6 @@ export default {
                 vm.loading.splice('Loading Proposal Group Members',1);
             })
         },
-        /*
-        initialiseSelects: function(){
-            let vm = this;
-            if (!vm.initialisedSelects){
-                $(vm.$refs.apiary_referral_groups).select2({
-                    "theme": "bootstrap",
-                    allowClear: true,
-                    placeholder:"Select Referral"
-                }).
-                on("select2:select",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.selected_referral = selected.val();
-               }).
-               on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.selected_referral = selected.val();
-               });
-                // Assigned officer select
-                $(vm.$refs.assigned_officer).select2({
-                    "theme": "bootstrap",
-                    allowClear: true,
-                    placeholder:"Select Officer"
-                }).
-                on("select2:select",function (e) {
-                   var selected = $(e.currentTarget);
-                   vm.$emit('input',selected[0])
-               }).
-               on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.$emit('input',selected[0])
-               });
-                vm.initialisedSelects = true;
-            }
-        },
-        sendReferral: function(){
-            let vm = this;
-            let formData = new FormData(vm.form); //save data before completing referral
-            vm.sendingReferral = true;
-            vm.$http.post(vm.proposal_form_url,formData).then(res=>{
-                //let data = {'email':vm.selected_referral, 'text': vm.referral_text};
-                let data = {'group_id':vm.selected_referral, 'text': vm.referral_text};
-                //vm.sendingReferral = true;
-                //vm.$http.post(helpers.add_endpoint_json(api_endpoints.referrals,(vm.referral.id+'/send_referral')),JSON.stringify(data),{
-                let url = helpers.add_endpoint_json(api_endpoints.apiary_referrals,(vm.referral.apiary_referral.id+'/send_referral'))
-                console.log(url)
-                vm.$http.post(url,JSON.stringify(data),{
-                emulateJSON:true
-                }).then((response) => {
-                vm.sendingReferral = false;
-                console.log(response.body)
-                //commenting out the following lines, as a secondary referral should not overwrite the current referral
-                //vm.referral = response.body;
-                //vm.referral.proposal.applicant.address = vm.referral.proposal.applicant.address != null ? vm.referral.proposal.applicant.address : {};
-                swal.fire(
-                    'Referral Sent',
-                    'The referral has been sent to '+vm.apiaryReferralGroups.find(d => d.id == vm.selected_referral).name,
-                    //'The referral has been sent to '+vm.apiaryReferralGroups.find(d => d.email == vm.selected_referral).name,
-                    'success'
-                )
-                $(vm.$refs.apiary_referral_groups).val(null).trigger("change");
-                vm.selected_referral = '';
-                vm.referral_text = '';
-             }, (error) => {
-                console.log(error);
-                swal.fire(
-                    'Referral Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-                vm.sendingReferral = false;
-                vm.selected_referral = '';
-                vm.referral_text = '';
-                });
-            
-             
-             },err=>{
-             });
-        },
-        fetchApiaryReferralGroups: function() {
-            this.loading.push('Loading Apiary Referral Groups');
-            this.$http.get(api_endpoints.apiary_referral_groups).then((response) => {
-                for (let group of response.body) {
-                    this.apiaryReferralGroups.push(group)
-                }
-                this.loading.splice('Loading Apiary Referral Groups',1);
-            },(error) => {
-                console.log(error);
-                this.loading.splice('Loading Apiary Referral Groups',1);
-            })
-
-        },
-        remindReferral:function(r){
-            let vm = this;
-            
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/remind')).then(response => {
-                // vm.original_proposal = helpers.copyObject(response.body);
-                // vm.proposal = response.body;
-                // vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                vm.fetchReferral(vm.referral.id);
-                swal.fire(
-                    'Referral Reminder',
-                    'A reminder has been sent to '+r.referral,
-                    'success'
-                )
-            },
-            error => {
-                swal.fire(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
-        },
-        resendReferral:function(r){
-            let vm = this;
-            
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/resend')).then(response => {
-                // vm.original_proposal = helpers.copyObject(response.body);
-                // vm.proposal = response.body;
-                // vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                vm.fetchReferral(vm.referral.id);
-                swal.fire(
-                    'Referral Resent',
-                    'The referral has been resent to '+r.referral,
-                    'success'
-                )
-            },
-            error => {
-                swal.fire(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
-        },
-        recallReferral:function(r){
-            let vm = this;
-            
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,r.id+'/recall')).then(response => {
-                // vm.original_proposal = helpers.copyObject(response.body);
-                // vm.proposal = response.body;
-                // vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                vm.fetchReferral(vm.referral.id);
-                swal.fire(
-                    'Referral Recall',
-                    'The referall has been recalled from '+r.referral,
-                    'success'
-                )
-            },
-            error => {
-                swal.fire(
-                    'Proposal Error',
-                    helpers.apiVueResourceError(error),
-                    'error'
-                )
-            });
-        },
-        */
-        fetchreferrallist: function(referral_id){
-            let vm = this;
-
-           fetch(helpers.add_endpoint_json(api_endpoints.referrals,referral_id+'/referral_list'))
-            .then(async (response) => {
-                if (!response.ok) { return response.json().then(err => { throw err }); }
-                vm.referral_sent_list = await response.json();
-            })
-            .catch(err => {
-              console.log(err);
-            });
-        },
         fetchReferral: function(){
             let vm = this;
             fetch(helpers.add_endpoint_json(api_endpoints.referrals,vm.referral.id))
@@ -887,8 +606,6 @@ export default {
                 if (!res.ok) { return res.json().then(err => { throw err }); }
                 vm.referral = await res.json();
                 vm.referral.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                //vm.fetchreferrallist(vm.referral.id);
-              
             }).catch(err => {
               console.log(err);
             });
@@ -918,7 +635,6 @@ export default {
                         if (!response.ok) {
                         throw new Error(`Form save failed: ${response.status}`);
                         }
-                        //return response.json(); // or response.text() if no JSON is returned
                     })
                     .then(() => {
                         // Second POST: Complete referral
@@ -962,11 +678,7 @@ export default {
     },
     mounted: function() {
         let vm = this;
-        vm.fetchProposalGroupMembers();
-        //this.fetchApiaryReferralGroups();
-        //vm.fetchDeparmentUsers();
-        //vm.fetchreferrallist()
-        
+        vm.fetchProposalGroupMembers();        
     },
     updated: function(){
         let vm = this;
@@ -990,32 +702,15 @@ export default {
         .then(async (res) => {
             if (!res.ok) { return res.json().then(err => { throw err }); }
             this.referral = await res.json();
-            // TODO: review this logic and modify for individual applicants
             if (this.referral.proposal.applicant) {
                 this.referral.proposal.applicant.address = this.proposal.applicant.address != null ? this.proposal.applicant.address : {};
             }
         })
-        //vm.fetchreferrallist(vm.referral.id);
         await this.$nextTick();
         this.initialiseAssignedOfficerSelect()
     },
-    /*
-    beforeRouteEnter: function(to, from, next) {
-          //Vue.http.get(`/api/proposal/${to.params.proposal_id}/referral_proposal.json`).then(res => {
-          Vue.http.get(helpers.add_endpoint_json(api_endpoints.referrals,to.params.referral_id)).then(res => {
-              next(vm => {
-                vm.referral = res.body;
-                vm.referral.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
-                //vm.fetchreferrallist(vm.referral.id);
-              });
-            },
-            err => {
-              console.log(err);
-            });
-    },
-    */
     beforeRouteUpdate: function(to, from, next) {
-           fetch(`/api/proposal/${to.params.proposal_id}/referall_proposal.json`)
+           fetch(`/api/proposal/${to.params.proposal_id}/referral_proposal.json`)
           .then(async (res) => {
             if (!res.ok) { return res.json().then(err => { throw err }); }
             const data = await res.json();

@@ -13,6 +13,9 @@ from django.db.models.query_utils import Q
 from rest_framework import serializers
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
+import re
+import os
+
 from disturbance.components.main.decorators import timeit
 from disturbance.settings import SITE_STATUS_DRAFT, SITE_STATUS_APPROVED, SITE_STATUS_TRANSFERRED, RESTRICTED_RADIUS, \
     SITE_STATUS_PENDING, SITE_STATUS_DISCARDED, SITE_STATUS_VACANT, SITE_STATUS_DENIED, SITE_STATUS_CURRENT, \
@@ -20,29 +23,203 @@ from disturbance.settings import SITE_STATUS_DRAFT, SITE_STATUS_APPROVED, SITE_S
 
 logger = logging.getLogger(__name__)
 
+def remove_html_tags(text):
 
-#def retrieve_department_users():
-#    try:
-#        res = requests.get('{}/api/users?minimal'.format(settings.CMS_URL), auth=(settings.LEDGER_USER,settings.LEDGER_PASS), verify=False)
-#        res.raise_for_status()
-#        cache.set('department_users',json.loads(res.content).get('objects'),10800)
-#    except:
-#        raise
-#
-#
-#def get_department_user(email):
-#    try:
-#        res = requests.get('{}/api/users?email={}'.format(settings.CMS_URL,email), auth=(settings.LEDGER_USER,settings.LEDGER_PASS), verify=False)
-#        res.raise_for_status()
-#        data = json.loads(res.content).get('objects')
-#        if len(data) > 0:
-#            return data[0]
-#        else:
-#            return None
-#    except:
-#        raise
-#
+    if text is None:
+        return None
 
+    HTML_TAGS_WRAPPED = re.compile(r'<[^>]+>.+</[^>]+>')
+    HTML_TAGS_NO_WRAPPED = re.compile(r'<[^>]+>')
+
+    text = HTML_TAGS_WRAPPED.sub('', text)
+    text = HTML_TAGS_NO_WRAPPED.sub('', text)
+    return text
+
+def remove_script_tags(text):
+
+    if text is None:
+        return None
+
+    SCRIPT_TAGS_WRAPPED = re.compile(r'(?i)<script[^>]+>.+</script[^>]+>')
+    SCRIPT_TAGS_NO_WRAPPED = re.compile(r'(?i)<script[^>]+>')
+
+    text = SCRIPT_TAGS_WRAPPED.sub('', text)
+    text = SCRIPT_TAGS_NO_WRAPPED.sub('', text)
+
+    ATTR_BLACKLIST = ['onresize','onvolumechange','onsuspend','onpopstate','onbeforeunload','oncontextmenu',
+        'ondragstart','oncuechange','onselect','onafterprint','onmouseover','ondragleave','onstorage',
+        'onbeforeprint','onhashchange','onabort','ondragover','onwaiting','onclick','onmousemove','onkeyup',
+        'onmousedown','ononline','onsearch','onprogress','onfocus','onmouseup','onplaying','onstalled','oninvalid',
+        'ontimeupdate','onkeypress','onseeked','onreset','onwheel','onemptied','oninput','onpagehide','onpause',
+        'onloadeddata','onseeking','onunload','onpageshow','onerror','ondrop','oncanplay','oncopy','onended','oncut',
+        'onsubmit','ondrag','onblur','ondragend','onplay','onratechange','onloadedmetadata','oncanplaythrough',
+        'ondurationchange','onchange','ondblclick','onmousewheel','onpaste','onload','onscroll','onkeydown',
+        'ontoggle','onmouseout','onoffline','onloadstart','ondragenter']
+    ATTR_BLACKLIST_STR=('|').join(ATTR_BLACKLIST)
+
+    HTML_TAGS_WITH_ATTR_WRAPPED = re.compile(r'(?i)<[^>]+('+ATTR_BLACKLIST_STR+')[\\s]*=[^>]+>.+</[^>]+>')
+    HTML_TAGS_WITH_ATTR_NO_WRAPPED = re.compile(r'(?i)<[^>]+('+ATTR_BLACKLIST_STR+')[\\s]*=[^>]+>')
+
+    text = HTML_TAGS_WITH_ATTR_WRAPPED.sub('', text)
+    text = HTML_TAGS_WITH_ATTR_NO_WRAPPED.sub('', text)
+
+    return text
+
+def is_json(value):
+    try:
+        json.loads(value)
+    except:
+        return False
+    return True
+
+def sanitise_fields(instance, exclude=[], error_on_change=[]):
+    if hasattr(instance,"__dict__"):
+        for i in instance.__dict__:
+            #remove html tags for all string fields not in the exclude list
+            if not i in exclude and (isinstance(instance.__dict__[i], dict)):
+                instance.__dict__[i] = sanitise_fields(instance.__dict__[i])
+            
+            elif isinstance(instance.__dict__[i], list) and not i in exclude:
+                for j in range(0, len(instance.__dict__[i])):
+                    check = instance.__dict__[i][j]
+                    if isinstance(instance.__dict__[i][j],str):
+                        instance.__dict__[i][j] = remove_html_tags(instance.__dict__[i][j])
+                    elif isinstance(instance.__dict__[i][j], list) or isinstance(instance.__dict__[i][j], dict):
+                        instance.__dict__[i][j] = sanitise_fields(instance.__dict__[i][j])
+                    if i in error_on_change and check != instance.__dict__[i][j]:
+                        raise serializers.ValidationError("html tags included in field")
+            
+            elif isinstance(instance.__dict__[i], str) and not i in exclude:
+                check = instance.__dict__[i]
+                setattr(instance, i, remove_html_tags(instance.__dict__[i]))
+                if i in error_on_change and check != instance.__dict__[i]:
+                    #only fields that cannot be allowed to change through sanitisation just before saving will throw an error
+                    raise serializers.ValidationError("html tags included in field")
+            elif isinstance(instance.__dict__[i], str) and i in exclude:
+                check = instance.__dict__[i]
+                #even though excluded, we still check to remove script tags
+                setattr(instance, i, remove_script_tags(instance.__dict__[i]))
+                if i in error_on_change and check != instance.__dict__[i]:
+                    #only fields that cannot be allowed to change through sanitisation just before saving will throw an error
+                    raise serializers.ValidationError("script tags included in field")
+            elif (isinstance(instance.__dict__[i], list) or isinstance(instance.__dict__[i], dict)) and i in exclude:
+                #if we have reached this point, it means we have a json object with fields that are allowed to contain tags
+                #we'll use . notation to identify sub fields that should be carried over to the exclude and error on change lists
+                #NOTE: to allow sub fields to be sanitised, the parent field should be included in both lists required for their respective children
+                sub_exclude_list = list(filter(lambda e:e.startswith(i+"."), exclude))
+                exclude_list = list(map(lambda e:e.replace(i+".","",1), sub_exclude_list))
+                #NOTE: a sub error on change list will require the parent field to be in the exclude list, to reach this point (but not necessarily in the error_on_change list)
+                sub_error_on_change_list = list(filter(lambda e:e.startswith(i+"."), error_on_change))
+                error_on_change_list = list(map(lambda e:e.replace(i+".","",1), sub_error_on_change_list))
+
+                if isinstance(instance.__dict__[i], dict):
+                    check = instance.__dict__[i]
+                    instance.__dict__[i] = sanitise_fields(instance.__dict__[i], exclude=exclude_list, error_on_change=error_on_change_list)
+                    if i in error_on_change and check != instance.__dict__[i]:
+                        raise serializers.ValidationError("html tags included in field")
+                elif isinstance(instance.__dict__[i], list):
+                    for j in range(0, len(instance.__dict__[i])):
+                        check = instance.__dict__[i][j]
+                        if isinstance(instance.__dict__[i][j],str):
+                            #strings in an excluded list will be treated as excluded
+                            instance.__dict__[i][j] = remove_script_tags(instance.__dict__[i][j])
+                        elif isinstance(instance.__dict__[i][j], list) or isinstance(instance.__dict__[i][j], dict):
+                            instance.__dict__[i][j] = sanitise_fields(instance.__dict__[i][j], exclude=exclude_list, error_on_change=error_on_change_list)
+                        if i in error_on_change and check != instance.__dict__[i][j]:
+                            raise serializers.ValidationError("html tags included in field")
+    else:
+        remove_keys = []
+        for i in instance:
+            #for dicts we also check the keys - they are removed completely if not sanitary (should not change keys)
+            original_key = i
+            if isinstance(original_key, str):
+                sanitised_key = remove_html_tags(i)
+                if original_key != sanitised_key:
+                    remove_keys.append(original_key)
+                    continue
+
+            #remove html tags for all string fields not in the exclude list
+            if not i in exclude and (isinstance(instance[i], dict)):
+                instance[i] = sanitise_fields(instance[i])
+
+            elif isinstance(instance[i], list) and not i in exclude:
+                for j in range(0, len(instance[i])):
+                    check = instance[i][j]
+                    if isinstance(instance[i][j],str):
+                        instance[i][j] = remove_html_tags(instance[i][j])
+                    elif isinstance(instance[i][j], list) or isinstance(instance[i][j], dict):
+                        instance[i][j] = sanitise_fields(instance[i][j])
+                    if i in error_on_change and check != instance[i][j]:
+                        raise serializers.ValidationError("html tags included in field")
+
+            else:
+                if isinstance(instance[i], str) and not i in exclude:
+                    check = instance[i]
+                    instance[i] = remove_html_tags(instance[i])
+                    if i in error_on_change and check != instance[i]:
+                        #only fields that cannot be allowed to change through sanitisation just before saving will throw an error
+                        raise serializers.ValidationError("html tags included in field")
+                elif isinstance(instance[i], str) and i in exclude:
+                    #even though excluded, we still check to remove script tags
+                    instance[i] = remove_script_tags(instance[i])
+                    if i in error_on_change and check != instance[i]:
+                        #only fields that cannot be allowed to change through sanitisation just before saving will throw an error
+                        raise serializers.ValidationError("script tags included in field")
+                elif (isinstance(instance[i], list) or isinstance(instance[i], dict)) and i in exclude:
+                    #if we have reached this point, it means we have a json object with fields that are allowed to contain tags
+                    #we'll use . notation to identify sub fields that should be carried over to the exclude and error on change lists
+                    #NOTE: to allow sub fields to be sanitised, the parent field should be included in both lists required for their respective children
+                    sub_exclude_list = list(filter(lambda e:e.startswith(i+"."), exclude))
+                    exclude_list = list(map(lambda e:e.replace(i+".","",1), sub_exclude_list))
+                    #NOTE: a sub error on change list will require the parent field to be in the exclude list, to reach this point (but not necessarily in the error_on_change list)
+                    sub_error_on_change_list = list(filter(lambda e:e.startswith(i+"."), error_on_change))
+                    error_on_change_list = list(map(lambda e:e.replace(i+".","",1), sub_error_on_change_list))
+
+                    if isinstance(instance[i], dict):
+                        check = instance[i]
+                        instance[i] = sanitise_fields(instance[i], exclude=exclude_list, error_on_change=error_on_change_list)
+                        if i in error_on_change and check != instance[i]:
+                            raise serializers.ValidationError("script tags included in field")
+                    elif isinstance(instance[i], list):                        
+                        for j in range(0, len(instance[i])):
+                            check = instance[i][j]
+                            if isinstance(instance[i][j],str):
+                                #strings in an excluded list will be treated as excluded
+                                instance[i][j] = remove_script_tags(instance[i][j])
+                            elif isinstance(instance[i][j], list) or isinstance(instance[i][j], dict):
+                                instance[i][j] = sanitise_fields(instance[i][j], exclude=exclude_list, error_on_change=error_on_change_list)
+                            if i in error_on_change and check != instance[i][j]:
+                                raise serializers.ValidationError("script tags included in field")
+                    
+        for i in remove_keys:
+            del instance[i]
+    return instance
+
+def file_extension_valid(file, whitelist, model):
+    _, extension = os.path.splitext(file)
+    extension = extension.replace(".", "").lower()
+
+    check = whitelist.filter(name=extension).filter(
+        Q(model="all") | Q(model__iexact=model)
+    )
+    valid = check.exists()
+
+    return valid
+
+def check_file(file, model_name):
+    from disturbance.components.main.models import FileExtensionWhitelist
+
+    # check if extension in whitelist
+    cache_key = settings.CACHE_KEY_FILE_EXTENSION_WHITELIST
+    whitelist = cache.get(cache_key)
+    if whitelist is None:
+        whitelist = FileExtensionWhitelist.objects.all()
+        cache.set(cache_key, whitelist, settings.CACHE_TIMEOUT_2_HOURS)
+
+    valid = file_extension_valid(str(file), whitelist, model_name)
+
+    if not valid:
+        raise serializers.ValidationError("File type/extension not supported")
 
 def get_department_user(email):
     if (EmailUser.objects.filter(email__iexact=email.strip()) and 
@@ -190,12 +367,11 @@ def get_region_district(wkb_geometry):
     except:
         return ''
 
-
+#NOTE: according to prior commit messages there was an explicit decision to only return an exact match on the site id - I have added better validation in line with this decision
 def _get_vacant_apiary_site(search_text=''):
     from disturbance.components.proposals.models import ApiarySite
     queries = Q(is_vacant=True)
-    if search_text:
-        # queries &= Q(id__icontains=search_text)
+    if search_text and isinstance(search_text, int):
         queries &= Q(id=search_text)
     qs_vacant_site = ApiarySite.objects.filter(queries).distinct()
     return qs_vacant_site
@@ -206,19 +382,12 @@ def get_qs_vacant_site(search_text=''):
     from disturbance.components.approvals.models import ApiarySiteOnApproval
 
     qs_vacant_site = _get_vacant_apiary_site(search_text)
-
-    # apiary_site_proposal_ids = qs_vacant_site.all().values('proposal_link_for_vacant__id')
-    # apiary_site_proposal_ids = qs_vacant_site.all().values('latest_proposal_link__id')
-    # When the 'vacant' site is selected, saved, deselected and then saved again, the latest_proposal_link gets None
-    # That's why we need following line too to pick up all the vacant sites
-    # apiary_site_proposal_ids2 = qs_vacant_site.filter(latest_proposal_link__isnull=True).values('proposal_link_for_vacant__id')
     apiary_site_proposal_ids = qs_vacant_site.all().values('proposal_link_for_vacant__id')
+    
     qs_vacant_site_proposal = ApiarySiteOnProposal.objects.select_related(
             'apiary_site', 
             'proposal_apiary', 
             'proposal_apiary__proposal', 
-            #'proposal_apiary__proposal__proxy_applicant', 
-            #'proposal_apiary__transferee', 
             'proposal_apiary__target_approval_organisation', 
             'proposal_apiary__target_approval', 
             'proposal_apiary__originating_approval', 
@@ -226,13 +395,11 @@ def get_qs_vacant_site(search_text=''):
             'site_category_processed', 
             'apiary_site__latest_proposal_link', 
             'apiary_site__proposal_link_for_vacant',
-            # ).filter(Q(id__in=apiary_site_proposal_ids) | Q(id__in=apiary_site_proposal_ids2))
             ).filter(Q(id__in=apiary_site_proposal_ids))
 
     # At any moment, either approval_link_for_vacant or proposal_link_for_vacant is True at most.  Never both are True.  (See make_vacant() method of the ApiarySite model)
     # Therefore qs_vacant_site_proposal and qs_vacant_site_approval shouldn't overlap each other
     apiary_site_approval_ids = qs_vacant_site.all().values('approval_link_for_vacant__id')
-    #qs_vacant_site_approval = ApiarySiteOnApproval.objects.filter(id__in=apiary_site_approval_ids)
     qs_vacant_site_approval = ApiarySiteOnApproval.objects.select_related(
             'apiary_site', 
             'approval', 
@@ -240,8 +407,6 @@ def get_qs_vacant_site(search_text=''):
             'apiary_site__latest_approval_link', 
             'apiary_site__approval_link_for_vacant',
             'approval__applicant',
-            #'approval__proxy_applicant', TODO fix for segregation (?)
-            # 'approval__lodgement_number',
             ).filter(id__in=apiary_site_approval_ids)
 
     return qs_vacant_site_proposal, qs_vacant_site_approval
@@ -256,8 +421,7 @@ def get_qs_denied_site(search_text=''):
     # ApiarySite condition
     q_include_apiary_site = Q()
     q_include_apiary_site &= Q(latest_proposal_link__isnull=False)
-    if search_text:
-        # q_include_apiary_site &= Q(id__icontains=search_text)
+    if search_text and isinstance(search_text, int):
         q_include_apiary_site &= Q(id=search_text)
     qs_apiary_sites = ApiarySite.objects.filter(q_include_apiary_site)
 
@@ -294,8 +458,7 @@ def get_qs_pending_site(search_text=''):
     # ApiarySite condition
     q_include_apiary_site = Q()
     q_include_apiary_site &= Q(latest_proposal_link__isnull=False)
-    if search_text:
-        # q_include_apiary_site &= Q(id__icontains=search_text)
+    if search_text and isinstance(search_text, int):
         q_include_apiary_site &= Q(id=search_text)
     qs_apiary_sites = ApiarySite.objects.filter(q_include_apiary_site)
 
@@ -333,8 +496,7 @@ def get_qs_suspended_site(search_text=''):
     # ApiarySite
     q_include_apiary_site = Q()
     q_include_apiary_site &= Q(latest_approval_link__isnull=False)
-    if search_text:
-        # q_include_apiary_site &= Q(id__icontains=search_text)
+    if search_text and isinstance(search_text, int):
         q_include_apiary_site &= Q(id=search_text)
     qs_apiary_sites = ApiarySite.objects.filter(q_include_apiary_site)
 
@@ -381,8 +543,7 @@ def get_qs_current_site(search_text='', available=None):
     # ApiarySite
     q_include_apiary_site = Q()
     q_include_apiary_site &= Q(latest_approval_link__isnull=False)
-    if search_text:
-        # q_include_apiary_site &= Q(id__icontains=search_text)
+    if search_text and isinstance(search_text, int):
         q_include_apiary_site &= Q(id=search_text)
     qs_apiary_sites = ApiarySite.objects.filter(q_include_apiary_site)
 
@@ -471,8 +632,7 @@ def get_qs_not_to_be_reissued_site(search_text=''):
     # ApiarySite
     q_include_apiary_site = Q()
     q_include_apiary_site &= Q(latest_approval_link__isnull=False)
-    if search_text:
-        # q_include_apiary_site &= Q(id__icontains=search_text)
+    if search_text and isinstance(search_text, int):
         q_include_apiary_site &= Q(id=search_text)
     qs_apiary_sites = ApiarySite.objects.filter(q_include_apiary_site)
 
@@ -818,3 +978,33 @@ def overwrite_regions_polygons(path_to_geojson_file):
                     logger.info("Created Region: {}".format(region['properties']['DRG_REGION_NAME']))
     except Exception as e:
         logger.error('Error overwriting regions polygons: {}'.format(e))
+
+def get_first_name(obj):
+
+    if hasattr(obj,"legal_first_name") and obj.legal_first_name:
+        return obj.legal_first_name
+    elif hasattr(obj,"first_name") and obj.first_name:
+        return obj.first_name
+
+    return ""
+
+def get_last_name(obj):
+
+    if hasattr(obj,"legal_last_name") and obj.legal_last_name:
+        return obj.legal_last_name
+    elif hasattr(obj,"last_name") and obj.last_name:
+        return obj.last_name
+
+    return ""
+
+def get_full_name(obj):
+    return get_first_name(obj)+" "+get_last_name(obj)
+
+def get_dob(obj):
+
+    if hasattr(obj,"legal_dob") and obj.legal_dob:
+        return obj.legal_dob
+    if hasattr(obj,"dob") and obj.dob:
+        return obj.dob
+
+    return ""

@@ -1,7 +1,6 @@
 import logging
 
 from ledger_api_client.ledger_models import Invoice
-import collections
 from disturbance.components.proposals.models import (
                                     ProposalType,
                                     Proposal,
@@ -28,6 +27,7 @@ from disturbance.components.proposals.serializers_apiary import ProposalApiarySe
 from disturbance.components.proposals.serializers_base import BaseProposalSerializer, ProposalReferralSerializer, \
     ProposalDeclinedDetailsSerializer, EmailUserSerializer
 
+from disturbance import settings
 
 logger = logging.getLogger(__name__)
 
@@ -191,11 +191,14 @@ class ListProposalSerializer(BaseProposalSerializer):
                     inv = Invoice.objects.get(reference=inv_ref)
                     from disturbance.helpers import is_internal
                     if is_internal(self.context['request']):
-                        invoice_references.append(inv_ref)
+                        invoice_references.append({
+                            "reference":inv_ref,
+                            "ledger_link":f'{settings.LEDGER_UI_URL}/ledger/payments/oracle/payments?invoice_no={inv_ref}'
+                        })
                     else:
                         # We don't want to show 0 doller invoices to external
                         if inv.amount > 0:
-                            invoice_references.append(inv_ref)
+                            invoice_references.append({"reference":inv_ref})
                 except:
                     pass
         return invoice_references
@@ -501,7 +504,6 @@ class InternalProposalSerializer(BaseProposalSerializer):
             return obj.approval_level_document
 
     def get_assessor_mode(self,obj):
-        # TODO check if the proposal has been accepted or declined
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         return {
@@ -537,7 +539,6 @@ class InternalProposalSerializer(BaseProposalSerializer):
 
 class ReferralProposalSerializer(InternalProposalSerializer):
     def get_assessor_mode(self,obj):
-        # TODO check if the proposal has been accepted or declined
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         try:
@@ -686,8 +687,8 @@ class ProposalStandardRequirementSerializer(serializers.ModelSerializer):
 
 
 class ProposedApprovalSerializer(serializers.Serializer):
-    expiry_date = serializers.DateField(input_formats=['%d/%m/%Y'], required=False)
-    start_date = serializers.DateField(input_formats=['%d/%m/%Y'], required=False)
+    expiry_date = serializers.DateField(input_formats=['%d/%m/%Y', '%Y-%m-%d'], required=False)
+    start_date = serializers.DateField(input_formats=['%d/%m/%Y', '%Y-%m-%d'], required=False)
     details = serializers.CharField()
     cc_email = serializers.CharField(required=False,allow_null=True, allow_blank=True)
 

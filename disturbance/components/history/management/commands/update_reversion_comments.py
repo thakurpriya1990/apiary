@@ -15,7 +15,7 @@
 
     ./manage_ds.py update_reversion_comments disturbance Proposal 100
 
-    Todo: To make this fully generic, we would need to pass in the list
+    #TODO on cleanup: review (old comment) To make this fully generic, we would need to pass in the list
     of fields that we are checking for changes in. Currently it is checking
     procesing_status, assessor_data and comment_data (which are speficic to 
     a Proposal model)

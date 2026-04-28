@@ -6,8 +6,9 @@
         </div>
 
         <div class="col-md-9 sections-proposal-temporary-use">
-            <div>
+            <div v-if="proposal">
                 <SectionsProposalTemporaryUse
+                    ref="section_proposal_temporary_use"
                     :is_internal="false"
                     :is_external="true"
                     :proposal="proposal"
@@ -19,7 +20,7 @@
             <div class="navbar navbar-fixed-bottom" style="background-color: #f5f5f5 ">
                 <div class="navbar-inner">
                     <div class="container">
-                        <p class="pull-right" style="margin-top:5px;">
+                        <p class="pull-right" style="margin-top:5px;" v-if="proposal && proposal.customer_status == 'Draft'">
                             <input type="button" @click.prevent="save_exit" class="btn btn-primary" value="Save and Exit"/>
                             <input type="button" @click.prevent="save" class="btn btn-primary" value="Save and Continue"/>
                             <input v-if="!isSubmitting" type="button" @click.prevent="submit" class="btn btn-primary" value="Submit"/>
@@ -37,7 +38,8 @@
     import { v4 as uuid } from 'uuid';
     import { helpers } from '@/utils/hooks'
     import SectionsProposalTemporaryUse from '@/components/common/apiary/sections_proposal_temporary_use.vue'
-
+    import $ from 'jquery';
+    
     export default {
         name: 'ExternalProposalTemporaryUse',
         props: {
@@ -100,14 +102,10 @@
                     //let temp_use = re.body.apiary_temporary_use
                     vm.apiary_temporary_use = responseBody.apiary_temporary_use
                     if (vm.apiary_temporary_use.from_date){
-                        console.log(vm.apiary_temporary_use.from_date);
                         vm.apiary_temporary_use.from_date = moment(vm.apiary_temporary_use.from_date, 'YYYY-MM-DD');
-                        console.log(vm.apiary_temporary_use.from_date);
                     }
                     if (vm.apiary_temporary_use.to_date){
-                        console.log(vm.apiary_temporary_use.to_date);
                         vm.apiary_temporary_use.to_date = moment(vm.apiary_temporary_use.to_date, 'YYYY-MM-DD');
-                        console.log(vm.apiary_temporary_use.to_date);
                     }
 
                     // Update PeriodAndSites component
@@ -139,19 +137,24 @@
             _get_basic_data: function(){
                 let data = {
                     'category': '',
-                    'profile': '', // TODO how to determine this?
+                    'profile': '', // TODO on cleanup: remove/review (old comment) how to determine this?
                     'district': '',
-                    'application': '3',  // TODO Retrieve the id of the 'Temporary Use' type or handle it at the server side
+                    'application': '3',  // TODO on cleanup: remove/review (old comment) Retrieve the id of the 'Temporary Use' type or handle it at the server side
                                          //      like if there is apiary_temporary_use attribute, it must be a temporary use application, or so.
                     'sub_activity2': '',
                     'region': '',
                     'approval_level': '',
-                    'behalf_of': '',  // TODO how to determine this?
+                    'behalf_of': '',  // TODO on cleanup: remove/review (old comment) how to determine this?
                     'activity': '',
                     'sub_activity1': '',
                     'apiary_temporary_use': this.apiary_temporary_use,
+                    
                     'application_type_str': 'temporary_use',
                 }
+                //TODO on-cleanup - ideally should only send what has changed no the entire list
+                data['apiary_temporary_use']['temporary_use_apiary_sites'] = this.$refs.section_proposal_temporary_use.temporary_use_apiary_sites;
+                data['apiary_temporary_use']['to_date'] = this.$refs.section_proposal_temporary_use.to_date;
+                data['apiary_temporary_use']['from_date'] = this.$refs.section_proposal_temporary_use.from_date;
                 return data
             },
             perform_redirect: function(url, postData) {
@@ -174,7 +177,7 @@
                 $('body').append(formElement);
                 $(formElement).submit();
             },
-            proposal_submit: function() {
+            proposal_submit: async function() {
                 console.log('in proposal_submit')
 
                 let vm = this;
@@ -188,17 +191,27 @@
                     },
                     body: JSON.stringify(data),
                 }).then(async (response)=>{
-                        if (!response.ok) {
-                            throw new Error(`Temporary Use ProposalSubmit error: ${response.status}`);
-                        }
-                        console.log('success')
-                        vm.perform_redirect('/external/proposal/' + proposal_id + '/submit_temp_use_success/', {
-                            'csrfmiddlewaretoken': vm.csrf_token,
-                            'proposal_id': proposal_id,
-                        })
-                    }).catch(err=>{
-                        helpers.processError(err)
+                    if (!response.ok) {
+                        let errorString = await helpers.apiVueResourceError(response);
+                        throw errorString;
+                    }
+                    console.log('success')
+                    vm.perform_redirect('/external/proposal/' + proposal_id + '/submit_temp_use_success/', {
+                        'csrfmiddlewaretoken': vm.csrf_token,
+                        'proposal_id': proposal_id,
                     })
+                }).catch(err=>{
+                    let errorString = typeof err === 'string' ? err : (err && err.message) || 'Network error';
+
+                    swal.fire({
+                        title: "Error",
+                        text: String(errorString),
+                        icon: "error",
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                })
             },
             proposal_update: async function(){
                 console.log('in proposal_update');
@@ -208,38 +221,45 @@
                 let proposal_id = this.$route.params.proposal_id
 
                 try {
-                        const response = await fetch('/api/proposal/' + proposal_id + '/draft/', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(data)
-                        });
+                    const response = await fetch('/api/proposal/' + proposal_id + '/draft/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
 
-                        if (!response.ok) {
-                            // Handle non-200 responses
-                            const errorData = await response.json();
-                            helpers.processError(errorData);
-                            return;
-                        }
-
-                        const res = await response.json();
-                        console.log('Proposal updated:', res);
-                        // Show success alert
-                        swal.fire({
-                            title: 'Saved',
-                            text: 'Your proposal has been updated',
-                            icon: 'success',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                        });
-
-                    } catch (err) {
-                        // Network or unexpected error
-                        helpers.processError(err);
+                    if (!response.ok) {
+                        // Handle non-200 responses
+                        let errorString = await helpers.apiVueResourceError(response);
+                        throw errorString;
                     }
 
+                    const res = await response.json();
+                    console.log('Proposal updated:', res);
+                    // Show success alert
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Your proposal has been updated',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+
+                } catch (err) {
+
+                    let errorString = typeof err === 'string' ? err : (err && err.message) || 'Network error';
+
+                    await swal.fire({
+                        title: "Error",
+                        text: String(errorString),
+                        icon: "error",
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                }
             },
 
         }

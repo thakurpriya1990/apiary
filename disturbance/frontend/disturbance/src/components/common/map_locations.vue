@@ -6,8 +6,8 @@
             </div>
             <div :id="idMap" class="mapLeaf"></div>
             <div class="basemap-button">
-                <img :id="idBasemapSat" class="basemap-button-img" src="../../assets/satellite_icon.jpg" @click.stop="setBaseLayer('sat')" />
-                <img :id="idBasemapOsm" class="basemap-button-img" src="../../assets/map_icon.png" @click.stop="setBaseLayer('osm')" />
+                <img :id="idBasemapSat" class="basemap-button-img" :src="layersSvgUrl" @click.stop="setBaseLayer('sat')" />
+                <img :id="idBasemapOsm" class="basemap-button-img" :src="mapIconUrl" @click.stop="setBaseLayer('osm')" />
             </div>
             <div class="cursor-location">
                 <div v-if="cursor_location">
@@ -47,6 +47,7 @@ import "leaflet/dist/leaflet.css";
 import "leaflet-measure/dist/leaflet-measure.css";
 import "leaflet.locatecontrol/dist/L.Control.Locate.min.css";
 import { api_endpoints } from '@/utils/hooks'
+import $ from 'jquery';
 
 Leaf.TileLayer.WMTS = Leaf.TileLayer.extend({
     defaultWmtsParams: {
@@ -153,7 +154,7 @@ export default {
 
     let vm = this;
     let baseDic = {
-      shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
+      shadowUrl: new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).href,
       shadowSize: [41, 41],
       shadowAnchor: [12, 41],
       iconSize: [32, 32],
@@ -161,40 +162,32 @@ export default {
       popupAnchor: [0, -20]
     };
     vm.icon_default = Leaf.icon({
-      iconUrl: require("../../assets/marker-gray-locked.svg"),
+      iconUrl: new URL("../../assets/marker-gray-locked.svg", import.meta.url).href,
       ...baseDic
     });
     vm.guid = guid();
 
     return {
-       // marker_lng: vm.marker_longitude,
-       // marker_lat: vm.marker_latitude,
-            mapboxAccessToken: null,
-        marker_lng: null,
-        marker_lat: null,
-        defaultCenter: defaultCentre,
-        projection: null,
-        mainMap: null,
-        popup: null,
-        element: null,
-        base_layer: "osm",
-        awe: null,
-        suggest_list: [],
-        feature_marker: null,
-        cursor_location: null,
-        idMap: vm.guid + "mapLeaf",
-        idSearchInput: vm.guid + "SearchInput",
-        idBasemapSat: vm.guid + "BasemapSat",
-        idBasemapOsm: vm.guid + "BasemapOsm"
-    };
-  },
-    computed: {
-     //   marker_lat: function() {
-     //       return this.marker_latitude;
-     //   },
-     //   marker_lng: function() {
-     //       return this.marker_longitude;
-     //   },
+          marker_lng: null,
+          marker_lat: null,
+          defaultCenter: defaultCentre,
+          projection: null,
+          mainMap: null,
+          popup: null,
+          element: null,
+          base_layer: "osm",
+          awe: null,
+          suggest_list: [],
+          feature_marker: null,
+          cursor_location: null,
+          idMap: vm.guid + "mapLeaf",
+          idSearchInput: vm.guid + "SearchInput",
+          idBasemapSat: vm.guid + "BasemapSat",
+          idBasemapOsm: vm.guid + "BasemapOsm",
+          // AT the moment (specify the path) this works but not ideal, need to find a way to load images from assets folder
+          satelliteIconUrl: '/static/disturbance_vue/src/satellite_icon.jpg',
+          mapIconUrl: '/static/disturbance_vue/src/map_icon.png',
+      };
     },
     watch: {
         marker_latitude: function(){
@@ -216,10 +209,6 @@ export default {
             }
         }
     },
-    created: async function() {
-        let temp_token = await this.retrieveMapboxAccessToken();
-        this.mapboxAccessToken = temp_token.access_token;
-    },
     mounted: function() {
         let vm = this;
     
@@ -234,10 +223,6 @@ export default {
         //});
     },
     methods: {
-        retrieveMapboxAccessToken: async function(){
-            let ret_val = await $.ajax('/api/geocoding_address_search_token');
-            return ret_val;
-        },
         setMarkerCentre: function() {
             let z = this.mainMap.getZoom();
             if (!isNaN(this.marker_lat) && !isNaN(this.marker_lng)){
@@ -274,7 +259,6 @@ export default {
           ).on("click", function() {
             // vm.feature_marker.setIcon(myIcon);
           });
-          //vm.feature_marker.bindTooltip("click to lock/unlock");
           vm.feature_marker.addTo(vm.mainMap);
           vm.setMarkerIcon();
         },
@@ -291,7 +275,6 @@ export default {
                 country: "au",
                 limit: 10,
                 proximity: "" + latlng.lng + "," + latlng.lat,
-                        access_token: self.mapboxAccessToken,
                 bbox: "112.920934,-35.191991,129.0019283,-11.9662455",
                 types:
                   "region,postcode,district,place,locality,neighborhood,address,poi"

@@ -4,123 +4,117 @@
         <h3>Organisation Access Request {{ access.id }}</h3>
         <div class="col-md-3">
             <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url" :disable_add_entry="false"/>
-            <div class="row">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
+            <div class="mb-3">
+                <div class="card card-default">
+                    <div class="card-header">
                        Submission 
                     </div>
-                    <div class="panel-body panel-collapse">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <strong>Submitted by</strong><br/>
-                                {{ access.requester.full_name }}
-                            </div>
-                            <div class="col-sm-12 top-buffer-s">
-                                <strong>Lodged on</strong><br/>
-                                {{ formatDate(access.lodgement_date) }}
-                            </div>
-                            <div class="col-sm-12 top-buffer-s">
-                                <table class="table small-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Lodgement</th>
-                                            <th>Date</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
-                        </div>
+                    <div class="card-body py-2">
+                        <strong>Submitted by</strong><br/>
+                        {{ access.requester.full_name }}
+                    </div>
+                    <div class="card-body border-top py-2">
+                        <strong>Lodged on</strong><br/>
+                        {{ formatDate(access.lodgement_date) }}
+                    </div>
+                    <div class="card-body border-top py-2">
+                        <table class="table small-table">
+                            <thead>
+                                <tr>
+                                    <th>Lodgement</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                        </table>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
+            <div class="mb-3">
+                <div class="card card-default sticky-top">
+                    <div class="card-header">
                         Workflow 
                     </div>
-                    <div class="panel-body panel-collapse">
+                    <div class="card-body py-2">
+                        <strong>Status</strong><br/>
+                        {{ access.status }}
+                    </div>
+                    <div class="card-body border-top">
                         <div class="row">
                             <div class="col-sm-12">
-                                <strong>Status</strong><br/>
-                                {{ access.status }}
-                            </div>
-                            <div class="col-sm-12 top-buffer-s">
                                 <strong>Currently assigned to</strong><br/>
                                 <div class="form-group">
-                                    <select v-show="isLoading" class="form-control">
+                                    <select v-show="isLoading" class="form-select">
                                         <option value="">Loading...</option>
                                     </select>
-                                    <select @change="assignTo" :disabled="isFinalised || !check_assessor()" v-if="!isLoading" class="form-control" v-model="access.assigned_officer">
+                                    <select @change="assignTo" :disabled="isFinalised || !check_assessor()" v-if="!isLoading" class="form-select" v-model="access.assigned_officer">
                                         <option value="null">Unassigned</option>
                                         <option v-for="member in members" :value="member.id" :key="member.id">{{member.name}}</option>
                                     </select>
-                                    <a v-if="!isFinalised && check_assessor()" @click.prevent="assignMyself()" class="actionBtn pull-right">Assign to me</a>
+                                    <a v-if="!isFinalised && check_assessor()" @click.prevent="assignMyself()" class="actionBtn float-end">Assign to me</a>
                                 </div>
                             </div>
-                            <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && check_assessor()">
-                                <strong>Action</strong><br/>
-                                <button class="btn btn-primary" @click.prevent="acceptRequest()">Accept</button><br/>
-                                <button class="btn btn-primary top-buffer-s" @click.prevent="declineRequest()">Decline</button>
+                        </div>
+                    </div>
+                    <div class="card-body border-top" v-if="!isFinalised && check_assessor()">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="row mb-2">
+                                    <strong>Action</strong><br/>
+                                </div>
+                                <div class="col-sm-12">
+                                    <button style="width: 90%" class="btn btn-primary btn-margin" @click.prevent="acceptRequest()">Accept</button><br/>
+                                </div>
+                                <div class="col-sm-12">
+                                    <button style="width: 90%" class="btn btn-primary top-buffer-s" @click.prevent="declineRequest()">Decline</button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-1"></div>
-        <div class="col-md-8">
-            <div class="row">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3>Organisation Access Request</h3> 
-                    </div>
-                    <div class="panel-body panel-collapse">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <form class="form-horizontal" name="access_form">
-                                    <div class="form-group">
-                                        <label for="" class="col-sm-3 control-label">Organisation</label>
-                                        <div class="col-sm-6">
-                                            <input type="text" disabled class="form-control" name="name" placeholder="" v-model="access.name">
-                                        </div>
-                                    </div>   
-                                    <div class="form-group">
-                                        <label for="" class="col-sm-3 control-label">ABN</label>
-                                        <div class="col-sm-6">
-                                            <input type="text" disabled class="form-control" name="abn" placeholder="" v-model="access.abn">
-                                        </div>
-                                    </div>   
-                                    <div class="form-group">
-                                        <label for="" class="col-sm-3 control-label">Letter</label>
-                                        <div class="col-sm-6">
-                                            <a target="_blank" :href="access.identification"><i class="fa fa-file-pdf-o"></i>&nbsp;Letter</a>
-                                        </div>
-                                    </div>   
-                                    <div class="form-group" style="margin-top:50px;">
-                                        <label for="" class="col-sm-3 control-label">Phone</label>
-                                        <div class="col-sm-6">
-                                            <input type="text" disabled class="form-control" name="phone" placeholder="" v-model="access.requester.phone_number">
-                                        </div>
-                                    </div>   
-                                    <div class="form-group">
-                                        <label for="" class="col-sm-3 control-label">Mobile</label>
-                                        <div class="col-sm-6">
-                                            <input type="text" disabled class="form-control" name="mobile" placeholder="" v-model="access.requester.mobile_number">
-                                        </div>
-                                    </div>   
-                                    <div class="form-group">
-                                        <label for="" class="col-sm-3 control-label">Email</label>
-                                        <div class="col-sm-6">
-                                            <input type="text" disabled class="form-control" name="email" placeholder="" v-model="access.requester.email">
-                                        </div>
-                                    </div>   
-                                </form>
-                            </div>
+        <div class="col-md-9">
+            <FormSection :formCollapse="false" label="Organisation Access Request" Index="org_access_req">
+                <form class="form-horizontal" name="access_form">
+                    <div class="row mb-3">
+                        <label for="" class="col-sm-3 col-form-label">Organisation</label>
+                        <div class="col-sm-6">
+                            <input type="text" disabled class="form-control" name="name" placeholder="" v-model="access.name">
                         </div>
-                    </div>
-                </div>
-            </div>
+                    </div>   
+                    <div class="row mb-3">
+                        <label for="" class="col-sm-3 col-form-label">ABN</label>
+                        <div class="col-sm-6">
+                            <input type="text" disabled class="form-control" name="abn" placeholder="" v-model="access.abn">
+                        </div>
+                    </div>   
+                    <div class="row mb-3">
+                        <label for="" class="col-sm-3 col-form-label">Letter</label>
+                        <div class="col-sm-6">
+                            <a target="_blank" :href="access.identification"><i class="fa fa-file-pdf-o"></i>&nbsp;Letter</a>
+                        </div>
+                    </div>   
+                    <div class="row mb-3" style="margin-top:50px;">
+                        <label for="" class="col-sm-3 col-form-label">Phone</label>
+                        <div class="col-sm-6">
+                            <input type="text" disabled class="form-control" name="phone" placeholder="" v-model="access.requester.phone_number">
+                        </div>
+                    </div>   
+                    <div class="row mb-3">
+                        <label for="" class="col-sm-3 col-form-label">Mobile</label>
+                        <div class="col-sm-6">
+                            <input type="text" disabled class="form-control" name="mobile" placeholder="" v-model="access.requester.mobile_number">
+                        </div>
+                    </div>   
+                    <div class="row mb-3">
+                        <label for="" class="col-sm-3 col-form-label">Email</label>
+                        <div class="col-sm-6">
+                            <input type="text" disabled class="form-control" name="email" placeholder="" v-model="access.requester.email">
+                        </div>
+                    </div>   
+                </form>
+            </FormSection>
         </div>
     </div>
 </div>
@@ -128,6 +122,7 @@
 <script>
 import $ from 'jquery'
 import CommsLogs from '@common-utils/comms_logs.vue'
+import FormSection from "@/components/forms/section_toggle.vue";
 import {
   api_endpoints,
   helpers,
@@ -139,8 +134,6 @@ export default {
   data() {
     let vm = this;
     return {
-        dasTemplateGroup: false,
-        apiaryTemplateGroup: false,
         loading: [],
         profile:{},
         access: {
@@ -160,7 +153,7 @@ export default {
             deferRender: true, 
             autowidth: true,
             order: [[2, 'desc']],
-            dom:
+             dom:
                 "<'row'<'col-sm-5'l><'col-sm-6'f>>" +
                 "<'row'<'col-sm-12'tr>>" +
                 "<'row'<'col-sm-5'i><'col-sm-7'p>>",
@@ -195,6 +188,10 @@ export default {
             autowidth: true,
             order: [[0, 'desc']],
             processing:true,
+            dom:
+                "<'row'<'col-sm-5'l><'col-sm-6'f>>" +
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row'<'col-sm-5'i><'col-sm-7'p>>",
             ajax: {
                 "url": helpers.add_endpoint_json(api_endpoints.organisation_requests,vm.$route.params.access_id+'/comms_log'),
                 "dataSrc": '',
@@ -261,11 +258,6 @@ export default {
 
                         return result;
                     },
-                    'createdCell': function (cell) {
-                        //TODO why this is not working?
-                        // the call to popover is done in the 'draw' event
-                        $(cell).popover();
-                    }
                 },
                 {
                     title: 'Documents',
@@ -313,7 +305,8 @@ export default {
     })
   },
   components: {
-    CommsLogs
+    CommsLogs,
+    FormSection
   },
   computed: {
     isLoading: function () {
@@ -331,12 +324,8 @@ export default {
         return s.replace(/[,;]/g, '\n');
     },
     fetchAccessGroupMembers: async function(){
-        //let vm = this;
         this.loading.push('Loading Access Group Members');
-        let url = api_endpoints.organisation_access_group_members;
-        if (this.apiaryTemplateGroup) {
-            url = api_endpoints.apiary_organisation_access_group_members;
-        }
+        let url = api_endpoints.apiary_organisation_access_group_members;
         const response = await fetch(url)
         if (!response.ok) { return response.json().then(err => { throw err }); }
         this.members = await response.json();
@@ -462,27 +451,8 @@ export default {
                 else
                     return false;
      },
-  },
-/*
-  mounted: function () {
-    let vm = this;
-    this.fetchAccessGroupMembers();
-    this.fetchProfile();
-    
-  },
-  */
+    },
     created: async function() {
-        // retrieve template group
-        const res = await fetch('/template_group',{
-            emulateJSON:true
-            })
-        if (!res.ok) { return res.json().then(err => { throw err }); }
-        const data = await res.json(); 
-        if (data.template_group === 'apiary') {
-            this.apiaryTemplateGroup = true;
-        } else {
-            this.dasTemplateGroup = true;
-        }
         await this.fetchAccessGroupMembers();
         await this.fetchProfile();
     },

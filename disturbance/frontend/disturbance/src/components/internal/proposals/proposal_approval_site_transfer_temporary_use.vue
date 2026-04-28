@@ -1,6 +1,6 @@
 <template id="proposal_requirements">
     <div>
-        <template v-if="isFinalised">
+        <template v-if="isFinalised && proposal.proposal_apiary">
             <div class="col-md-12 alert alert-success" v-if="proposal.processing_status == 'Approved'">
                 <p>The licence has been issued and has been emailed to {{originatingApprovalName}}</p>
                 <p>Licence (originating): <a target="_blank" :href="proposal.proposal_apiary.originating_approval_licence_document">licence.pdf</a></p>
@@ -12,7 +12,7 @@
             </div>
         </template>
 
-        <template v-if="proposal.proposal_apiary">
+        <template v-if="proposal.proposal_apiary && !loading_sites">
             <FormSection :formCollapse="false" label="Site(s)" Index="sites">
                 <ComponentSiteSelection
                     :apiary_sites="apiary_sites_prop"
@@ -34,112 +34,70 @@
         </template>
 
         <template v-else>
-            <div class="col-md-12">
-                <div class="row">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">Level of Approval
-                                <a class="panelClicker" :href="'#'+proposedLevel" data-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="proposedLevel">
-                                    <span class="glyphicon glyphicon-chevron-down pull-right "></span>
-                                </a>
-                            </h3>
-                        </div>
-                        <div class="panel-body panel-collapse collapse in" :id="proposedLevel">
+            <FormSection :formCollapse="false" label="Level of Approval" Index="level_of_approval">
+                <div v-if="!isFinalised">
+                    <p><strong>Level of approval: {{proposal.approval_level}}</strong></p>
 
-                            <div class="row">
-                                <div class="col-sm-12">
-                                        <template v-if="!isFinalised">
-                                            <p><strong>Level of approval: {{proposal.approval_level}}</strong></p>
-
-                                        <div v-if="isApprovalLevel">
-                                            <p v-if="proposal.approval_level_document"><strong>Attach documents:</strong> <a :href="proposal.approval_level_document[1]" target="_blank">{{proposal.approval_level_document[0]}}</a>
-                                            <span>
-                                            <a @click="removeFile()" class="fa fa-trash-o" title="Remove file" style="cursor: pointer; color:red;"></a>
-                                            </span></p>
-                                            <div v-else>
-                                                <p><strong>Attach documents:</strong></p>
-                                                <div class="col-sm-12">
-                                                <span class="btn btn-info btn-file pull-left">
-                                                Attach File <input type="file" ref="uploadedFile" @change="readFile()"/>
-                                                </span>
-                                                <!--<span class="pull-left" style="margin-left:10px;margin-top:10px;">{{uploadedFileName()}}</span>-->
-
-                                                </div>
-                                                <div class="row"><p></p></div>
-                                                <div class="row"><p></p></div>
-                                                <div class="row"><p></p></div>
-
-                                                <p>
-                                                <strong>Comments (if no approval attached)</strong>
-                                                </p>
-                                                <p>
-                                                <textarea name="approval_level_comments"  v-model="proposal.approval_level_comment" class="form-control" style="width:70%;"></textarea>
-                                                </p>
-                                            </div>
-
-                                        </div>
-                                        </template>
-
-                                        <template v-if="isFinalised">
-                                            <p><strong>Level of approval: {{proposal.approval_level}}</strong></p>
-
-                                            <div v-if="isApprovalLevel">
-                                                <p v-if="proposal.approval_level_document"><strong>Attach documents: </strong><a :href="proposal.approval_level_document[1]" target="_blank">{{proposal.approval_level_document[0]}}</a>
-                                                </p>
-                                                <p v-if="proposal.approval_level_comment"><strong>Comments: {{proposal.approval_level_comment}}</strong>
-                                                </p>
-                                            </div>
-                                        </template>
-                                </div>
+                    <div v-if="isApprovalLevel">
+                        <p v-if="proposal.approval_level_document"><strong>Attach documents:</strong> <a :href="proposal.approval_level_document[1]" target="_blank">{{proposal.approval_level_document[0]}}</a>
+                        <span>
+                            <a @click="removeFile()" class="fa fa-trash-o" title="Remove file" style="cursor: pointer; color:red;"></a>
+                        </span></p>
+                        <div v-else>
+                            <p><strong>Attach documents:</strong></p>
+                            <div class="col-sm-12">
+                                <span class="btn btn-info btn-file pull-left">
+                                    Attach File <input type="file" ref="uploadedFile" @change="readFile()"/>
+                                </span>
                             </div>
+                            <div class="row"><p></p></div>
+                            <div class="row"><p></p></div>
+                            <div class="row"><p></p></div>
+
+                            <p>
+                                <strong>Comments (if no approval attached)</strong>
+                            </p>
+                            <p>
+                                <textarea name="approval_level_comments"  v-model="proposal.approval_level_comment" class="form-control" style="width:70%;"></textarea>
+                            </p>
                         </div>
+
                     </div>
                 </div>
-            </div>
+
+                <div v-if="isFinalised">
+                    <p><strong>Level of approval: {{proposal.approval_level}}</strong></p>
+
+                    <div v-if="isApprovalLevel">
+                        <p v-if="proposal.approval_level_document"><strong>Attach documents: </strong><a :href="proposal.approval_level_document[1]" target="_blank">{{proposal.approval_level_document[0]}}</a>
+                        </p>
+                        <p v-if="proposal.approval_level_comment"><strong>Comments: {{proposal.approval_level_comment}}</strong>
+                        </p>
+                    </div>
+                </div>
+            </FormSection>
         </template>
 
-        <div class="col-md-12">
-            <div class="row">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 v-if="!isFinalised" class="panel-title">Proposed Decision
-                            <a class="panelClicker" :href="'#'+proposedDecision" data-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="proposedDecision">
-                                <span class="glyphicon glyphicon-chevron-down pull-right "></span>
-                            </a>
-                        </h3>
-                        <h3 v-else class="panel-title">Decision
-                            <a class="panelClicker" :href="'#'+proposedDecision" data-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="proposedDecision">
-                                <span class="glyphicon glyphicon-chevron-down pull-right "></span>
-                            </a>
-                        </h3>
+        <FormSection :formCollapse="false" :label="decision_label" Index="decision">
+            <template v-if="!proposal.proposed_decline_status">
+                <template v-if="isFinalised">
+                    <p><strong>Decision: Issue</strong></p>
+                    <div v-if="proposal.proposed_issuance_approval">
+                        <p><strong>CC emails: {{proposal.proposed_issuance_approval.cc_email}}</strong></p>
                     </div>
-                    <div class="panel-body panel-collapse collapse in" :id="proposedDecision">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <template v-if="!proposal.proposed_decline_status">
-                                    <template v-if="isFinalised">
-                                        <p><strong>Decision: Issue</strong></p>
-                                        <div v-if="proposal.proposed_issuance_approval">
-                                            <p><strong>CC emails: {{proposal.proposed_issuance_approval.cc_email}}</strong></p>
-                                        </div>
-                                    </template>
-                                    <template v-else>
-                                        <p><strong>Proposed decision: Issue</strong></p>
-                                        <div v-if="proposal.proposed_issuance_approval">
-                                            <p><strong>Proposed cc emails: {{proposal.proposed_issuance_approval.cc_email}}</strong></p>
-                                        </div>
-                                    </template>
-                                </template>
-                                <template v-else>
-                                    <strong v-if="!isFinalised">Proposed decision: Decline</strong>
-                                    <strong v-else>Decision: Decline</strong>
-                                </template>
-                            </div>
-                        </div>
+                </template>
+                <template v-else>
+                    <p><strong>Proposed decision: Issue</strong></p>
+                    <div v-if="proposal.proposed_issuance_approval">
+                        <p><strong>Proposed cc emails: {{proposal.proposed_issuance_approval.cc_email}}</strong></p>
                     </div>
-                </div>
-            </div>
-        </div>
+                </template>
+            </template>
+            <template v-else>
+                <strong v-if="!isFinalised">Proposed decision: Decline</strong>
+                <strong v-else>Decision: Decline</strong>
+            </template>
+        </FormSection>
     </div>
 </template>
 <script>
@@ -152,11 +110,17 @@ from '@/utils/hooks'
 import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
 import SectionsProposalTemporaryUse from '@/components/common/apiary/sections_proposal_temporary_use.vue'
+import $ from 'jquery';
 
 export default {
     name: 'ApprovalScreenSiteTransferTemporaryUse',
     props: {
-        proposal: Object
+        proposal: {
+            type: Object,
+            default: function(){
+                return {}
+            }
+        }
     },
     data: function() {
         return {
@@ -164,6 +128,8 @@ export default {
             proposedLevel: "proposal-level-"+uuid(),
             uploadedFile: null,
             component_site_selection_key: '',
+            loading_sites: true,
+            apiary_sites_prop: [],
         }
     },
     components:{
@@ -195,28 +161,6 @@ export default {
         isApprovalLevel:function(){
             return this.proposal.approval_level != null ? true : false;
         },
-        apiary_sites: function() {
-            if (this.proposal && this.proposal.proposal_apiary) {
-                return this.proposal.proposal_apiary.apiary_sites;
-            }
-            return [];
-        },
-        apiary_sites_prop: function() {
-            let apiary_sites = [];
-            if (this.proposal.application_type === 'Site Transfer') {
-                for (let site of this.proposal.proposal_apiary.transfer_apiary_sites) {
-                    apiary_sites.push(site.apiary_site);
-                    /*
-                    if (site.selected) {
-                        apiary_sites.push(site.apiary_site);
-                    }
-                    */
-                }
-            } else {
-                apiary_sites = this.proposal.apiary_temporary_use.apiary_sites;
-            }
-            return apiary_sites;
-        },
         showColCheckbox: function() {
             let checked = true;
             if (this.proposal.application_type !== 'Site Transfer') {
@@ -224,6 +168,9 @@ export default {
             }
             return checked;
         },
+        decision_label: function(){
+            return this.isFinalised == true ? 'Decision' : 'Proposed Decision';
+        }
 
     },
     methods:{
@@ -273,7 +220,6 @@ export default {
                     let errorText = 'An unexpected error occurred.';
                     try {
                         const errData = await err.json();
-                        // errorText = helpers.apiVueResourceError(errData);
                         errorText = errData;
                     } catch { console.log('Error parsing error response'); }
                     
@@ -328,6 +274,68 @@ export default {
     },
     mounted: function(){
         this.component_site_selection_key = uuid()
+    },
+    created: function(){
+        if (this.proposal) {
+            if (this.proposal.application_type === 'Site Transfer' && this.proposal.proposal_apiary) {
+                console.log('transfer_apiary_sites')
+                let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/transfer_apiary_sites/'
+                fetch(url_sites).then(
+                    async (response) => {
+                        if (response.ok) {
+                            let transfer_apiary_sites_req = await response.json();
+                            for (let site of transfer_apiary_sites_req) {
+                                site.apiary_site.customer_selected = site.customer_selected;
+                                site.apiary_site.internal_selected = site.internal_selected;
+                                if (this.is_external) {
+                                    site.apiary_site.checked = site.customer_selected;
+                                } else {
+                                    site.apiary_site.checked = site.internal_selected;
+                                }
+                                this.apiary_sites_prop.push(site.apiary_site);
+                            }
+                        }
+                        this.loading_sites = false;
+                    }
+                ).catch((error) => {
+                    console.log(error);
+                    this.loading_sites = false;
+                })
+            } else if (this.proposal.application_type === 'Temporary Use') {
+                let url_sites = '/api/proposal/' + this.proposal.id + '/temporary_use_apiary_sites/'
+                fetch(url_sites).then(
+                    async (response) => {
+                        if (response.ok) {
+                            let transfer_apiary_sites_req = await response.json();
+                            for (let site of transfer_apiary_sites_req) {
+                                this.apiary_sites_prop.push(site.apiary_site);
+                            }
+                        }
+                        this.loading_sites = false;
+                    }
+                ).catch((error) => {
+                    console.log(error);
+                    this.loading_sites = false;
+                })
+            } else if (this.proposal.proposal_apiary) {
+                let url_sites = '/api/proposal_apiary/' + this.proposal.proposal_apiary.id + '/apiary_sites/'
+                console.log('apiary_sites')
+                fetch(url_sites).then(
+                    async (response) => {
+                        if (response.ok) {
+                            let apiary_sites_req = await response.json();
+                            this.apiary_sites_prop = JSON.parse(JSON.stringify(apiary_sites_req)).features
+                        }
+                        this.loading_sites = false;
+                    }
+                ).catch((error) => {
+                    console.log(error);
+                    this.loading_sites = false;
+                })
+            }
+        } else {
+            this.loading_sites = false;
+        }
     }
 }
 </script>

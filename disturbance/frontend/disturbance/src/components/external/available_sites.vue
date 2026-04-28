@@ -7,7 +7,6 @@
                 :is_external="false"
                 :show_col_checkbox="false"
                 :show_col_status="false"
-                :show_col_previous_site_holder="false"
                 :key="component_site_selection_key"
                 :table_and_map_in_a_row="true"
                 :show_action_contact_licence_holder="true"
@@ -89,27 +88,13 @@
             },
             loadSites: async function() {
                 let vm = this
-
+                console.log('available_sites')
                 fetch('/api/apiary_site/available_sites/')
                 .then(async (response) => {
                     if (!response.ok) { return response.json().then(err => { throw err }); }
                     const data = await response.json();
                     vm.apiary_sites = data
                     this.component_site_selection_key = uuid()
-
-                    ////let temp_use = data.apiary_temporary_use
-                    //vm.apiary_temporary_use = data.apiary_temporary_use
-                    //if (vm.apiary_temporary_use.from_date){
-                    //    vm.apiary_temporary_use.from_date = moment(vm.apiary_temporary_use.from_date, 'YYYY-MM-DD');
-                    //}
-                    //if (vm.apiary_temporary_use.to_date){
-                    //    vm.apiary_temporary_use.to_date = moment(vm.apiary_temporary_use.to_date, 'YYYY-MM-DD');
-                    //}
-
-                    //// Update PeriodAndSites component
-                    //vm.period_and_sites_key = uuid();
-                    //// Update TemporaryOccupier component
-                    //vm.temporary_occupier_key = uuid();
                  }).catch((error) => {
                     console.log(error);
                 })

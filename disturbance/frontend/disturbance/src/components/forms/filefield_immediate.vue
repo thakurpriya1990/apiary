@@ -51,8 +51,7 @@ import {
   helpers
 }
 from '@/utils/hooks';
-//import CommentBlock from './comment_block.vue';
-//import { mapGetters } from 'vuex';
+import $ from 'jquery';
 export default {
     name: "FileField",
     props:{
@@ -184,6 +183,7 @@ export default {
                 formData.append('input_name', this.name);
                 formData.append('csrfmiddlewaretoken', this.csrf_token);
                 try {
+                    console.log(this.document_action_url)
                     const response = await fetch(this.document_action_url, {
                         method: 'POST',
                         body: formData,

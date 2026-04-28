@@ -1,4 +1,4 @@
-{%  extends base_email_text %}
+{%  extends 'disturbance/emails/base_email.txt' %}
 
 {%  block content %}
     A new organisation access request has been submitted:

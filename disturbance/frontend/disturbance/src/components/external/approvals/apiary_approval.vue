@@ -1,183 +1,186 @@
 <template>
-<div class="container" id="externalApproval">
+<div id="externalApproval">
     <div class="row">
-        <div class="col-md-3">
-            <h3>Licence: {{ approval.lodgement_number }}</h3>
-        </div>
-
-        <div class="col-sm-9">
-            <div class="row">
-                <FormSection :formCollapse="false" label="Holder" Index="holder">
-                    <div v-if="organisationApplicant">
-                        <!--div class="panel-body panel-collapse collapse in" :id="detailsBody"-->
-                        <div class="panel-body panel-collapse collapse in">
-                            <form class="form-horizontal">
-                                <div class="form-group">
-                                  <label for="" class="col-sm-3 control-label">Name</label>
-                                  <div class="col-sm-6">
-                                      <input disabled type="text" class="form-control" name="applicantName" placeholder="" v-model="approval.organisation_name">
-                                  </div>
-                                </div>
-                                <div class="form-group">
-                                  <label for="" class="col-sm-3 control-label" >ABN/ACN</label>
-                                  <div class="col-sm-6">
-                                      <input disabled type="text" class="form-control" name="applicantABN" placeholder="" v-model="approval.organisation_abn">
-                                  </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    <div v-else>
-                        <div class="panel-body panel-collapse collapse in">
-                            <form class="form-horizontal">
-                                <div class="form-group">
-                                  <label for="" class="col-sm-3 control-label">Given Name(s)</label>
-                                  <div class="col-sm-6">
-                                      <input disabled type="text" class="form-control" name="applicantFirstName" placeholder="" v-model="approval.applicant_first_name">
-                                  </div>
-                                </div>
-                                <div class="form-group">
-                                  <label for="" class="col-sm-3 control-label" >Last Name</label>
-                                  <div class="col-sm-6">
-                                      <input disabled type="text" class="form-control" name="applicantLastName" placeholder="" v-model="approval.applicant_last_name">
-                                  </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </FormSection>
-            </div>
-
-            <div class="row">
-                <FormSection :formCollapse="false" label="Address Details" Index="address_details">
-                    <form v-if="approval.applicant_address" class="form-horizontal" action="index.html" method="post">
+        <h3>Licence: {{ approval.lodgement_number }}</h3>
+        
+        <div class="col-sm-12">
+            <FormSection :formCollapse="false" label="Holder" Index="holder">
+                <div v-if="organisationApplicant">
+                    <form class="form-horizontal">
                         <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Street</label>
+                            <div class="row mb-3">
+                                <label for="" class="col-sm-3 col-form-label">Name</label>
+                                <div class="col-sm-6">
+                                    <input disabled type="text" class="form-control" name="applicantName" placeholder="" v-model="approval.organisation.name">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row mb-3">
+                                <label for="" class="col-sm-3 col-form-label" >ABN/ACN</label>
+                                <div class="col-sm-6">
+                                    <input disabled type="text" class="form-control" name="applicantABN" placeholder="" v-model="approval.organisation.abn">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div v-else>
+                    <form class="form-horizontal">
+                        <div class="form-group">
+                            <div class="row mb-3">
+                                <label for="" class="col-sm-3 col-form-label">Given Name(s)</label>
+                                <div class="col-sm-6">
+                                    <input disabled type="text" class="form-control" name="applicantFirstName" placeholder="" v-model="approval.applicant_first_name">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row mb-3">
+                                <label for="" class="col-sm-3 col-form-label" >Last Name</label>
+                                <div class="col-sm-6">
+                                    <input disabled type="text" class="form-control" name="applicantLastName" placeholder="" v-model="approval.applicant_last_name">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </FormSection>
+
+            <FormSection :formCollapse="false" label="Address Details" Index="address_details">
+                <form v-if="approval.applicant_address" class="form-horizontal" action="index.html" method="post">
+                    <div class="form-group">
+                        <div class="row mb-3">
+                            <label for="" class="col-sm-3 col-form-label">Street</label>
                             <div class="col-sm-6">
                                 <input type="text" disabled class="form-control" name="street" placeholder="" v-model="approval.applicant_address.line1">
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="" class="col-sm-3 control-label" >Town/Suburb</label>
+                    </div>
+                    <div class="form-group">
+                        <div class="row mb-3">
+                            <label for="" class="col-sm-3 col-form-label" >Town/Suburb</label>
                             <div class="col-sm-6">
                                 <input type="text" disabled class="form-control" name="surburb" placeholder="" v-model="approval.applicant_address.locality">
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">State</label>
+                    </div>
+                    <div class="form-group">
+                        <div class="row mb-3">
+                            <label for="" class="col-sm-3 col-form-label">State</label>
                             <div class="col-sm-3">
                                 <input type="text" disabled class="form-control" name="country" placeholder="" v-model="approval.applicant_address.state">
                             </div>
-                            <label for="" class="col-sm-1 control-label">Postcode</label>
+                            <label for="" class="col-sm-1 col-form-label">Postcode</label>
                             <div class="col-sm-2">
                                 <input type="text" disabled class="form-control" name="postcode" placeholder="" v-model="approval.applicant_address.postcode">
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="" class="col-sm-3 control-label" >Country</label>
+                    </div>
+                    <div class="form-group">
+                        <div class="row mb-3">
+                            <label for="" class="col-sm-3 col-form-label" >Country</label>
                             <div class="col-sm-4">
                                 <input type="text" disabled class="form-control" name="country" v-model="approval.applicant_address.country" />
                             </div>
                         </div>
-                    </form>
-                </FormSection>
-            </div>
+                    </div>
+                </form>
+            </FormSection>
 
-            <div class="row">
-                <FormSection :formCollapse="false" label="Licence Details" Index="approval_details">
-                    <form class="form-horizontal" action="index.html" method="post">
-                        <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Issue Date</label>
+            <FormSection :formCollapse="false" label="Licence Details" Index="approval_details">
+                <form class="form-horizontal" action="index.html" method="post">
+                    <div class="form-group">
+                        <div class="row mb-3">
+                            <label for="" class="col-sm-3 col-form-label">Issue Date</label>
                             <div class="col-sm-6">
-                                <label for="" class="control-label pull-left">{{ formatDate(approval.issue_date) }}</label>
+                                <label for="" class="col-form-label pull-left">{{ formatDate(approval.issue_date) }}</label>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="" class="col-sm-3 control-label" >Start Date</label>
+                    </div>
+                    <div class="form-group">
+                        <div class="row mb-3">
+                            <label for="" class="col-sm-3 col-form-label" >Start Date</label>
                             <div class="col-sm-6">
-                                <label for="" class="control-label pull-left">{{ formatDate(approval.start_date) }}</label>
+                                <label for="" class="col-form-label pull-left">{{ formatDate(approval.start_date) }}</label>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Expiry Date</label>
+                    </div>
+                    <div class="form-group">
+                        <div class="row mb-3">
+                            <label for="" class="col-sm-3 col-form-label">Expiry Date</label>
                             <div class="col-sm-3">
-                                <label for="" class="control-label pull-left">{{ formatDate(approval.expiry_date) }}</label>
+                                <label for="" class="col-form-label pull-left">{{ formatDate(approval.expiry_date) }}</label>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="" class="col-sm-3 control-label" >Document</label>
+                    </div>
+                    <div class="form-group">
+                        <div class="row mb-3">
+                            <label for="" class="col-sm-3 col-form-label" >Document</label>
                             <div class="col-sm-4">
-                                <p><a target="_blank" :href="approval.latest_apiary_licence_document" class="control-label pull-left">Licence.pdf</a></p>
+                                <p><a target="_blank" :href="approval.latest_apiary_licence_document" class="col-form-label pull-left">Licence.pdf</a></p>
                             </div>
                         </div>
-                        <!--div class="form-group">
-                          <label for="" class="col-sm-3 control-label" >Document History</label>
-                          <div class="col-sm-4">
-                              <div v-for="doc in approval.apiary_licence_document_history">
-                                  <p><a target="_blank" :href="doc.url" class="control-label pull-left">{{doc.name}}</a></p>
-                              </div>
-                          </div>
-                        </div-->
-                     </form>
-                </FormSection>
-
-            </div>
-
-            <div class="row">
-                <FormSection :formCollapse="false" label="Site(s)" Index="site_avaiability">
-                    <template v-if="approval && approval.id">
-                        <SiteAvailability
-                            :approval_id="approval.id"
-                            :is_internal="false"
-                            :is_external="true"
-                            :user_can_site_transfer="user_can_interact"
-                            ref="site_availability"
-                        />
-                    </template>
-                </FormSection>
-            </div>
-            <div class="row">
-                <FormSection :formCollapse="false" label="Annual Site Fee" Index="annual_rental_fee">
-                    <template v-if="approval && approval.id">
-                        <SectionAnnualRentalFee
-                            :is_readonly="false"
-                            :is_external="true"
-                            :is_internal="false"
-                            :approval_id="approval.id"
-                            :annual_rental_fee_periods="approval.annual_rental_fee_periods"
-                            :no_annual_rental_fee_until="approval.no_annual_rental_fee_until"
-                        />
-                    </template>
-                </FormSection>
-            </div>
-
-            <div class="row">
-                <FormSection :formCollapse="false" label="Temporary Use" Index="temporary_use">
-                    <template v-if="approval && approval.id">
-                        <TemporaryUse
-                            :approval_id="approval.id"
-                            :is_internal="false"
-                            :is_external="true"
-                            :user_can_temporary_use="user_can_interact"
-                            ref="tempoary_use"
-                        />
-                    </template>
-                </FormSection>
-            </div>
-
-            <div class="row">
-                <FormSection :formCollapse="false" label="On Site" Index="on_site">
-                    <template v-if="approval && approval.id">
-                        <OnSiteInformation
-                            :approval_id="approval.id"
-                            :is_internal="false"
-                            :is_external="true"
-                            :user_can_interact="user_can_interact"
-                            ref="on_site_information"
-                        />
-                    </template>
-                </FormSection>
-            </div>
+                    </div>
+                    <!--div class="form-group">
+                        <label for="" class="col-sm-3 col-form-label" >Document History</label>
+                        <div class="col-sm-4">
+                            <div v-for="doc in approval.apiary_licence_document_history">
+                                <p><a target="_blank" :href="doc.url" class="col-form-label pull-left">{{doc.name}}</a></p>
+                            </div>
+                        </div>
+                    </div-->
+                    </form>
+            </FormSection>
+            
+            <FormSection :formCollapse="false" label="Site(s)" Index="site_avaiability">
+                <template v-if="approval && approval.id">
+                    <SiteAvailability
+                        :approval_id="approval.id"
+                        :is_internal="false"
+                        :is_external="true"
+                        :user_can_site_transfer="user_can_interact"
+                        ref="site_availability"
+                    />
+                </template>
+            </FormSection>
+            
+            <FormSection :formCollapse="false" label="Annual Site Fee" Index="annual_rental_fee">
+                <template v-if="approval && approval.id">
+                    <SectionAnnualRentalFee
+                        :is_readonly="false"
+                        :is_external="true"
+                        :is_internal="false"
+                        :approval_id="approval.id"
+                        :annual_rental_fee_periods="approval.annual_rental_fee_periods"
+                        :no_annual_rental_fee_until="approval.no_annual_rental_fee_until"
+                    />
+                </template>
+            </FormSection>
+            
+            <FormSection :formCollapse="false" label="Temporary Use" Index="temporary_use">
+                <template v-if="approval && approval.id">
+                    <TemporaryUse
+                        :approval_id="approval.id"
+                        :is_internal="false"
+                        :is_external="true"
+                        :user_can_temporary_use="user_can_interact"
+                        ref="tempoary_use"
+                    />
+                </template>
+            </FormSection>
+           
+            <FormSection :formCollapse="false" label="On Site" Index="on_site">
+                <template v-if="approval && approval.id">
+                    <OnSiteInformation
+                        :approval_id="approval.id"
+                        :is_internal="false"
+                        :is_external="true"
+                        :user_can_interact="user_can_interact"
+                        ref="on_site_information"
+                    />
+                </template>
+            </FormSection>
         </div>
     </div>
 </div>
@@ -224,36 +227,6 @@ export default {
             org: {
                 address: {}
             },
-
-            // variables passed to the child component
-            //on_site_information_list: [],
-            // Filters
-
-        }
-    },
-    watch: {
-        approval: {
-            handler(){
-                console.log('approval in watch');
-                
-                // Construct the array, which is passed to the child component, SiteAvailability
-                // Construct the array, which is passed to the child component, OnSiteInformation
-                //this.on_site_information_list = []
-                
-                console.log(this.approval)
-                
-                //for (let i=0; i<this.approval.apiary_sites.length; i++){
-                //console.log('in apiary_sites.length')
-                //for (let j=0; j<this.approval.apiary_sites[i].onsiteinformation_set.length; j++){
-                    //console.log('in onsiteinformation_setgt.length')
-                    //this.on_site_information_list.push(this.approval.apiary_sites[i].onsiteinformation_set[j])
-                    //}
-                    //}
-                    
-                    // Construct the array, which is passed to the child component, TemporaryUse
-                    
-            },
-            deep: true,
         }
     },
     created: function() {
@@ -261,20 +234,6 @@ export default {
             this.loadApproval(this.approvalId)
         }
     },
-    //beforeRouteEnter: function(to, from, next){
-    //    Vue.http.get(helpers.add_endpoint_json(api_endpoints.approvals,to.params.approval_id)).then((response) => {
-    //        next(vm => {
-    //            console.log('in next');
-    //            console.log('response.body: ');
-    //            console.log(response.body);
-    //            vm.approval = response.body;
-    //            vm.approval.applicant_id = response.body.applicant_id;
-    //            vm.fetchOrganisation(vm.approval.applicant_id)
-    //        })
-    //    },(error) => {
-    //        console.log(error);
-    //    })
-    //},
     components: {
         SectionAnnualRentalFee,
         FormSection,
@@ -296,7 +255,7 @@ export default {
         },
         organisationApplicant: function() {
             let oApplicant = false;
-            if (this.approval && this.approval.organisation_abn) {
+            if (this.approval && this.approval.organisation && this.approval.organisation.abn) {
                 oApplicant = true;
             }
             return oApplicant;

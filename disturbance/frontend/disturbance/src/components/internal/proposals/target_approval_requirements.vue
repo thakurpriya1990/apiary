@@ -1,34 +1,18 @@
 <template id="proposal_requirements">
-    <div class="col-md-12">
-        <div class="row">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">{{ sectionTitle }}
-                        <a class="panelClicker" :href="'#'+panelBody" data-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="panelBody">
-                            <span class="glyphicon glyphicon-chevron-down pull-right "></span>
-                        </a>
-                    </h3>
-                </div>
-                <div class="panel-body panel-collapse collapse in" :id="panelBody">
-                    <form class="form-horizontal" action="index.html" method="post">
-                        <div class="col-sm-12">
-                            <button v-if="hasAssessorMode" @click.prevent="addRequirement()" style="margin-bottom:10px;" class="btn btn-primary pull-right">Add Requirement</button>
-                        </div>
-                        <datatable ref="target_requirements_datatable" :id="'target-approval-requirements-datatable-'+_uid" :dtOptions="requirement_options" :dtHeaders="requirement_headers"/>
-                    </form>
+    <FormSection :formCollapse="false" :label="sectionTitle" Index="requirements">
+        <form class="form-horizontal" action="index.html" method="post">
+            <div class="row">
+                <div class="col-sm-12">
+                    <button v-if="hasAssessorMode" @click.prevent="addRequirement()" style="margin-bottom:10px;" class="btn btn-primary pull-right">Add Requirement</button>
                 </div>
             </div>
-        </div>
-        <RequirementDetail 
-        ref="target_requirement_detail" 
-        :proposal_id="proposal.id" 
-        :requirements="requirements"
-        :sitetransfer_approval_id="targetApprovalId"
-        v-bind:key="uuid"/>
-    </div>
+            <datatable ref="target_requirements_datatable" :id="datatable_id" :dtOptions="requirement_options" :dtHeaders="requirement_headers"/>
+        </form>
+    </FormSection>
+    <RequirementDetail ref="target_requirement_detail" :proposal_id="proposal.id" :requirements="requirements" :sitetransfer_approval_id="targetApprovalId"/>
 </template>
 <script>
-import { v4 as uuid } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import {
     api_endpoints,
     helpers,
@@ -37,6 +21,9 @@ import {
 from '@/utils/hooks'
 import datatable from '@vue-utils/datatable.vue'
 import RequirementDetail from './proposal_add_requirement.vue'
+import FormSection from "@/components/forms/section_toggle.vue";
+import $ from 'jquery';
+
 export default {
     name: 'TargetApprovalRequirements',
     props: {
@@ -47,7 +34,8 @@ export default {
     data: function() {
         let vm = this;
         return {
-            panelBody: "proposal-requirements-"+uuid(),
+            panelBody: "proposal-requirements-"+uuidv4(),
+            datatable_id: 'target-approval-requirements-datatable-'+uuidv4(),
             //targetApproval: {},
             requirements: [],
             requirement_headers:[
@@ -57,7 +45,7 @@ export default {
                 "Action",
                 "Order"
             ],
-            uuid: 0,
+            // keyVersion: 0,
             requirement_options:{
                 autoWidth: false,
                 language: {
@@ -65,53 +53,47 @@ export default {
                 },
                 responsive: true,
                 ajax: {
-                    //"url": helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/requirements'),
-                    //"url": helpers.add_endpoint_json(api_endpoints.approvals,vm.targetApprovalId+'/requirements'),
                     "url": helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/apiary_site_transfer_target_approval_requirements'),
                     "dataSrc": ''
                 },
                 order: [],
-                dom: 'lBfrtip',
+                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons:[
-                'excel', 'csv', ], //'copy'
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-primary me-2 rounded',
+                        exportOptions: {
+                            columns: ':not(.noexport)',
+                            orthogonal:'export'
+                        }
+                    },
+                    {
+                        extend: 'csv',
+                        className: 'btn btn-primary me-2 rounded',
+                        exportOptions: {
+                            columns: ':not(.noexport)',
+                            orthogonal:'export'
+                        }
+                    },
+                ],
+                columnDefs: [
+                    { responsivePriority: 1, targets: 0 }, // First visible column has top priority (e.g. proposal_number
+                    { responsivePriority: 2, targets: -1 }, // If the actions is the last entry in columns then this will make it 2nd top priority soo as long as the screen is a decent size it will always be shown
+                ],
                 columns: [
                     {
                         data: "requirement",
                         //title: originatingLicence,
                         //orderable: false,
-                        'render': function (value) {
-                            var ellipsis = '...',
-                                truncated = _.truncate(value, {
-                                    length: 25,
-                                    omission: ellipsis,
-                                    separator: ' '
-                                }),
-                                result = '<span>' + truncated + '</span>',
-                                popTemplate = _.template('<a href="#" ' +
-                                    'role="button" ' +
-                                    'data-toggle="popover" ' +
-                                    'data-trigger="click" ' +
-                                    'data-placement="top auto"' +
-                                    'data-html="true" ' +
-                                    'data-content="<%= text %>" ' +
-                                    '>more</a>');
-                            if (_.endsWith(truncated, ellipsis)) {
-                                result += popTemplate({
-                                    text: value
-                                });
-                            }
-
-                            return result;
+                        'render': function (value, type) {
+                            var result= helpers.dtPopover(value);
+                            //return result;
+                            return type=='export' ? value : result;
                         },
-                        'createdCell': helpers.dtPopoverCellFn,
+                        // 'createdCell': helpers.dtPopoverCellFn,
                         defaultContent: '',
-
-                        /*'createdCell': function (cell) {
-                            //TODO why this is not working?
-                            // the call to popover is done in the 'draw' event
-                            $(cell).popover();
-                        }*/
-
                     },
                     {
                         data: "due_date",
@@ -162,7 +144,6 @@ export default {
                     {
                         mRender:function (data,type,full) {
                             let links = '';
-                            // TODO check permission to change the order
                             if (vm.proposal.assessor_mode.has_assessor_mode){
                                 links +=  `<a class="dtMoveUp" data-id="${full.id}" href='#'><i class="fa fa-angle-up fa-2x"></i></a><br/>`;
                                 links +=  `<a class="dtMoveDown" data-id="${full.id}" href='#'><i class="fa fa-angle-down fa-2x"></i></a><br/>`;
@@ -198,7 +179,8 @@ export default {
     },
     components:{
         datatable,
-        RequirementDetail
+        RequirementDetail,
+        FormSection
     },
     computed:{
         hasAssessorMode(){
@@ -231,7 +213,7 @@ export default {
     },
     methods:{
         addRequirement(){
-            this.uuid += 1;
+            // this.keyVersion += 1;
             this.$nextTick(() => {
                 this.$refs.target_requirement_detail.isModalOpen = true;
             });
@@ -250,13 +232,6 @@ export default {
                 },
             }).then((swalresult) => {
                 if(swalresult.isConfirmed) {
-                    // vm.$http.delete(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id))
-                    // .then((response) => {
-                    //     vm.$refs.requirements_datatable.vmDataTable.ajax.reload();
-                    // }, (error) => {
-                    //     console.log(error);
-                    // });
-
                     fetch(helpers.add_endpoint_json(api_endpoints.proposal_requirements,_id+'/discard'))
                     .then(async (response) => {
                         if (!response.ok) { return response.json().then(err => { throw err }); }

@@ -1,6 +1,6 @@
 # Prepare the base environment.
 # Based on the Dockerfile: https://github.com/dbca-wa/commercialoperator/blob/cols_fe_py3/Dockerfile
-FROM ghcr.io/dbca-wa/docker-apps-dev:ubuntu2404_base_latest as builder_base
+FROM ghcr.io/dbca-wa/docker-apps-dev:ubuntu_2510_base_python as builder_base
 MAINTAINER asi@dbca.wa.gov.au
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBUG=True
@@ -23,6 +23,7 @@ ENV APIARY_URL=[]
 ENV SYSTEM_NAME="Disturbance Assessment System"
 ENV APIARY_SYSTEM_NAME="Apiary System"
 ENV PAYMENT_OFFICERS_GROUP="Apiary Payments Officers"
+ENV NODE_MAJOR=20
 
 # Use Australian Mirrors
 RUN sed 's/archive.ubuntu.com/au.archive.ubuntu.com/g' /etc/apt/sources.list > /etc/apt/sourcesau.list

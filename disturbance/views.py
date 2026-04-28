@@ -1,33 +1,34 @@
 import logging
-from datetime import datetime
-
 from django.http import HttpResponse
 from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 from django.conf import settings
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
-from ledger_api_client.ledger_models import Invoice
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.renderers import JSONRenderer
 from disturbance.components.main.decorators import timeit
 from disturbance.components.main.serializers import WaCoastSerializer, WaCoastOptimisedSerializer
 from disturbance.components.main.utils import get_feature_in_wa_coastline_smoothed, get_feature_in_wa_coastline_original
-from disturbance.helpers import is_internal, is_disturbance_admin, is_apiary_admin, is_das_apiary_admin
-from disturbance.components.proposals.models import Referral, Proposal, HelpPage
+from disturbance.helpers import is_internal, get_proxy_cache
+from disturbance.components.proposals.models import Referral, Proposal
 from disturbance.components.compliances.models import Compliance
 from disturbance.components.proposals.mixins import ReferralOwnerMixin
 from django.core.management import call_command
 from rest_framework.response import Response
-from rest_framework import views
 import os
 import mimetypes
+import base64
+import json
 from disturbance.components.proposals.models import Proposal
 from disturbance.components.organisations.models import Organisation,OrganisationContact
 from disturbance.components.approvals.models import Approval
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
+from django.core.cache import cache
+from wagov_utils.components.proxy.views import proxy_view
+from rest_framework import serializers
 
 logger = logging.getLogger(__name__)
 
@@ -38,29 +39,18 @@ class InternalView(UserPassesTestMixin, TemplateView):
     def test_func(self):
         return is_internal(self.request)
 
-    def get_context_data(self, **kwargs):
-        context = super(InternalView, self).get_context_data(**kwargs)
-        context['dev'] = settings.DEV_STATIC
-        context['dev_url'] = settings.DEV_STATIC_URL
-        if hasattr(settings, 'DEV_APP_BUILD_URL') and settings.DEV_APP_BUILD_URL:
-            context['app_build_url'] = settings.DEV_APP_BUILD_URL
-        return context
-
-
 class ExternalView(LoginRequiredMixin, TemplateView):
     template_name = 'disturbance/dash/index.html'
 
-    def get_context_data(self, **kwargs):
-        context = super(ExternalView, self).get_context_data(**kwargs)
-        context['dev'] = settings.DEV_STATIC
-        context['dev_url'] = settings.DEV_STATIC_URL
-        if hasattr(settings, 'DEV_APP_BUILD_URL') and settings.DEV_APP_BUILD_URL:
-            context['app_build_url'] = settings.DEV_APP_BUILD_URL
-        return context
-
+#TODO on-cleanup review and remove unused DetailView (they don't appear to be needed though that should be tested)
 class ReferralView(ReferralOwnerMixin, DetailView):
     model = Referral
     template_name = 'disturbance/dash/index.html'
+    
+    def get(self, *args, **kwargs):
+        if self.request.user.is_authenticated():
+            if is_internal(self.request):
+                return super(InternalComplianceView, self).get(*args, **kwargs)
 
 class ExternalProposalView(DetailView):
     model = Proposal
@@ -73,6 +63,12 @@ class ExternalComplianceView(DetailView):
 class InternalComplianceView(DetailView):
     model = Compliance
     template_name = 'disturbance/dash/index.html'
+
+    def get(self, *args, **kwargs):
+        if self.request.user.is_authenticated():
+            if is_internal(self.request):
+                return super(InternalComplianceView, self).get(*args, **kwargs)
+            return redirect('external-compliance-detail')
 
 class DisturbanceRoutingView(TemplateView):
     template_name = 'disturbance/index.html'
@@ -91,64 +87,14 @@ class DisturbanceFurtherInformationView(TemplateView):
     template_name = 'disturbance/further_info.html'
 
 class InternalProposalView(DetailView):
-    #template_name = 'disturbance/index.html'
     model = Proposal
     template_name = 'disturbance/dash/index.html'
 
     def get(self, *args, **kwargs):
         if self.request.user.is_authenticated():
             if is_internal(self.request):
-                #return redirect('internal-proposal-detail')
                 return super(InternalProposalView, self).get(*args, **kwargs)
             return redirect('external-proposal-detail')
-
-#TODO replace and then remove
-@login_required(login_url='home')
-def first_time(request):
-    context = {}
-    if request.method == 'POST':
-        form = FirstTimeForm(request.POST)
-        redirect_url = form.data['redirect_url']
-        if not redirect_url:
-            redirect_url = '/'
-        if form.is_valid():
-            # set user attributes
-            request.user.first_name = form.cleaned_data['first_name']
-            request.user.last_name = form.cleaned_data['last_name']
-            request.user.dob = form.cleaned_data['dob']
-            request.user.save()
-            return redirect(redirect_url)
-        context['form'] = form
-        context['redirect_url'] = redirect_url
-        return render(request, 'disturbance/user_profile.html', context)
-    # GET default
-    if 'next' in request.GET:
-        context['redirect_url'] = request.GET['next']
-    else:
-        context['redirect_url'] = '/'
-    context['dev'] = settings.DEV_STATIC
-    context['dev_url'] = settings.DEV_STATIC_URL
-    #return render(request, 'disturbance/user_profile.html', context)
-    return render(request, 'disturbance/dash/index.html', context)
-
-
-#TODO potentially remove
-class HelpView(LoginRequiredMixin, TemplateView):
-    template_name = 'disturbance/help.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(HelpView, self).get_context_data(**kwargs)
-
-        if self.request.user.is_authenticated:
-            application_type = kwargs.get('application_type', None) 
-            if kwargs.get('help_type', None)=='assessor':
-                if is_internal(self.request):
-                    qs = HelpPage.objects.filter(application_type__name__icontains=application_type, help_type=HelpPage.HELP_TEXT_INTERNAL).order_by('-version')
-                    context['help'] = qs.first()
-            else:
-                qs = HelpPage.objects.filter(application_type__name__icontains=application_type, help_type=HelpPage.HELP_TEXT_EXTERNAL).order_by('-version')
-                context['help'] = qs.first()
-        return context
 
 
 class ManagementCommandsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
@@ -166,17 +112,6 @@ class ManagementCommandsView(LoginRequiredMixin, UserPassesTestMixin, TemplateVi
             data.update({command_script: 'true'})
 
         return render(request, self.template_name, data)
-
-
-class TemplateGroupView(views.APIView):
-
-    def get(self, request, format=None):
-        return Response({
-            'template_group': 'apiary',
-            'is_das_admin': True if is_disturbance_admin(request) else False,
-            'is_apiary_admin': True if is_apiary_admin(request) else False,
-            'is_das_apiary_admin': True if is_das_apiary_admin(request) else False,
-        })
 
 
 @timeit
@@ -201,51 +136,12 @@ def gisdata(request):
         serializer = WaCoastOptimisedSerializer(feature)
 
     return Response(serializer.data)
-
-
-class LedgerPayView(TemplateView):
-    template_name = 'disturbance/dash/index.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(LedgerPayView, self).get_context_data(**kwargs)
-        context['dev'] = settings.DEV_STATIC
-        context['dev_url'] = settings.DEV_STATIC_URL
-        context['empty_menu'] = True  # We don't want any menu items for now
-        if hasattr(settings, 'DEV_APP_BUILD_URL') and settings.DEV_APP_BUILD_URL:
-            context['app_build_url'] = settings.DEV_APP_BUILD_URL
-        return context
     
-
-@api_view(['POST',])
-def validate_invoice_details(request):
-    invoice_reference = request.data.get('invoice_reference', None)
-    invoice_date = request.data.get('invoice_date', None)
-
-    try:
-        datetime_object = datetime.strptime(invoice_date, '%d/%m/%Y').date()
-        invoice = Invoice.objects.get(reference=invoice_reference)
-        invoice_created_date = invoice.created.date()
-
-        if invoice_created_date == datetime_object and invoice.payment_status in ('unpaid', 'partially_paid'):
-            return Response({
-                "unpaid_invoice_exists": True
-            })
-        else:
-            return Response({
-                "unpaid_invoice_exists": False,
-                "alert_message": "There are no unpaid invoices that meet the criteria.",
-            })
-
-    except Exception as e:
-        return Response({
-            "unpaid_invoice_exists": False,
-            "alert_message": "There are no unpaid invoices that meet the criteria.",
-        })
 
 def is_authorised_to_access_proposal_document(request,document_id):
     if is_internal(request):
         return True
-    else:
+    elif request.user and request.user.is_authenticated:
         user = request.user
         user_orgs = [org.id for org in user.disturbance_organisations.all()]
         return Proposal.objects.filter(id=document_id).filter(
@@ -255,7 +151,7 @@ def is_authorised_to_access_proposal_document(request,document_id):
 def is_authorised_to_access_approval_document(request,document_id):
     if is_internal(request):
         return True
-    elif user.is_authenticated:
+    elif request.user and request.user.is_authenticated:
         user = request.user
         user_orgs = [org.id for org in user.disturbance_organisations.all()]
         return Approval.objects.filter(id=document_id).filter(
@@ -265,7 +161,7 @@ def is_authorised_to_access_approval_document(request,document_id):
 def is_authorised_to_access_organisation_document(request,document_id):
     if is_internal(request):
         return True
-    elif user.is_authenticated:
+    elif request.user and request.user.is_authenticated:
         user = request.user
         org_contacts = OrganisationContact.objects.filter(is_admin=True).filter(email=user.email)
         user_admin_orgs = [org.organisation.id for org in org_contacts]
@@ -299,7 +195,7 @@ def is_authorised_to_access_document(request):
         #for organisation requests, this will fail and they are stored in a request subdir and by date (which is fine for current use cases)
         o_document_id = get_file_path_id("organisations",request.path)
         if o_document_id:
-            return is_authorised_to_access_organisation_document(request,a_document_id)
+            return is_authorised_to_access_organisation_document(request,o_document_id)
     else:
         return False
 
@@ -323,3 +219,68 @@ def getPrivateFile(request):
             return HttpResponse(the_data, content_type=mimetypes.types_map['.'+str(extension.lower())])
        
     return HttpResponse()
+
+
+@csrf_exempt
+def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
+    
+    if request.user.is_authenticated:
+        proxy_cache= None
+        proxy_response = None
+        proxy_response_content = None
+        base64_json = {}
+        query_string_remote_url=remoteurl+'?'+queryString
+
+        cache_times_strings = get_proxy_cache()
+        CACHE_EXPIRY=300
+        layer_allowed=False
+
+        proxy_cache = cache.get(query_string_remote_url)
+        query_string_remote_url_new=query_string_remote_url.replace('%3A',':')
+        for cts in cache_times_strings:
+            layer_name=cts['layer_name'].split(':')[-1]
+            if layer_name in query_string_remote_url:
+                CACHE_EXPIRY = cts['cache_expiry']
+            
+            if '?layer='+cts['layer_name'] in query_string_remote_url_new or '&LAYERS='+cts['layer_name'] in query_string_remote_url_new :
+                layer_allowed=True
+        if layer_allowed is True:
+            if proxy_cache is None:
+                auth_details = None
+                if auth_user is None and auth_password is None:
+                    auth_details = None
+                else:
+                    auth_details = {"user": auth_user, 'password' : auth_password}
+                proxy_response = proxy_view(request, remoteurl, basic_auth=auth_details)
+                proxy_response_content_encoded = base64.b64encode(proxy_response.content)
+                base64_json = {"status_code": proxy_response.status_code, "content_type": proxy_response.headers['content-type'][1], "content" : proxy_response_content_encoded.decode('utf-8'), "cache_expiry": CACHE_EXPIRY}
+                if proxy_response.status_code == 200: 
+                    cache.set(query_string_remote_url, json.dumps(base64_json), CACHE_EXPIRY)
+                else:
+                    cache.set(query_string_remote_url, json.dumps(base64_json), 15)
+            else:
+                base64_json = json.loads(proxy_cache)
+            proxy_response_content = base64.b64decode(base64_json["content"].encode())
+            http_response =   HttpResponse(proxy_response_content, content_type=base64_json['content_type'], status=base64_json['status_code'])        
+            http_response['Django-Cache-Expiry']= str(base64_json['cache_expiry']) + " seconds"
+            return http_response
+        else:
+            http_response =   HttpResponse('Access Denied', content_type='text/html', status=401) 
+            return http_response
+    return
+
+@csrf_exempt
+def mapProxyView(request, path):
+    if request.user.is_authenticated:
+        queryString = request.META['QUERY_STRING']      
+        remoteurl = None
+        auth_user = None
+        auth_password = None
+        if 'kb-proxy' in request.path:
+            remoteurl = settings.KB_SERVER_URL + path 
+            auth_user = settings.KB_USER
+            auth_password = settings.KB_PASSWORD
+        response = process_proxy(request, remoteurl, queryString, auth_user, auth_password)
+        return response
+    else:
+        raise serializers.ValidationError('User is not authenticated')

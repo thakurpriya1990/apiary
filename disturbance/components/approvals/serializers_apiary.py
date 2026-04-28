@@ -8,83 +8,6 @@ from disturbance.components.main.utils import get_category, get_tenure, get_regi
 from disturbance.components.organisations.models import Organisation
 
 
-class ApiarySiteOnApprovalMinimalGeometrySerializer(GeoFeatureModelSerializer):
-    id = serializers.IntegerField(source='apiary_site__id')
-    status = serializers.CharField(source='site_status')
-    site_category = serializers.CharField(source='site_category__name')
-    is_vacant = serializers.BooleanField(source='apiary_site__is_vacant')
-    site_guid = serializers.CharField(source='apiary_site__site_guid')
-    #licensed_site = serializers.BooleanField(source='apiary_site__licensed_site')
-    lodgement_number = serializers.CharField(source='approval__lodgement_number')
-    approval_id = serializers.IntegerField(source='approval__id')
-
-    class Meta:
-        model = ApiarySiteOnApproval
-        geo_field = 'wkb_geometry'
-        fields = (
-            'id',
-            'is_vacant',
-            'wkb_geometry',
-            'site_category',
-            'status',
-            'site_guid',
-            'available',
-            'lodgement_number',
-            'approval_id',
-            # 'licensed_site',
-            # 'batch_no',
-            # 'approval_cpc_date',
-            # 'approval_minister_date',
-            # 'map_ref',
-            # 'forest_block',
-            # 'cog',
-            # 'roadtrack',
-            # 'zone',
-            # 'catchment',
-            # 'dra_permit',
-        )
-
-
-class ApiarySiteOnApprovalMinGeometrySerializer(GeoFeatureModelSerializer):
-    """
-    For reading
-    """
-    id = serializers.IntegerField(source='apiary_site.id')
-    site_guid = serializers.CharField(source='apiary_site.site_guid')
-    status = serializers.CharField(source='site_status')
-    site_category = serializers.CharField(source='site_category.name')
-    previous_site_holder_or_applicant = serializers.SerializerMethodField()
-    is_vacant = serializers.BooleanField(source='apiary_site.is_vacant')
-    stable_coords = serializers.SerializerMethodField()
-    approval_lodgement_number = serializers.CharField(source='approval.lodgement_number')
-
-    class Meta:
-        model = ApiarySiteOnApproval
-        geo_field = 'wkb_geometry'
-        fields = (
-            'id',
-            'site_guid',
-            'available',
-            'wkb_geometry',
-            'site_category',
-            'status',
-            'is_vacant',
-            'stable_coords',
-            'previous_site_holder_or_applicant',
-            'approval_lodgement_number',
-        )
-
-    def get_stable_coords(self, obj):
-        return {'lng': obj.wkb_geometry.x, 'lat': obj.wkb_geometry.y}
-
-    def get_previous_site_holder_or_applicant(self, obj):
-        try:
-            relevant_applicant_name = obj.approval.relevant_applicant_name
-            return relevant_applicant_name
-        except:
-            return ''
-
-
 class ApiarySiteOnApprovalGeometrySerializer(GeoFeatureModelSerializer):
     """
     For reading
@@ -96,7 +19,6 @@ class ApiarySiteOnApprovalGeometrySerializer(GeoFeatureModelSerializer):
     previous_site_holder_or_applicant = serializers.SerializerMethodField()
     is_vacant = serializers.BooleanField(source='apiary_site.is_vacant')
     stable_coords = serializers.SerializerMethodField()
-    #licensed_site = serializers.BooleanField(source='apiary_site.licensed_site')
 
     class Meta:
         model = ApiarySiteOnApproval
@@ -179,8 +101,6 @@ class ApiarySiteOnApprovalGeometryExportSerializer(ApiarySiteOnApprovalGeometryS
     def get_status(self, relation):
         return get_status_for_export(relation)
 
-    # def get_category(self, relation):
-    #     return relation.site_category.name
     def _get_admin_user(self, org):
         admins = org.contacts.filter(user_status__in=('active', 'suspended', 'contact_form',), is_admin=True)
         admin = admins.first() if admins else None
@@ -215,7 +135,7 @@ class ApiarySiteOnApprovalGeometryExportSerializer(ApiarySiteOnApprovalGeometryS
     def get_address(self, relation):
         try:
             address = relation.approval.relevant_applicant_address
-            return address.summary
+            return ", ".join(address.values())
         except:
             return ''
 

@@ -1,16 +1,17 @@
 from __future__ import unicode_literals
 
 from django.db import models, transaction
+from rest_framework import serializers
 from django.contrib.sites.models import Site
 from django.dispatch import receiver
 from django.db.models.signals import pre_delete
 from six import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
-from django.db.models import JSONField
+from django.db.models import JSONField, Q
 from ledger_api_client.utils import get_organisation, get_search_organisation, create_organisation
-#from ledger.accounts.models import Organisation as ledger_organisation
+from rest_framework import status
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from disturbance.components.main.models import UserAction,CommunicationsLogEntry, LedgerDocument
+from disturbance.components.main.models import UserAction,CommunicationsLogEntry, LedgerDocument, SanitiseFileMixin, SanitiseMixin
 from disturbance.components.organisations.utils import random_generator
 from disturbance.components.organisations.emails import (
                         send_organisation_request_accept_email_notification,
@@ -28,20 +29,19 @@ from disturbance.components.organisations.emails import (
 
             )
 
-from django.conf import settings
-from django.core.files.storage import FileSystemStorage
-private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
+from disturbance.components.main.models import private_storage
+
+from disturbance.components.main.utils import (
+    get_first_name,
+    get_last_name,
+)
 
 @python_2_unicode_compatible
 class Organisation(models.Model):
-    #organisation = models.ForeignKey(ledger_organisation)
     organisation_id = models.IntegerField(
         unique=True, verbose_name="Ledger Organisation ID"
     )
-    # TODO: business logic related to delegate changes.
     delegates = models.ManyToManyField(EmailUser, blank=True, through='UserDelegation', related_name='disturbance_organisations')
-    #pin_one = models.CharField(max_length=50,blank=True)
-    #pin_two = models.CharField(max_length=50,blank=True)
     admin_pin_one = models.CharField(max_length=50,blank=True)
     admin_pin_two = models.CharField(max_length=50,blank=True)
     user_pin_one = models.CharField(max_length=50,blank=True)
@@ -62,12 +62,6 @@ class Organisation(models.Model):
 
     def log_user_action(self, action, request):
         return OrganisationAction.log_action(self, action, request.user)
-
-    # def validate_pins(self,pin1,pin2,request):
-    #     val = self.pin_one == pin1 and self.pin_two == pin2
-    #     if val:
-    #         self.link_user(request.user,request)
-    #     return val
 
     def validate_pins(self,pin1,pin2,request):
         try:
@@ -142,8 +136,6 @@ class Organisation(models.Model):
     
 
     def update_organisation(self, request):
-        # log organisation details updated (eg ../internal/organisations/access/2) - incorrect - this is for OrganisationRequesti not Organisation
-        # should be ../internal/organisations/1
         with transaction.atomic():
             self.log_user_action(OrganisationAction.ACTION_UPDATE_ORGANISATION, request)
 
@@ -179,6 +171,10 @@ class Organisation(models.Model):
         recipients = [c.email for c in contacts]
         send_organisation_request_link_email_notification(
             self, request, recipients)
+
+    @property
+    def has_no_admins(self):
+        return self.contacts.filter(user_role=OrganisationContact.ORG_CONTACT_ROLE_ADMIN).count() < 1
 
     @staticmethod
     def existence(abn, name=None):
@@ -505,18 +501,29 @@ class Organisation(models.Model):
         return self.first_five
 
 @python_2_unicode_compatible
-class OrganisationContact(models.Model):
-    USER_STATUS_CHOICES = (('draft', 'Draft'),
-        ('pending', 'Pending'),
-        ('active', 'Active'),
-        ('declined', 'Declined'),
-        ('unlinked', 'Unlinked'),
-        ('suspended', 'Suspended'),
+class OrganisationContact(SanitiseMixin):
+    ORG_CONTACT_STATUS_DRAFT = 'draft'
+    ORG_CONTACT_STATUS_PENDING = 'pending'
+    ORG_CONTACT_STATUS_ACTIVE = 'active'
+    ORG_CONTACT_STATUS_DECLINED = 'declined'
+    ORG_CONTACT_STATUS_UNLINKED = 'unlinked'
+    ORG_CONTACT_STATUS_SUSPENDED = 'suspended'
+    USER_STATUS_CHOICES = (
+        (ORG_CONTACT_STATUS_DRAFT, 'Draft'),
+        (ORG_CONTACT_STATUS_PENDING, 'Pending'),
+        (ORG_CONTACT_STATUS_ACTIVE, 'Active'),
+        (ORG_CONTACT_STATUS_DECLINED, 'Declined'),
+        (ORG_CONTACT_STATUS_UNLINKED, 'Unlinked'),
+        (ORG_CONTACT_STATUS_SUSPENDED, 'Suspended'),
         ('contact_form','ContactForm'), # status 'contact_form' if org contact was added via 'Contact Details' section in manage.vue (allows Org Contact to be distinguished from Org Delegate)
     )
-    USER_ROLE_CHOICES = (('organisation_admin', 'Organisation Admin'),
-        ('organisation_user', 'Organisation User'),
-        ('consultant','Consultant')
+    ORG_CONTACT_ROLE_ADMIN = 'organisation_admin'
+    ORG_CONTACT_ROLE_USER = 'organisation_user'
+    ORG_CONTACT_ROLE_CONSULTANT = 'consultant'
+    USER_ROLE_CHOICES = (
+        (ORG_CONTACT_ROLE_ADMIN, 'Organisation Admin'),
+        (ORG_CONTACT_ROLE_USER, 'Organisation User'),
+        (ORG_CONTACT_ROLE_CONSULTANT, 'Consultant')
     )
     user_status = models.CharField('Status', max_length=40, choices=USER_STATUS_CHOICES,default=USER_STATUS_CHOICES[0][0])
     user_role = models.CharField('Role', max_length=40, choices=USER_ROLE_CHOICES,default='organisation_user')
@@ -554,10 +561,9 @@ class OrganisationContact(models.Model):
         return self.user_status == 'active' and self.user_role =='consultant'
 
 
-class OrganisationContactDeclinedDetails(models.Model):
+class OrganisationContactDeclinedDetails(SanitiseMixin):
     request = models.ForeignKey(OrganisationContact, on_delete=models.CASCADE)
     officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
-    # reason = models.TextField(blank=True)
 
     class Meta:
         app_label = 'commercialoperator'
@@ -612,7 +618,7 @@ def update_organisation_comms_log_filename(instance, filename):
 
 class OrganisationLogDocument(LedgerDocument):
     log_entry = models.ForeignKey('OrganisationLogEntry',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_organisation_comms_log_filename, storage=private_storage)
+    _file = models.FileField(max_length=255, upload_to=update_organisation_comms_log_filename, storage=private_storage)
 
     class Meta:
         app_label = 'disturbance'
@@ -631,16 +637,17 @@ class OrganisationLogEntry(CommunicationsLogEntry):
     class Meta:
         app_label = 'disturbance'
 
-
-class OrganisationRequest(models.Model):
+class OrganisationRequest(SanitiseFileMixin):
     STATUS_CHOICES = (
         ('with_assessor','With Assessor'),
         ('approved','Approved'),
         ('declined','Declined')
     )
+    ORG_REQUEST_ROLE_EMPLOYEE = 'employee'
+    ORG_REQUEST_ROLE_CONSULTANT = 'consultant'
     ROLE_CHOICES = (
-        ('employee','Employee'),
-        ('consultant','Consultant')
+        (ORG_REQUEST_ROLE_EMPLOYEE, 'Employee'),
+        (ORG_REQUEST_ROLE_CONSULTANT, 'Consultant')
     )
     TEMPLATE_GROUP_CHOICES = (
         ('apiary','Apiary'),
@@ -650,7 +657,7 @@ class OrganisationRequest(models.Model):
     abn = models.CharField(max_length=50, null=True, blank=True, verbose_name='ABN')
     requester = models.ForeignKey(EmailUser, on_delete=models.CASCADE)
     assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='org_request_assignee', on_delete=models.CASCADE)
-    identification = models.FileField(upload_to='organisation/requests/%Y/%m/%d', null=True, blank=True, storage=private_storage)
+    identification = models.FileField(max_length=255, upload_to='organisation/requests/', null=True, blank=True, storage=private_storage)
     status = models.CharField(max_length=100,choices=STATUS_CHOICES, default="with_assessor")
     lodgement_date = models.DateTimeField(auto_now_add=True)
     role = models.CharField(max_length=100,choices=ROLE_CHOICES, default="employee")
@@ -661,6 +668,8 @@ class OrganisationRequest(models.Model):
 
     def accept(self, request):
         with transaction.atomic():
+            #create_organisation
+            create_organisation(self.name, self.abn)
             self.status = 'approved'
             self.save()
             self.log_user_action(OrganisationRequestUserAction.ACTION_CONCLUDE_REQUEST.format(self.id),request)
@@ -668,30 +677,28 @@ class OrganisationRequest(models.Model):
             self.__accept(request)
 
     def __accept(self, request):
-        #TODO fix for segregation
-        return
-        if is_internal(request):
-            from apiary.components.applications.models import ActivityPermissionGroup
+        from disturbance.helpers import is_apiary_org_request_assessor
 
-            # Check if orgsanisation exists in ledger
+        if is_apiary_org_request_assessor(request):
+            # Check if organisation exists in ledger
             ledger_org = None
 
             organisation_response = get_search_organisation(self.name, self.abn)
             response_status = organisation_response.get("status", None)
 
             if response_status == status.HTTP_404_NOT_FOUND:
-                raise NotImplementedError(
+                raise serializers.ValidationError(
                     "Organisation does not exist in the ledger."
                 )
 
             if response_status != status.HTTP_200_OK:
-                raise ValidationError(
+                raise serializers.ValidationError(
                     "Failed to retrieve organisation details from the ledger."
                 )
 
             ledger_org = organisation_response.get("data", {})[0]
 
-            # Create Organisation in wildlifecompliance
+            # Create Organisation in apiary
             org, created = Organisation.objects.get_or_create(
                 organisation_id=ledger_org["organisation_id"])
             # org.generate_pins()
@@ -714,39 +721,31 @@ class OrganisationRequest(models.Model):
                 role = OrganisationContact.ORG_CONTACT_ROLE_CONSULTANT
             else:
                 role = OrganisationContact.ORG_CONTACT_ROLE_ADMIN
-            # Create contact person
 
-            OrganisationContact.objects.get_or_create(
+            # Create contact person
+            org_contact, _ = OrganisationContact.objects.get_or_create(
                 organisation=org,
-                first_name=get_first_name(self.requester),
-                last_name=get_last_name(self.requester),
-                mobile_number=self.requester.mobile_number,
-                phone_number=self.requester.phone_number,
-                fax_number=self.requester.fax_number,
                 email=self.requester.email,
-                user_role=role,
-                user_status=OrganisationContact.ORG_CONTACT_STATUS_ACTIVE,
-                is_admin=True
             )
+
+            org_contact.first_name = get_first_name(self.requester)
+            org_contact.last_name = get_last_name(self.requester)
+            org_contact.mobile_number = self.requester.mobile_number
+            org_contact.phone_number = self.requester.phone_number
+            org_contact.fax_number = self.requester.fax_number
+            org_contact.user_role = role
+            org_contact.user_status = OrganisationContact.ORG_CONTACT_STATUS_ACTIVE
+            org_contact.is_admin = True
+            org_contact.save()
 
             # send email to requester
             send_organisation_request_accept_email_notification(self, org, request)
             # Notify other Organisation Access Group members of acceptance.
-            groups = ActivityPermissionGroup.objects.filter(
-                permissions__codename='organisation_access_request'
-            )
-            for group in groups:
-                recipients = [member.email for member in group.members.exclude(
-                            email=request.user.email)]
-                if recipients:
-                    send_organisation_request_accept_admin_email_notification(
-                        self, request, recipients)
-
-    def send_org_access_group_request_notification(self,request):
-        # user submits a new organisation request
-        # send email to organisation access group
-        org_access_recipients = [i.email for i in OrganisationAccessGroup.objects.last().all_members]
-        send_org_access_group_request_accept_email_notification(self, request, org_access_recipients)
+            recipients = list(ApiaryOrganisationAccessGroup.objects.last().resolved_members.values_list('email', flat=True))
+            if recipients:
+                send_org_access_group_request_accept_email_notification(self, request, recipients)
+        else:
+            raise serializers.ValidationError("User not authorised to approve organisation request")
 
     def assign_to(self, user,request):
         with transaction.atomic():
@@ -831,7 +830,7 @@ class ApiaryOrganisationAccessGroup(models.Model):
         ).values_list('emailuser_id', flat=True)
 
         # 2. Use the IDs to fetch EmailUser objects from the 'ledger_db'.
-        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+        return EmailUser.objects.using('ledger_db').filter(Q(pk__in=list(member_ids))|Q(is_superuser=True))
 
     @property
     def all_members(self):
@@ -864,6 +863,7 @@ class OrganisationAccessGroupMember(models.Model):
         db_table = "disturbance_organisationaccessgroup_members"
         unique_together=('organisationaccessgroup','emailuser')
 
+#TODO on-cleanup determine if this is needed or can just be replaced with the Apiary Organisation Access Group
 class OrganisationAccessGroup(models.Model):
     site = models.OneToOneField(Site, default='1', on_delete=models.CASCADE) 
     members = models.ManyToManyField(EmailUser, through=OrganisationAccessGroupMember,)
@@ -879,7 +879,7 @@ class OrganisationAccessGroup(models.Model):
         ).values_list('emailuser_id', flat=True)
 
         # 2. Use the IDs to fetch EmailUser objects from the 'ledger_db'.
-        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+        return EmailUser.objects.using('ledger_db').filter(Q(pk__in=list(member_ids))|Q(is_superuser=True))
 
     def __str__(self):
         return 'Organisation Access Group'
@@ -919,7 +919,7 @@ class OrganisationRequestUserAction(UserAction):
         app_label = 'disturbance'
 
 
-class OrganisationRequestDeclinedDetails(models.Model):
+class OrganisationRequestDeclinedDetails(SanitiseMixin):
     request = models.ForeignKey(OrganisationRequest, on_delete=models.CASCADE)
     officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
     reason = models.TextField(blank=True)
@@ -933,7 +933,7 @@ def update_organisation_request_comms_log_filename(instance, filename):
 
 class OrganisationRequestLogDocument(LedgerDocument):
     log_entry = models.ForeignKey('OrganisationRequestLogEntry',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_organisation_request_comms_log_filename, storage=private_storage)
+    _file = models.FileField(max_length=255, upload_to=update_organisation_request_comms_log_filename, storage=private_storage)
 
     class Meta:
         app_label = 'disturbance'

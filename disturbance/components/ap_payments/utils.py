@@ -133,42 +133,23 @@ def delete_session_site_transfer_application_invoice(session):
 
 
 def create_fee_lines_site_transfer(proposal):
-    #import ipdb;ipdb.set_trace()
-    now = datetime.now().strftime('%Y-%m-%d %H:%M')
-    today_local = datetime.now(pytz.timezone(settings.TIME_ZONE)).date()
-    #MIN_NUMBER_OF_SITES_TO_APPLY = 5
-    line_items = []
 
-    # applicant = EmailUser.objects.get(email='katsufumi.shibata@dbca.wa.gov.au')  # TODO: Get proper applicant
+    now = datetime.now().strftime('%Y-%m-%d %H:%M')
+    line_items = []
 
     # Calculate total number of sites applied per category
     summary = {}
     for site_transfer_site in proposal.proposal_apiary.site_transfer_apiary_sites.all():
         if site_transfer_site.customer_selected:
-            # if site_transfer_site.apiary_site.site_category.id in summary:
             if site_transfer_site.apiary_site_on_approval.site_category.id in summary:
                 summary[site_transfer_site.apiary_site_on_approval.site_category.id] += 1
             else:
                 summary[site_transfer_site.apiary_site_on_approval.site_category.id] = 1
 
-    # Once payment success, data is updated based on this variable
-    # This variable is stored in the session
-    #db_process_after_success = {'site_remainder_used': [], 'site_remainder_to_be_added': []}
-
     # Calculate number of sites to calculate the fee
     for site_category_id, number_of_sites_applied in summary.items():
-
         site_category = SiteCategory.objects.get(id=site_category_id)
-
-        #number_of_sites_calculate = quotient * MIN_NUMBER_OF_SITES_TO_APPLY + MIN_NUMBER_OF_SITES_TO_APPLY if remainder else quotient * MIN_NUMBER_OF_SITES_TO_APPLY
         application_price = site_category.retrieve_current_fee_per_site_by_type(ApiarySiteFeeType.FEE_TYPE_TRANSFER)
-
-        ## Avoid ledger error
-        ## ledger doesn't accept quantity=0). Alternatively, set quantity=1 and price=0
-        #if number_of_sites_calculate == 0:
-        #    number_of_sites_calculate = 1
-        #    application_price = 0
-
         line_item = {
             'ledger_description': 'Application Fee - {} - {} - {}'.format(now, proposal.lodgement_number, site_category.display_name),
             'oracle_code': proposal.application_type.oracle_code_application,
@@ -246,11 +227,69 @@ def _get_remainders_obj(number_of_sites_to_add_as_remainder, site_category_id, p
             'apiary_site_fee_type_name': apiary_site_fee_type_name,
             'applicant_id': proposal.applicant.id if proposal.applicant else None,
             'proxy_applicant_id': proposal.proxy_applicant.id if proposal.proxy_applicant else None,
-            # 'date_expiry': (today_local + timedelta(days=7)).strftime('%Y-%m-%d')
         }
         remainders_arr.append(site_to_be_added)
 
     return remainders_arr
+
+
+def get_db_operations(proposal):
+    today_local = datetime.now(pytz.timezone(settings.TIME_ZONE)).date()
+    MIN_NUMBER_OF_SITES_TO_RENEW = 5
+    MIN_NUMBER_OF_SITES_TO_NEW = 5
+
+    # Once payment success, data is updated based on this variable
+    # This variable is stored in the session
+    db_process_after_success = {
+        'site_remainder_used': [],
+        'site_remainder_to_be_added': [],
+    }
+
+    # Calculate total number of sites applied per category
+    db_process_after_success['apiary_site_ids'], db_process_after_success['vacant_apiary_site_ids'], temp = _sum_apiary_sites_per_category(proposal.proposal_apiary)
+    db_process_after_success['proposal_apiary_id'] = proposal.proposal_apiary.id
+
+    # Calculate number of sites to calculate the fee
+    for site_category_name, data_in_category in temp.items():
+        site_category = SiteCategory.objects.get(name=site_category_name)
+
+        for new_or_renewal, relations in data_in_category.items():
+            min_num_of_sites_to_pay = None
+            if not len(relations) > 0:
+                # No apiary sites for this 'site_cateogyr' and 'new_or_renewal'
+                continue
+
+            site_fee_remainders = _get_site_fee_remainders(site_category, new_or_renewal, proposal.applicant, proposal.proxy_applicant)
+
+            # Calculate deduction and set date_used field
+            number_of_sites_after_deduction = len([relation for relation in relations if not relation.application_fee_paid])
+            for site_left in site_fee_remainders:
+                if number_of_sites_after_deduction == 0:
+                    break
+                number_of_sites_after_deduction -= 1
+                site_remainder_used = {
+                    'id': site_left.id,
+                    'date_used': today_local.strftime('%Y-%m-%d')
+                }
+                db_process_after_success['site_remainder_used'].append(site_remainder_used)
+
+            if new_or_renewal == ApiarySiteFeeType.FEE_TYPE_APPLICATION:
+                min_num_of_sites_to_pay = MIN_NUMBER_OF_SITES_TO_NEW
+            elif new_or_renewal == ApiarySiteFeeType.FEE_TYPE_RENEWAL:
+                min_num_of_sites_to_pay = MIN_NUMBER_OF_SITES_TO_RENEW
+            else:
+                min_num_of_sites_to_pay = 5
+
+            if min_num_of_sites_to_pay:
+                quotient, remainder = divmod(number_of_sites_after_deduction, min_num_of_sites_to_pay)
+                number_of_sites_calculate = quotient * min_num_of_sites_to_pay + min_num_of_sites_to_pay if remainder else quotient * min_num_of_sites_to_pay
+                number_of_sites_to_add_as_remainder = number_of_sites_calculate - number_of_sites_after_deduction
+
+                # Add remainders
+                site_remainder_to_be_added = _get_remainders_obj(number_of_sites_to_add_as_remainder, site_category.id, proposal, new_or_renewal)
+                db_process_after_success['site_remainder_to_be_added'].extend(site_remainder_to_be_added)
+
+    return db_process_after_success
 
 
 def create_fee_lines_apiary(proposal):
@@ -268,13 +307,10 @@ def create_fee_lines_apiary(proposal):
     }
 
     # Calculate total number of sites applied per category
-    # summary, db_process_after_success['apiary_sites'], temp = _sum_apiary_sites_per_category(proposal.proposal_apiary.apiary_sites.all(), proposal.proposal_apiary.vacant_apiary_sites.all())
     db_process_after_success['apiary_site_ids'], db_process_after_success['vacant_apiary_site_ids'], temp = _sum_apiary_sites_per_category(proposal.proposal_apiary)
-    # db_process_after_success['vacant_apiary_site_ids'] = [site.id for site in proposal.proposal_apiary.vacant_apiary_sites.all()]
     db_process_after_success['proposal_apiary_id'] = proposal.proposal_apiary.id
 
     # Calculate number of sites to calculate the fee
-    # for site_category_id, number_of_sites_applied in summary.items():
     for site_category_name, data_in_category in temp.items():
         site_category = SiteCategory.objects.get(name=site_category_name)
 
@@ -286,7 +322,6 @@ def create_fee_lines_apiary(proposal):
             site_fee_remainders = _get_site_fee_remainders(site_category, new_or_renewal, proposal.applicant, proposal.proxy_applicant)
 
             # Calculate deduction and set date_used field
-            # number_of_sites_after_deduction = len(apiary_sites)
             number_of_sites_after_deduction = len([relation for relation in relations if not relation.application_fee_paid])
             for site_left in site_fee_remainders:
                 if number_of_sites_after_deduction == 0:
@@ -343,7 +378,6 @@ def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
 
     if proposal.application_type.name == ApplicationType.APIARY:
         line_items, db_processes_after_success = create_fee_lines_apiary(proposal)  # This function returns line items and db_processes as a tuple
-        # line_items, db_processes_after_success = create_fee_lines_apiary(proposal)  # This function returns line items and db_processes as a tuple
     elif proposal.application_type.name == ApplicationType.SITE_TRANSFER:
         line_items, db_processes_after_success = create_fee_lines_site_transfer(proposal)  # This function returns line items and db_processes as a tuple
     else:
@@ -376,7 +410,7 @@ def checkout(
         vouchers=[], 
         proxy=False
     ):
-
+    print("checkout")
     basket_params = {
         'products': lines,
         'vouchers': vouchers,
@@ -401,7 +435,7 @@ def checkout(
         'basket_owner': email_user_id,
         'session_type': 'ledger_api',
     }
-
+    print(checkout_params['return_preload_url'])
     create_checkout_session(request, checkout_params)
 
     response = HttpResponse(
@@ -467,7 +501,6 @@ def calculate_total_annual_rental_fee(approval, period, sites_charged):
 
 
 def round_amount_according_to_env(amount):
-    #TODO replace with dedicated rounding env var instead of based on debug
     if not DEBUG and PRODUCTION_EMAIL:
         amount = round(amount, 2)  # Round to 2 decimal places
     else:
@@ -551,7 +584,7 @@ def generate_line_items_for_annual_rental_fee(approval, today_now, period, apiar
 
 
 def checkout_existing_invoice(request, invoice, return_url_ns='public_booking_success'):
-
+    print("checkout_existing_invoice")
     basket, basket_hash = use_existing_basket_from_invoice(invoice.reference)
     checkout_params = {
         'system': settings.PAYMENT_SYSTEM_ID,
@@ -561,7 +594,7 @@ def checkout_existing_invoice(request, invoice, return_url_ns='public_booking_su
         'force_redirect': True,
         'invoice_text': invoice.text,
     }
-
+    
     if request.user.is_anonymous():
         # We need to determine the basket owner and set it to the checkout_params to proceed the payment
         annual_rental_fee = AnnualRentalFee.objects.filter(invoice_reference=invoice.reference)

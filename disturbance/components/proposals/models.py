@@ -8,6 +8,7 @@ import datetime
 import pytz
 import re
 
+from django.forms.models import model_to_dict
 from django.contrib.gis.db.models.fields import PointField
 from django.db.models import Manager as GeoManager
 from django.contrib.gis.geos import GEOSGeometry
@@ -34,13 +35,12 @@ from taggit.models import TaggedItemBase
 from ledger_api_client.settings_base import TIME_ZONE
 
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from ledger_api_client.ledger_models import Invoice
 from disturbance import exceptions
 from disturbance.components.organisations.models import Organisation
 from disturbance.components.main.models import (
     CommunicationsLogEntry, UserAction, 
     Document, Region, District, 
-    ApplicationType, RevisionedMixin
+    ApplicationType, RevisionedMixin, SanitiseMixin
 )
 from disturbance.components.main.utils import get_department_user
 from disturbance.components.proposals.email import (
@@ -66,12 +66,9 @@ from disturbance.settings import SITE_STATUS_DRAFT, SITE_STATUS_PENDING, SITE_ST
     SITE_STATUS_CURRENT, RESTRICTED_RADIUS, SITE_STATUS_TRANSFERRED, PAYMENT_SYSTEM_ID, PAYMENT_SYSTEM_PREFIX, \
     SITE_STATUS_SUSPENDED, SITE_STATUS_NOT_TO_BE_REISSUED
 
-from django.conf import settings
-from django.core.files.storage import FileSystemStorage
-private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
+from disturbance.components.main.models import private_storage
 
 logger = logging.getLogger(__name__)
-
 
 def update_proposal_doc_filename(instance, filename):
     return 'proposals/{}/documents/{}'.format(instance.proposal.id,filename)
@@ -159,6 +156,7 @@ class ProposalAssessorGroupMember(models.Model):
         db_table = "disturbance_proposalassessorgroup_members"
         unique_together=('proposalassessorgroup','emailuser')
 
+#TODO on-cleanup determine if this is needed or can just be replaced with the Apiary Assessor Group (some applications may still come under this one)
 class ProposalAssessorGroup(models.Model):
     name = models.CharField(max_length=255)
     members = models.ManyToManyField(EmailUser, through=ProposalAssessorGroupMember,)
@@ -180,7 +178,7 @@ class ProposalAssessorGroup(models.Model):
             proposalassessorgroup=self
         ).values_list('emailuser_id', flat=True)
 
-        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+        return EmailUser.objects.using('ledger_db').filter(Q(pk__in=list(member_ids))|Q(is_superuser=True))
 
     def clean(self):
         try:
@@ -241,6 +239,7 @@ class ProposalApproverGroupMember(models.Model):
         db_table = "disturbance_proposalapprovergroup_members"
         unique_together=('proposalapprovergroup','emailuser')
 
+#TODO on-cleanup determine if this is needed or can just be replaced with the Apiary Approver Group (some applications may still come under this one)
 class ProposalApproverGroup(models.Model):
     name = models.CharField(max_length=255)
     members = models.ManyToManyField(EmailUser, through=ProposalApproverGroupMember,)
@@ -262,7 +261,7 @@ class ProposalApproverGroup(models.Model):
             proposalapprovergroup=self
         ).values_list('emailuser_id', flat=True)
 
-        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+        return EmailUser.objects.using('ledger_db').filter(Q(pk__in=list(member_ids))|Q(is_superuser=True))
 
     def clean(self):
         try:
@@ -464,7 +463,6 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     fee_invoice_references = ArrayField(models.CharField(max_length=50, null=True, blank=True, default=''), null=True, default=fee_invoice_references_default)
     migrated = models.BooleanField(default=False)
     reissued = models.BooleanField(default=False)
-    #prefill_requested = models.BooleanField(default=False)
 
 
     class Meta:
@@ -570,9 +568,13 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         if self.applicant:
             return self.applicant.address
         elif self.proxy_applicant:
-            return self.proxy_applicant.residential_address
+            data = model_to_dict(self.proxy_applicant.residential_address, fields=["line1", "locality", "state", "postcode"])
+            data["country"] = self.proxy_applicant.residential_address.country.code
+            return data
         else:
-            return self.submitter.residential_address
+            data = model_to_dict(self.submitter.residential_address, fields=["line1", "locality", "state", "postcode"])
+            data["country"] = self.submitter.residential_address.country.code
+            return data
 
     @property
     def relevant_applicant_id(self):
@@ -726,24 +728,27 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         """
         Gets a full Proposal version to show when the View button is clicked.
         """
-
-        versions = self.get_reversion_history()
-
-        return versions[version_number].field_dict
+        try:
+            versions = self.get_reversion_history()
+            return versions[int(version_number)].field_dict
+        except:
+            return {}
 
     def get_revision_flat(self, version_number):
         """
         Gets all the differences in Proposal version to show when the Compare link is clicked.
         """
+        try:
+            all_revisions_list = list(self.get_reversion_history().values())
+            version = all_revisions_list[int(version_number)].field_dict["data"][0]
+            dic = self.flatten_json(version)
 
-        all_revisions_list = list(self.get_reversion_history().values())
-        version = all_revisions_list[version_number].field_dict["data"][0]
-        dic = self.flatten_json(version)
-
-        out = {}
-        for k, v in dic.items():
-            out[k.split('_0_')[1]] = v
-        return out
+            out = {}
+            for k, v in dic.items():
+                out[k.split('_0_')[1]] = v
+            return out
+        except:
+            return {}
 
     def flatten_json(self, dictionary):
         """ 
@@ -1124,13 +1129,11 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
         return differences_list
         
-    #TODO remove/replace - not needed
     def __assessor_group(self):
         group = ApiaryAssessorGroup.objects.first()
         if group:
             return group
 
-    #TODO remove/replace - not needed
     def __approver_group(self):
         group = ApiaryApproverGroup.objects.first()
         if group:
@@ -1208,7 +1211,6 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         else:
             return False
 
-    #TODO remove if not needed for apiary
     def assessor_comments_view(self,user):
 
         if self.processing_status == 'with_assessor' or self.processing_status == 'with_referral' or self.processing_status == 'with_assessor_requirements' or self.processing_status == 'with_approver' or self.processing_status == 'approved':
@@ -1241,15 +1243,16 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         else:
             if self.assigned_officer:
                 if self.assigned_officer == user:
-                    return self.__assessor_group() in user.apiaryassessorgroup_set.all()
+                    return self.__assessor_group() in user.apiaryassessorgroup_set.all() or user.is_superuser
                 else:
                     return False
             else:
-                return self.__assessor_group() in user.apiaryassessorgroup_set.all()
+                return self.__assessor_group() in user.apiaryassessorgroup_set.all() or user.is_superuser
 
     def log_user_action(self, action, request):
         return ProposalUserAction.log_action(self, action, request.user)
 
+    #TODO on-cleanup review and remove if not used
     def submit(self,request,viewset):
         from disturbance.components.proposals.utils import save_proponent_data
         with transaction.atomic():
@@ -1301,6 +1304,15 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 self.save()
             else:
                 raise ValidationError('You can\'t edit this proposal at this moment')
+
+    def discard(self,request):
+        with transaction.atomic():
+            if self.can_user_edit:
+                self.processing_status = Proposal.PROCESSING_STATUS_DISCARDED
+                self.save()
+                self.log_user_action(ProposalUserAction.ACTION_DISCARD_PROPOSAL.format(self.lodgement_number), request)
+            else:
+                raise ValidationError('You can\'t discard this proposal at this moment')
 
     def send_referral(self,request,referral_email,referral_text):
         with transaction.atomic():
@@ -1756,7 +1768,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 if self.applicant:
                     self.applicant.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.lodgement_number), request)
 
-                # TODO: Email?
+                #TODO on cleanup: review (old comment) Email?
 
                 self.save()
 
@@ -1772,11 +1784,6 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     # For temporary Use Application, assessor approves it
                     raise ValidationError('You cannot approve the proposal if it is not with an assessor')
 
-                # TODO: Is it required to show a modal and get the reason of the delinature or so?  If so, we need following 4 lines
-                # proposal_decline, success = ProposalDeclinedDetails.objects.update_or_create(
-                #     proposal = self,
-                #     defaults={'officer':request.user,'reason':details.get('reason'),'cc_email':details.get('cc_email',None)}
-                # )
                 self.proposed_decline_status = True
                 self.processing_status = 'declined'
                 self.customer_status = 'declined'
@@ -1787,7 +1794,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 if self.applicant:
                     self.applicant.log_user_action(ProposalUserAction.ACTION_DECLINE.format(self.lodgement_number), request)
 
-                # TODO: Email?
+                #TODO on cleanup: review (old comment) Email?
                 # send_proposal_decline_email_notification(self,request, proposal_decline)
 
             except:
@@ -1979,55 +1986,197 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             except:
                 raise
 
-    def renew_approval(self,request):
-        with transaction.atomic():
-            previous_proposal = self
-            try:
-                proposal=Proposal.objects.get(previous_application = previous_proposal)
-                if proposal.customer_status=='with_assessor':
-                    if not proposal.apiary_group_application_type:
-                        raise ValidationError('A renewal or amendment proposal for this approval has already been lodged and is awaiting review.')
-                    else:
-                        raise ValidationError('A renewal or amendment application for this licence has already been lodged and is awaiting review.')
-            except Proposal.DoesNotExist:
-                if previous_proposal.apiary_group_application_type:
-                    proposal = clone_apiary_proposal_with_status_reset(previous_proposal)
-                else:
-                    previous_proposal = Proposal.objects.get(id=self.id)
-                    proposal = clone_proposal_with_status_reset(previous_proposal)
+    def get_latest_related_amend_renew_proposal(self, request):
+        from disturbance.components.approvals.models import Approval
 
-                proposal.proposal_type = 'renewal'
-                proposal.submitter = request.user
-                proposal.previous_application = self
-                if not previous_proposal.apiary_group_application_type:
-                    # for Apiary, we copy requirements in the clone method above
-                    req=self.requirements.all().exclude(is_deleted=True)
-                    from copy import deepcopy
+        if self.application_type.name == ApplicationType.SITE_TRANSFER:
+            #determine whether or not the approval was the recipient or originating approval
+            approval = self.proposal_apiary.originating_approval
+
+            try:
+                approval_id = int(request.GET.get('approval_id',None))
+            except:
+                raise ValidationError("Invalid approval id provided for approval amendment/renewal.")
+            
+            if not approval:
+                raise ValidationError("Invalid proposal id provided for approval amendment/renewal.")
+            
+            if approval.id != approval_id:
+                #if the originating id does not match the provided approval id - it must be the recipient
+                try:
+                    approval = Approval.objects.get(id=approval_id)
+                except:
+                    raise ValidationError("Invalid approval id provided for approval amendment/renewal.")
+
+            return Proposal.objects.filter(approval=approval).exclude(application_type__name=ApplicationType.SITE_TRANSFER).exclude(processing_status=Proposal.PROCESSING_STATUS_DISCARDED).order_by("id").last()
+
+    def create_renewal_from_site_transferee(self, request):
+        #Create a new proposal to renew an approval without an existing previous proposal 
+        with transaction.atomic():
+            try:
+                proposal = None
+                if self.application_type.name == ApplicationType.SITE_TRANSFER:
+                    from disturbance.components.approvals.models import Approval
+                    
+                    approval_id = request.GET.get('approval_id',None)
+                    try:
+                        approval = Approval.objects.get(id=approval_id)
+                    except:
+                        raise ValidationError("Invalid approval id provided for approval amendment/renewal.")
+                    
+                    if self.proposal_apiary and self.proposal_apiary.target_approval == approval:
+                        applicant = self.proposal_apiary.target_approval_organisation
+                    else:
+                        raise ValidationError("Unable to identify applicant for Approval renewal")
+
+                    proxy_applicant = None
+                    if not applicant:
+                        proxy_applicant = self.proposal_apiary.transferee
+
+                    #if somehow we still have no applicant, use the approval applicant/proxy applicant (in case it had not been carried over)
+                    if not applicant and not proxy_applicant:
+                        proxy_applicant = approval.proxy_applicant
+                        applicant = approval.applicant 
+                        #last resort, use submitter
+                        if not applicant and not proxy_applicant:
+                            proxy_applicant = request.user
+
+                    application_type = ApplicationType.objects.get(name=ApplicationType.APIARY)
+                    qs_proposal_type = ProposalType.objects.all().order_by('name', '-version').distinct('name')
+                    proposal_type = qs_proposal_type.get(name=application_type.name)
+
+                    proposal = Proposal.objects.create(
+                        applicant=applicant,
+                        proxy_applicant=proxy_applicant,
+                        proposal_type=Proposal.APPLICATION_TYPE_CHOICES[2][0],
+                        application_type=application_type,
+                        schema=proposal_type.schema,
+                        submitter=request.user,
+                        approval=approval,
+                    )
+
+                    # create proposal_apiary and associate it with the proposal
+                    proposal_apiary = ProposalApiary.objects.create(proposal=proposal)
+                    proposal_apiary.save()
+
+                    proposal.customer_status = 'draft'
+                    proposal.processing_status = 'draft'
+                    proposal.assessor_data = None
+                    proposal.comment_data = None
+                    proposal.lodgement_number = ''
+                    proposal.lodgement_sequence = 0
+                    proposal.lodgement_date = None
+
+                    proposal.assigned_officer = None
+                    proposal.assigned_approver = None
+
+                    proposal.approval_level_document = None
+                    proposal.fee_invoice_references = []
+                    proposal.activity = 'Apiary Renewal'
+
+                    proposal.save(no_revision=True)
+
+                    req = approval.proposalrequirement_set.exclude(is_deleted=True)
                     if req:
                         for r in req:
-                            old_r = deepcopy(r)
+                            old_r = copy.deepcopy(r)
                             r.proposal = proposal
-                            r.copied_from=None
+                            r.apiary_approval = None
+                            r.copied_from=old_r
                             r.copied_for_renewal=True
                             if r.due_date:
                                 r.due_date=None
                                 r.require_due_date=True
                             r.id = None
                             r.save()
-                # Create a log entry for the proposal
-                self.log_user_action(ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.lodgement_number), request)
-                # Create a log entry for the organisation
-                if self.applicant:
-                    self.applicant.log_user_action(ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.lodgement_number), request)
-                #Log entry for approval
-                from disturbance.components.approvals.models import ApprovalUserAction
-                self.approval.log_user_action(ApprovalUserAction.ACTION_RENEW_APPROVAL.format(self.approval.lodgement_number), request)
-                proposal.save(version_comment='New Amendment/Renewal Proposal created, from origin {}'.format(proposal.previous_application_id))
+
+                    # update apiary_sites with new proposal
+                    approval.add_apiary_sites_to_proposal_apiary_for_renewal(proposal_apiary)
+
+                    # Checklist questions
+                    for question in ApiaryChecklistQuestion.objects.filter(
+                            checklist_type='apiary',
+                            checklist_role='applicant'
+                            ):
+                        ApiaryChecklistAnswer.objects.create(proposal = proposal.proposal_apiary, question = question)
+                    
+                return proposal 
+            except Exception as e:
+                print(e)
+                raise
+
+    def renew_approval(self,request):
+        with transaction.atomic():
+            previous_proposal = self
+            if previous_proposal.application_type and previous_proposal.application_type.name == "Site Transfer":
+                #if this application is a site transfer, set the previous proposal to last apiary proposal on the approval
+                previous_proposal = previous_proposal.get_latest_related_amend_renew_proposal(request)
+                if previous_proposal and previous_proposal != self:
+                    proposal = previous_proposal.renew_approval(request)
+                    return proposal
+                
+            if previous_proposal:
+                #NOTE: this try except is explicitly designed to fail on first attempt as part of the renewal process - should be refactored to work more gracefully 
+                try:
+                    proposal=Proposal.objects.get(previous_application = previous_proposal)
+                    if proposal.customer_status=='with_assessor':
+                        if not proposal.apiary_group_application_type:
+                            raise ValidationError('A renewal or amendment proposal for this approval has already been lodged and is awaiting review.')
+                        else:
+                            raise ValidationError('A renewal or amendment application for this licence has already been lodged and is awaiting review.')
+                except Proposal.DoesNotExist:
+                    if previous_proposal.apiary_group_application_type:
+                        proposal = clone_apiary_proposal_with_status_reset(previous_proposal)
+                    else:
+                        previous_proposal = Proposal.objects.get(id=self.id)
+                        proposal = clone_proposal_with_status_reset(previous_proposal)
+
+                    proposal.proposal_type = 'renewal'
+                    proposal.submitter = request.user
+                    proposal.previous_application = self
+                    if not previous_proposal.apiary_group_application_type:
+                        # for Apiary, we copy requirements in the clone method above
+                        req=self.requirements.all().exclude(is_deleted=True)
+                        from copy import deepcopy
+                        if req:
+                            for r in req:
+                                old_r = deepcopy(r)
+                                r.proposal = proposal
+                                r.copied_from=None
+                                r.copied_for_renewal=True
+                                if r.due_date:
+                                    r.due_date=None
+                                    r.require_due_date=True
+                                r.id = None
+                                r.save()
+                    # Create a log entry for the proposal
+                    self.log_user_action(ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.lodgement_number), request)
+                    # Create a log entry for the organisation
+                    if self.applicant:
+                        self.applicant.log_user_action(ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.lodgement_number), request)
+                    #Log entry for approval
+                    from disturbance.components.approvals.models import ApprovalUserAction
+                    self.approval.log_user_action(ApprovalUserAction.ACTION_RENEW_APPROVAL.format(self.approval.lodgement_number), request)
+                    proposal.save(version_comment='New Amendment/Renewal Proposal created, from origin {}'.format(proposal.previous_application_id))
+            else:
+                #if we are here it means that no previous proposal exists, likely because the approval was created from a site transfer
+                if self.application_type.name == ApplicationType.SITE_TRANSFER:
+                    proposal = self.create_renewal_from_site_transferee(request)
             return proposal
 
     def amend_approval(self,request):
         with transaction.atomic():
             previous_proposal = self
+            if previous_proposal.application_type and previous_proposal.application_type.name == "Site Transfer":
+                #if this application is a site transfer, set the previous proposal to last apiary proposal on the approval
+                previous_proposal = previous_proposal.get_latest_related_amend_renew_proposal(request)
+                if previous_proposal and previous_proposal != self:
+                    proposal = previous_proposal.amend_approval(request)
+                    return proposal
+                else:
+                    raise ValidationError("Approval has no valid proposal to amend with.")
+                
+            #NOTE: this try except is explicitly designed to fail on first attempt as part of the renewal process - should be refactored to work more gracefully 
             try:
                 amend_conditions = {
                     'previous_application': previous_proposal,
@@ -2077,7 +2226,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
 class ProposalLogDocument(Document):
     log_entry = models.ForeignKey('ProposalLogEntry',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_proposal_comms_log_filename, storage=private_storage)
+    _file = models.FileField(max_length=255, upload_to=update_proposal_comms_log_filename, storage=private_storage)
 
     class Meta:
         app_label = 'disturbance'
@@ -2108,7 +2257,7 @@ class AmendmentRequestDocument(Document):
         if self.can_delete:
             return super(AmendmentRequestDocument, self).delete()
 
-class ProposalRequest(models.Model):
+class ProposalRequest(SanitiseMixin):
     proposal = models.ForeignKey(Proposal, on_delete=models.CASCADE)
     subject = models.CharField(max_length=200, blank=True)
     text = models.TextField(blank=True)
@@ -2126,7 +2275,7 @@ class ComplianceRequest(ProposalRequest):
         app_label = 'disturbance'
 
 
-class AmendmentReason(models.Model):
+class AmendmentReason(SanitiseMixin):
     reason = models.CharField('Reason', max_length=125)
 
     class Meta:
@@ -2205,7 +2354,7 @@ class Assessment(ProposalRequest):
     class Meta:
         app_label = 'disturbance'
 
-class ProposalDeclinedDetails(models.Model):
+class ProposalDeclinedDetails(SanitiseMixin):
     proposal = models.OneToOneField(Proposal, on_delete=models.CASCADE)
     officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
     reason = models.TextField(blank=True)
@@ -2277,7 +2426,7 @@ class ApiaryReferralGroup(models.Model):
             apiaryreferralgroup=self
         ).values_list('emailuser_id', flat=True)
 
-        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+        return EmailUser.objects.using('ledger_db').filter(Q(pk__in=list(member_ids))|Q(is_superuser=True))
 
     @property
     def all_members(self):
@@ -2318,7 +2467,7 @@ class ProposalRequirement(OrderedModel):
     # permanent location for apiary / site transfer approvals
     apiary_approval = models.ForeignKey('disturbance.Approval',null=True,blank=True, related_name='proposalrequirement_set', on_delete=models.CASCADE)
     # referral_group is no longer required for Apiary 
-    # #TODO remove (?)
+    #TODO on cleanup remove (?)
     referral_group = models.ForeignKey(ApiaryReferralGroup,null=True,blank=True,related_name='apiary_requirement_referral_groups', on_delete=models.CASCADE)
 
     class Meta:
@@ -2366,7 +2515,7 @@ class ProposalUserAction(UserAction):
     ACTION_ENTER_CONDITIONS = "Enter requirement"
     ACTION_CREATE_CONDITION_ = "Create requirement {}"
     ACTION_ISSUE_APPROVAL_ = "Issue Approval for proposal {}"
-    ACTION_ISSUE_APIARY_APPROVAL = "Application {} has been approved with start date {}, expirty date {} for the apiary sites {}"
+    ACTION_ISSUE_APIARY_APPROVAL = "Application {} has been approved with start date {}, expiry date {} for the apiary sites {}"
     ACTION_UPDATE_APPROVAL_ = "Update Approval for proposal {}"
     ACTION_UPDATE_APPROVAL_FOR_PROPOSAL = "Update Approval {} for proposal {}"
     ACTION_EXPIRED_APPROVAL_ = "Expire Approval for proposal {}"
@@ -2427,7 +2576,7 @@ class ProposalUserAction(UserAction):
     proposal = models.ForeignKey(Proposal, related_name='action_logs', on_delete=models.CASCADE)
 
 
-class Referral(models.Model):
+class Referral(SanitiseMixin):
     SENT_CHOICES = (
         (1,'Sent From Assessor'),
         (2,'Sent From Referral')
@@ -2607,7 +2756,6 @@ def delete_documents(sender, instance, *args, **kwargs):
     for document in instance.documents.all():
         document.delete()
 
-#TODO remove if not needed for apiary
 def clone_proposal_with_status_reset(proposal):
         with transaction.atomic():
             try:
@@ -2710,14 +2858,14 @@ def clone_apiary_proposal_with_status_reset(original_proposal):
         except:
             raise
 
-#TODO improve or remove if not needed for apiary
+#TODO on-cleanup - improve or remove if not needed for apiary
 def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance, is_internal= True):
     from disturbance.utils import search, search_approval, search_compliance
     from disturbance.components.approvals.models import Approval
     from disturbance.components.compliances.models import Compliance
     qs = []
     if is_internal:
-        proposal_list = Proposal.objects.filter(application_type__name='Disturbance').exclude(processing_status__in=[Proposal.PROCESSING_STATUS_DISCARDED, Proposal.PROCESSING_STATUS_DRAFT])
+        proposal_list = Proposal.objects.filter(application_type__name__in=['Apiary', 'Site Transfer', 'Temporary Use']).exclude(processing_status__in=[Proposal.PROCESSING_STATUS_DISCARDED, Proposal.PROCESSING_STATUS_DRAFT])
         approval_list = Approval.objects.all().order_by('lodgement_number', '-issue_date').distinct('lodgement_number')
         compliance_list = Compliance.objects.all()
 
@@ -2732,15 +2880,16 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
 
         filter_regex = ".*\".*\":\s\"(\\\\\"|[^\"])*"+search_words_regex+"(\\\\\"|[^\"])*\".*"
         if searchProposal:
-            proposal_list = proposal_list.filter(data__iregex=filter_regex)
+            proposal_list = proposal_list.filter(proposed_issuance_approval__iregex=filter_regex)
             for p in proposal_list:
                 name = ""
                 if p.applicant:
                     name = p.applicant.name
 
-                if p.data:
+                if p.proposed_issuance_approval:
                     try:
-                        results = search(p.data[0], searchWords)
+                        print(p.proposed_issuance_approval, searchWords)
+                        results = search(p.proposed_issuance_approval, searchWords)
                         final_results = {}
                         if results:
                             for r in results:
@@ -2774,7 +2923,7 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
                     raise
     return qs
 
-#TODO improve or remove if not needed for apiary
+
 def search_reference(reference_number):
     from disturbance.components.approvals.models import Approval
     from disturbance.components.compliances.models import Compliance
@@ -2804,45 +2953,8 @@ def search_reference(reference_number):
     else:
         raise ValidationError('Record with provided reference number does not exist')
 
-#TODO improve or remove if not needed for apiary
-def search_sections(application_type_name, section_label,question_id,option_label,is_internal= True, region=None,district=None,activity=None):
-    from disturbance.utils import search_section
-    qs = []
-    if is_internal:
-        if(not application_type_name or not section_label or not question_id or not option_label):
-            raise ValidationError('Some of the mandatory fields are missing')
-        proposal_list = Proposal.objects.filter(application_type__name=application_type_name).exclude(processing_status__in=[Proposal.PROCESSING_STATUS_DISCARDED, Proposal.PROCESSING_STATUS_DRAFT])
-        question=MasterlistQuestion.objects.get(id=question_id)
-        filter_conditions={}
-        if region:
-            filter_conditions['region']=region
-        if district:
-            filter_conditions['district']=district
-        if activity:
-            filter_conditions['activity']=activity
-        if filter_conditions:
-            proposal_list=proposal_list.filter(**filter_conditions)
-        if proposal_list:
-            for p in proposal_list:
-                if p.data:
-                    try:
-                        results = search_section(p.schema, section_label, question, p.data, option_label)
-                        if results:
-                            res = {
-                                'number': p.lodgement_number,
-                                'id': p.id,
-                                'type': 'Proposal',
-                                'applicant': p.applicant.name,
-                                'text': results[0],
-                                }
-                            qs.append(res)
-                    except:
-                        raise
 
-
-    return qs
-
-#TODO remove if not needed for apiary
+#TODO on cleanup - remove if not needed for apiary
 from ckeditor.fields import RichTextField
 class HelpPage(models.Model):
     HELP_TEXT_EXTERNAL = 1
@@ -2993,8 +3105,9 @@ class ProposalApiary(RevisionedMixin):
         for relation in self.get_relations():
             relation.apiary_site_status_when_submitted = relation.site_status
             relation.apiary_site_is_vacant_when_submitted = relation.apiary_site.is_vacant
-            relation.wkb_geometry_processed = relation.wkb_geometry_draft
-            relation.site_category_processed = relation.site_category_draft
+            if isinstance(relation,ApiarySiteOnProposal):
+                relation.wkb_geometry_processed = relation.wkb_geometry_draft
+                relation.site_category_processed = relation.site_category_draft
             relation.site_status = SITE_STATUS_PENDING
             relation.making_payment = False  # This should replace the above line
             relation.application_fee_paid = True
@@ -3074,7 +3187,6 @@ class ProposalApiary(RevisionedMixin):
                     apiary_referral_list = ApiaryReferral.objects.filter(referral_group=referral_group,referral__in=existing_referrals) if existing_referrals else None
                     if apiary_referral_list:
                         raise ValidationError('A referral has already been sent to this group')
-                    #TODO Create referral if it does not exist for referral_group
                     else:
                         # Create Referral
                         referral = Referral.objects.create(
@@ -3134,8 +3246,6 @@ class ProposalApiary(RevisionedMixin):
                                             apiary_site=site.apiary_site
                                             )
 
-                        #TODO Create a log entry for the proposal
-                        #self.log_user_action(ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(referral.id,self.id,'{}({})'.format(user.get_full_name(),user.email)),request)
                         self.proposal.log_user_action(
                                 ProposalUserAction.APIARY_ACTION_SEND_REFERRAL_TO.format(
                                     referral.id,
@@ -3144,17 +3254,6 @@ class ProposalApiary(RevisionedMixin):
                                     ),
                                 request
                                 )
-                        #TODO Create a log entry for the organisation
-                        #self.applicant.log_user_action(ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(referral.id,self.id,'{}({})'.format(user.get_full_name(),user.email)),request)
-                        applicant_field=getattr(self.proposal, self.proposal.applicant_field)
-                        # applicant_field.log_user_action(
-                        #         ProposalUserAction.APIARY_ACTION_SEND_REFERRAL_TO.format(
-                        #             referral.id,
-                        #             self.proposal.lodgement_number,
-                        #             '{}'.format(referral_group.name)),
-                        #         request
-                        #         )
-                        # send email
                         recipients = referral_group.members_list
                         send_apiary_referral_email_notification(referral, recipients, request)
                 else:
@@ -3195,7 +3294,6 @@ class ProposalApiary(RevisionedMixin):
 
     # ProposalApiary final approval
     def final_approval(self,request,details,preview=False):
-        #TODO fix for segregation (payment)
         from disturbance.components.approvals.models import Approval
         try:
             approval_created = None
@@ -3261,57 +3359,7 @@ class ProposalApiary(RevisionedMixin):
             checking_proposal.proposed_issuance_approval = self.proposal.proposed_issuance_approval
             checking_proposal.save()
 
-            if self.proposal.proposal_type == 'amendment':
-                # TODO - fix for apiary approval
-                pass
-            #    if self.proposal.previous_application:
-            #        previous_approval = self.proposal.previous_application.approval
-            #        approval,created = Approval.objects.update_or_create(
-            #            current_proposal = checking_proposal,
-            #            defaults = {
-            #                #'activity' : self.activity,
-            #                #'region' : self.region,
-            #                #'tenure' : self.tenure,
-            #                #'title' : self.title,
-            #                'issue_date' : timezone.now(),
-            #                'expiry_date' : details.get('expiry_date'),
-            #                'start_date' : details.get('start_date'),
-            #                'applicant' : self.proposal.applicant,
-            #                'proxy_applicant' : self.proposal.proxy_applicant,
-            #                'lodgement_number': previous_approval.lodgement_number,
-            #                'apiary_approval': self.proposal.apiary_group_application_type,
-            #                #'extracted_fields' = JSONField(blank=True, null=True)
-            #            }
-            #        )
-            #        if created:
-            #            previous_approval.replaced_by = approval
-            #            previous_approval.save()
-            #            # Get apiary sites from proposal
-            #            #if self.proposal.application_type == ApplicationType.APIARY:
-            #            #    for site in self.apiary_sites.all():
-            #            #        site.approval = approval
-            #            #elif self.proposal.application_type == ApplicationType.SITE_TRANSFER:
-            #            #    for site in self.apiary_site_transfer.apiary_sites.all():
-            #            #        site.approval = approval
-            #            for site in self.apiary_sites.all():
-            #                site.approval = approval
-
             if self.proposal.application_type.name == ApplicationType.SITE_TRANSFER:
-                # approval must already exist - we reissue with same start and expiry dates
-                # does thhis need to be reissued with self.reissue_approval() ?
-                #if originating_approval.reissued:
-                 #   originating_approval.expiry_date = details.get('expiry_date')
-                  #  originating_approval.start_date = details.get('start_date')
-                # always reset this flag
-                #originating_approval.reissued = False
-                #self.proposal.proposed_issuance_approval['start_date'] = originating_approval.start_date.strftime('%d/%m/%Y')
-                #self.proposal.proposed_issuance_approval['expiry_date'] = originating_approval.expiry_date.strftime('%d/%m/%Y')
-                #self.proposal.proposed_issuance_approval['details'] = ''
-                #self.proposal.proposed_issuance_approval['cc_email'] = ''
-                #originating_approval.save()
-                #target_approval.current_proposal = checking_proposal
-                #target_approval.reissued = False
-                #target_approval.save()
                 if preview:
                     # do this instead of generate compliances section below
                     self.link_apiary_approval_requirements(originating_approval)
@@ -3320,7 +3368,6 @@ class ProposalApiary(RevisionedMixin):
                 # Apiary approval
                 from disturbance.components.approvals.models import ApprovalUserAction
                 if not approval:
-                    # There are no existing approvals.  Create a new one.
                     approval, approval_created = Approval.objects.update_or_create(
                         current_proposal = checking_proposal,
                         defaults = {
@@ -3335,8 +3382,6 @@ class ProposalApiary(RevisionedMixin):
                     if approval_created:
                         ApprovalUserAction.log_action(approval, ApprovalUserAction.ACTION_CREATE_APPROVAL.format(approval.lodgement_number), request.user)
                     else:
-                        # approval already exist
-                        # But should not reach here
                         ApprovalUserAction.log_action(approval, ApprovalUserAction.ACTION_UPDATE_APPROVAL.format(approval.lodgement_number), request.user)
                 else:
                     approval.issue_date = timezone.now()
@@ -3354,7 +3399,6 @@ class ProposalApiary(RevisionedMixin):
                 if preview:
                     # do this instead of generate compliances section below
                     self.link_apiary_approval_requirements(approval)
-
 
             # Get apiary sites from proposal
             if self.proposal.application_type.name == ApplicationType.SITE_TRANSFER:
@@ -3422,72 +3466,65 @@ class ProposalApiary(RevisionedMixin):
                     self.save()
 
             else:
-                # could this be refactored into a separate method?
-                from disturbance.management.commands.send_annual_rental_fee_invoice import get_annual_rental_fee_period
-                from disturbance.components.ap_payments.models import AnnualRentalFeePeriod
-                from disturbance.components.ap_payments.utils import generate_line_items_for_annual_rental_fee
-                from disturbance.management.commands.send_annual_rental_fee_invoice import make_serializable
-                from disturbance.components.ap_payments.models import AnnualRentalFee, AnnualRentalFeeApiarySite
-                from disturbance.components.approvals.email import send_annual_rental_fee_awaiting_payment_confirmation
                 self._update_apiary_sites(approval, sites_received, request)
-
+                #TODO on-cleanup: remaining code in this else block is not used currently - implement or remove (commenting out for now)
+                # could this be refactored into a separate method?
+            #    from disturbance.management.commands.send_annual_rental_fee_invoice import get_annual_rental_fee_period
+            #    from disturbance.components.ap_payments.models import AnnualRentalFeePeriod
+            #    from disturbance.components.ap_payments.utils import generate_line_items_for_annual_rental_fee
+            #    from disturbance.management.commands.send_annual_rental_fee_invoice import make_serializable
+            #    from disturbance.components.ap_payments.models import AnnualRentalFee, AnnualRentalFeeApiarySite
+            #    from disturbance.components.approvals.email import send_annual_rental_fee_awaiting_payment_confirmation
+                
                 # Check the current annual site fee period
                 # Determine the start and end date of the annual site fee, for which the invoices should be issued
-                today_now_local = datetime.datetime.now(pytz.timezone(TIME_ZONE))
-                today_date_local = today_now_local.date()
-                period_start_date, period_end_date = get_annual_rental_fee_period(today_date_local)
-
+            #    today_now_local = datetime.datetime.now(pytz.timezone(TIME_ZONE))
+            #    today_date_local = today_now_local.date()
+            #    period_start_date, period_end_date = get_annual_rental_fee_period(today_date_local)
                 # Retrieve annual site fee period object for the period calculated above
                 # This period should not overwrap the existings, otherwise you will need a refund
-                annual_rental_fee_period, perioed_created = AnnualRentalFeePeriod.objects.get_or_create(period_start_date=period_start_date, period_end_date=period_end_date)
-
-                run_date = ApiaryAnnualRentalFeeRunDate.objects.get(name=ApiaryAnnualRentalFeeRunDate.NAME_CRON)
-                if run_date.enabled_for_new_site:
-                    line_items, apiary_sites_charged, invoice_period = generate_line_items_for_annual_rental_fee(
-                        approval,
-                        today_now_local,
-                        (annual_rental_fee_period.period_start_date, annual_rental_fee_period.period_end_date),
-                        sites_approved
-                    )
-
-                    if line_items:
-                        #TODO fix for segregation
-                        basket = createCustomBasket(line_items, approval.relevant_applicant_email_user, PAYMENT_SYSTEM_ID)
-                        order = CreateInvoiceBasket(
-                            payment_method='other', system=PAYMENT_SYSTEM_PREFIX
-                        ).create_invoice_and_order(basket, 0, None, None, user=approval.relevant_applicant_email_user,
-                                                   invoice_text='Payment Invoice')
-                        invoice = Invoice.objects.get(order_number=order.number)
-
-                        line_items = make_serializable(line_items)  # Make line items serializable to store in the JSONField
-                        annual_rental_fee = AnnualRentalFee.objects.create(
-                            approval=approval,
-                            annual_rental_fee_period=annual_rental_fee_period,
-                            invoice_reference=invoice.reference,
-                            invoice_period_start_date=invoice_period[0],
-                            invoice_period_end_date=invoice_period[1],
-                            lines=line_items,
-                        )
-
-                        for site in sites_approved:
-                            # Store the apiary sites which the invoice created above has been issued for
-                            apiary_site = ApiarySite.objects.get(id=site['id'])
-                            annual_rental_fee_apiary_site = AnnualRentalFeeApiarySite(apiary_site=apiary_site, annual_rental_fee=annual_rental_fee)
-                            annual_rental_fee_apiary_site.save()
-
-                            # Add approved sites to the existing temporary use proposal with status 'draft'
-                            proposal_apiary_temporary_use_qs = ProposalApiaryTemporaryUse.objects.filter(loaning_approval=approval, proposal__processing_status=Proposal.PROCESSING_STATUS_DRAFT)
-                            for proposal_apiary_temporary_use in proposal_apiary_temporary_use_qs:
-                                temp_use_apiary_site, temp_created = TemporaryUseApiarySite.objects.get_or_create(apiary_site=site, proposal_apiary_temporary_use=proposal_apiary_temporary_use)
-
-                        if not preview:
-                            email_data = send_annual_rental_fee_awaiting_payment_confirmation(approval, annual_rental_fee, invoice)
-
-                            from disturbance.components.approvals.serializers import ApprovalLogEntrySerializer
-                            email_data['approval'] = u'{}'.format(approval.id)
-                            serializer = ApprovalLogEntrySerializer(data=email_data)
-                            serializer.is_valid(raise_exception=True)
-                            serializer.save()
+            #    annual_rental_fee_period, perioed_created = AnnualRentalFeePeriod.objects.get_or_create(period_start_date=period_start_date, period_end_date=period_end_date)
+            #    run_date = ApiaryAnnualRentalFeeRunDate.objects.get(name=ApiaryAnnualRentalFeeRunDate.NAME_CRON)
+            #    if run_date.enabled_for_new_site:
+            #        line_items, apiary_sites_charged, invoice_period = generate_line_items_for_annual_rental_fee(
+            #            approval,
+            #            today_now_local,
+            #            (annual_rental_fee_period.period_start_date, annual_rental_fee_period.period_end_date),
+            #            sites_approved
+            #        )
+            #        if line_items:
+            #            
+            #            basket = createCustomBasket(line_items, approval.relevant_applicant_email_user, PAYMENT_SYSTEM_ID)
+            #            order = CreateInvoiceBasket(
+            #                payment_method='other', system=PAYMENT_SYSTEM_PREFIX
+            #            ).create_invoice_and_order(basket, 0, None, None, user=approval.relevant_applicant_email_user,
+            #                                       invoice_text='Payment Invoice')
+            #            invoice = Invoice.objects.get(order_number=order.number)
+            #            line_items = make_serializable(line_items)  # Make line items serializable to store in the JSONField
+            #            annual_rental_fee = AnnualRentalFee.objects.create(
+            #                approval=approval,
+            #                annual_rental_fee_period=annual_rental_fee_period,
+            #                invoice_reference=invoice.reference,
+            #                invoice_period_start_date=invoice_period[0],
+            #                invoice_period_end_date=invoice_period[1],
+            #                lines=line_items,
+            #            )
+            #            for site in sites_approved:
+            #                # Store the apiary sites which the invoice created above has been issued for
+            #                apiary_site = ApiarySite.objects.get(id=site['id'])
+            #                annual_rental_fee_apiary_site = AnnualRentalFeeApiarySite(apiary_site=apiary_site, annual_rental_fee=annual_rental_fee)
+            #                annual_rental_fee_apiary_site.save()
+            #                # Add approved sites to the existing temporary use proposal with status 'draft'
+            #                proposal_apiary_temporary_use_qs = ProposalApiaryTemporaryUse.objects.filter(loaning_approval=approval, proposal__processing_status=Proposal.PROCESSING_STATUS_DRAFT)
+            #                for proposal_apiary_temporary_use in proposal_apiary_temporary_use_qs:
+            #                    temp_use_apiary_site, temp_created = TemporaryUseApiarySite.objects.get_or_create(apiary_site=site, proposal_apiary_temporary_use=proposal_apiary_temporary_use)
+            #            if not preview:
+            #                email_data = send_annual_rental_fee_awaiting_payment_confirmation(approval, annual_rental_fee, invoice)
+            #                from disturbance.components.approvals.serializers import ApprovalLogEntrySerializer
+            #                email_data['approval'] = u'{}'.format(approval.id)
+            #                serializer = ApprovalLogEntrySerializer(data=email_data)
+            #                serializer.is_valid(raise_exception=True)
+            #                serializer.save()
 
             # Generate compliances
             if self.proposal.application_type.name == ApplicationType.APIARY and not preview:
@@ -4115,7 +4152,7 @@ class ApiarySiteFeeRemainder(models.Model):
         app_label = 'disturbance'
 
 
-class OnSiteInformation(models.Model):
+class OnSiteInformation(SanitiseMixin):
     apiary_site_on_approval = models.ForeignKey('ApiarySiteOnApproval', blank=True, null=True, on_delete=models.CASCADE)
     period_from = models.DateField(null=True, blank=True)
     period_to = models.DateField(null=True, blank=True)
@@ -4133,7 +4170,7 @@ class OnSiteInformation(models.Model):
         app_label = 'disturbance'
 
 
-class ProposalApiaryTemporaryUse(models.Model):
+class ProposalApiaryTemporaryUse(SanitiseMixin):
     from_date = models.DateField('Period From Date', blank=True, null=True)
     to_date = models.DateField('Period To Date', blank=True, null=True)
     proposal = models.OneToOneField(Proposal, related_name='apiary_temporary_use', null=True, blank=True, on_delete=models.CASCADE)
@@ -4160,7 +4197,7 @@ class ProposalApiaryTemporaryUse(models.Model):
                 detail['reason'] = 'out_of_range_of_licence'
                 return valid, detail
 
-        # TODO: Check if the period submitted overlaps with the existing temprary use periods
+        #TODO on cleanup: review (old comment) Check if the period submitted overlaps with the existing temprary use periods
         #qs = TemporaryUseApiarySite.objects.filter(apiary_site=self, selected=True, proposal_apiary_temporary_use__proposal__processing_status=Proposal.PROCESSING_STATUS_APPROVED)
         #for temp_site in qs:
         #    valid = (period[0] <= period[1] < temp_site.proposal_apiary_temporary_use.from_date) or (temp_site.proposal_apiary_temporary_use.to_date < period[0] <= period[1])
@@ -4197,7 +4234,7 @@ class SiteTransferApiarySite(models.Model):
         app_label = 'disturbance'
 
 
-# TODO: remove if no longer required
+#TODO on cleanup: remove (old comment) remove if no longer required
 class ApiarySiteApproval(models.Model):
     """
     This is intermediate table between ApiarySite and Approval to hold an approved apiary site under a certain approval
@@ -4315,15 +4352,14 @@ class ApiaryChecklistQuestion(RevisionedMixin):
         ordering = ['order', 'id']
 
 
-class ApiaryChecklistAnswer(models.Model):
+class ApiaryChecklistAnswer(SanitiseMixin):
     question=models.ForeignKey(ApiaryChecklistQuestion, related_name='answers', on_delete=models.CASCADE)
     answer = models.BooleanField(null=True, blank=True)
     proposal = models.ForeignKey(ProposalApiary, related_name="apiary_checklist", on_delete=models.CASCADE)
     apiary_referral = models.ForeignKey('ApiaryReferral', related_name="apiary_checklist_referral", blank=True, null=True, on_delete=models.CASCADE)
     text_answer = models.TextField(blank=True, null=True)
 
-    #TODO investigate below note...
-    # to delete
+    #TODO on cleanup (old comment) to delete
     site=models.ForeignKey(ApiarySiteOnProposal, blank=True, null=True, on_delete=models.CASCADE)
     apiary_site=models.ForeignKey(ApiarySite, blank=True, null=True, on_delete=models.CASCADE)
 
@@ -4372,7 +4408,7 @@ class ApiaryAssessorGroup(models.Model):
             apiaryassessorgroup=self
         ).values_list('emailuser_id', flat=True)
 
-        return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
+        return EmailUser.objects.using('ledger_db').filter(Q(pk__in=list(member_ids))|Q(is_superuser=True))
 
     @property
     def all_members(self):
@@ -4410,7 +4446,7 @@ class ApiaryApproverGroupMember(models.Model):
         db_table = "disturbance_apiaryapprovergroup_members"
         unique_together=('apiaryapprovergroup','emailuser')
 
-#TODO consider replacing with System Group
+
 class ApiaryApproverGroup(models.Model):
     members = models.ManyToManyField(EmailUser, through=ApiaryApproverGroupMember)
 
@@ -4441,7 +4477,6 @@ class ApiaryApproverGroup(models.Model):
             apiaryapprovergroup=self
         ).values_list('emailuser_id', flat=True)
         
-        # return EmailUser.objects.using('ledger_db').filter(pk__in=list(member_ids))
         return EmailUser.objects.filter(pk__in=list(member_ids))
 
     @property
@@ -4463,7 +4498,6 @@ class ApiaryApproverGroup(models.Model):
         return [i.email for i in self.resolved_members]
     
 
-#TODO consider replacing with System Group
 class ApiaryReferral(RevisionedMixin):
 
     referral = models.OneToOneField(Referral, related_name='apiary_referral', null=True, on_delete=models.CASCADE)
@@ -4481,6 +4515,9 @@ class ApiaryReferral(RevisionedMixin):
 
     def can_assign(self, user):
         if self.referral.processing_status=='with_referral':
+            if user.is_superuser:
+                return True
+
             group =  ApiaryReferralGroup.objects.filter(id=self.referral_group.id)
             if group and group[0] in user.apiaryreferralgroup_set.all():
                 return True
@@ -4500,7 +4537,7 @@ class ApiaryReferral(RevisionedMixin):
                 raise exceptions.ProposalNotAuthorized()
             self.referral.processing_status = 'recalled'
             self.referral.save()
-            # TODO Log proposal action
+
             self.referral.proposal.log_user_action(
                 ProposalUserAction.APIARY_RECALL_REFERRAL.format(
                     self.referral.id,
@@ -4508,25 +4545,12 @@ class ApiaryReferral(RevisionedMixin):
                     ),
                 request
                 )
-            # TODO log organisation action
-            applicant_field=getattr(
-                    self.referral.proposal,
-                    self.referral.proposal.applicant_field
-                    )
-            # applicant_field.log_user_action(
-            #     ProposalUserAction.APIARY_RECALL_REFERRAL.format(
-            #         self.referral.id,
-            #         self.referral.proposal.lodgement_number
-            #         ),
-            #     request
-            #     )
 
     def remind(self,request):
         with transaction.atomic():
             if not self.referral.proposal.can_assess(request.user):
                 raise exceptions.ProposalNotAuthorized()
-            #TODO Create a log entry for the proposal
-            #self.proposal.log_user_action(ProposalUserAction.ACTION_REMIND_REFERRAL.format(self.id,self.proposal.id,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
+
             self.referral.proposal.log_user_action(
                 ProposalUserAction.APIARY_ACTION_REMIND_REFERRAL.format(
                 self.referral.id,
@@ -4534,18 +4558,7 @@ class ApiaryReferral(RevisionedMixin):
                 ),
                 request
                 )
-            # Create a log entry for the organisation
-            applicant_field=getattr(
-                    self.referral.proposal,
-                    self.referral.proposal.applicant_field
-                    )
-            # applicant_field.log_user_action(
-            #     ProposalUserAction.APIARY_ACTION_REMIND_REFERRAL.format(
-            #     self.referral.id,
-            #     self.referral.proposal.lodgement_number,'{}'.format(self.referral_group.name)
-            #     ),
-            #     request
-            #     )
+
             # send email
             recipients = self.referral_group.members_list
             send_apiary_referral_email_notification(self.referral,recipients,request,reminder=True)
@@ -4557,32 +4570,17 @@ class ApiaryReferral(RevisionedMixin):
             self.referral.processing_status = 'with_referral'
             self.referral.proposal.processing_status = 'with_referral'
             self.referral.proposal.save()
+            self.referral.save()
             self.sent_from = 1
             self.save()
-            #TODO Create a log entry for the proposal
-            #self.proposal.log_user_action(ProposalUserAction.ACTION_RESEND_REFERRAL_TO.format(self.id,self.proposal.id,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
+
             self.referral.proposal.log_user_action(
                 ProposalUserAction.APIARY_ACTION_RESEND_REFERRAL_TO.format(
                     self.referral.id,
                     self.referral.proposal.lodgement_number,'{}'.format(self.referral_group.name)
                     ),
                 request)
-            #TODO Create a log entry for the organisation
-            #self.proposal.applicant.log_user_action(ProposalUserAction.ACTION_RESEND_REFERRAL_TO.format(self.id,self.proposal.id,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
-            applicant_field=getattr(
-                    self.referral.proposal,
-                    self.referral.proposal.applicant_field
-                    )
-            # applicant_field.log_user_action(
-            #         ProposalUserAction.APIARY_ACTION_RESEND_REFERRAL_TO.format(
-            #             self.referral.id,
-            #             self.referral.proposal.lodgement_number,
-            #             '{}'.format(
-            #                 self.referral_group.name)
-            #             ),
-            #         request
-            #         )
-            # send email
+
             recipients = self.referral_group.members_list
             send_apiary_referral_email_notification(self.referral,recipients,request)
 
@@ -4596,8 +4594,7 @@ class ApiaryReferral(RevisionedMixin):
                 self.referral.processing_status = 'completed'
                 self.referral.referral_text = request.user.get_full_name() + ': ' + request.data.get('referral_comment')
                 self.referral.save()
-                # TODO Log proposal action
-                #self.proposal.log_user_action(ProposalUserAction.CONCLUDE_REFERRAL.format(self.id,self.proposal.id,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
+
                 self.referral.proposal.log_user_action(
                         ProposalUserAction.APIARY_CONCLUDE_REFERRAL.format(
                             request.user.get_full_name(),
@@ -4608,21 +4605,6 @@ class ApiaryReferral(RevisionedMixin):
                             ),
                         request
                         )
-                # TODO log organisation action
-                #self.proposal.applicant.log_user_action(ProposalUserAction.CONCLUDE_REFERRAL.format(self.id,self.proposal.id,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
-                applicant_field=getattr(
-                        self.referral.proposal,
-                        self.referral.proposal.applicant_field
-                        )
-                # applicant_field.log_user_action(
-                #         ProposalUserAction.APIARY_CONCLUDE_REFERRAL.format(
-                #             request.user.get_full_name(),
-                #             self.referral.id,
-                #             self.referral.proposal.lodgement_number,
-                #             '{}'.format(self.referral_group.name)
-                #             ),
-                #         request
-                #         )
                 send_apiary_referral_complete_email_notification(self.referral, request, request.user)
             except:
                 raise
@@ -4631,7 +4613,7 @@ class ApiaryReferral(RevisionedMixin):
         with transaction.atomic():
             try:
                 if not self.can_assign(request.user):
-                    raise ValidationError('The selected person is not authorised to assign referrals')
+                    raise ValidationError('The selected person is not authorised to be assigned to referrals')
                 elif request.user != self.assigned_officer:
                     self.assigned_officer = officer
                     self.save()
@@ -4693,6 +4675,7 @@ class ApiaryReferral(RevisionedMixin):
 # --------------------------------------------------------------------------------------
 # Generate JSON schema models start
 # --------------------------------------------------------------------------------------
+#TODO on-cleanup remove if no longer needed
 @python_2_unicode_compatible
 class QuestionOption(models.Model):
     label = models.CharField(max_length=100, unique=True)
@@ -4705,6 +4688,7 @@ class QuestionOption(models.Model):
     def __str__(self):
         return self.label 
 
+#TODO on-cleanup remove if no longer needed
 from ckeditor.fields import RichTextField
 @python_2_unicode_compatible
 class MasterlistQuestion(models.Model):
@@ -4943,7 +4927,7 @@ class MasterlistQuestion(models.Model):
             data = TableExpanderEncoder().encode_list(expanders)
             self.property_cache['expanders'] = data
 
-
+#TODO on-cleanup remove if no longer needed
 @python_2_unicode_compatible
 class ProposalTypeSection(models.Model):
     section_name = models.CharField(max_length=100)
@@ -5105,7 +5089,6 @@ class SectionQuestion(models.Model):
 # Generate JSON schema models End
 # --------------------------------------------------------------------------------------
 
-#TODO keep for apiary only
 import reversion
 reversion.register(Proposal, follow=['proposal_apiary'])
 reversion.register(ProposalType)
@@ -5121,7 +5104,6 @@ reversion.register(Referral)
 reversion.register(HelpPage)
 reversion.register(ApplicationType)
 reversion.register(ProposalApiary)
-reversion.register(ApiaryChecklistQuestion)
 reversion.register(ApiarySite)
 
 # added 07-Jan-2021
@@ -5147,9 +5129,3 @@ reversion.register(ApiarySiteFee)
 reversion.register(ApiarySiteFeeType)
 reversion.register(SiteCategory)
 reversion.register(ApiarySiteOnProposal)
-
-#JSON schema models
-reversion.register(MasterlistQuestion)
-reversion.register(QuestionOption)
-reversion.register(ProposalTypeSection)
-reversion.register(SectionQuestion)
