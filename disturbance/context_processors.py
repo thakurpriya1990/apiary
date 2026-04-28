@@ -7,6 +7,7 @@ from disturbance.settings import (
 )
 from ledger_api_client.helpers import is_payment_admin
 from disturbance.settings import KMI_SERVER_URL
+from disturbance.settings import KB_SERVER_URL
 import logging
 from ledger_api_client import utils as ledger_api_utils
 import hashlib
@@ -39,6 +40,7 @@ def apiary_url(request):
         'is_payment_admin': is_payment_officer,
         'build_tag': settings.BUILD_TAG,
         'KMI_SERVER_URL': KMI_SERVER_URL,
+        'KB_SERVER_URL': KB_SERVER_URL,
         'ledger_totals': lt,
         'LEDGER_UI_URL': f'{settings.LEDGER_UI_URL}',
         'GIT_COMMIT_HASH' : settings.GIT_COMMIT_HASH,
