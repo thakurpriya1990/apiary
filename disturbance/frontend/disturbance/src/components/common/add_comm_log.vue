@@ -94,8 +94,8 @@
                 </div>
             </div>
             <template #footer>
-                <button type="button" v-if="addingComms" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Adding</button>
-                <button type="button" v-else class="btn btn-default" @click="ok">Add</button>
+                <button type="button" v-if="addingComms" disabled class="btn btn-primary" @click="ok"><i class="fa fa-spinner fa-spin"></i> Adding</button>
+                <button type="button" v-else class="btn btn-primary" @click="ok">Add</button>
                 <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
             </template>
         </modal>
