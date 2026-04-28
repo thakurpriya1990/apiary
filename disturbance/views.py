@@ -284,3 +284,27 @@ def mapProxyView(request, path):
         return response
     else:
         raise serializers.ValidationError('User is not authenticated')
+
+
+@csrf_exempt
+def osmTileProxyView(request, z, x, y):
+    """Proxy for OpenStreetMap tiles to avoid CORS/rate-limiting issues."""
+    if not request.user.is_authenticated:
+        return HttpResponse('Forbidden', status=403)
+    cache_key = f'osm_tile_{z}_{x}_{y}'
+    cached = cache.get(cache_key)
+    if cached:
+        return HttpResponse(cached, content_type='image/png')
+    import urllib.request
+    osm_url = f'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+    req = urllib.request.Request(osm_url, headers={'User-Agent': 'Mozilla/5.0 (compatible; apiary-map-proxy/1.0)'})
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = resp.read()
+            cache.set(cache_key, data, 86400)  # cache 24 hours
+            response = HttpResponse(data, content_type='image/png')
+            response['Access-Control-Allow-Origin'] = '*'
+            return response
+    except Exception as e:
+        logger.warning(f'OSM tile proxy error: {e}')
+        return HttpResponse('Tile unavailable', status=502)
