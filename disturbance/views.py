@@ -272,39 +272,27 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
 @csrf_exempt
 def mapProxyView(request, path):
     if request.user.is_authenticated:
-        queryString = request.META['QUERY_STRING']      
+        queryString = request.META['QUERY_STRING']
         remoteurl = None
         auth_user = None
         auth_password = None
         if 'kb-proxy' in request.path:
-            remoteurl = settings.KB_SERVER_URL + path 
+            remoteurl = settings.KB_SERVER_URL + path
             auth_user = settings.KB_USER
             auth_password = settings.KB_PASSWORD
+
+        # Basemap layers are not registered in MapLayer DB, so bypass the layer check
+        basemap_layers = [
+            settings.KB_BASEMAP_STREET_LAYER,
+            settings.KB_BASEMAP_SATELLITE_LAYER,
+        ]
+        requested_layers = request.GET.get('LAYERS', '')
+        if requested_layers in basemap_layers:
+            auth_details = {"user": auth_user, 'password': auth_password} if auth_user else None
+            return proxy_view(request, remoteurl, basic_auth=auth_details)
+
         response = process_proxy(request, remoteurl, queryString, auth_user, auth_password)
         return response
     else:
         raise serializers.ValidationError('User is not authenticated')
 
-
-@csrf_exempt
-def osmTileProxyView(request, z, x, y):
-    """Proxy for OpenStreetMap tiles to avoid CORS/rate-limiting issues."""
-    if not request.user.is_authenticated:
-        return HttpResponse('Forbidden', status=403)
-    cache_key = f'osm_tile_{z}_{x}_{y}'
-    cached = cache.get(cache_key)
-    if cached:
-        return HttpResponse(cached, content_type='image/png')
-    import urllib.request
-    osm_url = f'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-    req = urllib.request.Request(osm_url, headers={'User-Agent': 'Mozilla/5.0 (compatible; apiary-map-proxy/1.0)'})
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = resp.read()
-            cache.set(cache_key, data, 86400)  # cache 24 hours
-            response = HttpResponse(data, content_type='image/png')
-            response['Access-Control-Allow-Origin'] = '*'
-            return response
-    except Exception as e:
-        logger.warning(f'OSM tile proxy error: {e}')
-        return HttpResponse('Tile unavailable', status=502)

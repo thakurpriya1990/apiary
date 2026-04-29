@@ -134,7 +134,6 @@ urlpatterns = [
         name='booking-settlements-report'),
 
     re_path(r'kb-proxy/(?P<path>.*)', views.mapProxyView),
-    re_path(r'^osm-tile/(?P<z>\d+)/(?P<x>\d+)/(?P<y>\d+)\.png$', views.osmTileProxyView, name='osm-tile-proxy'),
 ] + ledger_patterns #+ media_serv_patterns
 
 if not are_migrations_running():

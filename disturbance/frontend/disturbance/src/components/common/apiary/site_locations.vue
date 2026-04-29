@@ -138,7 +138,6 @@
     import View from 'ol/View';
     // import WMTSCapabilities from 'ol/format/WMTSCapabilities';
     import TileLayer from 'ol/layer/Tile';
-    import OSM from 'ol/source/OSM';
     import TileWMS from 'ol/source/TileWMS';
     // import Collection from 'ol/Collection';
     import {Draw, Modify, Select} from 'ol/interaction';
@@ -158,11 +157,7 @@
     import { getStatusForColour, getApiaryFeatureStyle,SiteColours, zoomToCoordinates, checkIfValidlatitudeAndlongitude } from '@/components/common/apiary/site_colours.js'
     import Overlay from 'ol/Overlay';
 
-    import WMTS from 'ol/source/WMTS';
-    //import WMTSTileGrid from 'ol/source/WMTS';
-    import WMTSTileGrid from 'ol/tilegrid/WMTS';
-    import {get as getProjection, fromLonLat, toLonLat} from 'ol/proj';
-    import {getTopLeft} from 'ol/extent';
+    import {fromLonLat, toLonLat} from 'ol/proj';
     import MeasureStyles, { formatLength } from '@/components/common/apiary/measure.js'
     // import { getArea, getLength } from 'ol/sphere'
     import Awesomplete from 'awesomplete'
@@ -170,56 +165,6 @@
 
     import $ from 'jquery';
 
-    // create the WMTS tile grid in the google projection
-    const projection = getProjection('EPSG:4326');
-    // const tileSizePixels = 1024;
-    // const tileSizeMtrs = getWidth(projection.getExtent()) / tileSizePixels;
-    //const resolutions = [];
-    //for (let i = 0; i <= 17; ++i) {
-    //      resolutions[i] = tileSizeMtrs / Math.pow(2, i);
-    //}
-    const resolutions = [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16]
-    //const tileGrid = new WMTSTileGrid({
-    //      origin: getTopLeft(projection.getExtent()),
-    //      resolutions: resolutions,
-    //      matrixIds: matrixIds,
-    //});
-
-    let matrixSets = {
-        'EPSG:4326': {
-            '1024': {
-                'name': 'gda94',
-                'minLevel': 0,
-                'maxLevel': 17
-            }
-        }
-    }
-    $.each(matrixSets, function (projection, innerMatrixSets) {
-        $.each(innerMatrixSets, function (tileSize, matrixSet) {
-            var matrixIds = new Array(matrixSet.maxLevel - matrixSet.minLevel + 1)
-            for (var z = matrixSet.minLevel; z <= matrixSet.maxLevel; ++z) {
-                matrixIds[z] = matrixSet.name + ':' + z
-            }
-            matrixSet.matrixIds = matrixIds
-        })
-    })
-    let matrixSet = matrixSets['EPSG:4326']['1024']
-    const tileGrid = new WMTSTileGrid({
-        //origin: getTopLeft([-180, -90, 180, 90]),
-        origin: getTopLeft(projection.getExtent()),
-        resolutions: resolutions,
-        matrixIds: matrixSet.matrixIds,
-        tileSize: 1024,  // default: 256
-    })
-    // override getZForResolution on tile grid object;
-    // for weird zoom levels, the default is to round up or down to the
-    // nearest integer to determine which tiles to use.
-    // because we want the printing rasters to contain as much detail as
-    // possible, we rig it here to always round up.
-    tileGrid.origGetZForResolution = tileGrid.getZForResolution
-    tileGrid.getZForResolution = function (resolution) {
-        return tileGrid.origGetZForResolution(resolution*1.4, -1)
-    }
     export default {
         props:{
             proposal:{
@@ -985,7 +930,7 @@
                         const layer = layers[i];
 
                         const wmsSource = new TileWMS({
-                            url: `${env['kmi_server_url']}/geoserver/${layer.layer_group_name}/wms`,
+                            url: layer.layer_group_name ? `/kb-proxy/geoserver/${layer.layer_group_name}/wms` : '/kb-proxy/geoserver/wms',
                             params: {
                                 'FORMAT': 'image/png',
                                 'VERSION': '1.1.1',
@@ -1381,28 +1326,40 @@
             initMap: async function() {
                 let vm = this;
 
-                let satelliteTileWmts = new WMTS({
-                    url: 'https://kmi.dbca.wa.gov.au/geoserver/gwc/service/wmts',
-                    layer: 'public:mapbox-satellite',
-                    format: 'image/png',
-                    matrixSet: 'gda94',
-                    projection: 'EPSG:4326',
-                    tileGrid: tileGrid,
-                    style: '',
-                })
+                let streetTileWms = new TileWMS({
+                    url: '/kb-proxy/geoserver/wms',
+                    params: {
+                        'FORMAT': 'image/png',
+                        'VERSION': '1.1.1',
+                        tiled: true,
+                        STYLES: '',
+                        LAYERS: env['kb_basemap_street_layer'],
+                    }
+                });
+
+                let satelliteTileWms = new TileWMS({
+                    url: '/kb-proxy/geoserver/wms',
+                    params: {
+                        'FORMAT': 'image/png',
+                        'VERSION': '1.1.1',
+                        tiled: true,
+                        STYLES: '',
+                        LAYERS: env['kb_basemap_satellite_layer'],
+                    }
+                });
 
                 vm.tileLayerOsm = markRaw(new TileLayer({
-                    title: 'OpenStreetMap',
+                    title: 'Street',
                     type: 'base',
                     visible: true,
-                    source: new OSM({ url: '/osm-tile/{z}/{x}/{y}.png' }),
+                    source: streetTileWms,
                 }));
 
                 vm.tileLayerSat = markRaw(new TileLayer({
                     title: 'Satellite',
                     type: 'base',
                     visible: true,
-                    source: satelliteTileWmts,
+                    source: satelliteTileWms,
                 }))
 
                 vm.map = markRaw(new Map({

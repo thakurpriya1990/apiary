@@ -65,7 +65,6 @@
     import Map from 'ol/Map';
     import View from 'ol/View';
     import TileLayer from 'ol/layer/Tile';
-    import OSM from 'ol/source/OSM';
     import TileWMS from 'ol/source/TileWMS';
     import { Draw, Modify } from 'ol/interaction';
     import VectorLayer from 'ol/layer/Vector';
@@ -397,22 +396,33 @@
             initMap: function() {
                 let vm = this;
 
-                let satelliteTileWms = new TileWMS({
-                            url: env['kmi_server_url'] + '/geoserver/public/wms',
+                let streetTileWms = new TileWMS({
+                            url: '/kb-proxy/geoserver/wms',
                             params: {
                                 'FORMAT': 'image/png',
                                 'VERSION': '1.1.1',
                                 tiled: true,
                                 STYLES: '',
-                                LAYERS: 'public:mapbox-satellite',
+                                LAYERS: env['kb_basemap_street_layer'],
+                            }
+                        });
+
+                let satelliteTileWms = new TileWMS({
+                            url: '/kb-proxy/geoserver/wms',
+                            params: {
+                                'FORMAT': 'image/png',
+                                'VERSION': '1.1.1',
+                                tiled: true,
+                                STYLES: '',
+                                LAYERS: env['kb_basemap_satellite_layer'],
                             }
                         });
 
                 vm.tileLayerOsm = markRaw(new TileLayer({
-                    title: 'OpenStreetMap',
+                    title: 'Street',
                     type: 'base',
                     visible: true,
-                    source: new OSM({ url: '/osm-tile/{z}/{x}/{y}.png' }),
+                    source: streetTileWms,
                 }));
 
                 vm.tileLayerSat = markRaw(new TileLayer({
