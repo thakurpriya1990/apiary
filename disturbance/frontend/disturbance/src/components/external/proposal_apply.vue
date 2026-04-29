@@ -4,15 +4,15 @@
             <div class="col-sm-12">
                 <form class="form-horizontal" name="personal_form" method="post">
 
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">Apply on behalf of
-                                <a :href="'#'+pBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="pBody">
-                                    <span class="glyphicon glyphicon-chevron-up pull-right "></span>
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="mb-0">Apply on behalf of
+                                <a :href="'#'+pBody" data-bs-toggle="collapse" :aria-controls="pBody">
+                                    <i class="fa fa-chevron-up pull-right"></i>
                                 </a>
-                            </h3>
+                            </h5>
                         </div>
-                        <div class="panel-body panel-collapse in" :id="pBody">
+                        <div class="card-body collapse show" :id="pBody">
 
                             <div class="col-sm-12">
                                 <div class="form-group" v-if="!isLoading">
@@ -40,15 +40,15 @@
                         </div>
                     </div>
 
-                    <div v-if="behalf_of != ''" class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">Apply for
-                                <a :href="'#'+pBody2" data-toggle="collapse"  data-parent="#userInfo2" expanded="true" :aria-controls="pBody2">
-                                    <span class="glyphicon glyphicon-chevron-up pull-right "></span>
+                    <div v-if="behalf_of != ''" class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="mb-0">Apply for
+                                <a :href="'#'+pBody2" data-bs-toggle="collapse" :aria-controls="pBody2">
+                                    <i class="fa fa-chevron-up pull-right"></i>
                                 </a>
-                            </h3>
+                            </h5>
                         </div>
-                        <div class="panel-body panel-collapse in" :id="pBody2">
+                        <div class="card-body collapse show" :id="pBody2">
                             <div>
                                 <label for="" class="control-label" >{{ objectTypeLabel }}</label>
                                 <div class="col-sm-12">
@@ -283,6 +283,14 @@ export default {
     },
     manyDistricts: function() {
       return this.districts.length > 1;
+    },
+  },
+  watch: {
+    applicationTypesList: function(list) {
+        if (list.length === 1) {
+            this.selected_application_id = list[0].value;
+            this.chainedSelectAppType(list[0].value);
+        }
     },
   },
   methods: {
