@@ -65,7 +65,6 @@
     import Map from 'ol/Map';
     import View from 'ol/View';
     import TileLayer from 'ol/layer/Tile';
-    import OSM from 'ol/source/OSM';
     import TileWMS from 'ol/source/TileWMS';
     import { Draw, Modify } from 'ol/interaction';
     import VectorLayer from 'ol/layer/Vector';
@@ -79,7 +78,8 @@
     import MeasureStyles, { formatLength } from '@/components/common/apiary/measure.js'
     import Awesomplete from 'awesomplete'
     import { api_endpoints } from '@/utils/hooks'
-    import { toRaw } from 'vue';
+    import { markRaw, toRaw } from 'vue';
+    import { fromLonLat, toLonLat } from 'ol/proj';
     import $ from 'jquery';
     
     export default {
@@ -396,57 +396,66 @@
             initMap: function() {
                 let vm = this;
 
-                let satelliteTileWms = new TileWMS({
-                            url: env['kmi_server_url'] + '/geoserver/public/wms',
+                let streetTileWms = new TileWMS({
+                            url: '/kb-proxy/geoserver/wms',
                             params: {
                                 'FORMAT': 'image/png',
                                 'VERSION': '1.1.1',
                                 tiled: true,
                                 STYLES: '',
-                                LAYERS: 'public:mapbox-satellite',
+                                LAYERS: env['kb_basemap_street_layer'],
                             }
                         });
 
-                vm.tileLayerOsm = new TileLayer({
-                    title: 'OpenStreetMap',
+                let satelliteTileWms = new TileWMS({
+                            url: '/kb-proxy/geoserver/wms',
+                            params: {
+                                'FORMAT': 'image/png',
+                                'VERSION': '1.1.1',
+                                tiled: true,
+                                STYLES: '',
+                                LAYERS: env['kb_basemap_satellite_layer'],
+                            }
+                        });
+
+                vm.tileLayerOsm = markRaw(new TileLayer({
+                    title: 'Street',
                     type: 'base',
                     visible: true,
-                    source: new OSM(),
-                });
+                    source: streetTileWms,
+                }));
 
-                vm.tileLayerSat = new TileLayer({
+                vm.tileLayerSat = markRaw(new TileLayer({
                     title: 'Satellite',
                     type: 'base',
                     visible: true,
                     source: satelliteTileWms,
-                })
+                }))
 
-                vm.map = new Map({
+                vm.map = markRaw(new Map({
                     layers: [
-                        // vm.tileLayerOsm,
-                        // vm.tileLayerSat,
-                        toRaw(vm.tileLayerOsm), 
-                        toRaw(vm.tileLayerSat),
+                        vm.tileLayerOsm,
+                        vm.tileLayerSat,
                     ],
                     //target: 'map',
                     target: vm.elem_id,
                     view: new View({
-                        center: [115.95, -31.95],
+                        center: fromLonLat([115.95, -31.95]),
                         zoom: 7,
-                        projection: 'EPSG:4326'
                     }),
+                    // Note: EPSG:3857 is the default for OpenLayers and required for OSM tiles
                     pixelRatio: 1,  // We need this in order to make this map work correctly with the browser and/or display scaling factor(s) other than 100%
                                     // Ref: https://github.com/openlayers/openlayers/issues/11464
-                });
+                }));
 
-                vm.apiarySitesQuerySource = new VectorSource({ });
-                vm.apiarySitesQueryLayer = new VectorLayer({
+                vm.apiarySitesQuerySource = markRaw(new VectorSource({ }));
+                vm.apiarySitesQueryLayer = markRaw(new VectorLayer({
                     source: vm.apiarySitesQuerySource,
                     style: function(feature){
                         let status = getStatusForColour(feature, false, vm.display_at_time_of_submitted)
                         return getApiaryFeatureStyle(status, feature.get('checked'))
                     },
-                });
+                }));
                 vm.map.addLayer(vm.apiarySitesQueryLayer);
 
                 // Set zIndex to some layers to be rendered over the other layers
@@ -489,7 +498,7 @@
                 // Show mouse coordinates
                 vm.map.addControl(new MousePositionControl({
                     coordinateFormat: function(coords){
-                        let message = vm.getDegrees(coords) + "\n";
+                        let message = vm.getDegrees(toLonLat(coords)) + "\n";
                         return  message;
                     },
                     target: document.getElementById('mouse-position'),
@@ -611,7 +620,8 @@
                                 // feature has been modified
                                 vm.modifyInProgressList.splice(index, 1);
                                 let coords = feature.getGeometry().getCoordinates();
-                                vm.$emit('featureGeometryUpdated', {'id': id, 'coordinates': {'lng': coords[0], 'lat': coords[1]}})
+                                const lonlat = toLonLat(coords);
+                                vm.$emit('featureGeometryUpdated', {'id': id, 'coordinates': {'lng': lonlat[0], 'lat': lonlat[1]}})
                             }
                         });
                     });
@@ -645,7 +655,7 @@
                                       '<div style="font-size: 0.8em;">' +
                                           '<div>' + status_str + '</div>' +
                                           '<div>' + getDisplayNameOfCategory(feature.get('site_category')) + '</div>' +
-                                          '<div>' + feature['values_']['geometry']['flatCoordinates'] + '</div>' +
+                                          '<div>' + toLonLat(feature.getGeometry().getCoordinates()).map(v => v.toFixed(6)).join(', ') + '</div>' +
                                       '</div>' +
                                   '</div>'
                     this.content_element.innerHTML = content;
@@ -712,7 +722,7 @@
             addApiarySite: function(apiary_site_geojson) {
 
                 let vm = this
-                let feature = (new GeoJSON()).readFeature(apiary_site_geojson)
+                let feature = (new GeoJSON()).readFeature(apiary_site_geojson, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' })
 
                 feature.getGeometry().on("change", function() {
                     let feature_id = feature.getId()

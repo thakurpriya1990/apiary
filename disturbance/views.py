@@ -272,15 +272,27 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
 @csrf_exempt
 def mapProxyView(request, path):
     if request.user.is_authenticated:
-        queryString = request.META['QUERY_STRING']      
+        queryString = request.META['QUERY_STRING']
         remoteurl = None
         auth_user = None
         auth_password = None
         if 'kb-proxy' in request.path:
-            remoteurl = settings.KB_SERVER_URL + path 
+            remoteurl = settings.KB_SERVER_URL + path
             auth_user = settings.KB_USER
             auth_password = settings.KB_PASSWORD
+
+        # Basemap layers are not registered in MapLayer DB, so bypass the layer check
+        basemap_layers = [
+            settings.KB_BASEMAP_STREET_LAYER,
+            settings.KB_BASEMAP_SATELLITE_LAYER,
+        ]
+        requested_layers = request.GET.get('LAYERS', '')
+        if requested_layers in basemap_layers:
+            auth_details = {"user": auth_user, 'password': auth_password} if auth_user else None
+            return proxy_view(request, remoteurl, basic_auth=auth_details)
+
         response = process_proxy(request, remoteurl, queryString, auth_user, auth_password)
         return response
     else:
         raise serializers.ValidationError('User is not authenticated')
+

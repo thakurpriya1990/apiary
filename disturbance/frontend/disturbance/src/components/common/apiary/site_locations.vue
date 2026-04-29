@@ -131,13 +131,13 @@
 </template>
 
 <script>
+    import { markRaw } from 'vue';
     import 'ol/ol.css';
     import 'ol-layerswitcher/dist/ol-layerswitcher.css'
     import Map from 'ol/Map';
     import View from 'ol/View';
     // import WMTSCapabilities from 'ol/format/WMTSCapabilities';
     import TileLayer from 'ol/layer/Tile';
-    import OSM from 'ol/source/OSM';
     import TileWMS from 'ol/source/TileWMS';
     // import Collection from 'ol/Collection';
     import {Draw, Modify, Select} from 'ol/interaction';
@@ -157,11 +157,7 @@
     import { getStatusForColour, getApiaryFeatureStyle,SiteColours, zoomToCoordinates, checkIfValidlatitudeAndlongitude } from '@/components/common/apiary/site_colours.js'
     import Overlay from 'ol/Overlay';
 
-    import WMTS from 'ol/source/WMTS';
-    //import WMTSTileGrid from 'ol/source/WMTS';
-    import WMTSTileGrid from 'ol/tilegrid/WMTS';
-    import {get as getProjection} from 'ol/proj';
-    import {getTopLeft} from 'ol/extent';
+    import {fromLonLat, toLonLat} from 'ol/proj';
     import MeasureStyles, { formatLength } from '@/components/common/apiary/measure.js'
     // import { getArea, getLength } from 'ol/sphere'
     import Awesomplete from 'awesomplete'
@@ -169,56 +165,6 @@
 
     import $ from 'jquery';
 
-    // create the WMTS tile grid in the google projection
-    const projection = getProjection('EPSG:4326');
-    // const tileSizePixels = 1024;
-    // const tileSizeMtrs = getWidth(projection.getExtent()) / tileSizePixels;
-    //const resolutions = [];
-    //for (let i = 0; i <= 17; ++i) {
-    //      resolutions[i] = tileSizeMtrs / Math.pow(2, i);
-    //}
-    const resolutions = [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16]
-    //const tileGrid = new WMTSTileGrid({
-    //      origin: getTopLeft(projection.getExtent()),
-    //      resolutions: resolutions,
-    //      matrixIds: matrixIds,
-    //});
-
-    let matrixSets = {
-        'EPSG:4326': {
-            '1024': {
-                'name': 'gda94',
-                'minLevel': 0,
-                'maxLevel': 17
-            }
-        }
-    }
-    $.each(matrixSets, function (projection, innerMatrixSets) {
-        $.each(innerMatrixSets, function (tileSize, matrixSet) {
-            var matrixIds = new Array(matrixSet.maxLevel - matrixSet.minLevel + 1)
-            for (var z = matrixSet.minLevel; z <= matrixSet.maxLevel; ++z) {
-                matrixIds[z] = matrixSet.name + ':' + z
-            }
-            matrixSet.matrixIds = matrixIds
-        })
-    })
-    let matrixSet = matrixSets['EPSG:4326']['1024']
-    const tileGrid = new WMTSTileGrid({
-        //origin: getTopLeft([-180, -90, 180, 90]),
-        origin: getTopLeft(projection.getExtent()),
-        resolutions: resolutions,
-        matrixIds: matrixSet.matrixIds,
-        tileSize: 1024,  // default: 256
-    })
-    // override getZForResolution on tile grid object;
-    // for weird zoom levels, the default is to round up or down to the
-    // nearest integer to determine which tiles to use.
-    // because we want the printing rasters to contain as much detail as
-    // possible, we rig it here to always round up.
-    tileGrid.origGetZForResolution = tileGrid.getZForResolution
-    tileGrid.getZForResolution = function (resolution) {
-        return tileGrid.origGetZForResolution(resolution*1.4, -1)
-    }
     export default {
         props:{
             proposal:{
@@ -984,7 +930,7 @@
                         const layer = layers[i];
 
                         const wmsSource = new TileWMS({
-                            url: `${env['kmi_server_url']}/geoserver/${layer.layer_group_name}/wms`,
+                            url: layer.layer_group_name ? `/kb-proxy/geoserver/${layer.layer_group_name}/wms` : '/kb-proxy/geoserver/wms',
                             params: {
                                 'FORMAT': 'image/png',
                                 'VERSION': '1.1.1',
@@ -1051,7 +997,7 @@
 
                                         vm.drawingLayerSource.addFeature(feature);
                                     } else {
-                                        let feature = (new GeoJSON).readFeature(apiary_site)
+                                        let feature = (new GeoJSON).readFeature(apiary_site, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' })
                                         this.drawingLayerSource.addFeature(feature)
                                         this.createBufferForSite(feature);
                                     }
@@ -1146,13 +1092,13 @@
                 // Retrieve the nearest apiary site from the drawingLayerSource
                 let nearestDrawnSite = this.drawingLayerSource.getClosestFeatureToCoordinate(coords, filter);
                 if (nearestDrawnSite != null) {
-                    candidates.push(getDistance(coords, nearestDrawnSite.getGeometry().getCoordinates()));
+                    candidates.push(getDistance(toLonLat(coords), toLonLat(nearestDrawnSite.getGeometry().getCoordinates())));
                 }
 
                 // Retrieve the nearest apiary site from the existing apiary_sites
                 let nearestQuerySite = this.apiarySitesQuerySource.getClosestFeatureToCoordinate(coords, filter);
                 if (nearestQuerySite != null) {
-                    candidates.push(getDistance(coords, nearestQuerySite.getGeometry().getCoordinates()));
+                    candidates.push(getDistance(toLonLat(coords), toLonLat(nearestQuerySite.getGeometry().getCoordinates())));
                 }
 
                 let min = candidates[0];
@@ -1188,7 +1134,9 @@
                     coords = coords[0];
                 }
 
-                let buffer = new Feature(circular(coords, this.buffer_radius, 16));
+                const bufferGeom = circular(toLonLat(coords), this.buffer_radius, 16);
+                bufferGeom.transform('EPSG:4326', 'EPSG:3857');
+                let buffer = new Feature(bufferGeom);
                 buffer.setId(id)
                 this.bufferLayerSource.addFeature(buffer);
             },
@@ -1378,52 +1326,64 @@
             initMap: async function() {
                 let vm = this;
 
-                let satelliteTileWmts = new WMTS({
-                    url: 'https://kmi.dbca.wa.gov.au/geoserver/gwc/service/wmts',
-                    layer: 'public:mapbox-satellite',
-                    format: 'image/png',
-                    matrixSet: 'gda94',
-                    projection: 'EPSG:4326',
-                    tileGrid: tileGrid,
-                    style: '',
-                })
-
-                vm.tileLayerOsm = new TileLayer({
-                    title: 'OpenStreetMap',
-                    type: 'base',
-                    visible: true,
-                    source: new OSM(),
+                let streetTileWms = new TileWMS({
+                    url: '/kb-proxy/geoserver/wms',
+                    params: {
+                        'FORMAT': 'image/png',
+                        'VERSION': '1.1.1',
+                        tiled: true,
+                        STYLES: '',
+                        LAYERS: env['kb_basemap_street_layer'],
+                    }
                 });
 
-                vm.tileLayerSat = new TileLayer({
+                let satelliteTileWms = new TileWMS({
+                    url: '/kb-proxy/geoserver/wms',
+                    params: {
+                        'FORMAT': 'image/png',
+                        'VERSION': '1.1.1',
+                        tiled: true,
+                        STYLES: '',
+                        LAYERS: env['kb_basemap_satellite_layer'],
+                    }
+                });
+
+                vm.tileLayerOsm = markRaw(new TileLayer({
+                    title: 'Street',
+                    type: 'base',
+                    visible: true,
+                    source: streetTileWms,
+                }));
+
+                vm.tileLayerSat = markRaw(new TileLayer({
                     title: 'Satellite',
                     type: 'base',
                     visible: true,
-                    source: satelliteTileWmts,
-                })
+                    source: satelliteTileWms,
+                }))
 
-                vm.map = new Map({
+                vm.map = markRaw(new Map({
                     layers: [
                         //vm.tileLayerOsm, 
                         //vm.tileLayerSat,
                     ],
                     target: 'map',
                     view: new View({
-                        center: [115.95, -31.95],
+                        center: fromLonLat([115.95, -31.95]),
                         zoom: 7,
-                        projection: 'EPSG:4326'
                     }),
+                    // Note: EPSG:3857 is the default for OpenLayers and required for OSM tiles
                     pixelRatio: 1,  // We need this in order to make this map work correctly with the browser and/or display scaling factor(s) other than 100%
                                     // Ref: https://github.com/openlayers/openlayers/issues/11464
-                });
+                }));
 
-                let clusterSource = new Cluster({
+                let clusterSource = markRaw(new Cluster({
                     distance: 50,
                     source: vm.apiarySitesQuerySource,
-                })
+                }))
 
                 let styleCache = {}
-                vm.apiarySitesClusterLayer = new VectorLayer({
+                vm.apiarySitesClusterLayer = markRaw(new VectorLayer({
                     title: 'Cluster Layer',
                     source: clusterSource,
                     style: function (clusteredFeature){
@@ -1466,7 +1426,7 @@
                         }
                         return style
                     },
-                });
+                }));
                 //vm.map.addLayer(vm.apiarySitesClusterLayer);
 
                 vm.bufferedSites = [];
@@ -1543,8 +1503,9 @@
                 //vm.drawingLayerSource = new VectorSource();
                 vm.drawingLayerSource.on('addfeature', async function(e){
                     let coords = e.feature.getGeometry().getCoordinates()
-                    // Construct the URL with query parameters
-                    const url = `/gisdata/?layer=wa_coast_smoothed&lat=${coords[1]}&lng=${coords[0]}`;
+                    // Construct the URL with query parameters (convert EPSG:3857 → EPSG:4326 for the API)
+                    const lonlat = toLonLat(coords);
+                    const url = `/gisdata/?layer=wa_coast_smoothed&lat=${lonlat[1]}&lng=${lonlat[0]}`;
 
                     try {
                     const response = await fetch(url, {
@@ -1624,7 +1585,7 @@
                 // Show mouse coordinates
                 vm.map.addControl(new MousePositionControl({
                     coordinateFormat: function(coords){
-                        let message = vm.getDegrees(coords) + "\n";
+                        let message = vm.getDegrees(toLonLat(coords)) + "\n";
                         let distance = vm.metersToNearest(coords, null);
                         if (distance < Number.POSITIVE_INFINITY) {
                             message += "<br>Nearest: "  + (distance / 1000).toFixed(2) + " km";
@@ -1719,7 +1680,8 @@
                                     modifyInProgressList.splice(index, 1);
                                 }
                                 else {
-                                    const url = `/gisdata/?layer=wa_coast_smoothed&lat=${coords[1]}&lng=${coords[0]}`;
+                                    const lonlat = toLonLat(coords);
+                                    const url = `/gisdata/?layer=wa_coast_smoothed&lat=${lonlat[1]}&lng=${lonlat[0]}`;
                                     const response = await fetch(url, { method: 'GET' });
                                     const body = await response.json();
                                     if (!Object.prototype.hasOwnProperty.call(body, 'id')) {
@@ -1855,12 +1817,12 @@
             tryCreateNewSiteFromForm: function(){
                 let lat = this.proposal.proposal_apiary.latitude
                 let lon = this.proposal.proposal_apiary.longitude
-                let coords = [lon, lat];
                 // rough bounding box for preliminary check
                 if (isNaN(lon) || lon < 112 || lon > 130 ||
                     isNaN(lat) || lat < -35 || lat > -11) {
                     return false;
                 }
+                let coords = fromLonLat([lon, lat]);
                 if(!this.isNewPositionValid(coords))
                 {
                     return false;
@@ -1904,7 +1866,7 @@
                 .then(body => {
                     let num_sites = 0;
                     if (body.features) {
-                    vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                    vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' }));
                     num_sites = body.features.length;
                     }
                     vm.proposal_vacant_draft_loaded = true;
@@ -1922,7 +1884,7 @@
             .then(body => {
                 let num_sites = 0;
                 if (body.features) {
-                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' }));
                 num_sites = body.features.length;
                 }
                 vm.proposal_vacant_processed_loaded = true;
@@ -1939,7 +1901,7 @@
             .then(body => {
                 let num_sites = 0;
                 if (body.features) {
-                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' }));
                 num_sites = body.features.length;
                 }
                 vm.approval_vacant_loaded = true;
@@ -1956,7 +1918,7 @@
             .then(body => {
                 let num_sites = 0;
                 if (body.features) {
-                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' }));
                 num_sites = body.features.length;
                 }
                 vm.proposal_draft_loaded = true;
@@ -1973,7 +1935,7 @@
             .then(body => {
                 let num_sites = 0;
                 if (body.features) {
-                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' }));
                 num_sites = body.features.length;
                 }
                 vm.proposal_processed_loaded = true;
@@ -1990,7 +1952,7 @@
             .then(body => {
                 let num_sites = 0;
                 if (body.features) {
-                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' }));
                 num_sites = body.features.length;
                 }
                 vm.approval_loaded = true;

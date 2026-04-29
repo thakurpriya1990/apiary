@@ -109,14 +109,16 @@
     import FormSection from "@/components/forms/section_toggle.vue"
     import ContactLicenceHolderModal from "@/components/common/apiary/contact_licence_holder_modal.vue"
     import { v4 as uuid } from 'uuid';
+    import { markRaw } from 'vue';
 
     import 'ol/ol.css';
     import 'ol-layerswitcher/dist/ol-layerswitcher.css'
+    import '@/components/common/apiary/index.css';
     import Map from 'ol/Map';
     import View from 'ol/View';
     import TileLayer from 'ol/layer/Tile';
-    import OSM from 'ol/source/OSM';
     import TileWMS from 'ol/source/TileWMS';
+    import { fromLonLat, toLonLat } from 'ol/proj';
     import { Draw, Modify} from 'ol/interaction';
     import VectorLayer from 'ol/layer/Vector';
     import VectorSource from 'ol/source/Vector';
@@ -423,7 +425,7 @@
                     for (var i=0; i<vm.suggest_list.length; i++){
                         if (vm.suggest_list[i].value == ev.target.value){
                             var latlng = {lat: vm.suggest_list[i].feature.geometry.coordinates[1], lng: vm.suggest_list[i].feature.geometry.coordinates[0]};
-                            zoomToCoordinates(vm.map, [latlng.lng, latlng.lat], targetZoomLevel)
+                            zoomToCoordinates(vm.map, fromLonLat([latlng.lng, latlng.lat]), targetZoomLevel)
                         }
                     }
                     return false;
@@ -435,7 +437,7 @@
                 let searching_by_latlng = checkIfValidlatitudeAndlongitude(place)
 
                 if(!(searching_by_latlng)){
-                    var latlng = vm.map.getView().getCenter();
+                    var latlng = toLonLat(vm.map.getView().getCenter());
                     $.ajax({
                         url: api_endpoints.geocoding_address_search + encodeURIComponent(place)+'.json?'+ $.param({
                             country: 'au',
@@ -469,7 +471,7 @@
                         targetZoomLevel = currentZoomLevel
                     }
                     //zoomToCoordinates(vm.map, [lng, lat], targetZoomLevel)
-                    zoomToCoordinates(vm.map, [lat, lng], targetZoomLevel)
+                    zoomToCoordinates(vm.map, fromLonLat([lat, lng]), targetZoomLevel)
                 }
             },
             updateAvailabilityInstructions: function(availabilities_currently_selected, options){
@@ -617,7 +619,7 @@
                 }
             },
             addApiarySitesToMap: function(apiary_sites_geojson){
-                let features = (new GeoJSON()).readFeatures(apiary_sites_geojson)
+                let features = (new GeoJSON()).readFeatures(apiary_sites_geojson, { featureProjection: 'EPSG:3857' })
                 this.apiarySitesQuerySource.addFeatures(features)
             },
             addEventListeners: function () {
@@ -859,7 +861,7 @@
                     let layers = await response.json();
                     for (var i = 0; i < layers.length; i++){
                         let l = new TileWMS({
-                            url: env['kmi_server_url'] + '/geoserver/' + layers[i].layer_group_name + '/wms',
+                            url: layers[i].layer_group_name ? `/kb-proxy/geoserver/${layers[i].layer_group_name}/wms` : '/kb-proxy/geoserver/wms',
                             params: {
                                 'FORMAT': 'image/png',
                                 'VERSION': '1.1.1',
@@ -869,11 +871,11 @@
                             }
                         });
 
-                        let tileLayer= new TileLayer({
+                        let tileLayer= markRaw(new TileLayer({
                             title: layers[i].display_name.trim(),
                             visible: false,
                             source: l,
-                        })
+                        }))
 
                         // Set additional attributes to the layer
                         tileLayer.set('columns', layers[i].columns)
@@ -901,32 +903,43 @@
             initMap: function() {
                 let vm = this;
 
-                let satelliteTileWms = new TileWMS({
-                    url: env['kmi_server_url'] + '/geoserver/public/wms',
+                let streetTileWms = new TileWMS({
+                    url: '/kb-proxy/geoserver/wms',
                     params: {
                         'FORMAT': 'image/png',
                         'VERSION': '1.1.1',
                         tiled: true,
                         STYLES: '',
-                        LAYERS: 'public:mapbox-satellite',
+                        LAYERS: env['kb_basemap_street_layer'],
                     }
                 });
 
-                vm.tileLayerOsm = new TileLayer({
-                    title: 'OpenStreetMap',
-                    type: 'base',
-                    visible: true,
-                    source: new OSM(),
+                let satelliteTileWms = new TileWMS({
+                    url: '/kb-proxy/geoserver/wms',
+                    params: {
+                        'FORMAT': 'image/png',
+                        'VERSION': '1.1.1',
+                        tiled: true,
+                        STYLES: '',
+                        LAYERS: env['kb_basemap_satellite_layer'],
+                    }
                 });
 
-                vm.tileLayerSat = new TileLayer({
+                vm.tileLayerOsm = markRaw(new TileLayer({
+                    title: 'Street',
+                    type: 'base',
+                    visible: true,
+                    source: streetTileWms,
+                }));
+
+                vm.tileLayerSat = markRaw(new TileLayer({
                     title: 'Satellite',
                     type: 'base',
                     visible: true,
                     source: satelliteTileWms,
-                })
+                }))
 
-                vm.map = new Map({
+                vm.map = markRaw(new Map({
                     layers: [
                         vm.tileLayerOsm, 
                         vm.tileLayerSat,
@@ -934,23 +947,22 @@
                     //target: 'map',
                     target: vm.elem_id,
                     view: new View({
-                        center: [115.95, -31.95],
+                        center: fromLonLat([115.95, -31.95]),
                         zoom: 7,
-                        projection: 'EPSG:4326'
                     }),
                     pixelRatio: 1,  // We need this in order to make this map work correctly with the browser and/or display scaling factor(s) other than 100%
                                     // Ref: https://github.com/openlayers/openlayers/issues/11464
-                });
+                }));
 
-                vm.apiarySitesQuerySource = new VectorSource({ });
+                vm.apiarySitesQuerySource = markRaw(new VectorSource({ }));
 
-                let clusterSource = new Cluster({
+                let clusterSource = markRaw(new Cluster({
                     distance: 50,
                     source: vm.apiarySitesQuerySource,
-                })
+                }))
 
                 let styleCache = {}
-                vm.apiarySitesClusterLayer = new VectorLayer({
+                vm.apiarySitesClusterLayer = markRaw(new VectorLayer({
                     title: 'Cluster Layer',
                     source: clusterSource,
                     style: function (clusteredFeature){
@@ -993,7 +1005,7 @@
                         }
                         return style
                     },
-                });
+                }));
                 vm.map.addLayer(vm.apiarySitesClusterLayer);
                 vm.apiarySitesClusterLayer.setZIndex(10)  
 
@@ -1043,7 +1055,7 @@
                 // Show mouse coordinates
                 vm.map.addControl(new MousePositionControl({
                     coordinateFormat: function(coords){
-                        let message = vm.getDegrees(coords) + "\n";
+                        let message = vm.getDegrees(toLonLat(coords)) + "\n";
                         return  message;
                     },
                     target: document.getElementById('mouse-position'),
@@ -1164,7 +1176,7 @@
                             if (index != -1) {
                                 // feature has been modified
                                 vm.modifyInProgressList.splice(index, 1);
-                                let coords = feature.getGeometry().getCoordinates();
+                                let coords = toLonLat(feature.getGeometry().getCoordinates());
                                 vm.$emit('featureGeometryUpdated', {'id': id, 'coordinates': {'lng': coords[0], 'lat': coords[1]}})
                             }
                         });
@@ -1631,9 +1643,7 @@
         top: 2px;
         right: 8px;
     }
-    .ol-layer canvas {
-        transform: none !important;
-    }
+    /* Removed: 'transform: none !important' was a workaround for OL <7 but breaks OL v10 tile rendering */
     .close-icon:hover {
         filter: brightness(80%);
     }

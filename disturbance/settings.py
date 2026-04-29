@@ -193,8 +193,6 @@ LOGGING['handlers']['console']['level'] = 'DEBUG'
 LOGGING['handlers']['file']['formatter'] = 'verbose2'
 LOGGING['handlers']['file']['level'] = 'INFO'
 
-KMI_SERVER_URL = env('KMI_SERVER_URL', 'https://kmi.dbca.wa.gov.au')
-
 TEMPLATE_TITLE = "Apiary System"
 TEMPLATE_HEADER_LOGO = "/static/disturbance/img/logo-park-stay-trunc.gif"
 TEMPLATE_GROUP = "parkswildlifev2"
@@ -278,6 +276,8 @@ LEDGER_PASS = env('LEDGER_PASS', '')
 KB_USER = env('KB_USER', LEDGER_USER)
 KB_PASSWORD = env('KB_PASSWORD', LEDGER_PASS)
 KB_SERVER_URL = env('KB_SERVER_URL', 'https://kb.dbca.wa.gov.au/')
+KB_BASEMAP_STREET_LAYER = env('KB_BASEMAP_STREET_LAYER', 'kaartdijin-boodja-public:mapbox-streets-public')
+KB_BASEMAP_SATELLITE_LAYER = env('KB_BASEMAP_SATELLITE_LAYER', 'kaartdijin-boodja-public:mapbox-satellite-public')
 
 CSRF_TRUSTED_ORIGINS_STRING = decouple.config("CSRF_TRUSTED_ORIGINS", default='[]')
 CSRF_TRUSTED_ORIGINS = json.loads(str(CSRF_TRUSTED_ORIGINS_STRING))
