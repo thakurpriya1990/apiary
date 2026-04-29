@@ -1052,7 +1052,7 @@
 
                                         vm.drawingLayerSource.addFeature(feature);
                                     } else {
-                                        let feature = (new GeoJSON).readFeature(apiary_site)
+                                        let feature = (new GeoJSON).readFeature(apiary_site, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' })
                                         this.drawingLayerSource.addFeature(feature)
                                         this.createBufferForSite(feature);
                                     }
@@ -1147,13 +1147,13 @@
                 // Retrieve the nearest apiary site from the drawingLayerSource
                 let nearestDrawnSite = this.drawingLayerSource.getClosestFeatureToCoordinate(coords, filter);
                 if (nearestDrawnSite != null) {
-                    candidates.push(getDistance(coords, nearestDrawnSite.getGeometry().getCoordinates()));
+                    candidates.push(getDistance(toLonLat(coords), toLonLat(nearestDrawnSite.getGeometry().getCoordinates())));
                 }
 
                 // Retrieve the nearest apiary site from the existing apiary_sites
                 let nearestQuerySite = this.apiarySitesQuerySource.getClosestFeatureToCoordinate(coords, filter);
                 if (nearestQuerySite != null) {
-                    candidates.push(getDistance(coords, nearestQuerySite.getGeometry().getCoordinates()));
+                    candidates.push(getDistance(toLonLat(coords), toLonLat(nearestQuerySite.getGeometry().getCoordinates())));
                 }
 
                 let min = candidates[0];
@@ -1189,7 +1189,9 @@
                     coords = coords[0];
                 }
 
-                let buffer = new Feature(circular(coords, this.buffer_radius, 16));
+                const bufferGeom = circular(toLonLat(coords), this.buffer_radius, 16);
+                bufferGeom.transform('EPSG:4326', 'EPSG:3857');
+                let buffer = new Feature(bufferGeom);
                 buffer.setId(id)
                 this.bufferLayerSource.addFeature(buffer);
             },
@@ -1544,8 +1546,9 @@
                 //vm.drawingLayerSource = new VectorSource();
                 vm.drawingLayerSource.on('addfeature', async function(e){
                     let coords = e.feature.getGeometry().getCoordinates()
-                    // Construct the URL with query parameters
-                    const url = `/gisdata/?layer=wa_coast_smoothed&lat=${coords[1]}&lng=${coords[0]}`;
+                    // Construct the URL with query parameters (convert EPSG:3857 → EPSG:4326 for the API)
+                    const lonlat = toLonLat(coords);
+                    const url = `/gisdata/?layer=wa_coast_smoothed&lat=${lonlat[1]}&lng=${lonlat[0]}`;
 
                     try {
                     const response = await fetch(url, {
@@ -1625,7 +1628,7 @@
                 // Show mouse coordinates
                 vm.map.addControl(new MousePositionControl({
                     coordinateFormat: function(coords){
-                        let message = vm.getDegrees(coords) + "\n";
+                        let message = vm.getDegrees(toLonLat(coords)) + "\n";
                         let distance = vm.metersToNearest(coords, null);
                         if (distance < Number.POSITIVE_INFINITY) {
                             message += "<br>Nearest: "  + (distance / 1000).toFixed(2) + " km";
@@ -1720,7 +1723,8 @@
                                     modifyInProgressList.splice(index, 1);
                                 }
                                 else {
-                                    const url = `/gisdata/?layer=wa_coast_smoothed&lat=${coords[1]}&lng=${coords[0]}`;
+                                    const lonlat = toLonLat(coords);
+                                    const url = `/gisdata/?layer=wa_coast_smoothed&lat=${lonlat[1]}&lng=${lonlat[0]}`;
                                     const response = await fetch(url, { method: 'GET' });
                                     const body = await response.json();
                                     if (!Object.prototype.hasOwnProperty.call(body, 'id')) {
@@ -1856,12 +1860,12 @@
             tryCreateNewSiteFromForm: function(){
                 let lat = this.proposal.proposal_apiary.latitude
                 let lon = this.proposal.proposal_apiary.longitude
-                let coords = [lon, lat];
                 // rough bounding box for preliminary check
                 if (isNaN(lon) || lon < 112 || lon > 130 ||
                     isNaN(lat) || lat < -35 || lat > -11) {
                     return false;
                 }
+                let coords = fromLonLat([lon, lat]);
                 if(!this.isNewPositionValid(coords))
                 {
                     return false;
@@ -1905,7 +1909,7 @@
                 .then(body => {
                     let num_sites = 0;
                     if (body.features) {
-                    vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                    vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' }));
                     num_sites = body.features.length;
                     }
                     vm.proposal_vacant_draft_loaded = true;
@@ -1923,7 +1927,7 @@
             .then(body => {
                 let num_sites = 0;
                 if (body.features) {
-                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' }));
                 num_sites = body.features.length;
                 }
                 vm.proposal_vacant_processed_loaded = true;
@@ -1940,7 +1944,7 @@
             .then(body => {
                 let num_sites = 0;
                 if (body.features) {
-                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' }));
                 num_sites = body.features.length;
                 }
                 vm.approval_vacant_loaded = true;
@@ -1957,7 +1961,7 @@
             .then(body => {
                 let num_sites = 0;
                 if (body.features) {
-                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' }));
                 num_sites = body.features.length;
                 }
                 vm.proposal_draft_loaded = true;
@@ -1974,7 +1978,7 @@
             .then(body => {
                 let num_sites = 0;
                 if (body.features) {
-                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' }));
                 num_sites = body.features.length;
                 }
                 vm.proposal_processed_loaded = true;
@@ -1991,7 +1995,7 @@
             .then(body => {
                 let num_sites = 0;
                 if (body.features) {
-                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body));
+                vm.apiarySitesQuerySource.addFeatures((new GeoJSON()).readFeatures(body, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' }));
                 num_sites = body.features.length;
                 }
                 vm.approval_loaded = true;

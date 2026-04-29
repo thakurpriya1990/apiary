@@ -80,7 +80,7 @@
     import Awesomplete from 'awesomplete'
     import { api_endpoints } from '@/utils/hooks'
     import { markRaw, toRaw } from 'vue';
-    import { fromLonLat } from 'ol/proj';
+    import { fromLonLat, toLonLat } from 'ol/proj';
     import $ from 'jquery';
     
     export default {
@@ -488,7 +488,7 @@
                 // Show mouse coordinates
                 vm.map.addControl(new MousePositionControl({
                     coordinateFormat: function(coords){
-                        let message = vm.getDegrees(coords) + "\n";
+                        let message = vm.getDegrees(toLonLat(coords)) + "\n";
                         return  message;
                     },
                     target: document.getElementById('mouse-position'),
@@ -610,7 +610,8 @@
                                 // feature has been modified
                                 vm.modifyInProgressList.splice(index, 1);
                                 let coords = feature.getGeometry().getCoordinates();
-                                vm.$emit('featureGeometryUpdated', {'id': id, 'coordinates': {'lng': coords[0], 'lat': coords[1]}})
+                                const lonlat = toLonLat(coords);
+                                vm.$emit('featureGeometryUpdated', {'id': id, 'coordinates': {'lng': lonlat[0], 'lat': lonlat[1]}})
                             }
                         });
                     });
@@ -644,7 +645,7 @@
                                       '<div style="font-size: 0.8em;">' +
                                           '<div>' + status_str + '</div>' +
                                           '<div>' + getDisplayNameOfCategory(feature.get('site_category')) + '</div>' +
-                                          '<div>' + feature['values_']['geometry']['flatCoordinates'] + '</div>' +
+                                          '<div>' + toLonLat(feature.getGeometry().getCoordinates()).map(v => v.toFixed(6)).join(', ') + '</div>' +
                                       '</div>' +
                                   '</div>'
                     this.content_element.innerHTML = content;
@@ -711,7 +712,7 @@
             addApiarySite: function(apiary_site_geojson) {
 
                 let vm = this
-                let feature = (new GeoJSON()).readFeature(apiary_site_geojson)
+                let feature = (new GeoJSON()).readFeature(apiary_site_geojson, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' })
 
                 feature.getGeometry().on("change", function() {
                     let feature_id = feature.getId()
