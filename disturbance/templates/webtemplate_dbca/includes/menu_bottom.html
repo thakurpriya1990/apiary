@@ -1,11 +1,5 @@
 {% load users %}
 {% load tagutils %}
-{% if is_apiary_admin_user or request.user.is_superuser %}
-<li><a class="dropdown-item" href="{% url 'mgt-commands' %}">Management Commands</a></li>
-{% endif %}
-<!-- {% if is_apiary_admin_user or request.user.is_superuser %}
-    <li><a class="dropdown-item" href="/ledger-ui/accounts-management">Accounts Management</a></li>
-{% endif %} -->
 <li><a class="dropdown-item" href="/ledger-ui/accounts">Manage Account</a></li>
 {% for org in request.user.disturbance_organisations.all %}
     {% for org_contact in org.contacts.all%}
