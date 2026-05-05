@@ -26,7 +26,7 @@ proceeding to the next step. Do not move to the next step until the current one 
 
 ### Phase 1: Automated Find & Replace
 - [x] Step 1: `pull-right` / `pull-left` -> `float-end` / `float-start`
-- [ ] Step 2: `btn-default` -> `btn-secondary`
+- [x] Step 2: `btn-default` -> `btn-secondary`
 - [ ] Step 3: `data-toggle` -> `data-bs-toggle`
 - [ ] Step 4: `data-dismiss` -> `data-bs-dismiss`
 - [ ] Step 5: `data-placement` -> `data-bs-placement`

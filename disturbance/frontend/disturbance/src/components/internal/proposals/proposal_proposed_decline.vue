@@ -29,9 +29,9 @@
                 </div>
             </div>
             <template #footer>
-                <button type="button" v-if="decliningProposal" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
-                <button type="button" v-else class="btn btn-default" @click="ok">Ok</button>
-                <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
+                <button type="button" v-if="decliningProposal" disabled class="btn btn-secondary" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
+                <button type="button" v-else class="btn btn-secondary" @click="ok">Ok</button>
+                <button type="button" class="btn btn-secondary" @click="cancel">Cancel</button>
             </template>
         </modal>
     </div>
