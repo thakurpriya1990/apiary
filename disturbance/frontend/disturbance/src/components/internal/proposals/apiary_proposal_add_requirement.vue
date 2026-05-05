@@ -38,7 +38,7 @@
                                         <div class="input-group date" ref="due_date" style="width: 70%;">
                                             <input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="requirement.due_date">
                                             <span class="input-group-addon">
-                                                <span class="glyphicon glyphicon-calendar"></span>
+                                                <span class="fa fa-calendar"></span>
                                             </span>
                                         </div>
                                     </div>

@@ -30,7 +30,7 @@
                   <div class="card-header">
                     <h3 class="card-title">Personal Details <small>Provide your personal details</small>
                         <a href="#pdbody" data-bs-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="pdbody">
-                            <span class="glyphicon glyphicon-chevron-up float-end "></span>
+                            <span class="fa fa-chevron-up float-end "></span>
                         </a>
                     </h3>
                   </div>
@@ -59,7 +59,7 @@
                   <div class="card-header">
                     <h3 class="card-title">Address Details <small>Provide your address details</small>
                         <a href="#adbody" data-bs-toggle="collapse" expanded="false"  data-parent="#userInfo" aria-controls="adbody">
-                            <span class="glyphicon glyphicon-chevron-down float-end "></span>
+                            <span class="fa fa-chevron-down float-end "></span>
                         </a>
                     </h3>
                   </div>
@@ -106,7 +106,7 @@
                   <div class="card-header">
                     <h3 class="card-title">Contact Details <small>Provide your contact details</small>
                         <a href="#cdbody" data-bs-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="cdbody">
-                            <span class="glyphicon glyphicon-chevron-down float-end "></span>
+                            <span class="fa fa-chevron-down float-end "></span>
                         </a>
                     </h3>
                   </div>
@@ -141,7 +141,7 @@
                   <div class="card-header">
                     <h3 class="card-title">Organisation <small>Link to the Organisations you are an employee of and for which you are managing approvals</small>
                         <a href="#orgbody" data-bs-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="orgbody">
-                            <span class="glyphicon glyphicon-chevron-down float-end "></span>
+                            <span class="fa fa-chevron-down float-end "></span>
                         </a>
                     </h3>
                   </div>
@@ -185,7 +185,7 @@
         $('a[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
-                $(chev).toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
+                $(chev).toggleClass("fa-chevron-down fa-chevron-up");
             },100);
         });
     </script>

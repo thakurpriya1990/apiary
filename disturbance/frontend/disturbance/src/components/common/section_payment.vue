@@ -27,7 +27,7 @@
                     <div class="input-group date" ref="invoiceDatePicker">
                         <input type="text" class="form-control" placeholder="DD/MM/YYYY" id="invoice_date_element" />
                         <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-calendar"></span>
+                            <span class="fa fa-calendar"></span>
                         </span>
                     </div>
                 </div>

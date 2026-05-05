@@ -58,14 +58,14 @@ export default {
         },
         panel_collapse_class: function() {
             if (this.formCollapse) {
-                // this.panel_chevron_class = "glyphicon glyphicon-chevron-down float-end";
+                // this.panel_chevron_class = "fa fa-chevron-down float-end";
                 return "card-body collapse";
             } else {
                 if (this.treeHeight) {
-                    // this.panel_chevron_class = "glyphicon glyphicon-chevron-up float-end";
+                    // this.panel_chevron_class = "fa fa-chevron-up float-end";
                     return "card-body collapse show flex-container";
                 } else {
-                    // this.panel_chevron_class = "glyphicon glyphicon-chevron-up float-end";
+                    // this.panel_chevron_class = "fa fa-chevron-up float-end";
                     return "card-body collapse show";
                 }
             }
@@ -75,7 +75,7 @@ export default {
         $('#' + this.custom_id).on('click',function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
-                $(chev).toggleClass("glyphicon-chevron-up glyphicon-chevron-down");
+                $(chev).toggleClass("fa-chevron-up fa-chevron-down");
             }, 100);
         });
     },

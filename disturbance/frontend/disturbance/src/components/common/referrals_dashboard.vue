@@ -27,7 +27,7 @@
                     <div class="input-group date" ref="proposalDateFromPicker">
                         <!-- <input type="text" class="form-control" placeholder="DD/MM/YYYY" v-model="filterProposalLodgedFrom">
                         <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-calendar"></span>
+                            <span class="fa fa-calendar"></span>
                         </span> -->
                          <input
                             id="proposal-lodged-from"
@@ -44,7 +44,7 @@
                     <div class="input-group date" ref="proposalDateToPicker">
                         <!-- <input type="text" class="form-control" placeholder="DD/MM/YYYY" v-model="filterProposalLodgedTo">
                         <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-calendar"></span>
+                            <span class="fa fa-calendar"></span>
                         </span> -->
                         <input
                                 id="proposal-lodged-to"
@@ -471,7 +471,7 @@ export default {
         $( 'a[data-bs-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];
             window.setTimeout( function () {
-                $( chev ).toggleClass( "glyphicon-chevron-down glyphicon-chevron-up" );
+                $( chev ).toggleClass( "fa-chevron-down fa-chevron-up" );
             }, 100 );
         });
         this.$nextTick(() => {

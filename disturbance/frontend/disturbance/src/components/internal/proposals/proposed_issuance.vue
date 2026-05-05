@@ -17,7 +17,7 @@
                                         <div class="input-group date" ref="start_date" style="width: 70%;">
                                             <input type="text" class="form-control" name="start_date" placeholder="DD/MM/YYYY" v-model="approval.start_date">
                                             <span class="input-group-addon">
-                                                <span class="glyphicon glyphicon-calendar"></span>
+                                                <span class="fa fa-calendar"></span>
                                             </span>
                                         </div>
                                     </div>
@@ -37,7 +37,7 @@
                                         <div class="input-group date" ref="due_date" style="width: 70%;">
                                             <input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="approval.expiry_date" :readonly="is_amendment">
                                             <span class="input-group-addon">
-                                                <span class="glyphicon glyphicon-calendar"></span>
+                                                <span class="fa fa-calendar"></span>
                                             </span>
                                         </div>
                                     </div>

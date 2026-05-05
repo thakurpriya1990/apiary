@@ -5,7 +5,7 @@
                 <div class="card-header">
                     <h3 class="card-title">Requirements
                         <a class="panelClicker" :href="'#'+panelBody" data-bs-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="panelBody">
-                            <span class="glyphicon glyphicon-chevron-down float-end "></span>
+                            <span class="fa fa-chevron-down float-end "></span>
                         </a>
                     </h3>
                 </div>

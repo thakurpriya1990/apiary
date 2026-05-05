@@ -8,7 +8,7 @@
                         <div class="card-header">
                             <h3 class="card-title">Region, District, Activity Type, Sub Activity, ...
                                 <a :href="'#'+pBody2" data-bs-toggle="collapse"  data-parent="#userInfo2" expanded="true" :aria-controls="pBody2">
-                                    <span class="glyphicon glyphicon-chevron-up float-end "></span>
+                                    <span class="fa fa-chevron-up float-end "></span>
                                 </a>
                             </h3>
                         </div>

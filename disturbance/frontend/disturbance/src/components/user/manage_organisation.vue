@@ -605,7 +605,7 @@ export default {
             let chev = null;
             $(el).on('click', function () {
                 chev = $(this);
-                $(chev).toggleClass('glyphicon-chevron-down glyphicon-chevron-up');
+                $(chev).toggleClass('fa-chevron-down fa-chevron-up');
             })
         },
         fetchOrgRequestPending:function (){
@@ -704,7 +704,7 @@ export default {
         $('.panelClicker[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
-                $(chev).toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
+                $(chev).toggleClass("fa-chevron-down fa-chevron-up");
             },100);
         });
         let request = fetch_util.fetchUrl(api_endpoints.is_new_user)

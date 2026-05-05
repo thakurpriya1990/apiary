@@ -943,7 +943,7 @@ export default {
         $( 'a[data-bs-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];
             window.setTimeout( function () {
-                $( chev ).toggleClass( "glyphicon-chevron-down glyphicon-chevron-up" );
+                $( chev ).toggleClass( "fa-chevron-down fa-chevron-up" );
             }, 100 );
         });
     },
