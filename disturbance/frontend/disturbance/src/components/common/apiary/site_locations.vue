@@ -10,16 +10,16 @@
                 type="number"
                 min="-36"
                 max="-12"
-                class="form-control grow1 ml-1"
+                class="form-control grow1 ms-1"
                 v-model.number="proposal.proposal_apiary.latitude"
                 :readonly="readonly || (is_proposal_type_renewal && !proposal.is_internal_user)"
             />
-            <label class="inline grow1 ml-2">Longitude:</label>
+            <label class="inline grow1 ms-2">Longitude:</label>
             <input
                 type="number"
                 min="110"
                 max="129"
-                class="form-control grow1 ml-1"
+                class="form-control grow1 ms-1"
                 v-model.number="proposal.proposal_apiary.longitude"
                 :readonly="readonly || (is_proposal_type_renewal && !proposal.is_internal_user)"
             />
@@ -28,7 +28,7 @@
                 type="button"
                 @click="tryCreateNewSiteFromForm"
                 value="Add proposed site"
-                class="btn btn-primary grow1 ml-3"
+                class="btn btn-primary grow1 ms-3"
             />
         </div>
 
@@ -2170,13 +2170,13 @@
     .grow1 {
         flex-grow: 1;
     }
-    .ml-1 {
+    .ms-1 {
         margin-left: 0.25em !important;
     }
-    .ml-2 {
+    .ms-2 {
         margin-left: 0.5em !important;
     }
-    .ml-3 {
+    .ms-3 {
         margin-left: 1em !important;
     }
     .mt-2 {
