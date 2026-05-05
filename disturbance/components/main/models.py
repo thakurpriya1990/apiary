@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import logging
 import os
 
 from django.contrib.gis.db.models import MultiPolygonField
@@ -23,6 +24,8 @@ from django.core.files.base import ContentFile
 from django.apps import apps
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+
+logger = logging.getLogger(__name__)
 private_storage = FileSystemStorage(location=settings.BASE_DIR+"/private-media/", base_url='/private-media/')
 
 class SanitiseMixin(models.Model):
@@ -130,6 +133,9 @@ class SanitiseFileMixin(SanitiseMixin, DirtyFieldsMixin):
             read = file_content.read()
             if bool(read):
                 setattr(self, file_field, storage.save('{}/{}'.format(path_to_file,generated_file_name), ContentFile(read)))
+            else:
+                logger.warning("Empty file upload rejected: model=%s file=%s", self._meta.model_name, str(file_content))
+                raise ValidationError("The uploaded file is empty. Please select a valid file.")
         elif file_field in self.get_dirty_fields() and self.get_dirty_fields()[file_field]:
             raise ValidationError("Cannot change file")
 
