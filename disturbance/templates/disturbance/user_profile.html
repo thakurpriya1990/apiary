@@ -3,7 +3,7 @@
 {% block extra_css %}
 {{ super }}
     <style media="screen">
-        h3.panel-title{
+        h3.card-title{
             font-weight: bold;
             font-size: 25px;
             padding:20px;
@@ -26,15 +26,15 @@
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="panel panel-default">
-                  <div class="panel-heading">
-                    <h3 class="panel-title">Personal Details <small>Provide your personal details</small>
+                <div class="card card">
+                  <div class="card-header">
+                    <h3 class="card-title">Personal Details <small>Provide your personal details</small>
                         <a href="#pdbody" data-bs-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="pdbody">
                             <span class="glyphicon glyphicon-chevron-up float-end "></span>
                         </a>
                     </h3>
                   </div>
-                  <div class="panel-body collapse show" id="pdbody">
+                  <div class="card-body collapse show" id="pdbody">
                       <form class="form-horizontal" action="index.html" method="post">
                           <div class="mb-3">
                             <label for="" class="col-sm-2 col-form-label">Given name(s)</label>
@@ -55,15 +55,15 @@
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="panel panel-default">
-                  <div class="panel-heading">
-                    <h3 class="panel-title">Address Details <small>Provide your address details</small>
+                <div class="card card">
+                  <div class="card-header">
+                    <h3 class="card-title">Address Details <small>Provide your address details</small>
                         <a href="#adbody" data-bs-toggle="collapse" expanded="false"  data-parent="#userInfo" aria-controls="adbody">
                             <span class="glyphicon glyphicon-chevron-down float-end "></span>
                         </a>
                     </h3>
                   </div>
-                  <div class="panel-body collapse" id="adbody">
+                  <div class="card-body collapse" id="adbody">
                       <form class="form-horizontal" action="index.html" method="post">
                           <div class="mb-3">
                             <label for="" class="col-sm-2 col-form-label">Street</label>
@@ -102,15 +102,15 @@
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="panel panel-default">
-                  <div class="panel-heading">
-                    <h3 class="panel-title">Contact Details <small>Provide your contact details</small>
+                <div class="card card">
+                  <div class="card-header">
+                    <h3 class="card-title">Contact Details <small>Provide your contact details</small>
                         <a href="#cdbody" data-bs-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="cdbody">
                             <span class="glyphicon glyphicon-chevron-down float-end "></span>
                         </a>
                     </h3>
                   </div>
-                  <div class="panel-body collapse" id="cdbody">
+                  <div class="card-body collapse" id="cdbody">
                       <form class="form-horizontal" action="index.html" method="post">
                           <div class="mb-3">
                             <label for="" class="col-sm-2 col-form-label">Phone (work)</label>
@@ -137,15 +137,15 @@
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="panel panel-default">
-                  <div class="panel-heading">
-                    <h3 class="panel-title">Organisation <small>Link to the Organisations you are an employee of and for which you are managing approvals</small>
+                <div class="card card">
+                  <div class="card-header">
+                    <h3 class="card-title">Organisation <small>Link to the Organisations you are an employee of and for which you are managing approvals</small>
                         <a href="#orgbody" data-bs-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="orgbody">
                             <span class="glyphicon glyphicon-chevron-down float-end "></span>
                         </a>
                     </h3>
                   </div>
-                  <div class="panel-body collapse" id="orgbody">
+                  <div class="card-body collapse" id="orgbody">
                       <form class="form-horizontal" action="index.html" method="post">
                           <div class="mb-3">
                             <label for="" class="col-sm-6 col-form-label">Do you manage approvals on behalf of an organisation?</label>

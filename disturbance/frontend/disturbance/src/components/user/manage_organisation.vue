@@ -7,7 +7,7 @@
                     label="Organisations"
                     subtitle="Link to the Organisations you are an employee of and for which you are managing licences"
                 >
-                    <div class="panel panel-default">
+                    <div class="card card">
                       <form class="form-horizontal" name="orgForm" method="post">
                           <div class="mb-3">
                             <label for="" class="col-sm-5 col-form-label">Do you manage licences on behalf of an organisation?</label>

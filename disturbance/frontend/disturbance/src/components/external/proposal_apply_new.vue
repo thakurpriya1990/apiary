@@ -4,16 +4,16 @@
             <!-- <div class="col-sm-3"></div> -->
             <div class="">
                 <form class="form-horizontal" name="personal_form" method="post">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">Region, District, Activity Type, Sub Activity, ...
+                    <div class="card card">
+                        <div class="card-header">
+                            <h3 class="card-title">Region, District, Activity Type, Sub Activity, ...
                                 <a :href="'#'+pBody2" data-bs-toggle="collapse"  data-parent="#userInfo2" expanded="true" :aria-controls="pBody2">
                                     <span class="glyphicon glyphicon-chevron-up float-end "></span>
                                 </a>
                             </h3>
                         </div>
                         
-                        <div class="panel-body collapse show" :id="pBody2">
+                        <div class="card-body collapse show" :id="pBody2">
                             <div v-if="proposal">
                                 <label for="" class="form-label" >Region * <a :href="region_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a> </label>
                                 <div v-if="proposal.readonly" class="col-sm-12">

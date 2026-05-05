@@ -1,7 +1,7 @@
 <template lang="html">
-    <div class="panel panel-default" >
-      <div v-if="!hideHeader" class="panel-heading">
-        <h3 class="panel-title">{{label}} <small v-if="subheading"> - {{subheading}}</small> 
+    <div class="card card" >
+      <div v-if="!hideHeader" class="card-header">
+        <h3 class="card-title">{{label}} <small v-if="subheading"> - {{subheading}}</small> 
             <a :href="'#'+section_id" class="panelClicker" :id="custom_id" data-bs-toggle="collapse" expanded="true" :aria-controls="section_id">
                 <span :class="panel_chevron_class"></span>
             </a>
@@ -59,14 +59,14 @@ export default {
         panel_collapse_class: function() {
             if (this.formCollapse) {
                 // this.panel_chevron_class = "glyphicon glyphicon-chevron-down float-end";
-                return "panel-body collapse";
+                return "card-body collapse";
             } else {
                 if (this.treeHeight) {
                     // this.panel_chevron_class = "glyphicon glyphicon-chevron-up float-end";
-                    return "panel-body collapse show flex-container";
+                    return "card-body collapse show flex-container";
                 } else {
                     // this.panel_chevron_class = "glyphicon glyphicon-chevron-up float-end";
-                    return "panel-body collapse show";
+                    return "card-body collapse show";
                 }
             }
         },
@@ -85,7 +85,7 @@ export default {
 </script>
 
 <style lang="css">
-    h3.panel-title{
+    h3.card-title{
         font-weight: bold;
         font-size: 25px;
         padding:20px;

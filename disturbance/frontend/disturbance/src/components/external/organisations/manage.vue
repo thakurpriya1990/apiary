@@ -31,7 +31,7 @@
                     index="linked_persons"
                     subtitle="Manage the user accounts linked to the organisation"
                 >
-                    <div class="panel panel-default">
+                    <div class="card card">
                         <div class="col-sm-12 row mb-3">
                             <h6>Use the Organisation Administrator pin codes if you want the new user to be linked as organisation administrator.<br> Use the Organisation User pin codes if you want the new user to be linked as organisation user.</h6>
                         </div>

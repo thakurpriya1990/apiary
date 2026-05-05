@@ -83,11 +83,11 @@
             <div class="row">
                 <div v-show="false" class="col-md-12">
                     <div class="row">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
+                        <div class="card card">
+                            <div class="card-header">
                                 <h3>Level of Approval</h3>
                             </div>
-                            <div class="panel-body panel-collapse">
+                            <div class="card-body card-body collapse">
                             </div>
                         </div>
                     </div>
