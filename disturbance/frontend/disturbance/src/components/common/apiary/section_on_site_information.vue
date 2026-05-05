@@ -351,7 +351,7 @@
                 //    // Get full data of this row
                     let $row = vm.$refs.on_site_information_table.vmDataTable.row(tr)
                     if($row.child.isShown()){
-                        tr.siblings('.child').find('[data-toggle="popover"]')
+                        tr.siblings('.child').find('[data-bs-toggle="popover"]')
                         .popover()
                         .on('click', function (e) {
                             e.preventDefault();

@@ -648,7 +648,7 @@ export default {
         console.log('in mounted')
         this.fetchFilterLists();
         this.fetchProfile();
-        $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
+        $( 'a[data-bs-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];
             window.setTimeout( function () {
                 $( chev ).toggleClass( "glyphicon-chevron-down glyphicon-chevron-up" );

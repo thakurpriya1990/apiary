@@ -29,7 +29,7 @@
                 <div class="panel panel-default">
                   <div class="panel-heading">
                     <h3 class="panel-title">Personal Details <small>Provide your personal details</small>
-                        <a href="#pdbody" data-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="pdbody">
+                        <a href="#pdbody" data-bs-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="pdbody">
                             <span class="glyphicon glyphicon-chevron-up float-end "></span>
                         </a>
                     </h3>
@@ -58,7 +58,7 @@
                 <div class="panel panel-default">
                   <div class="panel-heading">
                     <h3 class="panel-title">Address Details <small>Provide your address details</small>
-                        <a href="#adbody" data-toggle="collapse" expanded="false"  data-parent="#userInfo" aria-controls="adbody">
+                        <a href="#adbody" data-bs-toggle="collapse" expanded="false"  data-parent="#userInfo" aria-controls="adbody">
                             <span class="glyphicon glyphicon-chevron-down float-end "></span>
                         </a>
                     </h3>
@@ -105,7 +105,7 @@
                 <div class="panel panel-default">
                   <div class="panel-heading">
                     <h3 class="panel-title">Contact Details <small>Provide your contact details</small>
-                        <a href="#cdbody" data-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="cdbody">
+                        <a href="#cdbody" data-bs-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="cdbody">
                             <span class="glyphicon glyphicon-chevron-down float-end "></span>
                         </a>
                     </h3>
@@ -140,7 +140,7 @@
                 <div class="panel panel-default">
                   <div class="panel-heading">
                     <h3 class="panel-title">Organisation <small>Link to the Organisations you are an employee of and for which you are managing approvals</small>
-                        <a href="#orgbody" data-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="orgbody">
+                        <a href="#orgbody" data-bs-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="orgbody">
                             <span class="glyphicon glyphicon-chevron-down float-end "></span>
                         </a>
                     </h3>
@@ -182,7 +182,7 @@
 {% block custom_js %}
     {{ super }}
     <script type="text/javascript">
-        $('a[data-toggle="collapse"]').on('click', function () {
+        $('a[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
                 $(chev).toggleClass("glyphicon-chevron-down glyphicon-chevron-up");

@@ -7,7 +7,7 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h3 class="panel-title">Region, District, Activity Type, Sub Activity, ...
-                                <a :href="'#'+pBody2" data-toggle="collapse"  data-parent="#userInfo2" expanded="true" :aria-controls="pBody2">
+                                <a :href="'#'+pBody2" data-bs-toggle="collapse"  data-parent="#userInfo2" expanded="true" :aria-controls="pBody2">
                                     <span class="glyphicon glyphicon-chevron-up float-end "></span>
                                 </a>
                             </h3>

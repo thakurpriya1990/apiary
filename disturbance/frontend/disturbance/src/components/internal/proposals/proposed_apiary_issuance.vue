@@ -237,7 +237,7 @@
 
             <template #footer>
                 <button type="button" v-if="issuingApproval" disabled class="btn btn-primary" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
-                <span v-else-if="ok_button_disabled" class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Please select at least one site to issue">
+                <span v-else-if="ok_button_disabled" class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Please select at least one site to issue">
                     <button type="button" style="pointer-events: none;" class="btn btn-primary" @click="ok" disabled>Ok</button>
                 </span>
                 <button v-else type="button" class="btn btn-primary" @click="ok" >Ok</button>

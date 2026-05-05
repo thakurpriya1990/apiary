@@ -2,7 +2,7 @@
     <div class="panel panel-default" >
       <div v-if="!hideHeader" class="panel-heading">
         <h3 class="panel-title">{{label}} <small v-if="subheading"> - {{subheading}}</small> 
-            <a :href="'#'+section_id" class="panelClicker" :id="custom_id" data-toggle="collapse" expanded="true" :aria-controls="section_id">
+            <a :href="'#'+section_id" class="panelClicker" :id="custom_id" data-bs-toggle="collapse" expanded="true" :aria-controls="section_id">
                 <span :class="panel_chevron_class"></span>
             </a>
         </h3>

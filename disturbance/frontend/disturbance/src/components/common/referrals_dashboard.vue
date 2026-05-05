@@ -468,7 +468,7 @@ export default {
     mounted: function(){
         let vm = this;
         vm.fetchFilterLists();
-        $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
+        $( 'a[data-bs-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];
             window.setTimeout( function () {
                 $( chev ).toggleClass( "glyphicon-chevron-down glyphicon-chevron-up" );

@@ -4,7 +4,7 @@
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">Requirements
-                        <a class="panelClicker" :href="'#'+panelBody" data-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="panelBody">
+                        <a class="panelClicker" :href="'#'+panelBody" data-bs-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="panelBody">
                             <span class="glyphicon glyphicon-chevron-down float-end "></span>
                         </a>
                     </h3>
@@ -105,7 +105,7 @@ export default {
                                 result = '<span>' + truncated + '</span>',
                                 popTemplate = _.template('<a href="#" ' +
                                     'role="button" ' +
-                                    'data-toggle="popover" ' +
+                                    'data-bs-toggle="popover" ' +
                                     'data-trigger="click" ' +
                                     'data-placement="top auto"' +
                                     'data-html="true" ' +

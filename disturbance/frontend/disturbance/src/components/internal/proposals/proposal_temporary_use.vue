@@ -800,7 +800,7 @@ export default {
     updated: function(){
         let vm = this;
         if (!vm.panelClickersInitialised){
-            $('.panelClicker[data-toggle="collapse"]').on('click', function () {
+            $('.panelClicker[data-bs-toggle="collapse"]').on('click', function () {
                 var chev = $(this).children()[0];
                 window.setTimeout(function () {
                     $(chev).toggleClass("glyphicon-chevron-down glyphicon-chevron-up");

@@ -284,7 +284,7 @@ export default {
                                 }
                                 popTemplate = _.template('<a href="#" ' +
                                         'role="button" ' +
-                                        'data-toggle="popover" ' +
+                                        'data-bs-toggle="popover" ' +
                                         'data-trigger="hover" ' +
                                         'data-placement="top auto"' +
                                         'data-html="true" ' +
@@ -940,7 +940,7 @@ export default {
     mounted: function(){
 		this.fetchFilterLists();
         this.fetchProfile();
-        $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
+        $( 'a[data-bs-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];
             window.setTimeout( function () {
                 $( chev ).toggleClass( "glyphicon-chevron-down glyphicon-chevron-up" );
