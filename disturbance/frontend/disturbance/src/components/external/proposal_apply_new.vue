@@ -15,10 +15,10 @@
                         
                         <div class="panel-body collapse in" :id="pBody2">
                             <div v-if="proposal">
-                                <label for="" class="control-label" >Region * <a :href="region_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a> </label>
+                                <label for="" class="form-label" >Region * <a :href="region_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a> </label>
                                 <div v-if="proposal.readonly" class="col-sm-12">
                                     <div class="mb-3">
-                                        <label for="" class="control-label" >{{proposal.region_name}}</label>
+                                        <label for="" class="form-label" >{{proposal.region_name}}</label>
                                     </div>
                                 </div>
                                 <div v-else class="col-sm-12">
@@ -34,10 +34,10 @@
                             </div> 
 
                             <div v-if="proposal.region">
-                                <label for="" class="control-label" style="font-weight: normal;">District <a :href="district_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
+                                <label for="" class="form-label" style="font-weight: normal;">District <a :href="district_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
                                 <div v-if="proposal.readonly" class="col-sm-12">
                                         <div class="mb-3">
-                                            <label for="" class="control-label" >{{proposal.district_name}}</label>
+                                            <label for="" class="form-label" >{{proposal.district_name}}</label>
                                         </div>
                                 </div>
                                 <div v-else class="col-sm-12">
@@ -54,10 +54,10 @@
 
                             <div v-if="display_activity_matrix_selectbox">
 								<div v-if="activities.length > 0">
-									<label for="" class="control-label" >Activity Type * <a :href="activity_type_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
+									<label for="" class="form-label" >Activity Type * <a :href="activity_type_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
 									<div v-if="proposal.readonly" class="col-sm-12">
                                         <div class="mb-3">
-                                            <label for="" class="control-label" >{{proposal.activity}}</label>
+                                            <label for="" class="form-label" >{{proposal.activity}}</label>
                                         </div>
                                     </div>
                                     <div v-else class="col-sm-12">
@@ -73,10 +73,10 @@
 								</div>
 
 								<div v-if="sub_activities1.length > 0">
-									<label for="" class="control-label" >Sub Activity 1 * <a :href="sub_activity_1_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
+									<label for="" class="form-label" >Sub Activity 1 * <a :href="sub_activity_1_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
 									<div v-if="proposal.readonly" class="col-sm-12">
                                         <div class="mb-3">
-                                            <label for="" class="control-label" >{{proposal.sub_activity_level1}}</label>
+                                            <label for="" class="form-label" >{{proposal.sub_activity_level1}}</label>
                                         </div>
                                     </div>
                                     <div v-else class="col-sm-12">
@@ -92,10 +92,10 @@
 								</div>
 
 								<div v-if="sub_activities2.length > 0">
-									<label for="" class="control-label" >Sub Activity 2 * <a :href="sub_activity_2_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
+									<label for="" class="form-label" >Sub Activity 2 * <a :href="sub_activity_2_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
 									<div v-if="proposal.readonly" class="col-sm-12">
                                         <div class="mb-3">
-                                            <label for="" class="control-label" >{{proposal.sub_activity_level2}}</label>
+                                            <label for="" class="form-label" >{{proposal.sub_activity_level2}}</label>
                                         </div>
                                     </div>
                                     <div v-else class="col-sm-12">
@@ -111,10 +111,10 @@
 								</div>
 
 								<div v-if="categories.length > 0">
-									<label for="" class="control-label" >Category * <a :href="category_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
+									<label for="" class="form-label" >Category * <a :href="category_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
 									<div v-if="proposal.readonly" class="col-sm-12">
                                         <div class="mb-3">
-                                            <label for="" class="control-label" >{{proposal.management_area}}</label>
+                                            <label for="" class="form-label" >{{proposal.management_area}}</label>
                                         </div>
                                     </div>
                                     <div v-else class="col-sm-12">

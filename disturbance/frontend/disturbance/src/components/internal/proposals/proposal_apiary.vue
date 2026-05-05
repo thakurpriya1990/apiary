@@ -56,7 +56,7 @@
                                         </select>
                                         <template v-if='!sendingReferral'>
                                             <template v-if="selected_referral">
-                                                <label class="control-label float-start"  for="Name">Comments</label>
+                                                <label class="form-label float-start"  for="Name">Comments</label>
                                                 <textarea class="form-control" name="name" v-model="referral_text"></textarea>
                                                 <a v-if="canLimitedAction" @click.prevent="sendReferral()" class="actionBtn float-end">Send</a>
                                             </template>
@@ -184,7 +184,7 @@
                                     </div>
                                 </div>
                                 <div class="col-sm-12">
-                                    <label class="control-label float-start"  for="Name">Approver Comments</label>
+                                    <label class="form-label float-start"  for="Name">Approver Comments</label>
                                     <textarea class="form-control" name="name" v-model="approver_comment"></textarea><br>
                                 </div>
                                 <div class="col-sm-12" v-if="proposal.proposed_decline_status">

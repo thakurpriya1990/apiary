@@ -131,8 +131,8 @@
                         <div class="row mb-3">
                             <label for="" class="col-sm-3 col-form-label" >Document</label>
                             <div class="col-sm-4">
-                                <!-- <p><a target="_blank" :href="approval.licence_document" class="control-label float-start">Approval.pdf</a></p> -->
-                                <!--p><a :href="'#'+approval.id" class="control-label float-start" @click="viewApprovalPDF(approval.id, approval.latest_apiary_licence_document)">Approval.pdf</a></p-->
+                                <!-- <p><a target="_blank" :href="approval.licence_document" class="form-label float-start">Approval.pdf</a></p> -->
+                                <!--p><a :href="'#'+approval.id" class="form-label float-start" @click="viewApprovalPDF(approval.id, approval.latest_apiary_licence_document)">Approval.pdf</a></p-->
                                 <p><a target="_blank" :href="approval.latest_apiary_licence_document" class="col-form-label float-start">Licence.pdf</a></p>
                             </div>
                         </div>

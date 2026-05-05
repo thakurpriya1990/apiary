@@ -7,7 +7,7 @@
                     <FormSection :formCollapse="false" :label="amendmentRequestText" Index="amendment_request">
                         <div v-for="a in amendment_request" :key="a.id">
                           <p>Reason: {{a.reason}}</p>
-                          <p v-if="a.amendment_request_documents">Documents: </p><p v-for="d in a.amendment_request_documents" :key="d.id"><a :href="d._file" target="_blank" class="control-label float-start">{{d.name   }}</a><br></p>
+                          <p v-if="a.amendment_request_documents">Documents: </p><p v-for="d in a.amendment_request_documents" :key="d.id"><a :href="d._file" target="_blank" class="form-label float-start">{{d.name   }}</a><br></p>
                           <p>Details: </p> <p v-for="t in splitText(a.text)" :key="t.text">{{t}}</p>
                         </div>
                     </FormSection>

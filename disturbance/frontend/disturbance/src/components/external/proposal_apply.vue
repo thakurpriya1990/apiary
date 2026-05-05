@@ -50,7 +50,7 @@
                         </div>
                         <div class="card-body collapse show" :id="pBody2">
                             <div>
-                                <label for="" class="control-label" >{{ objectTypeLabel }}</label>
+                                <label for="" class="form-label" >{{ objectTypeLabel }}</label>
                                 <div class="col-sm-12">
                                     <div class="mb-3">
                                         <select class="form-select" style="width:40%" v-model="selected_application_id" @change="chainedSelectAppType(selected_application_id)">
@@ -64,7 +64,7 @@
                             </div>
 
                             <div v-if="display_region_selectbox">
-                                <label for="" class="control-label" >Region * <a :href="region_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a> </label>
+                                <label for="" class="form-label" >Region * <a :href="region_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a> </label>
                                 <div class="col-sm-12">
                                     <div class="mb-3">
                                         <select v-model="selected_region" class="form-select" style="width:40%" @change="chainedSelectDistricts(selected_region)">
@@ -78,7 +78,7 @@
                             </div>
 
                             <div v-if="display_region_selectbox && selected_region">
-                                <label for="" class="control-label" style="font-weight: normal;">District <a :href="district_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
+                                <label for="" class="form-label" style="font-weight: normal;">District <a :href="district_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
                                 <div class="col-sm-12">
                                     <div class="mb-3">
                                         <select  v-model="selected_district" class="form-select" style="width:40%">
@@ -93,7 +93,7 @@
 
                             <div v-if="display_activity_matrix_selectbox">
 								<div v-if="activities.length > 0">
-									<label for="" class="control-label" >Activity Type * <a :href="activity_type_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
+									<label for="" class="form-label" >Activity Type * <a :href="activity_type_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
 									<div class="col-sm-12">
 										<div class="mb-3">
 											<select v-model="selected_activity" @change="chainedSelectSubActivities1(selected_activity)" class="form-select" style="width:40%">
@@ -107,7 +107,7 @@
 								</div>
 
 								<div v-if="sub_activities1.length > 0">
-									<label for="" class="control-label" >Sub Activity 1 * <a :href="sub_activity_1_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
+									<label for="" class="form-label" >Sub Activity 1 * <a :href="sub_activity_1_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
 									<div class="col-sm-12">
 										<div class="mb-3">
 											<select v-model="selected_sub_activity1" @change="chainedSelectSubActivities2(selected_sub_activity1)" class="form-select" style="width:40%">
@@ -121,7 +121,7 @@
 								</div>
 
 								<div v-if="sub_activities2.length > 0">
-									<label for="" class="control-label" >Sub Activity 2 * <a :href="sub_activity_2_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
+									<label for="" class="form-label" >Sub Activity 2 * <a :href="sub_activity_2_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
 									<div class="col-sm-12">
 										<div class="mb-3">
 											<select v-model="selected_sub_activity2" @change="chainedSelectCategories(selected_sub_activity2)" class="form-select" style="width:40%">
@@ -135,7 +135,7 @@
 								</div>
 
 								<div v-if="categories.length > 0">
-									<label for="" class="control-label" >Category * <a :href="category_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
+									<label for="" class="form-label" >Category * <a :href="category_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
 									<div class="col-sm-12">
 										<div class="mb-3">
 											<select v-model="selected_category" @change="get_approval_level(selected_category)" class="form-select" style="width:40%">

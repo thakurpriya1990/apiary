@@ -10,8 +10,8 @@
                             <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
-                                        <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">Start Date</label>
-                                        <label v-else class="control-label float-start"  for="Name">Proposed Start Date</label>
+                                        <label v-if="processing_status == 'With Approver'" class="form-label float-start"  for="Name">Start Date</label>
+                                        <label v-else class="form-label float-start"  for="Name">Proposed Start Date</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="start_date" style="width: 70%;">
@@ -30,8 +30,8 @@
                             <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
-                                        <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">Expiry Date</label>
-                                        <label v-else class="control-label float-start"  for="Name">Proposed Expiry Date</label>
+                                        <label v-if="processing_status == 'With Approver'" class="form-label float-start"  for="Name">Expiry Date</label>
+                                        <label v-else class="form-label float-start"  for="Name">Proposed Expiry Date</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="due_date" style="width: 70%;">
@@ -51,8 +51,8 @@
                             <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
-                                        <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">Details</label>
-                                        <label v-else class="control-label float-start"  for="Name">Proposed Details</label>
+                                        <label v-if="processing_status == 'With Approver'" class="form-label float-start"  for="Name">Details</label>
+                                        <label v-else class="form-label float-start"  for="Name">Proposed Details</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <textarea name="approval_details" class="form-control" style="width:70%;" v-model="approval.details"></textarea>
@@ -62,8 +62,8 @@
                             <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
-                                        <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">BCC email</label>
-                                        <label v-else class="control-label float-start"  for="Name">Proposed BCC email</label>
+                                        <label v-if="processing_status == 'With Approver'" class="form-label float-start"  for="Name">BCC email</label>
+                                        <label v-else class="form-label float-start"  for="Name">Proposed BCC email</label>
                                     </div>
                                     <div class="col-sm-9">
                                             <input type="text" class="form-control" name="approval_cc" style="width:70%;" ref="bcc_email" v-model="approval.cc_email">
@@ -78,8 +78,8 @@
                             <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <label v-if="submitter_email && applicant_email" class="control-label float-start"  for="Name">After approving this proposal, approval will be emailed to {{submitter_email}} and {{applicant_email}}.</label>
-                                        <label v-else class="control-label float-start"  for="Name">After approving this proposal, approval will be emailed to {{submitter_email}}.</label>
+                                        <label v-if="submitter_email && applicant_email" class="form-label float-start"  for="Name">After approving this proposal, approval will be emailed to {{submitter_email}} and {{applicant_email}}.</label>
+                                        <label v-else class="form-label float-start"  for="Name">After approving this proposal, approval will be emailed to {{submitter_email}}.</label>
                                     </div>
                                     
                                 </div>

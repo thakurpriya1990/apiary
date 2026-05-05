@@ -5,7 +5,7 @@
         <div v-if="has_uploaded_docs" class="mb-3">
             <div class="row">
                 <div class="col-sm-6">
-                    <label class="control-label float-start"  for="Name">Uploaded Documents</label>
+                    <label class="form-label float-start"  for="Name">Uploaded Documents</label>
                 </div>
                 <div class="col-sm-6">
                     <div class="input-group date" ref="due_date" style="width: 70%;">

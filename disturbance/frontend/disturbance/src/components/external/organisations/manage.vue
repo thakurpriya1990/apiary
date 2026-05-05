@@ -38,13 +38,13 @@
                         <form class="form-horizontal" action="index.html" method="post">
                              <div class="row mb-3">
                                     <div class="col-sm-6">
-                                        <label for="" class="control-label"> Organisation User Pin Code 1:</label>
+                                        <label for="" class="form-label"> Organisation User Pin Code 1:</label>
                                     </div>
                                     <div class="col-sm-6">
                                         {{org.pins.three}}
                                     </div>
                                     <div class="col-sm-6">
-                                        <label for="" class="control-label" >Organisation User Pin Code 2:</label>
+                                        <label for="" class="form-label" >Organisation User Pin Code 2:</label>
                                     </div>
                                     <div class="col-sm-6">
                                         {{org.pins.four}}
@@ -53,13 +53,13 @@
                             
                              <div class="row mb-3" :disabled ='!myorgperms.is_admin'>
                                     <div class="col-sm-6">
-                                        <label for="" class="control-label"> Organisation Administrator Pin Code 1:</label>
+                                        <label for="" class="form-label"> Organisation Administrator Pin Code 1:</label>
                                     </div>
                                     <div class="col-sm-6">
                                         {{org.pins.one}}
                                     </div>
                                     <div class="col-sm-6">
-                                        <label for="" class="control-label" >Organisation Administrator Pin Code 2:</label>
+                                        <label for="" class="form-label" >Organisation Administrator Pin Code 2:</label>
                                     </div>
                                     <div class="col-sm-6">
                                        {{org.pins.two}}

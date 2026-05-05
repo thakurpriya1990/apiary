@@ -10,7 +10,7 @@
                     <div class="panel panel-default">
                       <form class="form-horizontal" name="orgForm" method="post">
                           <div class="mb-3">
-                            <label for="" class="col-sm-5 control-label">Do you manage licences on behalf of an organisation?</label>
+                            <label for="" class="col-sm-5 col-form-label">Do you manage licences on behalf of an organisation?</label>
                             <div class="col-sm-4">
                                  <label class="radio-inline">
                                   <input :disabled="hasOrgs" type="radio" name="behalf_of_org" v-model="managesOrg" value="No" > No
@@ -30,11 +30,11 @@
                           </div>
                           <div v-for="org in current_user.wildlifecompliance_organisations" v-bind:key="org.id">
                               <div class="mb-3">
-                                <label for="" class="col-sm-2 control-label" >Organisation</label>
+                                <label for="" class="col-sm-2 col-form-label" >Organisation</label>
                                 <div class="col-sm-3"> 
                                     <input type="text" disabled class="form-control" name="organisation" v-model="org.name" placeholder="">
                                 </div>
-                                <label for="" class="col-sm-1 control-label" >ABN/ACN</label>
+                                <label for="" class="col-sm-1 col-form-label" >ABN/ACN</label>
                                 <div class="col-sm-3"> 
                                     <input type="text" disabled class="form-control" name="organisation" v-model="org.abn" placeholder="">
                                 </div>
@@ -43,11 +43,11 @@
                           </div>
                           <div v-for="orgReq in orgRequest_pending" v-bind:key="orgReq.id">
                               <div class="mb-3">
-                                <label for="" class="col-sm-2 control-label" >Organisation</label>
+                                <label for="" class="col-sm-2 col-form-label" >Organisation</label>
                                 <div class="col-sm-3"> 
                                     <input type="text" disabled class="form-control" name="organisation" v-model="orgReq.name" placeholder="">
                                 </div>
-                                <label for="" class="col-sm-1 control-label" >ABN/ACN</label>
+                                <label for="" class="col-sm-1 col-form-label" >ABN/ACN</label>
                                 <div class="col-sm-3"> 
                                     <input type="text" disabled class="form-control" name="organisation" v-model="orgReq.abn" placeholder="">
                                 </div>
@@ -56,11 +56,11 @@
                           </div>
                           <div v-for="orgReq in orgRequest_amendment_requested" v-bind:key="orgReq.id">
                               <div class="mb-3">
-                                <label for="" class="col-sm-2 control-label" >Organisation</label>
+                                <label for="" class="col-sm-2 col-form-label" >Organisation</label>
                                 <div class="col-sm-3">
                                     <input type="text" disabled class="form-control" name="organisation" v-model="orgReq.name" placeholder="">
                                 </div>
-                                <label for="" class="col-sm-1 control-label" >ABN/ACN</label>
+                                <label for="" class="col-sm-1 col-form-label" >ABN/ACN</label>
                                 <div class="col-sm-3">
                                     <input type="text" disabled class="form-control" name="organisation" v-model="orgReq.abn" placeholder="">
                                 </div>
@@ -74,13 +74,13 @@
                           <div v-if="managesOrg=='Consultant' && addingCompany">
                               <h3>New Organisation (as consultant)</h3>
                               <div class="mb-3">
-                                  <label for="" class="col-sm-2 control-label" >Organisation</label>
+                                  <label for="" class="col-sm-2 col-form-label" >Organisation</label>
                                   <div class="col-sm-6">
                                       <input type="text" class="form-control" name="organisation" v-model="newOrg.name" placeholder="">
                                   </div>
                               </div>
                               <div class="mb-3">
-                                  <label for="" class="col-sm-2 control-label" >ABN/ACN</label>
+                                  <label for="" class="col-sm-2 col-form-label" >ABN/ACN</label>
                                   <div class="col-sm-6">
                                       <input type="text" class="form-control" name="abn" v-model="newOrg.abn" placeholder="">
                                   </div>
@@ -98,7 +98,7 @@
                                     </label>
                                     <br/>
 
-                                    <label for="" class="col-sm-10 control-label" style="text-align:left;">You will be notified by email once the Department has checked the organisation details.
+                                    <label for="" class="col-sm-10 col-form-label" style="text-align:left;">You will be notified by email once the Department has checked the organisation details.
                                     </label>
 
 
@@ -115,13 +115,13 @@
                           <div style="margin-top:15px;" v-if="managesOrg=='Yes' && addingCompany">
                               <h3>New Organisation</h3>
                               <div class="mb-3">
-                                <label for="" class="col-sm-2 control-label" >Organisation</label>
+                                <label for="" class="col-sm-2 col-form-label" >Organisation</label>
                                 <div class="col-sm-6">
                                     <input type="text" class="form-control" name="organisation" v-model="newOrg.name" placeholder="">
                                 </div>
                               </div>
                               <div class="mb-3">
-                                <label for="" class="col-sm-2 control-label" >ABN/ACN</label>
+                                <label for="" class="col-sm-2 col-form-label" >ABN/ACN</label>
                                 <div class="col-sm-6">
                                     <input type="text" class="form-control" name="abn" v-model="newOrg.abn" placeholder="">
                                 </div>
@@ -134,11 +134,11 @@
                                     This organisation has already been registered with the system. Please enter the two pin codes below.<br/>
                                     These pin codes can be retrieved from one of the following people:<br/> {{newOrg.first_five}}
                                   </label>
-                                  <label for="" class="col-sm-2 control-label" >Pin 1</label>
+                                  <label for="" class="col-sm-2 col-form-label" >Pin 1</label>
                                   <div class="col-sm-2">
                                     <input type="text" class="form-control" name="abn" v-model="newOrg.pin1" placeholder="">
                                   </div>
-                                  <label for="" class="col-sm-2 control-label" >Pin 2</label>
+                                  <label for="" class="col-sm-2 col-form-label" >Pin 2</label>
                                   <div class="col-sm-2">
                                     <input type="text" class="form-control" name="abn" v-model="newOrg.pin2" placeholder="">
                                   </div>
@@ -157,7 +157,7 @@
                                     </span>
                                     <span class="float-start" style="margin-left:10px;margin-top:10px;">{{uploadedFileName}}</span>
                                   </div>
-                                  <label for="" class="col-sm-10 control-label" style="text-align:left;">You will be notified by email once the Department has checked the organisation details.</label>
+                                  <label for="" class="col-sm-10 col-form-label" style="text-align:left;">You will be notified by email once the Department has checked the organisation details.</label>
                                   <div class="col-sm-12">
                                     <button v-if="!registeringOrg" @click.prevent="orgRequest()" class="btn btn-primary float-end">Submit</button>
                                     <button v-else disabled class="btn btn-primary float-end"><i class="fa fa-spin fa-spinner"></i>&nbsp;Submitting</button>
@@ -173,7 +173,7 @@
                                     </span>
                                     <span class="float-start" style="margin-left:10px;margin-top:10px;">{{uploadedFileName}}</span>
                                   </div>
-                                  <label for="" class="col-sm-10 control-label" style="text-align:left;">You will be notified by email once the Department has checked the organisation details.</label>
+                                  <label for="" class="col-sm-10 col-form-label" style="text-align:left;">You will be notified by email once the Department has checked the organisation details.</label>
                                   <div class="col-sm-12">
                                     <button v-if="!registeringOrg" @click.prevent="orgRequest()" class="btn btn-primary float-end">Submit</button>
                                     <button v-else disabled class="btn btn-primary float-end"><i class="fa fa-spin fa-spinner"></i>&nbsp;Submitting</button>

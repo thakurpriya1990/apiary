@@ -9,8 +9,8 @@
                             <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <label v-if=check_status() class="control-label"  for="Name">Details</label>
-                                        <label v-else class="control-label"  for="Name">Provide Reason for the proposed decline </label>
+                                        <label v-if=check_status() class="form-label"  for="Name">Details</label>
+                                        <label v-else class="form-label"  for="Name">Provide Reason for the proposed decline </label>
                                         <textarea style="width: 70%;" class="form-control" name="reason" v-model="decline.reason"></textarea>
                                     </div>
                                 </div>
@@ -18,8 +18,8 @@
                             <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <label v-if=check_status() class="control-label"  for="Name">CC email</label>
-                                        <label v-else class="control-label"  for="Name">Proposed CC email</label>
+                                        <label v-if=check_status() class="form-label"  for="Name">CC email</label>
+                                        <label v-else class="form-label"  for="Name">Proposed CC email</label>
                                         <input type="text" style="width: 70%;" class="form-control" name="cc_email" v-model="decline.cc_email"/>
                                     </div>
                                 </div>
