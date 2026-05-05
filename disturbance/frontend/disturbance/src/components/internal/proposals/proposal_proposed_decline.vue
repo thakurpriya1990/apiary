@@ -6,7 +6,7 @@
                     <form class="form-horizontal" name="declineForm">
                         <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <label v-if=check_status() class="control-label"  for="Name">Details</label>
@@ -15,7 +15,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <label v-if=check_status() class="control-label"  for="Name">CC email</label>

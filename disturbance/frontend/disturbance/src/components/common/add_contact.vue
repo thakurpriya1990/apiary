@@ -6,7 +6,7 @@
                     <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                     <div class="col-lg-12">
                         <div class="row">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label class="col-md-2 control-label float-start"  for="Name">Given Name(s): </label>
                                 <div class="col-md-10">
                                     <input type="text" class="form-control" name="name" v-model="contact.first_name" />
@@ -14,7 +14,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label class="col-md-2 control-label float-start"  for="Name">Surname: </label>
                                 <div class="col-md-10">
                                     <input type="text" class="form-control" name="name" v-model="contact.last_name" />
@@ -22,7 +22,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label class="col-md-2 control-label float-start"  for="Phone">Phone: </label>
                                 <div class="col-md-10">
                                     <input type="text" class="form-control" name="phone" v-model="contact.phone_number" />
@@ -30,7 +30,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label class="col-md-2 control-label float-start"  for="Mobile">Mobile: </label>
                                 <div class="col-md-10">
                                     <input type="text" class="form-control" name="mobile" v-model="contact.mobile_number" />
@@ -38,7 +38,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label class="col-md-2 control-label float-start"  for="Fax">Fax: </label>
                                 <div class="col-md-10">
                                     <input type="text" class="form-control" name="fax" v-model="contact.fax_number" />
@@ -46,7 +46,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label class="col-md-2 control-label float-start"  for="Email">Email: </label>
                                 <div class="col-md-10">
                                     <input type="text" class="form-control" name="email" v-model="contact.email" />

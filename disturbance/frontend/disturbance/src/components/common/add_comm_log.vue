@@ -6,7 +6,7 @@
                     <form class="form-horizontal" name="commsForm">
                         <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
                                         <label class="control-label float-start"  for="Name">To</label>
@@ -16,7 +16,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
                                         <label class="control-label float-start"  for="Name">From</label>
@@ -26,7 +26,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
                                         <label class="control-label float-start"  for="Name">Type</label>
@@ -41,7 +41,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
                                         <label class="control-label float-start"  for="Name">Subject/Description</label>
@@ -51,7 +51,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
                                         <label class="control-label float-start"  for="Name">Text</label>
@@ -61,7 +61,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
                                         <label class="control-label float-start"  for="Name">Attachments</label>

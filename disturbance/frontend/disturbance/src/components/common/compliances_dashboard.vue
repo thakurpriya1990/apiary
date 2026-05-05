@@ -4,7 +4,7 @@
             <div class="row">
 
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label for="">Status</label>
                         <select class="form-select" v-model="filterComplianceStatus">
                             <option value="All">All</option>

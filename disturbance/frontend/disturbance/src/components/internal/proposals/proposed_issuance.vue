@@ -7,7 +7,7 @@
                         <!-- <alert v-if="isApprovalLevelDocument" type="warning"><strong>{{warningString}}</strong></alert> -->
                         <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
                                         <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">Start Date</label>
@@ -27,7 +27,7 @@
                     
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
                                         <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">Expiry Date</label>
@@ -48,7 +48,7 @@
                                 </div>
                                 
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
                                         <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">Details</label>
@@ -59,7 +59,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
                                         <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">BCC email</label>
@@ -75,7 +75,7 @@
                                 </div>
 
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <label v-if="submitter_email && applicant_email" class="control-label float-start"  for="Name">After approving this proposal, approval will be emailed to {{submitter_email}} and {{applicant_email}}.</label>

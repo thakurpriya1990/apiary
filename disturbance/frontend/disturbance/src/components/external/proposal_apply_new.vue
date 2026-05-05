@@ -17,12 +17,12 @@
                             <div v-if="proposal">
                                 <label for="" class="control-label" >Region * <a :href="region_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a> </label>
                                 <div v-if="proposal.readonly" class="col-sm-12">
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <label for="" class="control-label" >{{proposal.region_name}}</label>
                                     </div>
                                 </div>
                                 <div v-else class="col-sm-12">
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <select v-model="proposal.region" class="form-select" style="width:40%" @change="chainedSelectDistricts(proposal.region)" :disabled="proposal.readonly">
 											<option value="" selected disabled>Select region</option>
                                             <option v-for="region in regions" :value="region.value" :key="region.value">
@@ -36,12 +36,12 @@
                             <div v-if="proposal.region">
                                 <label for="" class="control-label" style="font-weight: normal;">District <a :href="district_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
                                 <div v-if="proposal.readonly" class="col-sm-12">
-                                        <div class="form-group">
+                                        <div class="mb-3">
                                             <label for="" class="control-label" >{{proposal.district_name}}</label>
                                         </div>
                                 </div>
                                 <div v-else class="col-sm-12">
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <select  v-model="proposal.district" class="form-select" style="width:40%" :disabled="proposal.readonly">
 											<option value="" selected disabled>Select district</option>
                                             <option v-for="district in districts" :value="district.value" :key="district.value">
@@ -56,12 +56,12 @@
 								<div v-if="activities.length > 0">
 									<label for="" class="control-label" >Activity Type * <a :href="activity_type_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
 									<div v-if="proposal.readonly" class="col-sm-12">
-                                        <div class="form-group">
+                                        <div class="mb-3">
                                             <label for="" class="control-label" >{{proposal.activity}}</label>
                                         </div>
                                     </div>
                                     <div v-else class="col-sm-12">
-										<div class="form-group">
+										<div class="mb-3">
 											<select v-model="proposal.activity" @change="chainedSelectSubActivities1(proposal.activity)" class="form-select" style="width:40%" :disabled="proposal.readonly">
 												<option value="" selected disabled>Select activity</option>
 												<option v-for="activity in activities" :value="activity.value" :key="activity.value">
@@ -75,12 +75,12 @@
 								<div v-if="sub_activities1.length > 0">
 									<label for="" class="control-label" >Sub Activity 1 * <a :href="sub_activity_1_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
 									<div v-if="proposal.readonly" class="col-sm-12">
-                                        <div class="form-group">
+                                        <div class="mb-3">
                                             <label for="" class="control-label" >{{proposal.sub_activity_level1}}</label>
                                         </div>
                                     </div>
                                     <div v-else class="col-sm-12">
-										<div class="form-group">
+										<div class="mb-3">
 											<select v-model="proposal.sub_activity_level1" @change="chainedSelectSubActivities2(proposal.sub_activity_level1)" class="form-select" style="width:40%" :disabled="proposal.readonly">
 												<option value="" selected disabled>Select sub_activity 1</option>
 												<option v-for="sub_activity1 in sub_activities1" :value="sub_activity1.value" :key="sub_activity1.value">
@@ -94,12 +94,12 @@
 								<div v-if="sub_activities2.length > 0">
 									<label for="" class="control-label" >Sub Activity 2 * <a :href="sub_activity_2_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
 									<div v-if="proposal.readonly" class="col-sm-12">
-                                        <div class="form-group">
+                                        <div class="mb-3">
                                             <label for="" class="control-label" >{{proposal.sub_activity_level2}}</label>
                                         </div>
                                     </div>
                                     <div v-else class="col-sm-12">
-										<div class="form-group">
+										<div class="mb-3">
 											<select v-model="proposal.sub_activity_level2" @change="chainedSelectCategories(proposal.sub_activity_level2)" class="form-select" style="width:40%" :disabled="proposal.readonly">
 												<option value="" selected disabled>Select sub_activity 2</option>
 												<option v-for="sub_activity2 in sub_activities2" :value="sub_activity2.value" :key="sub_activity2.value">
@@ -113,12 +113,12 @@
 								<div v-if="categories.length > 0">
 									<label for="" class="control-label" >Category * <a :href="category_help_url" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a></label>
 									<div v-if="proposal.readonly" class="col-sm-12">
-                                        <div class="form-group">
+                                        <div class="mb-3">
                                             <label for="" class="control-label" >{{proposal.management_area}}</label>
                                         </div>
                                     </div>
                                     <div v-else class="col-sm-12">
-										<div class="form-group">
+										<div class="mb-3">
 											<select v-model="proposal.management_area" @change="get_approval_level(proposal.management_area)" class="form-select" style="width:40%" :disabled="proposal.readonly">
 												<option value="" selected disabled>Select category</option>
 												<option v-for="category in categories" :value="category.value" :name="category.approval" :key="category.value">

@@ -7,7 +7,7 @@
             <FormSection :formCollapse="false" label="Holder" Index="holder">
                 <div v-if="organisationApplicant">
                     <form class="form-horizontal">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <div class="row mb-3">
                                 <label for="" class="col-sm-3 col-form-label">Name</label>
                                 <div class="col-sm-6">
@@ -15,7 +15,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <div class="row mb-3">
                                 <label for="" class="col-sm-3 col-form-label" >ABN/ACN</label>
                                 <div class="col-sm-6">
@@ -27,7 +27,7 @@
                 </div>
                 <div v-else>
                     <form class="form-horizontal">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <div class="row mb-3">
                                 <label for="" class="col-sm-3 col-form-label">Given Name(s)</label>
                                 <div class="col-sm-6">
@@ -35,7 +35,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3">
                             <div class="row mb-3">
                                 <label for="" class="col-sm-3 col-form-label" >Last Name</label>
                                 <div class="col-sm-6">
@@ -49,7 +49,7 @@
 
             <FormSection :formCollapse="false" label="Address Details" Index="address_details">
                 <form v-if="approval.applicant_address" class="form-horizontal" action="index.html" method="post">
-                    <div class="form-group">
+                    <div class="mb-3">
                         <div class="row mb-3">
                             <label for="" class="col-sm-3 col-form-label">Street</label>
                             <div class="col-sm-6">
@@ -57,7 +57,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <div class="row mb-3">
                             <label for="" class="col-sm-3 col-form-label" >Town/Suburb</label>
                             <div class="col-sm-6">
@@ -65,7 +65,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <div class="row mb-3">
                             <label for="" class="col-sm-3 col-form-label">State</label>
                             <div class="col-sm-3">
@@ -77,7 +77,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <div class="row mb-3">
                             <label for="" class="col-sm-3 col-form-label" >Country</label>
                             <div class="col-sm-4">
@@ -90,7 +90,7 @@
 
             <FormSection :formCollapse="false" label="Licence Details" Index="approval_details">
                 <form class="form-horizontal" action="index.html" method="post">
-                    <div class="form-group">
+                    <div class="mb-3">
                         <div class="row mb-3">
                             <label for="" class="col-sm-3 col-form-label">Issue Date</label>
                             <div class="col-sm-6">
@@ -98,7 +98,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <div class="row mb-3">
                             <label for="" class="col-sm-3 col-form-label" >Start Date</label>
                             <div class="col-sm-6">
@@ -106,7 +106,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <div class="row mb-3">
                             <label for="" class="col-sm-3 col-form-label">Expiry Date</label>
                             <div class="col-sm-3">
@@ -114,7 +114,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <div class="row mb-3">
                             <label for="" class="col-sm-3 col-form-label" >Document</label>
                             <div class="col-sm-4">
@@ -122,7 +122,7 @@
                             </div>
                         </div>
                     </div>
-                    <!--div class="form-group">
+                    <!--div class="mb-3">
                         <label for="" class="col-sm-3 col-form-label" >Document History</label>
                         <div class="col-sm-4">
                             <div v-for="doc in approval.apiary_licence_document_history">

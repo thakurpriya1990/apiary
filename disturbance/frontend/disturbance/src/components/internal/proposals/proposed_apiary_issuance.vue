@@ -8,7 +8,7 @@
                         <div class="col-sm-12">
 
                             <div v-if="!siteTransferApplication">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <div class="row mb-3">
                                         <div class="col-sm-3">
                                             <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">Start Date</label>
@@ -30,7 +30,7 @@
                                     </div>
                                 </div>
 
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <div class="row mb-3">
                                         <div class="col-sm-3">
                                             <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">Expiry Date</label>
@@ -53,7 +53,7 @@
                                 </div>
                             </div>
                             <div v-else>
-                                <div v-if="creatingSiteTransferTargetApproval" class="form-group">
+                                <div v-if="creatingSiteTransferTargetApproval" class="mb-3">
                                     <div class="row mb-3">
                                         <div class="col-sm-3">
                                             <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">Start Date</label>
@@ -70,7 +70,7 @@
                                     </div>
                                 </div>
 
-                                <div v-if="creatingSiteTransferTargetApproval" class="form-group">
+                                <div v-if="creatingSiteTransferTargetApproval" class="mb-3">
                                     <div class="row mb-3">
                                         <div class="col-sm-3">
                                             <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">Expiry Date</label>
@@ -89,7 +89,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">Details</label>
@@ -100,7 +100,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">BCC email</label>
@@ -181,7 +181,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row mb-3">
                                     <div class="col-sm-12">
                                         <div v-if="!siteTransferApplication">

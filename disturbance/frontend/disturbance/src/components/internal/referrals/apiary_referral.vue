@@ -45,7 +45,7 @@
                         <div class="row">
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Currently assigned to</strong><br/>
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <select ref="assigned_officer_referral" :disabled="!canProcess" class="form-select" v-model="apiaryReferral.assigned_officer_id">
                                         <option :value="null"></option>
                                         <option v-for="member in apiaryReferral.allowed_assessors" :value="member.id" :key="member.id">{{member.first_name}} {{member.last_name}}</option>
@@ -97,13 +97,13 @@
                         <FormSection :formCollapse="false" label="Applicant" Index="applicant">
                             <div v-if="organisationApplicant">
                                 <form class="form-horizontal">
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                     <label for="" class="col-sm-3 control-label">Name</label>
                                     <div class="col-sm-6">
                                         <input disabled type="text" class="form-control" name="applicantName" placeholder="" v-model="proposal.applicant.name">
                                     </div>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                     <label for="" class="col-sm-3 control-label" >ABN/ACN</label>
                                     <div class="col-sm-6">
                                         <input disabled type="text" class="form-control" name="applicantABN" placeholder="" v-model="proposal.applicant.abn">
@@ -113,13 +113,13 @@
                             </div>
                             <div v-else>
                                 <form class="form-horizontal">
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                     <label for="" class="col-sm-3 control-label">Given Name(s)</label>
                                     <div class="col-sm-6">
                                         <input disabled type="text" class="form-control" name="applicantFirstName" placeholder="" v-model="proposal.applicant_first_name">
                                     </div>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                     <label for="" class="col-sm-3 control-label" >Last Name</label>
                                     <div class="col-sm-6">
                                         <input disabled type="text" class="form-control" name="applicantLastName" placeholder="" v-model="proposal.applicant_last_name">
@@ -134,19 +134,19 @@
                     <div class="row">
                         <FormSection :formCollapse="true" label="Address Details" Index="address_details">
                             <form class="form-horizontal">
-                                <div class="form-group">
+                                <div class="mb-3">
                                 <label for="" class="col-sm-3 control-label">Street</label>
                                 <div class="col-sm-6">
                                     <input disabled type="text" class="form-control" name="street" placeholder="" v-model="applicantAddress.line1">
                                 </div>
                                 </div>
-                                <div class="form-group">
+                                <div class="mb-3">
                                 <label for="" class="col-sm-3 control-label" >Town/Suburb</label>
                                 <div class="col-sm-6">
                                     <input disabled type="text" class="form-control" name="surburb" placeholder="" v-model="applicantAddress.locality">
                                 </div>
                                 </div>
-                                <div class="form-group">
+                                <div class="mb-3">
                                 <label for="" class="col-sm-3 control-label">State</label>
                                 <div class="col-sm-2">
                                     <input disabled type="text" class="form-control" name="country" placeholder="" v-model="applicantAddress.state">
@@ -156,7 +156,7 @@
                                     <input disabled type="text" class="form-control" name="postcode" placeholder="" v-model="applicantAddress.postcode">
                                 </div>
                                 </div>
-                                <div class="form-group">
+                                <div class="mb-3">
                                 <label for="" class="col-sm-3 control-label" >Country</label>
                                 <div class="col-sm-4">
                                     <input disabled type="text" class="form-control" name="country" v-model="applicantAddress.country"/>
@@ -175,19 +175,19 @@
                                 </div>
                                 <div v-else>
                                   <form class="form-horizontal">
-                                      <div class="form-group">
+                                      <div class="mb-3">
                                         <label for="" class="col-sm-3 control-label">Phone (work)</label>
                                         <div class="col-md-8">
                                             <input disabled type="text" class="form-control" name="applicantWorkPhone" placeholder="" v-model="proposal.applicant_phone_number">
                                         </div>
                                       </div>
-                                      <div class="form-group">
+                                      <div class="mb-3">
                                         <label for="" class="col-sm-3 control-label" >Mobile</label>
                                         <div class="col-md-8">
                                             <input disabled type="text" class="form-control" name="applicantMobileNumber" placeholder="" v-model="proposal.applicant_mobile_number">
                                         </div>
                                       </div>
-                                      <div class="form-group">
+                                      <div class="mb-3">
                                         <label for="" class="col-sm-3 control-label" >Email</label>
                                         <div class="col-md-8">
                                             <input disabled type="text" class="form-control" name="applicantEmail" placeholder="" v-model="proposal.applicant_email">

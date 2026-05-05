@@ -6,7 +6,7 @@
                     <form class="form-horizontal" name="approvalSuspendForm">
                         <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
 
@@ -30,7 +30,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
 
@@ -54,7 +54,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
 

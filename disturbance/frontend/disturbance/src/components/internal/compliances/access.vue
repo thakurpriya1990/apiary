@@ -43,7 +43,7 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <strong>Currently assigned to</strong><br/>
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <select v-show="isLoading" class="form-select">
                                         <option value="">Loading...</option>
                                     </select>

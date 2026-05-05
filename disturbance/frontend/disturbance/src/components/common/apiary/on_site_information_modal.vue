@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
 
-                    <div class="form-group"><div class="row mb-3">
+                    <div class="mb-3"><div class="row mb-3">
                         <label class="col-sm-4 col-form-label">Period From</label>
                         <div class="col-sm-8">
                             <div class="input-group date" ref="periodFromDatePicker">
@@ -13,7 +13,7 @@
                         </div>
                     </div></div>
 
-                    <div class="form-group"><div class="row mb-3">
+                    <div class="mb-3"><div class="row mb-3">
                         <label class="col-sm-4 col-form-label">Period To</label>
                         <div class="col-sm-8">
                             <div class="input-group date" ref="periodToDatePicker">
@@ -22,7 +22,7 @@
                         </div>
                     </div></div>
 
-                    <div class="form-group"><div class="row mb-3">
+                    <div class="mb-3"><div class="row mb-3">
                         <label class="col-sm-4 col-form-label">Site</label>
                         <div class="col-sm-8">
                             <select class="form-select" v-model="on_site_information.apiary_site_id">
@@ -34,28 +34,28 @@
                         </div>
                     </div></div>
 
-                    <div class="form-group"><div class="row mb-3">
+                    <div class="mb-3"><div class="row mb-3">
                         <label class="col-sm-4 col-form-label">The proposed location of the hives</label>
                         <div class="col-sm-8">
                             <textarea class="form-control" v-model="on_site_information.hives_loc"/>
                         </div>
                     </div></div>
 
-                    <div class="form-group"><div class="row mb-3">
+                    <div class="mb-3"><div class="row mb-3">
                         <label class="col-sm-4 col-form-label">Number of hives proposed to be placed on the site</label>
                         <div class="col-sm-8">
                             <input type='number' value="0" class="form-control" v-model="on_site_information.hives_num"/>
                         </div>
                     </div></div>
 
-                    <div class="form-group"><div class="row mb-3">
+                    <div class="mb-3"><div class="row mb-3">
                         <label class="col-sm-4 col-form-label">The names of the people who are expected to be entering the site for apiary purposes</label>
                         <div class="col-sm-8">
                             <textarea class="form-control" v-model="on_site_information.people_names"/>
                         </div>
                     </div></div>
 
-                    <div class="form-group"><div class="row mb-3">
+                    <div class="mb-3"><div class="row mb-3">
                         <label class="col-sm-4 col-form-label">Flora targeted</label>
                         <div class="col-sm-8">
                             <textarea class="form-control" v-model="on_site_information.flora"/>
@@ -63,7 +63,7 @@
                     </div></div>
 
 
-                    <div class="form-group"><div class="row mb-3">
+                    <div class="mb-3"><div class="row mb-3">
                         <label class="col-sm-4 col-form-label">Comments</label>
                         <div class="col-sm-8">
                             <textarea class="form-control" v-model="on_site_information.comments"/>
@@ -73,7 +73,7 @@
                 </div>
             </div>
             <template #footer>
-                <div v-if="errorResponse" class="form-group">
+                <div v-if="errorResponse" class="mb-3">
                     <div class="row">
                         <div class="col-sm-12">
                             <strong>

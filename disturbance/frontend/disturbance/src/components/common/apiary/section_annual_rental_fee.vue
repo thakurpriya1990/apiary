@@ -1,7 +1,7 @@
 <template lang="html">
     <div>
         <template v-if="is_internal">
-            <div class="form-group row mb-3">
+            <div class="row mb-3">
                 <label class="col-sm-3">Do not charge annual site fee until</label>
                 <div class="col-sm-3">
                     <input type="date" class="form-control" name="no_charge_until" placeholder="DD/MM/YYYY" v-model="until_date" id="no_charge_until" :readonly="is_readonly">
@@ -20,7 +20,7 @@
             </div>
         </template>
 
-        <div class="form-group row mb-3">
+        <div class="row mb-3">
             <label class="col-sm-3">Calendar year</label>
             <div class="col-sm-4">
                 <select class="form-select" v-model="year_name_selected">
@@ -38,7 +38,7 @@
             </div>
         </div>
 
-        <div class="form-group row mb-3">
+        <div class="row mb-3">
             <label class="col-sm-3">Invoice</label>
             <div class="col-sm-9">
                 <template v-for="annual_rental_fee_period in annual_rental_fee_periods">

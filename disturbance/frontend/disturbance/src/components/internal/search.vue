@@ -6,7 +6,7 @@
             <FormSection :form-collapse="false" label="Search Organisations">
                 <div class="row">
                     <form name="searchOrganisationForm">
-                      <div class="form-group">
+                      <div class="mb-3">
                         <label class="col-form-label" for="Organisation">Search Organisation</label>
                         <div class="row">
                           <div class="col-md-8">
@@ -34,7 +34,7 @@
             <FormSection :form-collapse="false" label="Search Keywords">
               <div class="row">
                 <div class="col-lg-12">
-                    <div class="form-group">
+                    <div class="mb-3">
                       <label for="" class="control-label col-lg-12">Filter</label>
                       <div class="form-check form-check-inline col-md-3">
                           <input  class="form-check-input" ref="searchProposal" id="searchProposal" name="searchProposal" type="checkbox" v-model="searchProposal" /> 

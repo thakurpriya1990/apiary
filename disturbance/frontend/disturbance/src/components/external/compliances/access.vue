@@ -42,7 +42,7 @@
                         </div>
 
                         <div class="row mb-3">
-                            <!--<div v-if="isFinalised && hasDocuments" class="form-group"> -->
+                            <!--<div v-if="isFinalised && hasDocuments" class="mb-3"> -->
                             <div v-if="hasDocuments">
                                 <div class="col-sm-3 col-form-label float-start">  
                                     <label  for="Name">Documents:</label>
@@ -89,7 +89,7 @@
                         </div>
 
                         <div class="row mb-3">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="col-lg-2 float-end">
                                     <button v-if="!isFinalised" @click.prevent="submit()" class="btn btn-primary">Submit</button>
                                     <button v-if="!isFinalised" @click.prevent="close()" class="btn btn-secondary">Close</button>

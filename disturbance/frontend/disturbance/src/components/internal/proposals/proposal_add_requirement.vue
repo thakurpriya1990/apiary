@@ -6,13 +6,13 @@
                     <form class="form-horizontal" name="requirementForm">
                         <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label class="form-check form-check-inline col-form-label"><input type="radio" class="form-check-input" name="requirementType" :value="true" v-model="requirement.standard">Standard Requirement</label>
                                 <label class="form-check form-check-inline col-form-label"><input type="radio" class="form-check-input" name="requirementType" :value="false" v-model="requirement.standard">Free Text Requirement</label>
                             </div>
                         </div>
                         <div class="col-sm-12">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label class="col-form-label float-start"  for="Name">Requirement</label>
@@ -29,7 +29,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label class="col-form-label float-start"  for="Name">Due Date</label>
@@ -46,7 +46,7 @@
                                 </div>
                             </div>
                             <template v-if="validDate">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <div class="row mb-3">
                                         <div class="col-sm-3">
                                             <label class="col-form-label float-start"  for="Name">Recurrence</label>
@@ -57,7 +57,7 @@
                                     </div>
                                 </div>
                                 <template v-if="requirement.recurrence">
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <div class="row">
                                             <div class="col-sm-3">
                                                 <label class="col-form-label float-start"  for="Name">Recurrence pattern</label>
@@ -69,7 +69,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <label class="col-form-label"  for="Name">

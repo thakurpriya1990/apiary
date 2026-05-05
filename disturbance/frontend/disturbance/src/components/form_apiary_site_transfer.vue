@@ -11,7 +11,7 @@
         <div :class="apiary_sections_classname">
             <FormSection :formCollapse="false" label="Transferee" Index="transferee">
                 <div v-if="is_external" class="row col-sm-12">
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label class="col-sm-6 emailLabel">Enter the email address of the licence holder you want to transfer sites to:</label>
                         <input
                             type="text"
@@ -21,7 +21,7 @@
                         />
                         <input type="button" @click="lookupTransferee" value="Find licence details" class="btn btn-primary">
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                             <div class="col-sm-12">
                                 <div v-if="lookupErrorText">
                                     {{lookupErrorText}}

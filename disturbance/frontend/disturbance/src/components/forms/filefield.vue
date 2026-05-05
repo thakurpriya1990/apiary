@@ -1,8 +1,8 @@
 <template lang="html">
       <div class="col-sm-12">
 
-        <!--<div v-if="uploaded_documents.length>0" class="form-group">-->
-        <div v-if="has_uploaded_docs" class="form-group">
+        <!--<div v-if="uploaded_documents.length>0" class="mb-3">-->
+        <div v-if="has_uploaded_docs" class="mb-3">
             <div class="row">
                 <div class="col-sm-6">
                     <label class="control-label float-start"  for="Name">Uploaded Documents</label>
@@ -20,7 +20,7 @@
             </div>
         </div>
 
-        <div class="form-group">
+        <div class="mb-3">
             <div class="row">
                 <div class="col-sm-12">
                     <div v-for="n in repeat" :key="n">
@@ -35,7 +35,7 @@
             </div>
         </div>
 
-        <div class="form-group">
+        <div class="mb-3">
             <div class="row">
                 <!--
                 <div class="col-sm-3">

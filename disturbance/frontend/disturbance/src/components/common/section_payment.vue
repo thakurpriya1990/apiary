@@ -9,7 +9,7 @@
             </template>
         </transition>
         <FormSection :formCollapse="false" label="Payment" Index="payment_item">
-            <div class="form-group row">
+            <div class="row mb-3">
                 <label class="col-sm-2">Invoice number</label>
                 <div class="col-sm-3">
                     <input 
@@ -21,7 +21,7 @@
                     />
                 </div>
             </div>
-            <div class="form-group row">
+            <div class="row mb-3">
                 <label class="col-sm-2">Invoice date</label>
                 <div class="col-sm-3">
                     <div class="input-group date" ref="invoiceDatePicker">

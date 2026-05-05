@@ -50,7 +50,7 @@
                             <div class="row">
                                 <div class="col-sm-12 top-buffer-s">
                                     <div class="mb-2"><strong>Referrals</strong></div>
-                                    <div class="form-group mb-3">
+                                    <div class="mb-3 mb-3">
                                         <select :disabled="!canLimitedAction" ref="apiary_referral_groups" class="form-select">
                                             <option v-for="group in apiaryReferralGroups" :value="group.id" :key="group.id">{{group.name}}</option>
                                         </select>
@@ -100,7 +100,7 @@
                         <div class="row">
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Currently assigned to</strong><br/>
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <template v-if="proposal.processing_status == 'With Approver'">
                                         <select ref="assigned_officer" :disabled="!canAction" class="form-select" v-model="proposal.assigned_approver">
                                             <option v-for="member in proposal.allowed_assessors" :value="member.id" :key="member.id">{{member.first_name}} {{member.last_name}}</option>

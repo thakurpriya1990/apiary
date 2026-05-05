@@ -9,7 +9,7 @@
                 >
                     <div class="panel panel-default">
                       <form class="form-horizontal" name="orgForm" method="post">
-                          <div class="form-group">
+                          <div class="mb-3">
                             <label for="" class="col-sm-5 control-label">Do you manage licences on behalf of an organisation?</label>
                             <div class="col-sm-4">
                                  <label class="radio-inline">
@@ -29,7 +29,7 @@
                             </div>
                           </div>
                           <div v-for="org in current_user.wildlifecompliance_organisations" v-bind:key="org.id">
-                              <div class="form-group">
+                              <div class="mb-3">
                                 <label for="" class="col-sm-2 control-label" >Organisation</label>
                                 <div class="col-sm-3"> 
                                     <input type="text" disabled class="form-control" name="organisation" v-model="org.name" placeholder="">
@@ -42,7 +42,7 @@
                               </div>
                           </div>
                           <div v-for="orgReq in orgRequest_pending" v-bind:key="orgReq.id">
-                              <div class="form-group">
+                              <div class="mb-3">
                                 <label for="" class="col-sm-2 control-label" >Organisation</label>
                                 <div class="col-sm-3"> 
                                     <input type="text" disabled class="form-control" name="organisation" v-model="orgReq.name" placeholder="">
@@ -55,7 +55,7 @@
                               </div>
                           </div>
                           <div v-for="orgReq in orgRequest_amendment_requested" v-bind:key="orgReq.id">
-                              <div class="form-group">
+                              <div class="mb-3">
                                 <label for="" class="col-sm-2 control-label" >Organisation</label>
                                 <div class="col-sm-3">
                                     <input type="text" disabled class="form-control" name="organisation" v-model="orgReq.name" placeholder="">
@@ -73,13 +73,13 @@
 
                           <div v-if="managesOrg=='Consultant' && addingCompany">
                               <h3>New Organisation (as consultant)</h3>
-                              <div class="form-group">
+                              <div class="mb-3">
                                   <label for="" class="col-sm-2 control-label" >Organisation</label>
                                   <div class="col-sm-6">
                                       <input type="text" class="form-control" name="organisation" v-model="newOrg.name" placeholder="">
                                   </div>
                               </div>
-                              <div class="form-group">
+                              <div class="mb-3">
                                   <label for="" class="col-sm-2 control-label" >ABN/ACN</label>
                                   <div class="col-sm-6">
                                       <input type="text" class="form-control" name="abn" v-model="newOrg.abn" placeholder="">
@@ -88,7 +88,7 @@
                                       <button v-if="newOrg.detailsChecked" @click.prevent="checkOrganisation()" class="btn btn-primary">Check Details</button>
                                   </div>
                               </div>
-                              <div class="form-group">
+                              <div class="mb-3">
                                     <label class="col-sm-12" style="text-align:left;">
                                       Please upload a letter with an organisation letterhead stating that you are a consultant for the organisation.
                                         <span class="btn btn-info btn-file">
@@ -114,13 +114,13 @@
 
                           <div style="margin-top:15px;" v-if="managesOrg=='Yes' && addingCompany">
                               <h3>New Organisation</h3>
-                              <div class="form-group">
+                              <div class="mb-3">
                                 <label for="" class="col-sm-2 control-label" >Organisation</label>
                                 <div class="col-sm-6">
                                     <input type="text" class="form-control" name="organisation" v-model="newOrg.name" placeholder="">
                                 </div>
                               </div>
-                              <div class="form-group">
+                              <div class="mb-3">
                                 <label for="" class="col-sm-2 control-label" >ABN/ACN</label>
                                 <div class="col-sm-6">
                                     <input type="text" class="form-control" name="abn" v-model="newOrg.abn" placeholder="">
@@ -129,7 +129,7 @@
                                     <button @click.prevent="checkOrganisation()" class="btn btn-primary">Check Details</button>
                                 </div>
                               </div>
-                              <div class="form-group" v-if="newOrg.exists && newOrg.detailsChecked">
+                              <div class="mb-3" v-if="newOrg.exists && newOrg.detailsChecked">
                                   <label class="col-sm-12" style="text-align:left;margin-bottom:20px;">
                                     This organisation has already been registered with the system. Please enter the two pin codes below.<br/>
                                     These pin codes can be retrieved from one of the following people:<br/> {{newOrg.first_five}}
@@ -147,7 +147,7 @@
                                     <button v-else class="btn btn-primary float-start"><i class="fa fa-spin fa-spinner"></i>&nbsp;Validating Pins</button>
                                   </div>
                               </div>
-                              <div class="form-group" v-else-if="!newOrg.exists && newOrg.detailsChecked">
+                              <div class="mb-3" v-else-if="!newOrg.exists && newOrg.detailsChecked">
                                   <label class="col-sm-12" style="text-align:left;">
                                     This organisation has not yet been registered with this system. Please upload a letter with an organisation letterhead stating that you are an employee of this organisation.<br/>
                                   </label>
@@ -163,7 +163,7 @@
                                     <button v-else disabled class="btn btn-primary float-end"><i class="fa fa-spin fa-spinner"></i>&nbsp;Submitting</button>
                                   </div>
                               </div>
-                              <div class="form-group" v-else-if="newOrg.exists && !newOrg.detailsChecked">
+                              <div class="mb-3" v-else-if="newOrg.exists && !newOrg.detailsChecked">
                                   <label class="col-sm-12" style="text-align:left;">
                                     Please upload a letter with an organisation letterhead stating that you are an employee of this organisation.<br/>
                                   </label>

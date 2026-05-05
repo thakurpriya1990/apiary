@@ -1,6 +1,6 @@
 <template lang="html">
     <div>
-        <div class="form-group"><div class="row">
+        <div class="mb-3"><div class="row">
             <label class="col-sm-2">Period From</label>
             <div class="col-sm-4">
                 <div class="input-group date" ref="periodFromDatePicker">
@@ -9,7 +9,7 @@
             </div>
         </div></div>
 
-        <div class="form-group"><div class="row">
+        <div class="mb-3"><div class="row">
             <label class="col-sm-2">Period To</label>
             <div class="col-sm-4">
                 <div class="input-group date" ref="periodToDatePicker">
