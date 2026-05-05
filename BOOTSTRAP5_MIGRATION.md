@@ -29,8 +29,8 @@ proceeding to the next step. Do not move to the next step until the current one 
 - [x] Step 2: `btn-default` -> `btn-secondary`
 - [x] Step 3: `data-toggle` -> `data-bs-toggle`
 - [x] Step 4: `data-dismiss` -> `data-bs-dismiss`
-- [ ] Step 5: `data-placement` -> `data-bs-placement`
-- [ ] Step 6: `data-target` -> `data-bs-target`
+- [x] Step 5: `data-placement` -> `data-bs-placement`
+- [x] Step 6: `data-target` -> `data-bs-target`
 - [ ] Step 7: Spacing utilities LTR -> logical properties
 - [ ] Step 8: `col-sm-offset-N` -> `offset-sm-N`
 - [ ] Step 9: `form-group` -> `mb-3`
