@@ -6,7 +6,7 @@
             <FormSection :form-collapse="false" label="Search Organisations">
                 <div class="row">
                     <form name="searchOrganisationForm">
-                      <div class="form-group">
+                      <div class="mb-3">
                         <label class="col-form-label" for="Organisation">Search Organisation</label>
                         <div class="row">
                           <div class="col-md-8">
@@ -34,8 +34,8 @@
             <FormSection :form-collapse="false" label="Search Keywords">
               <div class="row">
                 <div class="col-lg-12">
-                    <div class="form-group">
-                      <label for="" class="control-label col-lg-12">Filter</label>
+                    <div class="mb-3">
+                      <label for="" class="col-form-label col-lg-12">Filter</label>
                       <div class="form-check form-check-inline col-md-3">
                           <input  class="form-check-input" ref="searchProposal" id="searchProposal" name="searchProposal" type="checkbox" v-model="searchProposal" /> 
                           <label class="form-check-label" for="searchProposal">Proposal</label>
@@ -49,7 +49,7 @@
                           <input  class="form-check-input" ref="searchCompliance" id="searchCompliance" name="searchCompliance" type="checkbox" v-model="searchCompliance" /> 
                           <label class="form-check-label" for="searchCompliance">Compliance with requirements</label>
                       </div> 
-                      <label for="" class="control-label col-lg-12">Keyword</label>                              
+                      <label for="" class="col-form-label col-lg-12">Keyword</label>                              
                         <div class="row">
                           <div class="col-md-8">
                             <input type="search"  class="form-control input-sm" name="details" placeholder="" v-model="keyWord" style="width:100%"/>
@@ -94,7 +94,7 @@
         <div class="col-sm-12">
             <FormSection :form-collapse="false" label="Search Reference Number">
               <div class="row mb-1">
-                  <label for="" class="control-label col-lg-12">Keyword</label>  
+                  <label for="" class="col-form-label col-lg-12">Keyword</label>  
                   <div class="row">
                     <div class="col-md-8">
                         <input type="search"  class="form-control input-sm" name="referenceWord" placeholder="" v-model="referenceWord" />
@@ -362,10 +362,10 @@ export default {
         let vm = this;
         vm.proposal_options.data = vm.results;
         vm.$refs.proposal_datatable.vmDataTable.draw();
-        $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
+        $( 'a[data-bs-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];
             window.setTimeout( function () {
-                $( chev ).toggleClass( "glyphicon-chevron-down glyphicon-chevron-up" );
+                $( chev ).toggleClass( "fa-chevron-down fa-chevron-up" );
             }, 100 );
         } );
         this.$nextTick(() => {

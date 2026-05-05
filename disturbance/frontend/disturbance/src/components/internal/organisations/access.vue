@@ -43,7 +43,7 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <strong>Currently assigned to</strong><br/>
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <select v-show="isLoading" class="form-select">
                                         <option value="">Loading...</option>
                                     </select>
@@ -244,9 +244,9 @@ export default {
                             result = '<span>' + truncated + '</span>',
                             popTemplate = _.template('<a href="#" ' +
                                 'role="button" ' +
-                                'data-toggle="popover" ' +
+                                'data-bs-toggle="popover" ' +
                                 'data-trigger="click" ' +
-                                'data-placement="top auto"' +
+                                'data-bs-placement="top auto"' +
                                 'data-html="true" ' +
                                 'data-content="<%= text %>" ' +
                                 '>more</a>');

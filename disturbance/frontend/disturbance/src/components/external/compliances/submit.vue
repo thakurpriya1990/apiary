@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-sm-12">
                 <div class="row">
-                    <div v-if="compliance && compliance.id" class="col-sm-offset-3 col-sm-6 borderDecoration">
+                    <div v-if="compliance && compliance.id" class="offset-sm-3 col-sm-6 borderDecoration">
                         <strong>Your compliance with requirements has been successfully submitted.</strong>
                         <br/>
                         <table>
@@ -25,7 +25,7 @@
                         </div>                     
                         <router-link :to="{name:'external-proposals-dash'}" style="margin-top:15px;" class="btn btn-primary">Back to dashboard</router-link>
                     </div>
-                    <div v-else class="col-sm-offset-3 col-sm-6 borderDecoration">
+                    <div v-else class="offset-sm-3 col-sm-6 borderDecoration">
                         <strong>Sorry it looks like there isn't any compliance currently in your session.</strong>
                         <br /><router-link :to="{name:'external-proposals-dash'}" style="margin-top:15px;" class="btn btn-primary">Back to dashboard</router-link>
                     </div>

@@ -4,7 +4,7 @@
             <template v-if="is_external">
                 <!--button 
                     v-if="!creatingProposal" 
-                    class="btn btn-primary pull-right" 
+                    class="btn btn-primary float-end" 
                     @click="openNewTemporaryUse"
                     :disabled="!user_can_temporary_use"
                 >New Temporary Use</button-->

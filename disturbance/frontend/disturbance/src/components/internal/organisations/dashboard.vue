@@ -5,7 +5,7 @@
             <FormSection :form-collapse="false" label="Organisation Access Requests">
                 <div class="row">
                     <div class="col-md-3">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="">Role</label>
                             <select class="form-select" v-model="filterRole">
                                 <option value="All">All</option>
@@ -14,7 +14,7 @@
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label for="">Status</label>
                             <select class="form-select" v-model="filterStatus">
                                 <option value="All">All</option>

@@ -2,7 +2,7 @@
     <FormSection :formCollapse="false" :label="reqLabel" Index="requirements">
          <form class="form-horizontal" action="index.html" method="post">
             <!--div class="col-sm-12">
-                <button v-if="hasAssessorMode" @click.prevent="addRequirement()" style="margin-bottom:10px;" class="btn btn-primary pull-right">Add Requirement</button>
+                <button v-if="hasAssessorMode" @click.prevent="addRequirement()" style="margin-bottom:10px;" class="btn btn-primary float-end">Add Requirement</button>
             </div-->
             <datatable ref="originating_requirements_datatable" :id="datatableId" :dtOptions="requirement_options" :dtHeaders="requirement_headers"/>
         </form>

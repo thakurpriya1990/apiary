@@ -6,20 +6,20 @@
                     <form class="form-horizontal" name="declineForm">
                         <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <label v-if=check_status() class="control-label"  for="Name">Details</label>
-                                        <label v-else class="control-label"  for="Name">Provide Reason for the proposed decline </label>
+                                        <label v-if=check_status() class="form-label"  for="Name">Details</label>
+                                        <label v-else class="form-label"  for="Name">Provide Reason for the proposed decline </label>
                                         <textarea style="width: 70%;" class="form-control" name="reason" v-model="decline.reason"></textarea>
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <label v-if=check_status() class="control-label"  for="Name">CC email</label>
-                                        <label v-else class="control-label"  for="Name">Proposed CC email</label>
+                                        <label v-if=check_status() class="form-label"  for="Name">CC email</label>
+                                        <label v-else class="form-label"  for="Name">Proposed CC email</label>
                                         <input type="text" style="width: 70%;" class="form-control" name="cc_email" v-model="decline.cc_email"/>
                                     </div>
                                 </div>
@@ -29,9 +29,9 @@
                 </div>
             </div>
             <template #footer>
-                <button type="button" v-if="decliningProposal" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
-                <button type="button" v-else class="btn btn-default" @click="ok">Ok</button>
-                <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
+                <button type="button" v-if="decliningProposal" disabled class="btn btn-secondary" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
+                <button type="button" v-else class="btn btn-secondary" @click="ok">Ok</button>
+                <button type="button" class="btn btn-secondary" @click="cancel">Cancel</button>
             </template>
         </modal>
     </div>

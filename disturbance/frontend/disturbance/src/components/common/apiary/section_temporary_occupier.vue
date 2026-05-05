@@ -1,25 +1,25 @@
 <template lang="html">
     <div>
 
-        <div class="form-group"><div class="row">
+        <div class="mb-3"><div class="row">
             <label class="col-sm-2">Name</label>
             <div class="col-sm-4">
                 <input type="text" class="form-control" v-model="occupier_name" :disabled="is_readonly"/>
             </div>
         </div></div>
-        <div class="form-group"><div class="row">
+        <div class="mb-3"><div class="row">
             <label class="col-sm-2">Phone</label>
             <div class="col-sm-4">
                 <input type="text" class="form-control" v-model="occupier_phone" :disabled="is_readonly"/>
             </div>
         </div></div>
-        <div class="form-group"><div class="row">
+        <div class="mb-3"><div class="row">
             <label class="col-sm-2">Mobile</label>
             <div class="col-sm-4">
                 <input type="text" class="form-control" v-model="occupier_mobile" :disabled="is_readonly"/>
             </div>
         </div></div>
-        <div class="form-group"><div class="row">
+        <div class="mb-3"><div class="row">
             <label class="col-sm-2">Email</label>
             <div class="col-sm-4">
                 <input type="text" class="form-control" v-model="occupier_email" :disabled="is_readonly"/>

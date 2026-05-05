@@ -3,7 +3,7 @@
         <form class="form-horizontal" action="index.html" method="post">
             <div class="row">
                 <div class="col-sm-12">
-                    <button v-if="hasAssessorMode" @click.prevent="addRequirement()" style="margin-bottom:10px;" class="btn btn-primary pull-right">Add Requirement</button>
+                    <button v-if="hasAssessorMode" @click.prevent="addRequirement()" style="margin-bottom:10px;" class="btn btn-primary float-end">Add Requirement</button>
                 </div>
             </div>
             <datatable ref="target_requirements_datatable" :id="datatable_id" :dtOptions="requirement_options" :dtHeaders="requirement_headers"/>

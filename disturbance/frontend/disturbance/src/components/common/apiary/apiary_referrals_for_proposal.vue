@@ -110,9 +110,9 @@ export default {
                                 result = '<span>' + truncated + '</span>',
                                 popTemplate = _.template('<a href="#" ' +
                                     'role="button" ' +
-                                    'data-toggle="popover" ' +
+                                    'data-bs-toggle="popover" ' +
                                     'data-trigger="click" ' +
-                                    'data-placement="top auto"' +
+                                    'data-bs-placement="top auto"' +
                                     'data-html="true" ' +
                                     'data-content="<%= text %>" ' +
                                     '>more</a>');

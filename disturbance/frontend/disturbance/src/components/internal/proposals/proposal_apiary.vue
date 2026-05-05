@@ -50,19 +50,19 @@
                             <div class="row">
                                 <div class="col-sm-12 top-buffer-s">
                                     <div class="mb-2"><strong>Referrals</strong></div>
-                                    <div class="form-group mb-3">
+                                    <div class="mb-3 mb-3">
                                         <select :disabled="!canLimitedAction" ref="apiary_referral_groups" class="form-select">
                                             <option v-for="group in apiaryReferralGroups" :value="group.id" :key="group.id">{{group.name}}</option>
                                         </select>
                                         <template v-if='!sendingReferral'>
                                             <template v-if="selected_referral">
-                                                <label class="control-label pull-left"  for="Name">Comments</label>
+                                                <label class="form-label float-start"  for="Name">Comments</label>
                                                 <textarea class="form-control" name="name" v-model="referral_text"></textarea>
-                                                <a v-if="canLimitedAction" @click.prevent="sendReferral()" class="actionBtn pull-right">Send</a>
+                                                <a v-if="canLimitedAction" @click.prevent="sendReferral()" class="actionBtn float-end">Send</a>
                                             </template>
                                         </template>
                                         <template v-else>
-                                            <span v-if="canLimitedAction" @click.prevent="sendReferral()" disabled class="actionBtn text-primary pull-right">
+                                            <span v-if="canLimitedAction" @click.prevent="sendReferral()" disabled class="actionBtn text-primary float-end">
                                                 Sending Referral&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
                                             </span>
@@ -100,18 +100,18 @@
                         <div class="row">
                             <div class="col-sm-12 top-buffer-s">
                                 <strong>Currently assigned to</strong><br/>
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <template v-if="proposal.processing_status == 'With Approver'">
                                         <select ref="assigned_officer" :disabled="!canAction" class="form-select" v-model="proposal.assigned_approver">
                                             <option v-for="member in proposal.allowed_assessors" :value="member.id" :key="member.id">{{member.first_name}} {{member.last_name}}</option>
                                         </select>
-                                        <a v-if="canAssess && proposal.assigned_approver != proposal.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
+                                        <a v-if="canAssess && proposal.assigned_approver != proposal.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign to me</a>
                                     </template>
                                     <template v-else>
                                         <select ref="assigned_officer" :disabled="!canAction" class="form-select" v-model="proposal.assigned_officer">
                                             <option v-for="member in proposal.allowed_assessors" :value="member.id" :key="member.id">{{member.first_name}} {{member.last_name}}</option>
                                         </select>
-                                        <a v-if="canAssess && proposal.assigned_officer != proposal.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
+                                        <a v-if="canAssess && proposal.assigned_officer != proposal.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign to me</a>
                                     </template>
                                 </div>
                             </div>
@@ -184,7 +184,7 @@
                                     </div>
                                 </div>
                                 <div class="col-sm-12">
-                                    <label class="control-label pull-left"  for="Name">Approver Comments</label>
+                                    <label class="form-label float-start"  for="Name">Approver Comments</label>
                                     <textarea class="form-control" name="name" v-model="approver_comment"></textarea><br>
                                 </div>
                                 <div class="col-sm-12" v-if="proposal.proposed_decline_status">
@@ -375,8 +375,8 @@
                                     <div class="navbar navbar-fixed-bottom" v-if="hasAssessorMode" style="background-color: #f5f5f5;">
                                     <div class="navbar-inner">
                                         <div v-if="hasAssessorMode" class="container">
-                                            <p class="pull-right">
-                                            <button class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()">Save Changes</button>
+                                            <p class="float-end">
+                                            <button class="btn btn-primary float-end" style="margin-top:5px;" @click.prevent="save()">Save Changes</button>
                                             </p>
                                         </div>
                                     </div>
@@ -1345,10 +1345,10 @@ export default {
     updated: function(){
         let vm = this;
         if (!vm.panelClickersInitialised){
-            $('.panelClicker[data-toggle="collapse"]').on('click', function () {
+            $('.panelClicker[data-bs-toggle="collapse"]').on('click', function () {
                 var chev = $(this).children()[0];
                 window.setTimeout(function () {
-                    $(chev).toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
+                    $(chev).toggleClass("fa-chevron-down fa-chevron-up");
                 },100);
             });
             vm.panelClickersInitialised = true;

@@ -1,7 +1,7 @@
 <template lang="html">
         <div class="row col-sm-12" style="margin-bottom: 0.5em;">
             <div v-if="is_external">
-                <button :disabled="!onSiteInformationEnabled" class="btn btn-primary pull-right" @click="openOnSiteInformationModalToAdd">Add</button>
+                <button :disabled="!onSiteInformationEnabled" class="btn btn-primary float-end" @click="openOnSiteInformationModalToAdd">Add</button>
             </div>
         </div>
 
@@ -351,7 +351,7 @@
                 //    // Get full data of this row
                     let $row = vm.$refs.on_site_information_table.vmDataTable.row(tr)
                     if($row.child.isShown()){
-                        tr.siblings('.child').find('[data-toggle="popover"]')
+                        tr.siblings('.child').find('[data-bs-toggle="popover"]')
                         .popover()
                         .on('click', function (e) {
                             e.preventDefault();

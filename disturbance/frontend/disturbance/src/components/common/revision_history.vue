@@ -1,6 +1,6 @@
 <template id="revision_history">
     <div class="row">
-        <div class="panel-body panel-collapse">
+        <div class="card-body card-body collapse">
             <div class="scrollable-div">
                 <div style="float: left; width: 80%;">
                     <table class="table small-table">
@@ -134,7 +134,7 @@ export default {
             }
         },
         getCompareVersions: async function (compare_version, lodgement_date) {
-            /*  Updates the history panel to show which item is being compared against
+            /*  Updates the history card to show which item is being compared against
                 Then emits to the component above to process the compare.
             */
 
@@ -153,7 +153,7 @@ export default {
             await this.$emit("compare_model_versions", {compare_version, lodgement_date})
         },
         getViewVersion: async function (version) {
-            /*  Updates the history panel to show which version is being viewed
+            /*  Updates the history card to show which version is being viewed
                 Then emits to the component above to process the change of model object.
             */
             this.compareModeActive = false;

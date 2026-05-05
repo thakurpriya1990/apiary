@@ -1,8 +1,8 @@
 <template lang="html">
-    <div class="panel panel-default" >
-      <div v-if="!hideHeader" class="panel-heading">
-        <h3 class="panel-title">{{label}} <small v-if="subheading"> - {{subheading}}</small> 
-            <a :href="'#'+section_id" class="panelClicker" :id="custom_id" data-toggle="collapse" expanded="true" :aria-controls="section_id">
+    <div class="card card" >
+      <div v-if="!hideHeader" class="card-header">
+        <h3 class="card-title">{{label}} <small v-if="subheading"> - {{subheading}}</small> 
+            <a :href="'#'+section_id" class="panelClicker" :id="custom_id" data-bs-toggle="collapse" expanded="true" :aria-controls="section_id">
                 <span :class="panel_chevron_class"></span>
             </a>
         </h3>
@@ -58,15 +58,15 @@ export default {
         },
         panel_collapse_class: function() {
             if (this.formCollapse) {
-                // this.panel_chevron_class = "glyphicon glyphicon-chevron-down pull-right";
-                return "panel-body collapse";
+                // this.panel_chevron_class = "fa fa-chevron-down float-end";
+                return "card-body collapse";
             } else {
                 if (this.treeHeight) {
-                    // this.panel_chevron_class = "glyphicon glyphicon-chevron-up pull-right";
-                    return "panel-body collapse in flex-container";
+                    // this.panel_chevron_class = "fa fa-chevron-up float-end";
+                    return "card-body collapse show flex-container";
                 } else {
-                    // this.panel_chevron_class = "glyphicon glyphicon-chevron-up pull-right";
-                    return "panel-body collapse in";
+                    // this.panel_chevron_class = "fa fa-chevron-up float-end";
+                    return "card-body collapse show";
                 }
             }
         },
@@ -75,7 +75,7 @@ export default {
         $('#' + this.custom_id).on('click',function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
-                $(chev).toggleClass("glyphicon-chevron-up glyphicon-chevron-down");
+                $(chev).toggleClass("fa-chevron-up fa-chevron-down");
             }, 100);
         });
     },
@@ -85,7 +85,7 @@ export default {
 </script>
 
 <style lang="css">
-    h3.panel-title{
+    h3.card-title{
         font-weight: bold;
         font-size: 25px;
         padding:20px;

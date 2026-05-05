@@ -9,19 +9,19 @@
                                 <div v-show="select2Applied">
                                     <div class="row" id="filters_parent">
                                         <div class="col-sm-1">
-                                            <label class="control-label">Status</label>
+                                            <label class="form-label">Status</label>
                                         </div>
                                         <div class="col-sm-3">
                                             <select class="form-select" ref="filterStatus" ></select>
                                         </div>
                                         <div class="col-sm-1">
-                                            <label class="control-label">Availability</label>
+                                            <label class="form-label">Availability</label>
                                         </div>
                                         <div class="col-sm-3">
                                             <select class="form-select" ref="filterAvailability" ></select>
                                         </div>
                                         <div class="col-sm-1">
-                                            <label :for="search_text" class="control-label">Search</label>
+                                            <label :for="search_text" class="form-label">Search</label>
                                         </div>
                                         <div class="col-sm-3">
                                             <input v-model="search_text" pattern="[0-9]*" id="search_text" required class="form-control" />

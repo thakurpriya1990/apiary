@@ -1,18 +1,18 @@
 <template id="proposal_requirements">
     <div class="col-md-12">
         <div class="row">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Requirements
-                        <a class="panelClicker" :href="'#'+panelBody" data-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="panelBody">
-                            <span class="glyphicon glyphicon-chevron-down pull-right "></span>
+            <div class="card card">
+                <div class="card-header">
+                    <h3 class="card-title">Requirements
+                        <a class="panelClicker" :href="'#'+panelBody" data-bs-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="panelBody">
+                            <span class="fa fa-chevron-down float-end "></span>
                         </a>
                     </h3>
                 </div>
-                <div class="panel-body panel-collapse collapse in" :id="panelBody">
+                <div class="card-body card-body collapse collapse show" :id="panelBody">
                     <form class="form-horizontal" action="index.html" method="post">
                         <div class="col-sm-12">
-                            <button v-if="hasAssessorMode || hasReferralMode" @click.prevent="addRequirement()" style="margin-bottom:10px;" class="btn btn-primary pull-right">Add Requirement</button>
+                            <button v-if="hasAssessorMode || hasReferralMode" @click.prevent="addRequirement()" style="margin-bottom:10px;" class="btn btn-primary float-end">Add Requirement</button>
                         </div>
                         <datatable ref="requirements_datatable" :id="'requirements-datatable-'+_uid" :dtOptions="requirement_options" :dtHeaders="requirement_headers"/>
                     </form>
@@ -105,9 +105,9 @@ export default {
                                 result = '<span>' + truncated + '</span>',
                                 popTemplate = _.template('<a href="#" ' +
                                     'role="button" ' +
-                                    'data-toggle="popover" ' +
+                                    'data-bs-toggle="popover" ' +
                                     'data-trigger="click" ' +
-                                    'data-placement="top auto"' +
+                                    'data-bs-placement="top auto"' +
                                     'data-html="true" ' +
                                     'data-content="<%= text %>" ' +
                                     '>more</a>');

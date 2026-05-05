@@ -7,9 +7,9 @@
                         <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
                             <div class="row">
-                                <div class="col-sm-offset-2 col-sm-8">
-                                    <div class="form-group">
-                                        <label class="control-label pull-left"  for="Name">Reason</label>
+                                <div class="offset-sm-2 col-sm-8">
+                                    <div class="mb-3">
+                                        <label class="form-label float-start"  for="Name">Reason</label>
                                         <select class="form-select" name="reason" ref="reason" v-model="amendment.reason">
                                             <option v-for="r in reason_choices" :value="r.key" :key="r.key">{{r.value}}</option>
                                         </select>
@@ -17,9 +17,9 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-sm-offset-2 col-sm-8">
-                                    <div class="form-group">
-                                        <label class="control-label pull-left"  for="Name">Details</label>
+                                <div class="offset-sm-2 col-sm-8">
+                                    <div class="mb-3">
+                                        <label class="form-label float-start"  for="Name">Details</label>
                                         <div>
                                              <textarea class="form-control" name="name" v-model="amendment.text" id="amendment_text"></textarea>
                                         </div>
@@ -28,8 +28,8 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-sm-offset-2 col-sm-8">
-                                    <div class="form-group">
+                                <div class="offset-sm-2 col-sm-8">
+                                    <div class="mb-3">
                                         <div class="input-group date" ref="add_attachments" style="width: 70%;">
                                             <FileField
                                             ref="filefield"

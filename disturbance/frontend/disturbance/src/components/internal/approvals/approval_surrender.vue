@@ -6,11 +6,11 @@
                     <form class="form-horizontal" name="approvalSurrenderForm">
                         <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
 
-                                        <label class="col-form-label pull-left"  for="Name">Surrender Date</label>
+                                        <label class="col-form-label float-start"  for="Name">Surrender Date</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="surrender_date" style="width: 70%;">
@@ -32,11 +32,11 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
 
-                                        <label class="col-form-label pull-left"  for="Name">Surrender Details</label>
+                                        <label class="col-form-label float-start"  for="Name">Surrender Details</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <textarea name="surrender_details" class="form-control" style="width:70%;" v-model="approval.surrender_details"></textarea>
@@ -49,7 +49,7 @@
                 </div>
             </div>
             <template #footer>
-                <button type="button" v-if="issuingApproval" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
+                <button type="button" v-if="issuingApproval" disabled class="btn btn-secondary" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
                 <button type="button" v-else class="btn btn-primary" @click="ok">Ok</button>
                 <button type="button" class="btn btn-secondary" @click="cancel">Cancel</button>
             </template>

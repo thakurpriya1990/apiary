@@ -43,7 +43,7 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <strong>Currently assigned to</strong><br/>
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <select v-show="isLoading" class="form-select">
                                         <option value="">Loading...</option>
                                     </select>
@@ -93,7 +93,7 @@
                         <label for="" class="col-sm-3 col-form-label">Documents</label>
                         <div class="col-sm-6">
                             <div class="row" v-for="d in compliance.documents" :key="d">
-                                    <a :href="d[1]" target="_blank" class="control-label float-start">{{d[0]}}</a>
+                                    <a :href="d[1]" target="_blank" class="form-label float-start">{{d[0]}}</a>
                             </div>
                         </div>
                     </div>                               

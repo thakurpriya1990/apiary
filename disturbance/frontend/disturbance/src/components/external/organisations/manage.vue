@@ -31,35 +31,35 @@
                     index="linked_persons"
                     subtitle="Manage the user accounts linked to the organisation"
                 >
-                    <div class="panel panel-default">
-                        <div class="col-sm-12 row form-group">
+                    <div class="card card">
+                        <div class="col-sm-12 row mb-3">
                             <h6>Use the Organisation Administrator pin codes if you want the new user to be linked as organisation administrator.<br> Use the Organisation User pin codes if you want the new user to be linked as organisation user.</h6>
                         </div>
                         <form class="form-horizontal" action="index.html" method="post">
-                             <div class="row form-group">
+                             <div class="row mb-3">
                                     <div class="col-sm-6">
-                                        <label for="" class="control-label"> Organisation User Pin Code 1:</label>
+                                        <label for="" class="form-label"> Organisation User Pin Code 1:</label>
                                     </div>
                                     <div class="col-sm-6">
                                         {{org.pins.three}}
                                     </div>
                                     <div class="col-sm-6">
-                                        <label for="" class="control-label" >Organisation User Pin Code 2:</label>
+                                        <label for="" class="form-label" >Organisation User Pin Code 2:</label>
                                     </div>
                                     <div class="col-sm-6">
                                         {{org.pins.four}}
                                     </div>
                             </div>
                             
-                             <div class="row form-group" :disabled ='!myorgperms.is_admin'>
+                             <div class="row mb-3" :disabled ='!myorgperms.is_admin'>
                                     <div class="col-sm-6">
-                                        <label for="" class="control-label"> Organisation Administrator Pin Code 1:</label>
+                                        <label for="" class="form-label"> Organisation Administrator Pin Code 1:</label>
                                     </div>
                                     <div class="col-sm-6">
                                         {{org.pins.one}}
                                     </div>
                                     <div class="col-sm-6">
-                                        <label for="" class="control-label" >Organisation Administrator Pin Code 2:</label>
+                                        <label for="" class="form-label" >Organisation Administrator Pin Code 2:</label>
                                     </div>
                                     <div class="col-sm-6">
                                        {{org.pins.two}}
@@ -1071,10 +1071,10 @@ export default {
         this.personal_form = document.forms.personal_form;
     },
     updated: function(){
-        $('.panelClicker[data-toggle="collapse"]').on('click', function () {
+        $('.panelClicker[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
-                $(chev).toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
+                $(chev).toggleClass("fa-chevron-down fa-chevron-up");
             },100);
         }); 
         this.$nextTick(() => {

@@ -3,11 +3,11 @@
         <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
             <div v-if="!proposal_readonly">
               <div v-if="hasAmendmentRequest" class="row" style="color:red;">
-                <div class="col-lg-12 pull-right">
+                <div class="col-lg-12 float-end">
                     <FormSection :formCollapse="false" :label="amendmentRequestText" Index="amendment_request">
                         <div v-for="a in amendment_request" :key="a.id">
                           <p>Reason: {{a.reason}}</p>
-                          <p v-if="a.amendment_request_documents">Documents: </p><p v-for="d in a.amendment_request_documents" :key="d.id"><a :href="d._file" target="_blank" class="control-label pull-left">{{d.name   }}</a><br></p>
+                          <p v-if="a.amendment_request_documents">Documents: </p><p v-for="d in a.amendment_request_documents" :key="d.id"><a :href="d._file" target="_blank" class="form-label float-start">{{d.name   }}</a><br></p>
                           <p>Details: </p> <p v-for="t in splitText(a.text)" :key="t.text">{{t}}</p>
                         </div>
                     </FormSection>

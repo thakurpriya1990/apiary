@@ -79,7 +79,6 @@
     import Awesomplete from 'awesomplete'
     import { api_endpoints } from '@/utils/hooks'
     import { markRaw, toRaw } from 'vue';
-    import { fromLonLat, toLonLat } from 'ol/proj';
     import $ from 'jquery';
     
     export default {
@@ -440,10 +439,10 @@
                     //target: 'map',
                     target: vm.elem_id,
                     view: new View({
-                        center: fromLonLat([115.95, -31.95]),
+                        center: [115.95, -31.95],
+                        projection: 'EPSG:4326',
                         zoom: 7,
                     }),
-                    // Note: EPSG:3857 is the default for OpenLayers and required for OSM tiles
                     pixelRatio: 1,  // We need this in order to make this map work correctly with the browser and/or display scaling factor(s) other than 100%
                                     // Ref: https://github.com/openlayers/openlayers/issues/11464
                 }));
@@ -498,7 +497,7 @@
                 // Show mouse coordinates
                 vm.map.addControl(new MousePositionControl({
                     coordinateFormat: function(coords){
-                        let message = vm.getDegrees(toLonLat(coords)) + "\n";
+                        let message = vm.getDegrees(coords) + "\n";
                         return  message;
                     },
                     target: document.getElementById('mouse-position'),
@@ -620,8 +619,7 @@
                                 // feature has been modified
                                 vm.modifyInProgressList.splice(index, 1);
                                 let coords = feature.getGeometry().getCoordinates();
-                                const lonlat = toLonLat(coords);
-                                vm.$emit('featureGeometryUpdated', {'id': id, 'coordinates': {'lng': lonlat[0], 'lat': lonlat[1]}})
+                                vm.$emit('featureGeometryUpdated', {'id': id, 'coordinates': {'lng': coords[0], 'lat': coords[1]}})
                             }
                         });
                     });
@@ -655,7 +653,7 @@
                                       '<div style="font-size: 0.8em;">' +
                                           '<div>' + status_str + '</div>' +
                                           '<div>' + getDisplayNameOfCategory(feature.get('site_category')) + '</div>' +
-                                          '<div>' + toLonLat(feature.getGeometry().getCoordinates()).map(v => v.toFixed(6)).join(', ') + '</div>' +
+                                          '<div>' + feature['values_']['geometry']['flatCoordinates'].map(v => v.toFixed(6)).join(', ') + '</div>' +
                                       '</div>' +
                                   '</div>'
                     this.content_element.innerHTML = content;
@@ -722,7 +720,7 @@
             addApiarySite: function(apiary_site_geojson) {
 
                 let vm = this
-                let feature = (new GeoJSON()).readFeature(apiary_site_geojson, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' })
+                let feature = (new GeoJSON()).readFeature(apiary_site_geojson)
 
                 feature.getGeometry().on("change", function() {
                     let feature_id = feature.getId()

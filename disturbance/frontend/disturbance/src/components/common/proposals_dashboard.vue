@@ -4,7 +4,7 @@
             <div class="row">
 
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label for="">Application Type</label>
                         <select class="form-select" v-model="filterProposalApplicationType">
                             <option value="All">All</option>
@@ -13,7 +13,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label for="">Status</label>
                         <select class="form-select" v-model="filterProposalStatus">
                             <option value="All">All</option>
@@ -47,7 +47,7 @@
             </div>
             <div class="row">
                 <div v-if="is_external" class="col-md-12">
-                    <router-link  style="margin-bottom:15px; margin-top:15px;" class="btn btn-primary pull-right" :to="{ name: 'apply_proposal' }">{{newProposalText}}</router-link>
+                    <router-link  style="margin-bottom:15px; margin-top:15px;" class="btn btn-primary float-end" :to="{ name: 'apply_proposal' }">{{newProposalText}}</router-link>
                 </div>
             </div>
             <div class="row">
@@ -648,10 +648,10 @@ export default {
         console.log('in mounted')
         this.fetchFilterLists();
         this.fetchProfile();
-        $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
+        $( 'a[data-bs-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];
             window.setTimeout( function () {
-                $( chev ).toggleClass( "glyphicon-chevron-down glyphicon-chevron-up" );
+                $( chev ).toggleClass( "fa-chevron-down fa-chevron-up" );
             }, 100 );
         });
         

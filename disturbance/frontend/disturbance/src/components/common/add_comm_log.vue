@@ -6,30 +6,30 @@
                     <form class="form-horizontal" name="commsForm">
                         <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left"  for="Name">To</label>
+                                        <label class="form-label float-start"  for="Name">To</label>
                                     </div>
                                     <div class="col-sm-4">
                                         <input type="text" class="form-control" name="to" v-model="to">
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left"  for="Name">From</label>
+                                        <label class="form-label float-start"  for="Name">From</label>
                                     </div>
                                     <div class="col-sm-4">
                                         <input type="text" class="form-control" name="from" v-model="from">
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left"  for="Name">Type</label>
+                                        <label class="form-label float-start"  for="Name">Type</label>
                                     </div>
                                     <div class="col-sm-4">
                                         <select class="form-select" name="type" v-model="log_type">
@@ -41,39 +41,39 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left"  for="Name">Subject/Description</label>
+                                        <label class="form-label float-start"  for="Name">Subject/Description</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <input type="text" class="form-control" name="subject" style="width:70%;" v-model="subject">
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left"  for="Name">Text</label>
+                                        <label class="form-label float-start"  for="Name">Text</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <textarea name="text" class="form-control" style="width:70%;" v-model="text"></textarea>
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left"  for="Name">Attachments</label>
+                                        <label class="form-label float-start"  for="Name">Attachments</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <template v-for="(f,i) in files" :key="i">
                                             <div :class="'row top-buffer file-row-'+i">
                                                 <div class="col-sm-4">
-                                                    <span v-if="f.file == null" class="btn btn-info btn-file pull-left">
+                                                    <span v-if="f.file == null" class="btn btn-info btn-file float-start">
                                                         Attach File <input type="file" :name="'file-upload-'+i" :class="'file-upload-'+i" @change="uploadFile('file-upload-'+i,f)"/>
                                                     </span>
-                                                    <span v-else class="btn btn-info btn-file pull-left">
+                                                    <span v-else class="btn btn-info btn-file float-start">
                                                         Update File <input type="file" :name="'file-upload-'+i" :class="'file-upload-'+i" @change="uploadFile('file-upload-'+i,f)"/>
                                                     </span>
                                                 </div>
@@ -96,7 +96,7 @@
             <template #footer>
                 <button type="button" v-if="addingComms" disabled class="btn btn-primary" @click="ok"><i class="fa fa-spinner fa-spin"></i> Adding</button>
                 <button type="button" v-else class="btn btn-primary" @click="ok">Add</button>
-                <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
+                <button type="button" class="btn btn-secondary" @click="cancel">Cancel</button>
             </template>
         </modal>
     </div>

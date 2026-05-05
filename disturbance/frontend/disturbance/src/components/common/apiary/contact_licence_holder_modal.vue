@@ -6,7 +6,7 @@
                 Enter information that will be emailed to the site licence holder. Please ensure your contact details are included if you want to be contacted by the site licence holder.
             </div>
             <div>
-                <div class="form-group"><div class="row">
+                <div class="mb-3"><div class="row">
                     <div class="col-sm-12">
                         <textarea class="form-control" v-model="comments"/>
                     </div>

@@ -52,6 +52,7 @@ import {
 }
 from '@/utils/hooks';
 import $ from 'jquery';
+import Swal from 'sweetalert2';
 export default {
     name: "FileField",
     props:{
@@ -341,7 +342,18 @@ export default {
                     });
 
                     if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
+                        const errData = await response.json().catch(() => null);
+                        const message = (errData && (errData[0] || errData.detail)) || `Upload failed (HTTP ${response.status})`;
+                        Swal.fire({ icon: 'error', title: 'Upload failed', text: message });
+                        // Undo the handleChange side-effects: un-hide the original input and
+                        // remove the extra repeat slot that was added before the upload failed.
+                        $(e.target).css({ 'display': '' });
+                        if (this.isRepeatable && this.repeat > 1) {
+                            this.repeat -= 1;
+                        }
+                        e.target.value = '';
+                        this.show_spinner = false;
+                        return;
                     }
 
                     const data = await response.json();

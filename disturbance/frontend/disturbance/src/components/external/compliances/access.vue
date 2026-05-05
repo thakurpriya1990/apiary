@@ -28,28 +28,28 @@
                             <strong>{{errorString}}</strong>
                         </alert>
                         <div class="row mb-3">
-                            <label class="col-sm-3 col-form-label pull-left"  for="Name">Requirement:</label>
+                            <label class="col-sm-3 col-form-label float-start"  for="Name">Requirement:</label>
                             <div class="col-sm-6">
                                 {{compliance.requirement}}
                             </div>
                         </div>
 
                         <div class="row mb-3">
-                            <label class="col-sm-3 col-form-label pull-left"  for="Name">Details:</label>
+                            <label class="col-sm-3 col-form-label float-start"  for="Name">Details:</label>
                             <div class="col-sm-6">
                                 <textarea :disabled="isFinalised" class="form-control" name="detail" placeholder="" v-model="compliance.text"></textarea>
                             </div>
                         </div>
 
                         <div class="row mb-3">
-                            <!--<div v-if="isFinalised && hasDocuments" class="form-group"> -->
+                            <!--<div v-if="isFinalised && hasDocuments" class="mb-3"> -->
                             <div v-if="hasDocuments">
-                                <div class="col-sm-3 col-form-label pull-left">  
+                                <div class="col-sm-3 col-form-label float-start">  
                                     <label  for="Name">Documents:</label>
                                 </div> 
                                 <div class="col-sm-6">
                                     <div class="row" v-for="d in compliance.documents" :key="d.id">
-                                        <a :href="d[1]" target="_blank" class="col-form-label pull-left">{{d[0]   }}</a>
+                                        <a :href="d[1]" target="_blank" class="col-form-label float-start">{{d[0]   }}</a>
                                         <span v-if="!isFinalised && d.can_delete">
                                             <a @click="delete_document(d)" class="fa fa-trash-o col-form-label" title="Remove file" style="cursor: pointer; color:red;"></a>
                                         </span>
@@ -63,15 +63,15 @@
 
                         <div class="row mb-3">
                             <div v-if="!isFinalised"> 
-                                <label class="col-sm-3 col-form-label pull-left"  for="Name">Attachments:</label>
+                                <label class="col-sm-3 col-form-label float-start"  for="Name">Attachments:</label>
                             <div class="col-sm-6">
                                 <template v-for="(f,i) in files" :key="i">
                                     <div :class="'row top-buffer file-row-'+i">
                                         <div class="col-sm-4">
-                                            <span v-if="f.file == null" class="btn btn-info btn-file pull-left" style="margin-bottom: 5px">
+                                            <span v-if="f.file == null" class="btn btn-info btn-file float-start" style="margin-bottom: 5px">
                                                 Attach File <input type="file" :name="'file-upload-'+i" :class="'file-upload-'+i" @change="uploadFile('file-upload-'+i,f)"/>
                                             </span>
-                                            <span v-else class="btn btn-info btn-file pull-left" style="margin-bottom: 5px">
+                                            <span v-else class="btn btn-info btn-file float-start" style="margin-bottom: 5px">
                                                 Update File <input type="file" :name="'file-upload-'+i" :class="'file-upload-'+i" @change="uploadFile('file-upload-'+i,f)"/>
                                             </span>
                                         </div>
@@ -89,8 +89,8 @@
                         </div>
 
                         <div class="row mb-3">
-                            <div class="form-group">
-                                <div class="col-lg-2 pull-right">
+                            <div class="mb-3">
+                                <div class="col-lg-2 float-end">
                                     <button v-if="!isFinalised" @click.prevent="submit()" class="btn btn-primary">Submit</button>
                                     <button v-if="!isFinalised" @click.prevent="close()" class="btn btn-secondary">Close</button>
                                 </div>

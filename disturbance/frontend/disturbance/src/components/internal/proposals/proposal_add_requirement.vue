@@ -6,16 +6,16 @@
                     <form class="form-horizontal" name="requirementForm">
                         <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label class="form-check form-check-inline col-form-label"><input type="radio" class="form-check-input" name="requirementType" :value="true" v-model="requirement.standard">Standard Requirement</label>
                                 <label class="form-check form-check-inline col-form-label"><input type="radio" class="form-check-input" name="requirementType" :value="false" v-model="requirement.standard">Free Text Requirement</label>
                             </div>
                         </div>
                         <div class="col-sm-12">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="col-form-label pull-left"  for="Name">Requirement</label>
+                                        <label class="col-form-label float-start"  for="Name">Requirement</label>
                                     </div>
                                     <div class="col-sm-9" v-if="requirement.standard">
                                         <div style="width:70% !important">
@@ -29,27 +29,27 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="col-form-label pull-left"  for="Name">Due Date</label>
+                                        <label class="col-form-label float-start"  for="Name">Due Date</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="due_date" style="width: 70%;">
                                             <!-- <input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="requirement.due_date"> -->
                                             <input type="date" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="requirement.due_date">
                                             <span class="input-group-addon">
-                                                <span class="glyphicon glyphicon-calendar"></span>
+                                                <span class="fa fa-calendar"></span>
                                             </span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <template v-if="validDate">
-                                <div class="form-group">
+                                <div class="mb-3">
                                     <div class="row mb-3">
                                         <div class="col-sm-3">
-                                            <label class="col-form-label pull-left"  for="Name">Recurrence</label>
+                                            <label class="col-form-label float-start"  for="Name">Recurrence</label>
                                         </div>
                                         <div class="col-sm-9">
                                             <label class="checkbox-inline"><input type="checkbox" class="form-check-input" v-model="requirement.recurrence"></label>
@@ -57,10 +57,10 @@
                                     </div>
                                 </div>
                                 <template v-if="requirement.recurrence">
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <div class="row">
                                             <div class="col-sm-3">
-                                                <label class="col-form-label pull-left"  for="Name">Recurrence pattern</label>
+                                                <label class="col-form-label float-start"  for="Name">Recurrence pattern</label>
                                             </div>
                                             <div class="col-sm-9">
                                                 <label class="radio-inline col-form-label"><input type="radio" class="form-check-input" name="recurrenceSchedule" value="1" v-model="requirement.recurrence_pattern">Weekly</label>
@@ -69,15 +69,15 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="mb-3">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <label class="col-form-label"  for="Name">
-                                                    <strong class="pull-left">Recur every</strong> 
-                                                    <input class="pull-left" style="width:10%; margin-left:10px;" type="number" name="schedule" v-model="requirement.recurrence_schedule"/> 
-                                                    <strong v-if="requirement.recurrence_pattern == '1'" class="pull-left" style="margin-left:10px;">week(s)</strong>
-                                                    <strong v-else-if="requirement.recurrence_pattern == '2'" class="pull-left" style="margin-left:10px;">month(s)</strong>
-                                                    <strong v-else-if="requirement.recurrence_pattern == '3'" class="pull-left" style="margin-left:10px;">year(s)</strong>
+                                                    <strong class="float-start">Recur every</strong> 
+                                                    <input class="float-start" style="width:10%; margin-left:10px;" type="number" name="schedule" v-model="requirement.recurrence_schedule"/> 
+                                                    <strong v-if="requirement.recurrence_pattern == '1'" class="float-start" style="margin-left:10px;">week(s)</strong>
+                                                    <strong v-else-if="requirement.recurrence_pattern == '2'" class="float-start" style="margin-left:10px;">month(s)</strong>
+                                                    <strong v-else-if="requirement.recurrence_pattern == '3'" class="float-start" style="margin-left:10px;">year(s)</strong>
                                                 </label>
                                             </div>
                                         </div>
@@ -90,11 +90,11 @@
             </div>
             <template #footer>
                 <template v-if="requirement.id">
-                    <button type="button" v-if="updatingRequirement" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinnner fa-spin"></i> Updating</button>
-                    <button type="button" v-else class="btn btn-default" @click="ok">Update</button>
+                    <button type="button" v-if="updatingRequirement" disabled class="btn btn-secondary" @click="ok"><i class="fa fa-spinnner fa-spin"></i> Updating</button>
+                    <button type="button" v-else class="btn btn-secondary" @click="ok">Update</button>
                 </template>
                 <template v-else>
-                    <button type="button" v-if="addingRequirement" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Adding</button>
+                    <button type="button" v-if="addingRequirement" disabled class="btn btn-secondary" @click="ok"><i class="fa fa-spinner fa-spin"></i> Adding</button>
                     <button type="button" v-else class="btn btn-primary" @click="ok">Add</button>
                 </template>
                 <button type="button" class="btn btn-secondary" @click="cancel">Cancel</button>
