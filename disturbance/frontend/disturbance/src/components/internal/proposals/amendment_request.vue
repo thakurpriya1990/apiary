@@ -7,7 +7,7 @@
                         <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
                             <div class="row">
-                                <div class="col-sm-offset-2 col-sm-8">
+                                <div class="offset-sm-2 col-sm-8">
                                     <div class="form-group">
                                         <label class="control-label float-start"  for="Name">Reason</label>
                                         <select class="form-select" name="reason" ref="reason" v-model="amendment.reason">
@@ -17,7 +17,7 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-sm-offset-2 col-sm-8">
+                                <div class="offset-sm-2 col-sm-8">
                                     <div class="form-group">
                                         <label class="control-label float-start"  for="Name">Details</label>
                                         <div>
@@ -28,7 +28,7 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-sm-offset-2 col-sm-8">
+                                <div class="offset-sm-2 col-sm-8">
                                     <div class="form-group">
                                         <div class="input-group date" ref="add_attachments" style="width: 70%;">
                                             <FileField
