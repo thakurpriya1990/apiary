@@ -28,7 +28,7 @@ proceeding to the next step. Do not move to the next step until the current one 
 - [x] Step 1: `pull-right` / `pull-left` -> `float-end` / `float-start`
 - [x] Step 2: `btn-default` -> `btn-secondary`
 - [x] Step 3: `data-toggle` -> `data-bs-toggle`
-- [ ] Step 4: `data-dismiss` -> `data-bs-dismiss`
+- [x] Step 4: `data-dismiss` -> `data-bs-dismiss`
 - [ ] Step 5: `data-placement` -> `data-bs-placement`
 - [ ] Step 6: `data-target` -> `data-bs-target`
 - [ ] Step 7: Spacing utilities LTR -> logical properties
