@@ -9,7 +9,7 @@
                         </a>
                     </h3>
                 </div>
-                <div class="panel-body panel-collapse collapse in" :id="panelBody">
+                <div class="panel-body panel-collapse collapse show" :id="panelBody">
                     <form class="form-horizontal" action="index.html" method="post">
                         <div class="col-sm-12">
                             <button v-if="hasAssessorMode || hasReferralMode" @click.prevent="addRequirement()" style="margin-bottom:10px;" class="btn btn-primary float-end">Add Requirement</button>
