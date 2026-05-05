@@ -286,7 +286,7 @@ export default {
                                         'role="button" ' +
                                         'data-bs-toggle="popover" ' +
                                         'data-trigger="hover" ' +
-                                        'data-placement="top auto"' +
+                                        'data-bs-placement="top auto"' +
                                         'data-html="true" ' +
                                         'data-content="<%= text %>" ' +
                                         '><%= tick %></a>');

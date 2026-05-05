@@ -105,7 +105,7 @@ export default {
                                     'role="button" ' +
                                     'data-bs-toggle="popover" ' +
                                     'data-trigger="click" ' +
-                                    'data-placement="top auto"' +
+                                    'data-bs-placement="top auto"' +
                                     'data-html="true" ' +
                                     'data-content="<%= text %>" ' +
                                     '>more</a>');
