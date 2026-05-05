@@ -3,7 +3,7 @@
         <div class="row col-sm-12">
             <template v-if="is_external">
                 <!--button 
-                    class="btn btn-primary pull-right" 
+                    class="btn btn-primary float-end" 
                     @click="openNewSiteTransfer"
                     :disabled="!user_can_site_transfer"
                 >

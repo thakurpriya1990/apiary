@@ -15,7 +15,7 @@
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="col-form-label pull-left"  for="Name">Requirement</label>
+                                        <label class="col-form-label float-start"  for="Name">Requirement</label>
                                     </div>
                                     <div class="col-sm-9" v-if="requirement.standard">
                                         <div style="width:70% !important">
@@ -32,7 +32,7 @@
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="col-form-label pull-left"  for="Name">Due Date</label>
+                                        <label class="col-form-label float-start"  for="Name">Due Date</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="due_date" style="width: 70%;">
@@ -49,7 +49,7 @@
                                 <div class="form-group">
                                     <div class="row mb-3">
                                         <div class="col-sm-3">
-                                            <label class="col-form-label pull-left"  for="Name">Recurrence</label>
+                                            <label class="col-form-label float-start"  for="Name">Recurrence</label>
                                         </div>
                                         <div class="col-sm-9">
                                             <label class="checkbox-inline"><input type="checkbox" class="form-check-input" v-model="requirement.recurrence"></label>
@@ -60,7 +60,7 @@
                                     <div class="form-group">
                                         <div class="row">
                                             <div class="col-sm-3">
-                                                <label class="col-form-label pull-left"  for="Name">Recurrence pattern</label>
+                                                <label class="col-form-label float-start"  for="Name">Recurrence pattern</label>
                                             </div>
                                             <div class="col-sm-9">
                                                 <label class="radio-inline col-form-label"><input type="radio" class="form-check-input" name="recurrenceSchedule" value="1" v-model="requirement.recurrence_pattern">Weekly</label>
@@ -73,11 +73,11 @@
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <label class="col-form-label"  for="Name">
-                                                    <strong class="pull-left">Recur every</strong> 
-                                                    <input class="pull-left" style="width:10%; margin-left:10px;" type="number" name="schedule" v-model="requirement.recurrence_schedule"/> 
-                                                    <strong v-if="requirement.recurrence_pattern == '1'" class="pull-left" style="margin-left:10px;">week(s)</strong>
-                                                    <strong v-else-if="requirement.recurrence_pattern == '2'" class="pull-left" style="margin-left:10px;">month(s)</strong>
-                                                    <strong v-else-if="requirement.recurrence_pattern == '3'" class="pull-left" style="margin-left:10px;">year(s)</strong>
+                                                    <strong class="float-start">Recur every</strong> 
+                                                    <input class="float-start" style="width:10%; margin-left:10px;" type="number" name="schedule" v-model="requirement.recurrence_schedule"/> 
+                                                    <strong v-if="requirement.recurrence_pattern == '1'" class="float-start" style="margin-left:10px;">week(s)</strong>
+                                                    <strong v-else-if="requirement.recurrence_pattern == '2'" class="float-start" style="margin-left:10px;">month(s)</strong>
+                                                    <strong v-else-if="requirement.recurrence_pattern == '3'" class="float-start" style="margin-left:10px;">year(s)</strong>
                                                 </label>
                                             </div>
                                         </div>

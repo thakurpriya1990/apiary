@@ -8,7 +8,7 @@
                         <div class="panel-heading">
                             <h3 class="panel-title">Region, District, Activity Type, Sub Activity, ...
                                 <a :href="'#'+pBody2" data-toggle="collapse"  data-parent="#userInfo2" expanded="true" :aria-controls="pBody2">
-                                    <span class="glyphicon glyphicon-chevron-up pull-right "></span>
+                                    <span class="glyphicon glyphicon-chevron-up float-end "></span>
                                 </a>
                             </h3>
                         </div>
@@ -133,8 +133,8 @@
                     </div>
 
                     <!-- <div class="col-sm-12">
-                        <button v-if="!creatingProposal" @click.prevent="submit()" class="btn btn-primary pull-right">Continue</button>
-                        <button v-else disabled class="pull-right btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Creating</button>
+                        <button v-if="!creatingProposal" @click.prevent="submit()" class="btn btn-primary float-end">Continue</button>
+                        <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Creating</button>
                     </div> -->
 
                 </form>

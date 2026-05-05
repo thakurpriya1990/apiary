@@ -10,7 +10,7 @@
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
 
-                                        <label class="col-form-label pull-left"  for="Name">From Date</label>
+                                        <label class="col-form-label float-start"  for="Name">From Date</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="from_date" style="width: 70%;">
@@ -34,7 +34,7 @@
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
 
-                                        <label class="col-from-label pull-left"  for="Name">To Date</label>
+                                        <label class="col-from-label float-start"  for="Name">To Date</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="to_date" style="width: 70%;">
@@ -58,7 +58,7 @@
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
 
-                                        <label class="col-form-label pull-left"  for="Name">Suspension Details</label>
+                                        <label class="col-form-label float-start"  for="Name">Suspension Details</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <textarea name="suspension_details" class="form-control" style="width:70%;" v-model="approval.suspension_details"></textarea>

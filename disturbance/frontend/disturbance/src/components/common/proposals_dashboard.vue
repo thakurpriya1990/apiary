@@ -47,7 +47,7 @@
             </div>
             <div class="row">
                 <div v-if="is_external" class="col-md-12">
-                    <router-link  style="margin-bottom:15px; margin-top:15px;" class="btn btn-primary pull-right" :to="{ name: 'apply_proposal' }">{{newProposalText}}</router-link>
+                    <router-link  style="margin-bottom:15px; margin-top:15px;" class="btn btn-primary float-end" :to="{ name: 'apply_proposal' }">{{newProposalText}}</router-link>
                 </div>
             </div>
             <div class="row">

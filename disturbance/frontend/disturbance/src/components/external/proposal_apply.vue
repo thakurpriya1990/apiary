@@ -8,7 +8,7 @@
                         <div class="card-header">
                             <h5 class="mb-0">Apply on behalf of
                                 <a :href="'#'+pBody" data-bs-toggle="collapse" :aria-controls="pBody">
-                                    <i class="fa fa-chevron-up pull-right"></i>
+                                    <i class="fa fa-chevron-up float-end"></i>
                                 </a>
                             </h5>
                         </div>
@@ -44,7 +44,7 @@
                         <div class="card-header">
                             <h5 class="mb-0">Apply for
                                 <a :href="'#'+pBody2" data-bs-toggle="collapse" :aria-controls="pBody2">
-                                    <i class="fa fa-chevron-up pull-right"></i>
+                                    <i class="fa fa-chevron-up float-end"></i>
                                 </a>
                             </h5>
                         </div>
@@ -152,8 +152,8 @@
                     </div>
 
                     <div class="col-sm-12">
-                        <button v-if="!creatingProposal" :disabled="isDisabled()" @click.prevent="submit()" class="btn btn-primary pull-right">Continue</button>
-                        <button v-else disabled class="pull-right btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Creating</button>
+                        <button v-if="!creatingProposal" :disabled="isDisabled()" @click.prevent="submit()" class="btn btn-primary float-end">Continue</button>
+                        <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Creating</button>
                     </div>
                 </form>
             </div>

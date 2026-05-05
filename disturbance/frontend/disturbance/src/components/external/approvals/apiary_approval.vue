@@ -94,7 +94,7 @@
                         <div class="row mb-3">
                             <label for="" class="col-sm-3 col-form-label">Issue Date</label>
                             <div class="col-sm-6">
-                                <label for="" class="col-form-label pull-left">{{ formatDate(approval.issue_date) }}</label>
+                                <label for="" class="col-form-label float-start">{{ formatDate(approval.issue_date) }}</label>
                             </div>
                         </div>
                     </div>
@@ -102,7 +102,7 @@
                         <div class="row mb-3">
                             <label for="" class="col-sm-3 col-form-label" >Start Date</label>
                             <div class="col-sm-6">
-                                <label for="" class="col-form-label pull-left">{{ formatDate(approval.start_date) }}</label>
+                                <label for="" class="col-form-label float-start">{{ formatDate(approval.start_date) }}</label>
                             </div>
                         </div>
                     </div>
@@ -110,7 +110,7 @@
                         <div class="row mb-3">
                             <label for="" class="col-sm-3 col-form-label">Expiry Date</label>
                             <div class="col-sm-3">
-                                <label for="" class="col-form-label pull-left">{{ formatDate(approval.expiry_date) }}</label>
+                                <label for="" class="col-form-label float-start">{{ formatDate(approval.expiry_date) }}</label>
                             </div>
                         </div>
                     </div>
@@ -118,7 +118,7 @@
                         <div class="row mb-3">
                             <label for="" class="col-sm-3 col-form-label" >Document</label>
                             <div class="col-sm-4">
-                                <p><a target="_blank" :href="approval.latest_apiary_licence_document" class="col-form-label pull-left">Licence.pdf</a></p>
+                                <p><a target="_blank" :href="approval.latest_apiary_licence_document" class="col-form-label float-start">Licence.pdf</a></p>
                             </div>
                         </div>
                     </div>
@@ -126,7 +126,7 @@
                         <label for="" class="col-sm-3 col-form-label" >Document History</label>
                         <div class="col-sm-4">
                             <div v-for="doc in approval.apiary_licence_document_history">
-                                <p><a target="_blank" :href="doc.url" class="col-form-label pull-left">{{doc.name}}</a></p>
+                                <p><a target="_blank" :href="doc.url" class="col-form-label float-start">{{doc.name}}</a></p>
                             </div>
                         </div>
                     </div-->

@@ -8,13 +8,13 @@
                 </div>
                 <div class="col-sm-6 text-right">
                     <template v-if="saving_date">
-                        <button class="btn btn-primary pull-right" type="button" disabled>
+                        <button class="btn btn-primary float-end" type="button" disabled>
                               <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                               Saving...
                         </button>
                     </template>
                     <template v-else>
-                        <button type="button" class="btn btn-primary pull-right" @click="noChargeUntilButtonClicked">Save</button>
+                        <button type="button" class="btn btn-primary float-end" @click="noChargeUntilButtonClicked">Save</button>
                     </template>
                 </div>
             </div>

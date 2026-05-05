@@ -53,7 +53,7 @@
                                     <a 
                                         v-if="canAssign && apiaryReferral.assigned_officer_id != apiaryReferral.current_officer.id" 
                                         @click.prevent="assignRequestUser()" 
-                                        class="actionBtn pull-right">Assign to me
+                                        class="actionBtn float-end">Assign to me
                                     </a>
                                 </div>
                             </div>
@@ -67,7 +67,7 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <label class="control-label pull-left"  for="Name">Comments</label>
+                                        <label class="control-label float-start"  for="Name">Comments</label>
                                         <textarea class="form-control" name="name" v-model="referral_comment"></textarea>
                                         <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="completeReferral">Complete Referral Task</button>
                                     </div>
@@ -222,8 +222,8 @@
                                     <div class="navbar navbar-fixed-bottom" v-if="!proposal.can_user_edit && !isFinalised" style="background-color: #f5f5f5 ">
                                             <div class="navbar-inner">
                                                 <div v-if="!isFinalised" class="container">
-                                                <p class="pull-right">                       
-                                                <button class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()">Save Changes</button>
+                                                <p class="float-end">                       
+                                                <button class="btn btn-primary float-end" style="margin-top:5px;" @click.prevent="save()">Save Changes</button>
                                                 </p>                      
                                                 </div>                   
                                             </div>
@@ -246,8 +246,8 @@
                                     <div class="navbar navbar-fixed-bottom" v-if="!proposal.can_user_edit && !isFinalised" style="background-color: #f5f5f5 ">
                                             <div class="navbar-inner">
                                                 <div v-if="!isFinalised" class="container">
-                                                <p class="pull-right">                       
-                                                <button class="btn btn-primary pull-right" style="margin-top:5px;" @click.prevent="save()">Save Changes</button>
+                                                <p class="float-end">                       
+                                                <button class="btn btn-primary float-end" style="margin-top:5px;" @click.prevent="save()">Save Changes</button>
                                                 </p>                      
                                                 </div>                   
                                             </div>

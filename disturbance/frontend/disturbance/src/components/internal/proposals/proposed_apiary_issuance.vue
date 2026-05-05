@@ -11,8 +11,8 @@
                                 <div class="form-group">
                                     <div class="row mb-3">
                                         <div class="col-sm-3">
-                                            <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">Start Date</label>
-                                            <label v-else class="control-label pull-left"  for="Name">Proposed Start Date</label>
+                                            <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">Start Date</label>
+                                            <label v-else class="control-label float-start"  for="Name">Proposed Start Date</label>
                                         </div>
                                         <div class="col-sm-9">
                                             <template v-if="!startDateCanBeModified">
@@ -33,8 +33,8 @@
                                 <div class="form-group">
                                     <div class="row mb-3">
                                         <div class="col-sm-3">
-                                            <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">Expiry Date</label>
-                                            <label v-else class="control-label pull-left"  for="Name">Proposed Expiry Date</label>
+                                            <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">Expiry Date</label>
+                                            <label v-else class="control-label float-start"  for="Name">Proposed Expiry Date</label>
                                         </div>
                                         <div class="col-sm-9">
                                             <template v-if="!expiryDateCanBeModified">
@@ -56,8 +56,8 @@
                                 <div v-if="creatingSiteTransferTargetApproval" class="form-group">
                                     <div class="row mb-3">
                                         <div class="col-sm-3">
-                                            <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">Start Date</label>
-                                            <label v-else class="control-label pull-left"  for="Name">Proposed Start Date</label>
+                                            <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">Start Date</label>
+                                            <label v-else class="control-label float-start"  for="Name">Proposed Start Date</label>
                                         </div>
                                         <div class="col-sm-9">
                                             <div class="input-group date" ref="start_date" style="width: 70%;">
@@ -73,8 +73,8 @@
                                 <div v-if="creatingSiteTransferTargetApproval" class="form-group">
                                     <div class="row mb-3">
                                         <div class="col-sm-3">
-                                            <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">Expiry Date</label>
-                                            <label v-else class="control-label pull-left"  for="Name">Proposed Expiry Date</label>
+                                            <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">Expiry Date</label>
+                                            <label v-else class="control-label float-start"  for="Name">Proposed Expiry Date</label>
                                         </div>
                                         <div class="col-sm-9">
                                             <div class="input-group date" ref="due_date" style="width: 70%;">
@@ -92,8 +92,8 @@
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">Details</label>
-                                        <label v-else class="control-label pull-left"  for="Name">Proposed Details</label>
+                                        <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">Details</label>
+                                        <label v-else class="control-label float-start"  for="Name">Proposed Details</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <textarea name="approval_details" class="form-control" style="width:70%;" v-model="approval.details"></textarea>
@@ -103,8 +103,8 @@
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label v-if="processing_status == 'With Approver'" class="control-label pull-left"  for="Name">BCC email</label>
-                                        <label v-else class="control-label pull-left"  for="Name">Proposed BCC email</label>
+                                        <label v-if="processing_status == 'With Approver'" class="control-label float-start"  for="Name">BCC email</label>
+                                        <label v-else class="control-label float-start"  for="Name">Proposed BCC email</label>
                                     </div>
                                     <div class="col-sm-9">
                                             <input type="text" class="form-control" name="approval_cc" style="width:70%;" ref="bcc_email" v-model="approval.cc_email">
@@ -121,55 +121,55 @@
                                                     <div class="col-sm-12"> -->
                                                     <div class="row mb-3">
                                                         <div class="col-sm-4">
-                                                            <label class="control-label pull-left"  for="name">Batch Number</label><br>
+                                                            <label class="control-label float-start"  for="name">Batch Number</label><br>
                                                             <input type="text" class="form-control" name="site_batch_no" style="width:100%;" ref="batch_no"
                                                                                             v-model="site.properties.batch_no"
                                                                                         >
                                                         </div>
 
                                                         <div class="col-sm-4">
-                                                            <label class="control-label pull-left" style="text-align:left" for="name">Conservation and Parks Commission</label>
+                                                            <label class="control-label float-start" style="text-align:left" for="name">Conservation and Parks Commission</label>
                                                             <input type="date" class="form-control" name="site_cpc_date" placeholder="DD/MM/YYYY" style="width:100%;" ref="cpc_date" v-model="site.properties.approval_cpc_date">
                                                         </div>
                                                         <div class="col-sm-4">
-                                                            <label class="control-label pull-left" style="text-align:left" for="name">Minister for Environment or Delegate</label>
+                                                            <label class="control-label float-start" style="text-align:left" for="name">Minister for Environment or Delegate</label>
                                                             <input type="date" class="form-control" name="site_minister_date" placeholder="DD/MM/YYYY" style="width:100%;" ref="minister_date"  v-model="site.properties.approval_minister_date">
                                                         </div>
                                                     </div>
 
                                                     <div class="row mb-3">
                                                         <div class="col-sm-4">
-                                                            <label class="control-label pull-left"  for="name">Map Reference</label><br>
+                                                            <label class="control-label float-start"  for="name">Map Reference</label><br>
                                                             <input type="text" class="form-control" name="site_map_ref" style="width:100%;" ref="map_ref" v-model="site.properties.map_ref">
                                                         </div>
                                                         <div class="col-sm-4">
-                                                            <label class="control-label pull-left" style="text-align:left" for="name">Forest Block</label>
+                                                            <label class="control-label float-start" style="text-align:left" for="name">Forest Block</label>
                                                             <input type="text" class="form-control" name="site_forest_block" style="width:100%;" ref="forest_block" v-model="site.properties.forest_block">
                                                         </div>
                                                         <div class="col-sm-4">
-                                                            <label class="control-label pull-left" style="text-align:left" for="name">COG</label>
+                                                            <label class="control-label float-start" style="text-align:left" for="name">COG</label>
                                                             <input type="text" class="form-control" name="site_cog" style="width:100%;" ref="cog" v-model="site.properties.cog">
                                                         </div>
                                                     </div>
 
                                                     <div class="row mb-3">
                                                         <div class="col-sm-4">
-                                                            <label class="control-label pull-left"  for="name">Apiary Zone</label><br>
+                                                            <label class="control-label float-start"  for="name">Apiary Zone</label><br>
                                                             <input type="text" class="form-control" name="site_zone" style="width:100%;" ref="zone" v-model="site.properties.zone">
                                                         </div>
                                                         <div class="col-sm-4">
-                                                            <label class="control-label pull-left" style="text-align:left" for="name">Water Catchment Area</label>
+                                                            <label class="control-label float-start" style="text-align:left" for="name">Water Catchment Area</label>
                                                             <input type="text" class="form-control" name="site_catchment" style="width:100%;" ref="catchment" v-model="site.properties.catchment">
                                                         </div>
                                                         <div class="col-sm-4">
-                                                            <label class="control-label pull-left" style="text-align:left" for="name">Nearest Road/Track</label>
+                                                            <label class="control-label float-start" style="text-align:left" for="name">Nearest Road/Track</label>
                                                             <input type="text" class="form-control" name="site_roadtrack" style="width:100%;" ref="roadtrack" v-model="site.properties.roadtrack">
                                                         </div>
                                                     </div>
 
                                                     <div class="row mb-3">
                                                         <div class="col-sm-3">
-                                                            <label class="control-label pull-left"  for="Name">DRA Permit Required</label>
+                                                            <label class="control-label float-start"  for="Name">DRA Permit Required</label>
                                                         </div>
                                                         <div class="col-sm-1">
                                                             <input type="checkbox" class="form-check-input" name="site_dra_permit" ref="dra_permit" v-model="site.properties.dra_permit">
@@ -185,12 +185,12 @@
                                 <div class="row mb-3">
                                     <div class="col-sm-12">
                                         <div v-if="!siteTransferApplication">
-                                            <label v-if="submitter_email && applicant_email" class="control-label pull-left"  for="Name">After approving this application, the apiary authority will be emailed to {{proposalNotificationList}}.</label>
-                                            <label v-else class="control-label pull-left"  for="Name">After approving this application, licence will be emailed to {{submitter_email}}.</label>
+                                            <label v-if="submitter_email && applicant_email" class="control-label float-start"  for="Name">After approving this application, the apiary authority will be emailed to {{proposalNotificationList}}.</label>
+                                            <label v-else class="control-label float-start"  for="Name">After approving this application, licence will be emailed to {{submitter_email}}.</label>
                                         </div>
                                         <div v-else>
-                                            <label class="control-label pull-left">After approving this application, the originating apiary authority will be emailed to {{originatingLicenceRecipients}}.</label>
-                                            <label class="control-label pull-left">After approving this application, the target apiary authority will be emailed to {{targetLicenceRecipients}}.</label>
+                                            <label class="control-label float-start">After approving this application, the originating apiary authority will be emailed to {{originatingLicenceRecipients}}.</label>
+                                            <label class="control-label float-start">After approving this application, the target apiary authority will be emailed to {{targetLicenceRecipients}}.</label>
                                         </div>
                                     </div>
 

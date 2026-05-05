@@ -46,7 +46,7 @@
                         <div v-else>
                             <p><strong>Attach documents:</strong></p>
                             <div class="col-sm-12">
-                                <span class="btn btn-info btn-file pull-left">
+                                <span class="btn btn-info btn-file float-start">
                                     Attach File <input type="file" ref="uploadedFile" @change="readFile()"/>
                                 </span>
                             </div>

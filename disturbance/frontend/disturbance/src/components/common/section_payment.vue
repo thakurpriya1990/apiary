@@ -3,7 +3,7 @@
         <transition>
             <template v-if="alert_message">
                 <div class="alert alert-warning" role="alert">
-                    <i class='fa fa-times pull-right close-alert-button' @click="alert_close_clicked"></i>
+                    <i class='fa fa-times float-end close-alert-button' @click="alert_close_clicked"></i>
                     {{ alert_message }}
                 </div>
             </template>
@@ -33,7 +33,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-sm-2 pull-right">
+                <div class="col-sm-2 float-end">
                     <input
                         :disabled="pay_button_disabled"
                         @click="pay_button_clicked"

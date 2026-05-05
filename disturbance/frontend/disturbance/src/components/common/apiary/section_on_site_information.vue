@@ -1,7 +1,7 @@
 <template lang="html">
         <div class="row col-sm-12" style="margin-bottom: 0.5em;">
             <div v-if="is_external">
-                <button :disabled="!onSiteInformationEnabled" class="btn btn-primary pull-right" @click="openOnSiteInformationModalToAdd">Add</button>
+                <button :disabled="!onSiteInformationEnabled" class="btn btn-primary float-end" @click="openOnSiteInformationModalToAdd">Add</button>
             </div>
         </div>
 

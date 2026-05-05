@@ -20,7 +20,7 @@
             <div class="navbar navbar-fixed-bottom" style="background-color: #f5f5f5 ">
                 <div class="navbar-inner">
                     <div class="container">
-                        <p class="pull-right" style="margin-top:5px;" v-if="proposal && proposal.customer_status == 'Draft'">
+                        <p class="float-end" style="margin-top:5px;" v-if="proposal && proposal.customer_status == 'Draft'">
                             <input type="button" @click.prevent="save_exit" class="btn btn-primary" value="Save and Exit"/>
                             <input type="button" @click.prevent="save" class="btn btn-primary" value="Save and Continue"/>
                             <input v-if="!isSubmitting" type="button" @click.prevent="submit" class="btn btn-primary" value="Submit"/>

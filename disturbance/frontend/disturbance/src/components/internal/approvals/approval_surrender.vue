@@ -10,7 +10,7 @@
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
 
-                                        <label class="col-form-label pull-left"  for="Name">Surrender Date</label>
+                                        <label class="col-form-label float-start"  for="Name">Surrender Date</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="surrender_date" style="width: 70%;">
@@ -36,7 +36,7 @@
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
 
-                                        <label class="col-form-label pull-left"  for="Name">Surrender Details</label>
+                                        <label class="col-form-label float-start"  for="Name">Surrender Details</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <textarea name="surrender_details" class="form-control" style="width:70%;" v-model="approval.surrender_details"></textarea>
