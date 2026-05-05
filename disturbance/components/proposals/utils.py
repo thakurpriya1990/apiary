@@ -1013,6 +1013,10 @@ def save_proponent_data_apiary(proposal_obj, request, viewset):
                             try:
                                 # Try to get this apiary site assuming already saved as 'draft'
                                 a_site = ApiarySite.objects.get(site_guid=feature['id_'])
+                                # Bug fix: serializer must be set here too, otherwise the stale
+                                # ProposalApiarySerializer from before the loop is used, causing
+                                # apiary_site_obj to be a ProposalApiary instead of ApiarySite.
+                                serializer = ApiarySiteSerializer(a_site, data=feature)
 
                             except ApiarySite.DoesNotExist:
                                 # Try to get this apiary site assuming it is 'vacant' site (available site)
@@ -1041,6 +1045,10 @@ def save_proponent_data_apiary(proposal_obj, request, viewset):
 
                             if created:
                                 logger.info(f"Created new ApiarySiteOnProposal for ApiarySite id {apiary_site_obj.id} and ProposalApiary id {proposal_obj.proposal_apiary.id}")
+                                # Track newly created site ids so they are not mistakenly included
+                                # in site_ids_delete (which was computed before the loop ran).
+                                if apiary_site_obj.id not in site_ids_received:
+                                    site_ids_received.append(apiary_site_obj.id)
                             else:
                                 logger.info(f"Retrieved existing ApiarySiteOnProposal for ApiarySite id {apiary_site_obj.id} and ProposalApiary id {proposal_obj.proposal_apiary.id}")
 
@@ -1063,6 +1071,10 @@ def save_proponent_data_apiary(proposal_obj, request, viewset):
 
                 # Delete existing
                 if is_internal(request) or not renewal:
+                    # Recompute site_ids_delete after the loop so that any newly created
+                    # sites (whose ids were not in site_ids_received at loop start) are
+                    # correctly excluded from deletion.
+                    site_ids_delete = [id for id in site_ids_existing if id not in site_ids_received]
                     sites_delete = ApiarySite.objects.filter(id__in=site_ids_delete)
                     for site_to_delete in sites_delete:
                         proposal_obj.proposal_apiary.delete_relation(site_to_delete)
