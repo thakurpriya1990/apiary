@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Django",
+            "name": "Django (BS5 - port 9061)",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/manage_ds.py",
@@ -17,6 +17,34 @@
             "django": true,
             "autoStartBrowser": false,
             "justMyCode": false
+        },
+        {
+            "name": "Django (BS3 before - port 9062)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/data/data/projects/apiary-before/manage_ds.py",
+            "python": "${workspaceFolder}/venv/bin/python",
+            "cwd": "/data/data/projects/apiary-before",
+            "args": [
+                "runserver",
+                "0.0.0.0:9062"
+            ],
+            "env": {
+                "SESSION_COOKIE_NAME": "sessionid_before"
+            },
+            "django": true,
+            "autoStartBrowser": false,
+            "justMyCode": false
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Django BS5 + BS3 (9061 + 9062)",
+            "configurations": [
+                "Django (BS5 - port 9061)",
+                "Django (BS3 before - port 9062)"
+            ],
+            "stopAll": true
         }
     ]
 }
