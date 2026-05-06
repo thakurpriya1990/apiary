@@ -72,100 +72,68 @@
                     <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
                     <input type='hidden' name="proposal_id" :value="1" />
 
-                    <div class="row" style="margin-bottom: 50px">
-                        <div class="navbar navbar-fixed-bottom" style="background-color: #f5f5f5 ">
-                            <div class="navbar-inner">
-                                <div v-if="proposal && !proposal.readonly" class="container">
-                                    <div class="row payment-details-buttons">
+                        <div v-if="proposal && !proposal.readonly" class="proposal-footer-bar mt-4">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
 
-                                        <template v-if="is_proposal_type_new">
-                                            <div class="col-sm-3 text-right">
-                                            </div>
-                                            <div class="col-sm-3 text-right">
-                                                <div class="text-center payment-description-title">New sites</div>
-                                                <div>{{ num_of_sites_south_west_remain_after_payment }}</div>
-                                                <div>{{ num_of_sites_remote_remain_after_payment }}</div>
+                                    <!-- Site / fee info -->
+                                    <div class="d-flex align-items-center gap-4">
+                                        <template v-if="is_proposal_type_new || is_proposal_type_renewal">
+                                            <div class="proposal-footer-info">
+                                                <div class="proposal-footer-label">New sites</div>
+                                                <div class="proposal-footer-value">{{ num_of_sites_south_west_remain_after_payment }}</div>
+                                                <div class="proposal-footer-value">{{ num_of_sites_remote_remain_after_payment }}</div>
                                             </div>
                                         </template>
-
-                                        <template v-if="is_proposal_type_transfer">
-                                            <div class="col-sm-3 text-right">
-                                            </div>
-                                            <div class="col-sm-3 text-right">
-                                                <div class="text-center payment-description-title"></div>
-                                                <div></div>
-                                                <div></div>
+                                        <template v-if="is_proposal_type_renewal && show_renewal_price_section">
+                                            <div class="proposal-footer-divider"></div>
+                                            <div class="proposal-footer-info">
+                                                <div class="proposal-footer-label">Renew sites</div>
+                                                <div v-if="fee_south_west_renewal > 0" class="proposal-footer-value">{{ num_of_sites_south_west_renewal_remain_after_payment }}</div>
+                                                <div v-if="fee_remote_renewal > 0" class="proposal-footer-value">{{ num_of_sites_remote_renewal_remain_after_payment }}</div>
                                             </div>
                                         </template>
-
-                                        <template v-if="is_proposal_type_renewal">
-                                            <template v-if="!show_renewal_price_section">
-                                                <div class="col-sm-3 text-right">
-                                                </div>
-                                            </template>
-                                            <div class="col-sm-3 text-right">
-                                                <div class="text-center payment-description-title">New sites</div>
-                                                <div>{{ num_of_sites_south_west_remain_after_payment }}</div>
-                                                <div>{{ num_of_sites_remote_remain_after_payment }}</div>
+                                        <div class="proposal-footer-divider" v-if="is_proposal_type_new || is_proposal_type_renewal"></div>
+                                        <div class="proposal-footer-info">
+                                            <div class="proposal-footer-label">Application fee</div>
+                                            <div class="proposal-footer-fee">
+                                                <span v-if="is_proposal_type_transfer">${{ siteTransferApplicationFee }}</span>
+                                                <span v-else>${{ sum_of_total_fees }}</span>
                                             </div>
-                                            <template v-if="show_renewal_price_section">
-                                                <div class="col-sm-3 text-right">
-                                                    <div class="text-center payment-description-title">Renew sites</div>
-                                                    <div v-if="fee_south_west_renewal > 0">
-                                                        {{ num_of_sites_south_west_renewal_remain_after_payment }}
-                                                    </div>
-                                                    <div v-if="fee_remote_renewal > 0">
-                                                        {{ num_of_sites_remote_renewal_remain_after_payment }}
-                                                    </div>
-                                                </div>
-                                            </template>
-                                        </template>
-
-                                        <div class="col-sm-2 text-center">
-                                            <div class="payment-description-title">Application fee</div>
-                                            <div v-if="is_proposal_type_transfer">
-                                                <div class="payment-description-total-fee">${{ siteTransferApplicationFee }}</div>
-                                            </div>
-                                            <div v-else>
-                                                <div class="payment-description-total-fee">${{ sum_of_total_fees }}</div>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-4 text-right no-padding">
-                                            <span v-if="!isSubmitting">
-                                                <input type="button" @click.prevent="save_exit" class="btn btn-primary" value="Save and Exit"/>
-                                                <input type="button" @click.prevent="save(true)" class="btn btn-primary" value="Save and Continue"/>
-                                                <span v-if="!isSaving">
-                                                    <span v-if="proposal_type_name==='transfer'">
-                                                        <input
-                                                            type="button"
-                                                            @click.prevent="submit"
-                                                            class="btn btn-primary"
-                                                            value="Pay and Submit"
-                                                            :disabled="pay_button_disabled"
-                                                        />
-                                                    </span>
-                                                    <span v-else>
-                                                        <input
-                                                            type="button"
-                                                            @click.prevent="submit"
-                                                            class="btn btn-primary"
-                                                            :value="submit_button_text"
-                                                            :disabled="!total_num_of_sites_on_map > 0"
-                                                        />
-                                                    </span>
-                                                </span>
-                                            </span>
-                                            <span v-else-if="isSubmitting">
-                                                <button disabled class="btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Submitting</button>
-                                            </span>
-
-                                            <input id="save_and_continue_btn" type="hidden" @click.prevent="save(false)" class="btn btn-primary" value="Save Without Confirmation"/>
                                         </div>
                                     </div>
+
+                                    <!-- Action buttons -->
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span v-if="!isSubmitting">
+                                            <button type="button" @click.prevent="save_exit" class="btn btn-primary">Save and Exit</button>
+                                            <button type="button" @click.prevent="save(true)" class="btn btn-primary ms-2">Save and Continue</button>
+                                            <span v-if="!isSaving">
+                                                <button
+                                                    v-if="proposal_type_name==='transfer'"
+                                                    type="button"
+                                                    @click.prevent="submit"
+                                                    class="btn btn-primary ms-2"
+                                                    :disabled="pay_button_disabled"
+                                                >Pay and Submit</button>
+                                                <button
+                                                    v-else
+                                                    type="button"
+                                                    @click.prevent="submit"
+                                                    class="btn btn-primary ms-2"
+                                                    :disabled="!total_num_of_sites_on_map > 0"
+                                                >{{ submit_button_text }}</button>
+                                            </span>
+                                        </span>
+                                        <span v-else-if="isSubmitting">
+                                            <button disabled class="btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Submitting</button>
+                                        </span>
+                                        <input id="save_and_continue_btn" type="hidden" @click.prevent="save(false)" class="btn btn-primary" value="Save Without Confirmation"/>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
-                    </div>
                 </div>
             </template>
         </form>
@@ -1012,6 +980,39 @@ export default {
 </script>
 
 <style lang="css">
+.proposal-footer-bar {
+    background-color: #f8f9fa;
+    border-top: 2px solid #dee2e6;
+    border-radius: 0 0 4px 4px;
+    padding: 12px 16px;
+}
+.proposal-footer-info {
+    text-align: center;
+}
+.proposal-footer-label {
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+.proposal-footer-value {
+    font-size: 0.9rem;
+    color: #333;
+}
+.proposal-footer-fee {
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: #212529;
+}
+.proposal-footer-divider {
+    width: 1px;
+    height: 40px;
+    background-color: #dee2e6;
+    flex-shrink: 0;
+}
+/* keep legacy classes in case used elsewhere */
 .payment-description-total-fee {
     font-weight: bold;
     font-size: 1.3em;
@@ -1021,10 +1022,6 @@ export default {
 }
 .no-padding {
     padding: 0 !important;
-}
-.payment-details-buttons {
-    display: flex;
-    align-items: center;
 }
 #overlay {
     width: 100%;
