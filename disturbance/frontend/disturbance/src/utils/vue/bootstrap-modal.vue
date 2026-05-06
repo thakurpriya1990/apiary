@@ -1,6 +1,6 @@
 <template id="bootstrap-modal">
     <div v-show="show" :transition="transition">
-        <div class="modal" @click.self="clickMask" data-bs-keyboard="false" data-bs-backdrop="static">
+        <div class="modal" data-bs-keyboard="false" data-bs-backdrop="static">
             <div class="modal-dialog" :class="modalClass" role="document">
                 <div class="modal-content">
                     <!--Header-->
