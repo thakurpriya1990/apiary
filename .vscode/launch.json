@@ -35,6 +35,13 @@
             "django": true,
             "autoStartBrowser": false,
             "justMyCode": false
+        },
+        {
+            "name": "Vite Dev Server",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "npm run dev",
+            "cwd": "${workspaceFolder}/disturbance/frontend/disturbance"
         }
     ],
     "compounds": [
@@ -43,6 +50,14 @@
             "configurations": [
                 "Django (BS5 - port 9061)",
                 "Django (BS3 before - port 9062)"
+            ],
+            "stopAll": true
+        },
+        {
+            "name": "Django BS5 + Vite (9061 + 5173)",
+            "configurations": [
+                "Django (BS5 - port 9061)",
+                "Vite Dev Server"
             ],
             "stopAll": true
         }
