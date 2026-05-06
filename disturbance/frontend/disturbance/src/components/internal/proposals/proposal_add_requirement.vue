@@ -38,9 +38,6 @@
                                         <div class="input-group date" ref="due_date" style="width: 70%;">
                                             <!-- <input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="requirement.due_date"> -->
                                             <input type="date" class="form-control" name="due_date" placeholder="DD/MM/YYYY" v-model="requirement.due_date">
-                                            <span class="input-group-addon">
-                                                <span class="fa fa-calendar"></span>
-                                            </span>
                                         </div>
                                     </div>
                                 </div>

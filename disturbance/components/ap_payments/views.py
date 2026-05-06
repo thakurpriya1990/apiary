@@ -566,9 +566,10 @@ class ApplicationFeeSuccessView(TemplateView):
     def get(self, request, *args, **kwargs):
         print("ApplicationFeeSuccessView")
         fee_inv = None
+        invoice = None
         submitter = None
-        
-        #get application invoice from session
+
+        # Get application invoice from session
         application_fee = get_session_application_invoice(request.session)
         proposal = application_fee.proposal
         submitter = proposal.submitter
@@ -586,6 +587,64 @@ class ApplicationFeeSuccessView(TemplateView):
             return redirect('home')
 
         fee_inv = ApplicationFeeInvoice.objects.filter(application_fee=application_fee).order_by('id').last()
+
+        if application_fee.payment_type == ApplicationFee.PAYMENT_TYPE_TEMPORARY:
+            # The preload callback (ApplicationFeeSuccessViewPreload) is called server-side by the
+            # Ledger Gateway. If it did not run (e.g. APIARY_EXTERNAL_URL not configured so the
+            # callback URL was unreachable), we handle the submission here as a fallback.
+            if fee_inv and fee_inv.invoice_reference:
+                # Preload already ran or invoice was created by another path — verify and submit.
+                invoice_ref = fee_inv.invoice_reference
+                invoice = Invoice.objects.filter(reference=invoice_ref).order_by('id').last()
+                if invoice:
+                    invoice_properties = get_invoice_properties(invoice.id)
+                    if (
+                        invoice_properties.get('data') and
+                        invoice_properties['data'].get('invoice') and
+                        invoice_properties['data']['invoice'].get('payment_status') in ('paid', 'over_paid')
+                    ):
+                        if isinstance(proposal.fee_invoice_references, list):
+                            proposal.fee_invoice_references.append(invoice_ref)
+                        else:
+                            proposal.fee_invoice_references = [invoice_ref]
+                        proposal.save()
+                        proposal_submit_apiary(proposal, request)
+                        if proposal.proposal_apiary:
+                            proposal.proposal_apiary.post_payment_success()
+                        db_operations = get_db_operations(proposal)
+                        adjust_db_operations(db_operations)
+                        application_fee.payment_type = ApplicationFee.PAYMENT_TYPE_INTERNET
+                        application_fee.expiry_time = None
+                        application_fee.save()
+            else:
+                # Preload never ran and no invoice recorded — this happens when APIARY_EXTERNAL_URL
+                # is not set and process-zero was used for a zero-amount fee.
+                # Verify the fee is truly zero before submitting without an invoice.
+                try:
+                    lines, db_operations = create_fee_lines(proposal)
+                    total = sum(
+                        Decimal(str(line.get('price_incl_tax', 0))) * line.get('quantity', 1)
+                        for line in lines
+                    )
+                    if total == 0:
+                        proposal_submit_apiary(proposal, request)
+                        if proposal.proposal_apiary:
+                            proposal.proposal_apiary.post_payment_success()
+                        adjust_db_operations(db_operations)
+                        application_fee.payment_type = ApplicationFee.PAYMENT_TYPE_INTERNET
+                        application_fee.expiry_time = None
+                        application_fee.save()
+                    else:
+                        logger.error(
+                            'ApplicationFeeSuccessView: preload not called and fee is non-zero '
+                            '(total={}) for proposal {}. Cannot submit without invoice verification.'.format(
+                                total, proposal.lodgement_number
+                            )
+                        )
+                except Exception as e:
+                    logger.error('ApplicationFeeSuccessView: error in zero-fee fallback for {}: {}'.format(
+                        proposal.lodgement_number, e
+                    ))
 
         context = {
             'proposal': proposal,

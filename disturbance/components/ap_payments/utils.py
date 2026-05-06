@@ -424,11 +424,12 @@ def checkout(
     email_user_id = proposal.submitter_id if proxy or request.user.is_anonymous else request.user.id
     basket_hash = create_basket_session(request, email_user_id, basket_params)
 
+    external_url = settings.APIARY_EXTERNAL_URL if settings.APIARY_EXTERNAL_URL.startswith('http') else request.build_absolute_uri('/').rstrip('/')
     checkout_params = {
         'system': settings.PAYMENT_SYSTEM_ID,
         'fallback_url': request.build_absolute_uri('/'),
-        'return_url': request.build_absolute_uri(reverse(return_url_ns,kwargs={"lodgement_number": proposal.lodgement_number})),         
-        'return_preload_url': settings.APIARY_EXTERNAL_URL + reverse(return_preload_url_ns,kwargs={"lodgement_number": proposal.lodgement_number}),
+        'return_url': request.build_absolute_uri(reverse(return_url_ns,kwargs={"lodgement_number": proposal.lodgement_number})),
+        'return_preload_url': external_url + reverse(return_preload_url_ns,kwargs={"lodgement_number": proposal.lodgement_number}),
         'force_redirect': True,
         'proxy': proxy,
         'invoice_text': invoice_text,
@@ -586,11 +587,12 @@ def generate_line_items_for_annual_rental_fee(approval, today_now, period, apiar
 def checkout_existing_invoice(request, invoice, return_url_ns='public_booking_success'):
     print("checkout_existing_invoice")
     basket, basket_hash = use_existing_basket_from_invoice(invoice.reference)
+    external_url = settings.APIARY_EXTERNAL_URL if settings.APIARY_EXTERNAL_URL.startswith('http') else request.build_absolute_uri('/').rstrip('/')
     checkout_params = {
         'system': settings.PAYMENT_SYSTEM_ID,
         'fallback_url': request.build_absolute_uri('/'),
         'return_url': request.build_absolute_uri(reverse(return_url_ns)),
-        'return_preload_url': settings.APIARY_EXTERNAL_URL + reverse(return_url_ns),
+        'return_preload_url': external_url + reverse(return_url_ns),
         'force_redirect': True,
         'invoice_text': invoice.text,
     }

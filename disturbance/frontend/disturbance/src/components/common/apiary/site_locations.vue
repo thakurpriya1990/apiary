@@ -1,10 +1,10 @@
 <template lang="html">
     <div>
-        <div class="row col-sm-12" v-if="!readonly && (!is_proposal_type_renewal || proposal.is_internal_user)">
+        <div class="col-sm-12" v-if="!readonly && (!is_proposal_type_renewal || proposal.is_internal_user)">
             Mark the location of the new proposed site either by entering the latitude and longitude or by clicking the location in the map.
         </div>
 
-        <div class="row col-sm-12 manual_coordinate_section mt-2 mb-4">
+        <div class="col-sm-12 manual_coordinate_section mt-2 mb-4">
             <label class="inline grow1">Latitude:</label>
             <input
                 type="number"
