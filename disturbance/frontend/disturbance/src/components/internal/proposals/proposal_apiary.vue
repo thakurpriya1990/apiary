@@ -413,6 +413,7 @@
 </template>
 <script>
 import { v4 as uuid } from 'uuid';
+import { markRaw } from 'vue';
 import ApiaryForm from '@/components/form_apiary.vue'
 import ProposedDecline from './proposal_proposed_decline.vue'
 import AmendmentRequest from './amendment_request.vue'
@@ -818,7 +819,7 @@ export default {
         save: function() {
           let vm = this;
           vm.checkAssessorData();
-          let formData = new FormData(vm.form);
+          let formData = new FormData(document.querySelector('form[name="new_proposal"]'));
           fetch(vm.proposal_form_url, {
                 method: 'POST',
                 body: formData,
@@ -843,9 +844,9 @@ export default {
         save_wo: function() {
             let vm = this;
             vm.checkAssessorData();
-            let formData = new FormData(vm.form);
+            let formData = new FormData(document.querySelector('form[name="new_proposal"]'));
             fetch(vm.proposal_form_url, {
-                ethod: 'POST',
+                method: 'POST',
                 body: formData,
             }).then(response => {
                 if (!response.ok) {
@@ -988,7 +989,7 @@ export default {
             //let vm = this;
             if(vm.proposal.processing_status == 'With Assessor' && status == 'with_assessor_requirements'){
                 vm.checkAssessorData();
-                let formData = new FormData(vm.form);
+                let formData = new FormData(document.querySelector('form[name="new_proposal"]'));
                 // First POST: Save proposal form
                 fetch(vm.proposal_form_url, {
                 method: 'POST',
@@ -1194,7 +1195,7 @@ export default {
             let vm = this;
             //vm.save_wo();
             vm.checkAssessorData();
-            let formData = new FormData(vm.form);
+            let formData = new FormData(document.querySelector('form[name="new_proposal"]'));
             vm.sendingReferral = true;
            // First POST: Save proposal form
             fetch(vm.proposal_form_url, {
@@ -1358,7 +1359,7 @@ export default {
                 await this.initialiseOrgContactTable();
             }
             vm.initialiseSelects();
-            vm.form = document.forms.new_proposal;
+            vm.form = markRaw(document.forms.new_proposal);
             if(vm.hasAmendmentRequest){
                 vm.deficientFields();
             }
