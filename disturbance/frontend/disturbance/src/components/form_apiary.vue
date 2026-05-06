@@ -116,9 +116,6 @@
                         <div class="grow1">
                             <div class="input-group date" ref="expiryDatePicker"  style="width: 70%;">
                                 <input type="date" class="form-control" v-model="expiry_date_local" placeholder="DD/MM/YYYY" id="expiry_date_input_element" :readonly="readonly" />
-                                <span class="input-group-addon">
-                                    <span class="fa fa-calendar"></span>
-                                </span>
                             </div>
                         </div>
                     </div>
