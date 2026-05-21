@@ -480,14 +480,18 @@ class Approval(RevisionedMixin):
 
     def change_apiary_site_status(self, approval_status):
         relations = self.get_relations()
-        if approval_status in (Approval.STATUS_CANCELLED, Approval.STATUS_SUSPENDED, Approval.STATUS_SURRENDERED,):
+        if approval_status in (Approval.STATUS_CANCELLED, Approval.STATUS_SURRENDERED,):
             relations.update(site_status=SITE_STATUS_NOT_TO_BE_REISSUED)
+        elif approval_status == Approval.STATUS_SUSPENDED:
+            # Preserve individually-suspended sites during approval-level suspension
+            relations.exclude(site_status=SITE_STATUS_SUSPENDED).update(site_status=SITE_STATUS_NOT_TO_BE_REISSUED)
         elif approval_status == Approval.STATUS_EXPIRED:
             for apiary_site in self.apiary_sites.all():
                 apiary_site.make_vacant(True, apiary_site.latest_approval_link)
             relations.update(available=False)
         elif approval_status == Approval.STATUS_CURRENT:
-            relations.update(site_status=SITE_STATUS_CURRENT)
+            # Restore only NOT_TO_BE_REISSUED sites; preserve individually-suspended ones
+            relations.filter(site_status=SITE_STATUS_NOT_TO_BE_REISSUED).update(site_status=SITE_STATUS_CURRENT)
 
     def approval_cancellation(self,request,details):
         with transaction.atomic():
@@ -595,6 +599,42 @@ class Approval(RevisionedMixin):
             except:
                 raise
 
+    def suspend_apiary_site(self, request, apiary_site_id):
+        with transaction.atomic():
+            if self.status != Approval.STATUS_CURRENT:
+                raise ValidationError('Cannot suspend a site unless the approval is current')
+            if not self.can_action:
+                raise ValidationError('A pending scheduled action prevents site-level changes')
+            site_on_approval = ApiarySiteOnApproval.objects.get(
+                approval=self, apiary_site_id=apiary_site_id
+            )
+            if site_on_approval.site_status != SITE_STATUS_CURRENT:
+                raise ValidationError('Site is not current and cannot be suspended')
+            site_on_approval.site_status = SITE_STATUS_SUSPENDED
+            site_on_approval.save()
+            self.log_user_action(
+                ApprovalUserAction.ACTION_SUSPEND_APIARY_SITE.format(apiary_site_id, self.lodgement_number),
+                request
+            )
+
+    def reinstate_apiary_site(self, request, apiary_site_id):
+        with transaction.atomic():
+            if self.status != Approval.STATUS_CURRENT:
+                raise ValidationError('Cannot reinstate a site unless the approval is current')
+            if not self.can_action:
+                raise ValidationError('A pending scheduled action prevents site-level changes')
+            site_on_approval = ApiarySiteOnApproval.objects.get(
+                approval=self, apiary_site_id=apiary_site_id
+            )
+            if site_on_approval.site_status != SITE_STATUS_SUSPENDED:
+                raise ValidationError('Site is not suspended and cannot be reinstated')
+            site_on_approval.site_status = SITE_STATUS_CURRENT
+            site_on_approval.save()
+            self.log_user_action(
+                ApprovalUserAction.ACTION_REINSTATE_APIARY_SITE.format(apiary_site_id, self.lodgement_number),
+                request
+            )
+
     def approval_surrender(self,request,details):
         with transaction.atomic():
             try:
@@ -672,6 +712,8 @@ class ApprovalUserAction(UserAction):
     ACTION_AMEND_APPROVAL = "Create amendment Proposal for approval {}"
     ACTION_APPROVAL_PDF_VIEW ="View approval PDF for approval {}"
     ACTION_UPDATE_NO_CHARGE_DATE_UNTIL = "'Do not charge annual site fee until' date updated to {} for approval {}"
+    ACTION_SUSPEND_APIARY_SITE = "Suspend apiary site {} of approval {}"
+    ACTION_REINSTATE_APIARY_SITE = "Reinstate apiary site {} of approval {}"
 
     class Meta:
         app_label = 'disturbance'
