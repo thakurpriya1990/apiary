@@ -618,6 +618,8 @@
                 $("#" + this.table_id).on('click', 'input[class="select_all_checkbox"]', this.checkboxSelectAll)
                 $("#" + this.table_id).on('click', 'a[data-make-vacant]', this.makeVacantClicked)
                 $("#" + this.table_id).on('click', 'a[data-contact-licence-holder]', this.contactLicenceHolder)
+                $("#" + this.table_id).on('click', 'a[data-suspend-site]', this.suspendApiarySite)
+                $("#" + this.table_id).on('click', 'a[data-reinstate-site]', this.reinstateApiarySite)
 
                 $("#" + this.table_id).on('mouseenter', "tr", this.mouseEnter)
                 $("#" + this.table_id).on('mouseleave', "tr", this.mouseLeave)
