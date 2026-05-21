@@ -805,7 +805,7 @@
                 let vm = this;
                 let apiary_site_id = e.target.getAttribute('data-suspend-site');
                 e.stopPropagation();
-                const result = await Swal.fire({
+                const result = await swal.fire({
                     title: 'Suspend Site ' + apiary_site_id + '?',
                     text: 'Are you sure you want to suspend this site?',
                     icon: 'warning',
@@ -839,7 +839,7 @@
                     }
                     vm.constructApiarySitesTable(vm.apiary_sites_local);
                 } catch (error) {
-                    Swal.fire({
+                    swal.fire({
                         title: 'Error',
                         text: String(error),
                         icon: 'error',
@@ -851,7 +851,7 @@
                 let vm = this;
                 let apiary_site_id = e.target.getAttribute('data-reinstate-site');
                 e.stopPropagation();
-                const result = await Swal.fire({
+                const result = await swal.fire({
                     title: 'Reinstate Site ' + apiary_site_id + '?',
                     text: 'Are you sure you want to reinstate this site?',
                     icon: 'question',
@@ -885,7 +885,7 @@
                     }
                     vm.constructApiarySitesTable(vm.apiary_sites_local);
                 } catch (error) {
-                    Swal.fire({
+                    swal.fire({
                         title: 'Error',
                         text: String(error),
                         icon: 'error',
