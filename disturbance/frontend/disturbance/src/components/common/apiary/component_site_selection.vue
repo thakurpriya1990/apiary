@@ -166,7 +166,11 @@
             can_modify: {
                 type: Boolean,
                 default: false,
-            }
+            },
+            show_action_suspend_reinstate: {
+                type: Boolean,
+                default: false,
+            },
         },
         data: function(){
             let vm = this;
