@@ -804,6 +804,7 @@
             suspendApiarySite: async function(e) {
                 let vm = this;
                 let apiary_site_id = e.target.getAttribute('data-suspend-site');
+                e.preventDefault();
                 e.stopPropagation();
                 const result = await swal.fire({
                     title: 'Suspend Site ' + apiary_site_id + '?',
@@ -850,6 +851,7 @@
             reinstateApiarySite: async function(e) {
                 let vm = this;
                 let apiary_site_id = e.target.getAttribute('data-reinstate-site');
+                e.preventDefault();
                 e.stopPropagation();
                 const result = await swal.fire({
                     title: 'Reinstate Site ' + apiary_site_id + '?',
