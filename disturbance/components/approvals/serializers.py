@@ -1,3 +1,5 @@
+import logging
+
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser,Address
 from django.utils import timezone
 from disturbance import settings
@@ -8,6 +10,8 @@ from disturbance.components.approvals.models import (
     ApiarySiteOnApproval,
     ApprovalDocument,
 )
+
+logger = logging.getLogger(__name__)
 from disturbance.components.approvals.serializers_apiary import ApiarySiteOnApprovalLicenceDocSerializer, \
     ApiarySiteOnApprovalGeometrySerializer
 from disturbance.components.ap_payments.models import AnnualRentalFeePeriod, AnnualRentalFee
@@ -464,8 +468,17 @@ class ApprovalSerializer(serializers.ModelSerializer):
             return None
 
     def get_organisation(self,obj):
-        organisation = obj.applicant
-        return {"name":organisation.name, "abn":organisation.abn}
+        try:
+            organisation = obj.applicant
+            if not isinstance(organisation, Organisation):
+                return None
+            return {"name": organisation.name, "abn": organisation.abn}
+        except Exception as e:
+            logger.error(
+                "Failed to serialize organisation for Approval id=%s: %s",
+                obj.id, e,
+            )
+            return None
 
     def get_applicant_first_name(self,obj):
         if obj.proxy_applicant:
