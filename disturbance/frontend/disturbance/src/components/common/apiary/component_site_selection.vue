@@ -43,6 +43,7 @@
         constants
     }from '@/utils/hooks'
     import $ from 'jquery';
+    import helpers from '@/utils/helpers';
 
     export default {
         props:{
@@ -166,7 +167,11 @@
             can_modify: {
                 type: Boolean,
                 default: false,
-            }
+            },
+            show_action_suspend_reinstate: {
+                type: Boolean,
+                default: false,
+            },
         },
         data: function(){
             let vm = this;
@@ -431,6 +436,20 @@
                                     let ret = '<a data-contact-licence-holder="' + apiary_site.id + '">' + display_text + '</a>';
                                     action_list.push(ret);
                                 }
+                                if (vm.show_action_suspend_reinstate) {
+                                    const status = apiary_site.properties.status
+                                        ? apiary_site.properties.status.toLowerCase()
+                                        : '';
+                                    if (status === 'current') {
+                                        action_list.push(
+                                            '<a href="#" data-suspend-site="' + apiary_site.id + '">Suspend</a>'
+                                        );
+                                    } else if (status === 'suspended') {
+                                        action_list.push(
+                                            '<a href="#" data-reinstate-site="' + apiary_site.id + '">Reinstate</a>'
+                                        );
+                                    }
+                                }
                                 return action_list.join('<br />');
                             },
                             defaultContent: '',
@@ -600,6 +619,8 @@
                 $("#" + this.table_id).on('click', 'input[class="select_all_checkbox"]', this.checkboxSelectAll)
                 $("#" + this.table_id).on('click', 'a[data-make-vacant]', this.makeVacantClicked)
                 $("#" + this.table_id).on('click', 'a[data-contact-licence-holder]', this.contactLicenceHolder)
+                $("#" + this.table_id).on('click', 'a[data-suspend-site]', this.suspendApiarySite)
+                $("#" + this.table_id).on('click', 'a[data-reinstate-site]', this.reinstateApiarySite)
 
                 $("#" + this.table_id).on('mouseenter', "tr", this.mouseEnter)
                 $("#" + this.table_id).on('mouseleave', "tr", this.mouseLeave)
@@ -778,6 +799,116 @@
                             confirmButton: 'btn btn-primary',
                         },
                     })
+                }
+            },
+            suspendApiarySite: async function(e) {
+                let vm = this;
+                let apiary_site_id = e.target.getAttribute('data-suspend-site');
+                e.preventDefault();
+                e.stopPropagation();
+                const result = await swal.fire({
+                    title: 'Suspend Site ' + apiary_site_id + '?',
+                    text: 'Are you sure you want to suspend this site?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Suspend',
+                    customClass: { confirmButton: 'btn btn-primary', cancelButton: 'btn btn-secondary' },
+                });
+                if (!result.isConfirmed) return;
+                try {
+                    const response = await fetch(
+                        '/api/approvals/' + vm.apiary_approval_id + '/suspend_apiary_site/',
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': helpers.getCookie('csrftoken'),
+                            },
+                            body: JSON.stringify({ apiary_site_id: apiary_site_id }),
+                        }
+                    );
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText);
+                    }
+                    const site_updated = await response.json();
+                    for (let i = 0; i < vm.apiary_sites_local.length; i++) {
+                        if (vm.apiary_sites_local[i].id == apiary_site_id) {
+                            vm.apiary_sites_local[i] = site_updated;
+                            break;
+                        }
+                    }
+                    for (let i = 0; i < vm.apiary_site_geojson_array.length; i++) {
+                        if (vm.apiary_site_geojson_array[i].id == apiary_site_id) {
+                            vm.apiary_site_geojson_array[i] = site_updated;
+                            break;
+                        }
+                    }
+                    vm.constructApiarySitesTable(vm.apiary_sites_local);
+                    vm.$refs.component_map.removeApiarySiteById(apiary_site_id);
+                    vm.$refs.component_map.addApiarySite(site_updated);
+                } catch (error) {
+                    swal.fire({
+                        title: 'Error',
+                        text: String(error),
+                        icon: 'error',
+                        customClass: { confirmButton: 'btn btn-primary' },
+                    });
+                }
+            },
+            reinstateApiarySite: async function(e) {
+                let vm = this;
+                let apiary_site_id = e.target.getAttribute('data-reinstate-site');
+                e.preventDefault();
+                e.stopPropagation();
+                const result = await swal.fire({
+                    title: 'Reinstate Site ' + apiary_site_id + '?',
+                    text: 'Are you sure you want to reinstate this site?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Reinstate',
+                    customClass: { confirmButton: 'btn btn-primary', cancelButton: 'btn btn-secondary' },
+                });
+                if (!result.isConfirmed) return;
+                try {
+                    const response = await fetch(
+                        '/api/approvals/' + vm.apiary_approval_id + '/reinstate_apiary_site/',
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': helpers.getCookie('csrftoken'),
+                            },
+                            body: JSON.stringify({ apiary_site_id: apiary_site_id }),
+                        }
+                    );
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText);
+                    }
+                    const site_updated = await response.json();
+                    for (let i = 0; i < vm.apiary_sites_local.length; i++) {
+                        if (vm.apiary_sites_local[i].id == apiary_site_id) {
+                            vm.apiary_sites_local[i] = site_updated;
+                            break;
+                        }
+                    }
+                    for (let i = 0; i < vm.apiary_site_geojson_array.length; i++) {
+                        if (vm.apiary_site_geojson_array[i].id == apiary_site_id) {
+                            vm.apiary_site_geojson_array[i] = site_updated;
+                            break;
+                        }
+                    }
+                    vm.constructApiarySitesTable(vm.apiary_sites_local);
+                    vm.$refs.component_map.removeApiarySiteById(apiary_site_id);
+                    vm.$refs.component_map.addApiarySite(site_updated);
+                } catch (error) {
+                    swal.fire({
+                        title: 'Error',
+                        text: String(error),
+                        icon: 'error',
+                        customClass: { confirmButton: 'btn btn-primary' },
+                    });
                 }
             },
             zoomOnApiarySite: function(e) {

@@ -154,6 +154,7 @@
                         :show_col_checkbox="false"
                         :show_col_status="true"
                         :apiary_approval_id="approval.id"
+                        :show_action_suspend_reinstate="true"
                     />
                 </template>
             </FormSection>

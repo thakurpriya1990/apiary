@@ -3810,7 +3810,8 @@ class ProposalApiary(RevisionedMixin):
                 apiary_site_on_approval.zone = apiary_site_on_proposal.zone
                 apiary_site_on_approval.catchment = apiary_site_on_proposal.catchment
                 apiary_site_on_approval.dra_permit = apiary_site_on_proposal.dra_permit
-                apiary_site_on_approval.site_status = SITE_STATUS_CURRENT
+                if asoa_created:
+                    apiary_site_on_approval.site_status = SITE_STATUS_CURRENT
                 apiary_site_on_approval.save()
             else:
                 try:
