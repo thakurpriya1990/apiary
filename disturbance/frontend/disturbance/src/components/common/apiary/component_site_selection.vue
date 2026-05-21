@@ -43,6 +43,7 @@
         constants
     }from '@/utils/hooks'
     import $ from 'jquery';
+    import helpers from '@/utils/helpers';
 
     export default {
         props:{
@@ -798,6 +799,98 @@
                             confirmButton: 'btn btn-primary',
                         },
                     })
+                }
+            },
+            suspendApiarySite: async function(e) {
+                let vm = this;
+                let apiary_site_id = e.target.getAttribute('data-suspend-site');
+                e.stopPropagation();
+                const result = await Swal.fire({
+                    title: 'Suspend Site ' + apiary_site_id + '?',
+                    text: 'Are you sure you want to suspend this site?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Suspend',
+                    customClass: { confirmButton: 'btn btn-primary', cancelButton: 'btn btn-secondary' },
+                });
+                if (!result.isConfirmed) return;
+                try {
+                    const response = await fetch(
+                        '/api/approvals/' + vm.apiary_approval_id + '/suspend_apiary_site/',
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': helpers.getCookie('csrftoken'),
+                            },
+                            body: JSON.stringify({ apiary_site_id: apiary_site_id }),
+                        }
+                    );
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText);
+                    }
+                    const site_updated = await response.json();
+                    for (let i = 0; i < vm.apiary_sites_local.length; i++) {
+                        if (vm.apiary_sites_local[i].id == apiary_site_id) {
+                            vm.apiary_sites_local[i] = site_updated;
+                            break;
+                        }
+                    }
+                    vm.constructApiarySitesTable(vm.apiary_sites_local);
+                } catch (error) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: String(error),
+                        icon: 'error',
+                        customClass: { confirmButton: 'btn btn-primary' },
+                    });
+                }
+            },
+            reinstateApiarySite: async function(e) {
+                let vm = this;
+                let apiary_site_id = e.target.getAttribute('data-reinstate-site');
+                e.stopPropagation();
+                const result = await Swal.fire({
+                    title: 'Reinstate Site ' + apiary_site_id + '?',
+                    text: 'Are you sure you want to reinstate this site?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Reinstate',
+                    customClass: { confirmButton: 'btn btn-primary', cancelButton: 'btn btn-secondary' },
+                });
+                if (!result.isConfirmed) return;
+                try {
+                    const response = await fetch(
+                        '/api/approvals/' + vm.apiary_approval_id + '/reinstate_apiary_site/',
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': helpers.getCookie('csrftoken'),
+                            },
+                            body: JSON.stringify({ apiary_site_id: apiary_site_id }),
+                        }
+                    );
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText);
+                    }
+                    const site_updated = await response.json();
+                    for (let i = 0; i < vm.apiary_sites_local.length; i++) {
+                        if (vm.apiary_sites_local[i].id == apiary_site_id) {
+                            vm.apiary_sites_local[i] = site_updated;
+                            break;
+                        }
+                    }
+                    vm.constructApiarySitesTable(vm.apiary_sites_local);
+                } catch (error) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: String(error),
+                        icon: 'error',
+                        customClass: { confirmButton: 'btn btn-primary' },
+                    });
                 }
             },
             zoomOnApiarySite: function(e) {
