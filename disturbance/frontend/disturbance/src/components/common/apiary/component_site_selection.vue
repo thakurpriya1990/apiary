@@ -435,6 +435,20 @@
                                     let ret = '<a data-contact-licence-holder="' + apiary_site.id + '">' + display_text + '</a>';
                                     action_list.push(ret);
                                 }
+                                if (vm.show_action_suspend_reinstate) {
+                                    const status = apiary_site.properties.status
+                                        ? apiary_site.properties.status.toLowerCase()
+                                        : '';
+                                    if (status === 'current') {
+                                        action_list.push(
+                                            '<a href="#" data-suspend-site="' + apiary_site.id + '">Suspend</a>'
+                                        );
+                                    } else if (status === 'suspended') {
+                                        action_list.push(
+                                            '<a href="#" data-reinstate-site="' + apiary_site.id + '">Reinstate</a>'
+                                        );
+                                    }
+                                }
                                 return action_list.join('<br />');
                             },
                             defaultContent: '',
