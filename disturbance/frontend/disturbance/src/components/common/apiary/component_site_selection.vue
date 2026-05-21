@@ -838,7 +838,15 @@
                             break;
                         }
                     }
+                    for (let i = 0; i < vm.apiary_site_geojson_array.length; i++) {
+                        if (vm.apiary_site_geojson_array[i].id == apiary_site_id) {
+                            vm.apiary_site_geojson_array[i] = site_updated;
+                            break;
+                        }
+                    }
                     vm.constructApiarySitesTable(vm.apiary_sites_local);
+                    vm.$refs.component_map.removeApiarySiteById(apiary_site_id);
+                    vm.$refs.component_map.addApiarySite(site_updated);
                 } catch (error) {
                     swal.fire({
                         title: 'Error',
@@ -885,7 +893,15 @@
                             break;
                         }
                     }
+                    for (let i = 0; i < vm.apiary_site_geojson_array.length; i++) {
+                        if (vm.apiary_site_geojson_array[i].id == apiary_site_id) {
+                            vm.apiary_site_geojson_array[i] = site_updated;
+                            break;
+                        }
+                    }
                     vm.constructApiarySitesTable(vm.apiary_sites_local);
+                    vm.$refs.component_map.removeApiarySiteById(apiary_site_id);
+                    vm.$refs.component_map.addApiarySite(site_updated);
                 } catch (error) {
                     swal.fire({
                         title: 'Error',
