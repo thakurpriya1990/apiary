@@ -107,7 +107,7 @@ class ApprovalPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
             queryset =  Approval.objects.filter(
                     apiary_approval=True
-                ).filter(Q(applicant_id__in = user_orgs)|Q(proxy_applicant_id=self.request.user.id)).exclude(status='hidden')
+                ).filter(Q(applicant_id__in = user_orgs)| Q(proxy_applicant=self.request.user) | Q(proxy_applicant_id=self.request.user.id)).exclude(status='hidden')
             return queryset
         return Approval.objects.none()
 
