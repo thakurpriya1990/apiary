@@ -464,8 +464,11 @@ class ApprovalSerializer(serializers.ModelSerializer):
             return None
 
     def get_organisation(self,obj):
-        organisation = obj.applicant
-        return {"name":organisation.name, "abn":organisation.abn}
+        try:
+            organisation = obj.applicant
+            return {"name":organisation.name, "abn":organisation.abn}
+        except:
+            return {}
 
     def get_applicant_first_name(self,obj):
         if obj.proxy_applicant:
