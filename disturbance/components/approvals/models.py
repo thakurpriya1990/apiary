@@ -28,7 +28,7 @@ from disturbance.settings import SITE_STATUS_CURRENT, SITE_STATUS_NOT_TO_BE_REIS
     SITE_STATUS_TRANSFERRED
 from disturbance.utils import search_keys, search_multiple_keys
 from django_countries.fields import CountryField
-
+from rest_framework import serializers
 from disturbance.components.main.models import private_storage
 
 import logging
@@ -258,8 +258,11 @@ class Approval(RevisionedMixin):
         if self.applicant:
             return self.applicant.address
         elif self.proxy_applicant:
-            data = model_to_dict(self.proxy_applicant.residential_address, fields=["line1", "locality", "state", "postcode"])
-            data["country"] = self.proxy_applicant.residential_address.country.code
+            try:
+                data = model_to_dict(self.proxy_applicant.residential_address, fields=["line1", "locality", "state", "postcode"])
+                data["country"] = self.proxy_applicant.residential_address.country.code
+            except:
+                raise serializers.ValidationError("Applicant does not have a valid address.")
             return data
         else:
             data = model_to_dict(self.current_proposal.submitter.residential_address, fields=["line1", "locality", "state", "postcode"])
