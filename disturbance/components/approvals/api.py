@@ -10,7 +10,7 @@ from rest_framework.renderers import JSONRenderer
 from datetime import datetime
 
 from disturbance.components.approvals.models import (
-    Approval, ApprovalUserAction, ApprovalDocument,
+    Approval, ApprovalUserAction, ApprovalDocument, ApiarySiteOnApproval,
 )
 from disturbance.components.approvals.serializers import (
     ApprovalSerializer,
@@ -271,6 +271,50 @@ class ApprovalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             instance.reinstate_approval(request)
             serializer = self.get_serializer(instance)
             return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            handle_validation_error(e)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @action(detail=True, methods=['POST'], permission_classes=[InternalApprovalPermission])
+    def suspend_apiary_site(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            apiary_site_id = request.data.get('apiary_site_id')
+            if not apiary_site_id:
+                raise serializers.ValidationError({'apiary_site_id': 'This field is required.'})
+            instance.suspend_apiary_site(request, apiary_site_id)
+            updated_qs = ApiarySiteOnApproval.objects.filter(
+                approval=instance, apiary_site_id=apiary_site_id
+            )
+            result = list(annotate_apiary_site_on_approval_geometry(updated_qs))
+            return Response(result[0])
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            handle_validation_error(e)
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @action(detail=True, methods=['POST'], permission_classes=[InternalApprovalPermission])
+    def reinstate_apiary_site(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            apiary_site_id = request.data.get('apiary_site_id')
+            if not apiary_site_id:
+                raise serializers.ValidationError({'apiary_site_id': 'This field is required.'})
+            instance.reinstate_apiary_site(request, apiary_site_id)
+            updated_qs = ApiarySiteOnApproval.objects.filter(
+                approval=instance, apiary_site_id=apiary_site_id
+            )
+            result = list(annotate_apiary_site_on_approval_geometry(updated_qs))
+            return Response(result[0])
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
