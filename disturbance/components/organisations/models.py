@@ -928,7 +928,7 @@ class OrganisationRequestDeclinedDetails(SanitiseMixin):
         app_label = 'disturbance'
 
 def update_organisation_request_comms_log_filename(instance, filename):
-    return 'organisation_requests/{}/communications/{}/{}'.format(instance.log_entry.request.id,instance.id,filename)
+    return 'organisation_requests/{}/communications/{}/{}'.format(instance.log_entry.request.id,instance.log_entry.id,filename)
 
 
 class OrganisationRequestLogDocument(LedgerDocument):
