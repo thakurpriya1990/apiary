@@ -47,8 +47,28 @@ class Organisation(models.Model):
     user_pin_one = models.CharField(max_length=50,blank=True)
     user_pin_two = models.CharField(max_length=50,blank=True)
 
+    #Property Caches to store Org Name and ABN without having to constantly query ledger - update on save or via management command - use for filtering
+    #NOTE: this is a temporary solution for until we are able to fully migrate ledger organisation tables
+    property_cache = JSONField(null=True, blank=True, default=dict)
+
     class Meta:
         app_label = 'disturbance'
+
+    def update_property_cache(self, save=True):
+
+        #Update Cache
+        self.property_cache['name'] = self.name
+        self.property_cache['abn'] = self.abn
+
+        if save is True:
+            self.save()
+        
+        return self.property_cache
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            self.update_property_cache(False) #NOTE: very important that this is False to prevent an infinite save loop
+        super(Organisation, self).save(*args, **kwargs)
 
     @property
     def organisation(self):
@@ -58,7 +78,17 @@ class Organisation(models.Model):
             raise ValidationError("Organisation does not exist")
 
     def __str__(self):
-        return str(self.organisation)
+        return_str = ""
+
+        if 'name' in self.property_cache:
+            return_str = self.property_cache["name"]
+        if 'abn' in self.property_cache:
+            return_str += f" (ABN: {self.property_cache["abn"]})"
+        
+        if not return_str:
+            return str(f"{self.name} (ABN: {self.abn})")
+        
+        return return_str
 
     def log_user_action(self, action, request):
         return OrganisationAction.log_action(self, action, request.user)

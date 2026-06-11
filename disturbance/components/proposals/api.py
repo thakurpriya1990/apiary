@@ -45,6 +45,7 @@ from disturbance.components.proposals.models import (
     ProposalApiaryTemporaryUse, ApiarySiteOnProposal, PublicLiabilityInsuranceDocument, DeedPollDocument, 
     SupportingApplicationDocument, ProposalUserAction
 )
+from disturbance.components.organisations.models import Organisation
 from disturbance.settings import (
     SITE_STATUS_DRAFT, SITE_STATUS_CURRENT, SITE_STATUS_DENIED,
     SITE_STATUS_NOT_TO_BE_REISSUED
@@ -178,11 +179,18 @@ class ProposalFilterBackend(DatatablesFilterBackend):
                 Q(legal_full_name__icontains=search_text) 
             ).values_list('id', flat=True))
 
+            organisation_ids = list(
+                Organisation.objects.filter(
+                    property_cache__name__icontains=search_text
+                )
+            )
+
             search_text_app_ids = Proposal.objects.values(
                 'id'
             ).filter(
                 Q(proxy_applicant_id__in=email_user_ids) |
-                Q(submitter_id__in=email_user_ids) 
+                Q(submitter_id__in=email_user_ids) |
+                Q(applicant_id__in=organisation_ids)
             )
 
             queryset = queryset.filter(
