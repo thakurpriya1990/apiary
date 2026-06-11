@@ -44,6 +44,7 @@ INSTALLED_APPS += [
     'webtemplate_dbca',
     "django_vite",
     "appmonitor_client",
+    "wagov_utils.components.sri_utils",
 ]
 
 ADD_REVERSION_ADMIN=True
