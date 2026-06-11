@@ -31,9 +31,11 @@ import 'datatables.net-buttons/js/buttons.html5.js'
 
 import 'datatables.net-responsive/js/dataTables.responsive.js';
 import 'datatables.net-responsive-bs5';
+import 'datatables.net-fixedcolumns-bs5';
 
 import '@/../node_modules/datatables.net-bs5/css/dataTables.bootstrap5.min.css';
 import '@/../node_modules/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css';
+import '@/../node_modules/datatables.net-fixedcolumns-bs5/css/fixedColumns.bootstrap5.min.css';
 
 import "sweetalert2/dist/sweetalert2.css"
 

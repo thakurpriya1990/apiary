@@ -452,6 +452,12 @@ export default {
                     processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
+                //responsive: false, // false as applying scrolX instead to manage responsiveness and column visibility
+                //scrollX: true,
+                //fixedColumns: {
+                //    leftColumns: 1,
+                //    end: 2
+                //},
                 serverSide: true,
                 lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
                 order: [
@@ -478,7 +484,7 @@ export default {
                 },
                 columnDefs: [
                     { responsivePriority: 1, targets: 0 }, // First visible column has top priority (e.g. proposal_number
-                    { responsivePriority: 2, targets: -2 }, // If the actions is the last entry in columns then this will make it 2nd top priority soo as long as the screen is a decent size it will always be shown
+                    { responsivePriority: 2, targets: -1 }, // If the actions is the last entry in columns then this will make it 2nd top priority soo as long as the screen is a decent size it will always be shown
                 ],
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                     "<'row'<'col-sm-12'tr>>" +
