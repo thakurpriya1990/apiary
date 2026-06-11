@@ -471,14 +471,14 @@ class ApprovalSerializer(serializers.ModelSerializer):
         try:
             organisation = obj.applicant
             if not isinstance(organisation, Organisation):
-                return None
+                return {}
             return {"name": organisation.name, "abn": organisation.abn}
         except Exception as e:
             logger.error(
                 "Failed to serialize organisation for Approval id=%s: %s",
                 obj.id, e,
             )
-            return None
+            return {}
 
     def get_applicant_first_name(self,obj):
         if obj.proxy_applicant:

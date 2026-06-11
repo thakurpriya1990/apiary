@@ -146,6 +146,7 @@ def is_authorised_to_access_proposal_document(request,document_id):
         user_orgs = [org.id for org in user.disturbance_organisations.all()]
         return Proposal.objects.filter(id=document_id).filter(
                 Q(applicant_id__in=user_orgs) |
+                Q(proxy_applicant=user) |
                 Q(submitter=user)).exists()
 
 def is_authorised_to_access_approval_document(request,document_id):
@@ -156,6 +157,7 @@ def is_authorised_to_access_approval_document(request,document_id):
         user_orgs = [org.id for org in user.disturbance_organisations.all()]
         return Approval.objects.filter(id=document_id).filter(
                 Q(applicant_id__in = user_orgs) |
+                Q(proxy_applicant=user) |
                 Q(proxy_applicant_id=user.id)).exists()
 
 def is_authorised_to_access_organisation_document(request,document_id):

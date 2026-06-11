@@ -41,7 +41,12 @@
                 {% if request.user.is_authenticated %}
                     <span>
                     {%if fee_invoice %}
-                    <a href="{% url 'invoice-pdf' fee_invoice.invoice_reference %}" class="btn btn-info btn-lg"  target="_blank">Invoice</a>
+                    {%if fee_invoice.reference %}
+                    <a href="/ledger-toolkit-api/invoice-pdf/{{ fee_invoice.reference }}" class="btn btn-info btn-lg"  target="_blank">Invoice</a>
+                    {% endif %}
+                    {%if fee_invoice.invoice_reference %}
+                    <a href="/ledger-toolkit-api/invoice-pdf/{{ fee_invoice.invoice_reference }}" class="btn btn-info btn-lg"  target="_blank">Invoice</a>
+                    {% endif %}
                     {% endif %}
                     </span>
                     <span style="float:right;">

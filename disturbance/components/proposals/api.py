@@ -350,7 +350,7 @@ class OnSiteInformationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
             return OnSiteInformation.objects.filter(datetime_deleted=None)
         elif user.is_authenticated:
             user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
-            qs = OnSiteInformation.objects.filter(datetime_deleted=None).filter(Q(apiary_site_on_approval_id__approval_id__applicant_id__in=user_orgs)|Q(apiary_site_on_approval_id__approval_id__current_proposal_id__submitter_id=user.id))
+            qs = OnSiteInformation.objects.filter(datetime_deleted=None).filter(Q(apiary_site_on_approval__approval__applicant_id__in=user_orgs)|Q(apiary_site_on_approval__approval__current_proposal__submitter_id=user.id)|Q(apiary_site_on_approval__approval__current_proposal__proxy_applicant_id=user.id))
             return qs
         return OnSiteInformation.objects.none()
 
@@ -776,7 +776,7 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             return ProposalApiary.objects.all()
         elif user.is_authenticated:
             user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
-            qs = ProposalApiary.objects.filter(Q(proposal_id__applicant_id__in=user_orgs)|Q(proposal_id__submitter_id=user.id))
+            qs = ProposalApiary.objects.filter(Q(proposal_id__applicant_id__in=user_orgs)|Q(proposal_id__submitter_id=user.id)|Q(proposal_id__proxy_applicant_id=user.id))
             return qs
         return ProposalApiary.objects.none()
 
@@ -1146,6 +1146,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE]
             ).filter(
                 Q(applicant_id__in=user_orgs) |
+                Q(proxy_applicant=user) |
                 Q(submitter=user)
             )
             return queryset
