@@ -190,6 +190,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             ).filter(
                 Q(proxy_applicant_id__in=email_user_ids) |
                 Q(submitter_id__in=email_user_ids) |
+                Q(assigned_officer_id__in=email_user_ids) |
                 Q(applicant_id__in=organisation_ids)
             )
 
