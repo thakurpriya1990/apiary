@@ -12,6 +12,8 @@ from datetime import datetime
 from disturbance.components.approvals.models import (
     Approval, ApprovalUserAction, ApprovalDocument, ApiarySiteOnApproval,
 )
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from disturbance.components.organisations.models import Organisation
 from disturbance.components.approvals.serializers import (
     ApprovalSerializer,
     DTApprovalSerializer,
@@ -38,6 +40,8 @@ from disturbance.components.approvals.utils import annotate_apiary_site_on_appro
 from disturbance.components.approvals.permissions import (
     InternalApprovalPermission,
 )
+from django.db.models.functions import Concat
+from django.db.models import Value
 
 class ApprovalFilterBackend(DatatablesFilterBackend):
     """
@@ -45,7 +49,54 @@ class ApprovalFilterBackend(DatatablesFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
+        search_text = request.GET.get('search[value]', '')
         total_count = queryset.count()
+
+        try:
+           super_queryset = super(ApprovalFilterBackend, self).filter_queryset(request, queryset, view)
+        except Exception as e:
+            print(e)
+
+        if search_text:
+            search_text = search_text.lower()
+
+            email_user_ids = list(EmailUser.objects.annotate(
+                full_name=Concat(
+                    'first_name',
+                    Value(' '),
+                    'last_name'
+                ),
+                legal_full_name=Concat(
+                    'legal_first_name',
+                    Value(' '),
+                    'legal_last_name'
+                ),
+            ).filter(
+                Q(email__icontains=search_text) |
+                Q(first_name__icontains=search_text) |
+                Q(last_name__icontains=search_text) |
+                Q(full_name__icontains=search_text) |
+                Q(legal_first_name__icontains=search_text) |
+                Q(legal_last_name__icontains=search_text) |
+                Q(legal_full_name__icontains=search_text) 
+            ).values_list('id', flat=True))
+
+            organisation_ids = list(
+                Organisation.objects.filter(
+                    property_cache__name__icontains=search_text
+                )
+            )
+
+            search_text_app_ids = Approval.objects.values(
+                'id'
+            ).filter(
+                Q(proxy_applicant_id__in=email_user_ids) |
+                Q(applicant_id__in=organisation_ids)
+            )
+
+            queryset = queryset.filter(
+                id__in=search_text_app_ids
+            ).distinct() | super_queryset
 
         def get_choice(status, choices=Approval.STATUS_CHOICES):
             for i in choices:
@@ -83,10 +134,6 @@ class ApprovalFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super(ApprovalFilterBackend, self).filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
         setattr(view, '_datatables_total_count', total_count)
         return queryset
 
