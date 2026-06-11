@@ -138,7 +138,7 @@ RUN ls -al /app/disturbance/frontend/disturbance
 RUN cd /app/disturbance/frontend/disturbance/; npm install
 RUN cd /app/disturbance/frontend/disturbance/; npm run build
 RUN python manage_ds.py collectstatic --noinput
-RUN python manage_ds.py script_hash_indexes
+RUN python manage_ds.py script_hash_indexes --skip-checks
 RUN mkdir /app/tmp/
 RUN chmod 777 /app/tmp/
 
