@@ -2943,7 +2943,7 @@ def search_reference(reference_number):
         except Approval.DoesNotExist:
             try:
                 for c in compliance_list:
-                    if c.reference == reference_number:
+                    if c.lodgement_number == reference_number:
                         record = {  'id': c.id,
                                     'type': 'compliance' }
             except:
