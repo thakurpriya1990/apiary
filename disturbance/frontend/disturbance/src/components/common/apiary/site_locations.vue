@@ -121,7 +121,7 @@
         </div>
 
 
-        <div class="row col-sm-12">
+        <div class="row col-sm-12" v-if="is_proposal_type_renewal">
             <label>
                 Click <a href="/external/available_sites/">here</a> if you are interested in existing sites that are available by the site licence holder.
             </label>

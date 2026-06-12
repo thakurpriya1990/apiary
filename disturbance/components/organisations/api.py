@@ -17,6 +17,7 @@ from disturbance.components.organisations.models import  (
                                     OrganisationContact,
                                     OrganisationAccessGroup,
                                     ApiaryOrganisationAccessGroup,
+                                    OrganisationRequestLogDocument
                                 )
 
 from disturbance.components.organisations.serializers import (   
@@ -711,19 +712,14 @@ class OrganisationRequestsViewSet(viewsets.GenericViewSet, mixins.RetrieveModelM
                 comms = serializer.save()
                 # Save the files
                 for f in request.FILES:
-                    document = comms.documents.create()
-                    document.name = str(request.FILES[f])
-                    document._file = request.FILES[f]
-                    document.save()
+                    document = comms.documents.create(
+                            name = str(request.FILES[f]),
+                            _file = request.FILES[f]
+                            )
+
                 # End Save Documents
                 
                 return Response(serializer.data) 
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
