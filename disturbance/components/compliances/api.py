@@ -8,6 +8,7 @@ from rest_framework.decorators import action, renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from disturbance.components.organisations.models import Organisation
 from disturbance.components.compliances.models import (
    Compliance,
    ComplianceAmendmentReason
@@ -27,6 +28,8 @@ from rest_framework_datatables.filters import DatatablesFilterBackend
 from disturbance.components.compliances.permissions import (
     InternalCompliancePermission,
 )
+from django.db.models.functions import Concat
+from django.db.models import Value
 
 class ComplianceFilterBackend(DatatablesFilterBackend):
     """
@@ -35,9 +38,54 @@ class ComplianceFilterBackend(DatatablesFilterBackend):
 
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
-
         search_text = request.GET.get('search[value]', '')
-        print(search_text)
+
+        try:
+           super_queryset = super(ComplianceFilterBackend, self).filter_queryset(request, queryset, view)
+        except Exception as e:
+            print(e)
+
+        if search_text:
+            search_text = search_text.lower()
+
+            email_user_ids = list(EmailUser.objects.annotate(
+                full_name=Concat(
+                    'first_name',
+                    Value(' '),
+                    'last_name'
+                ),
+                legal_full_name=Concat(
+                    'legal_first_name',
+                    Value(' '),
+                    'legal_last_name'
+                ),
+            ).filter(
+                Q(email__icontains=search_text) |
+                Q(first_name__icontains=search_text) |
+                Q(last_name__icontains=search_text) |
+                Q(full_name__icontains=search_text) |
+                Q(legal_first_name__icontains=search_text) |
+                Q(legal_last_name__icontains=search_text) |
+                Q(legal_full_name__icontains=search_text) 
+            ).values_list('id', flat=True))
+
+            organisation_ids = list(
+                Organisation.objects.filter(
+                    property_cache__name__icontains=search_text
+                )
+            )
+
+            search_text_app_ids = Compliance.objects.values(
+                'id'
+            ).filter(
+                Q(approval__proxy_applicant_id__in=email_user_ids) |
+                Q(assigned_to_id__in=email_user_ids) |
+                Q(approval__applicant_id__in=organisation_ids)
+            )
+
+            queryset = queryset.filter(
+                id__in=search_text_app_ids
+            ).distinct() | super_queryset
 
         def get_processing_choice(status, choices=Compliance.PROCESSING_STATUS_CHOICES):
             for i in choices:
@@ -84,10 +132,7 @@ class ComplianceFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super(ComplianceFilterBackend, self).filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+
         setattr(view, '_datatables_total_count', total_count)
         return queryset
 

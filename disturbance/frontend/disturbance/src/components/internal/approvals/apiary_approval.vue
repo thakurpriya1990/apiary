@@ -13,17 +13,6 @@
                         <strong>Issued on</strong><br/>
                         {{ formatDate(approval.issue_date) }}
                     </div>
-                    <div class="card-body border-top py-2">
-                        <table class="table small-table">
-                            <thead>
-                                <tr>
-                                    <th>Lodgement</th>
-                                    <th>Date</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
                 </div>
             </div>
             <div class="mb-3">

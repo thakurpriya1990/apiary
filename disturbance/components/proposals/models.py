@@ -1366,7 +1366,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             try:
                 if not self.can_assess(request.user):
                     raise exceptions.ProposalNotAuthorized()
-                if not self.can_assess(officer):
+                if not officer in self.allowed_assessors:
                     raise ValidationError('The selected person is not authorised to be assigned to this proposal')
                 if self.processing_status == 'with_approver':
                     if officer != self.assigned_approver:
@@ -2943,7 +2943,7 @@ def search_reference(reference_number):
         except Approval.DoesNotExist:
             try:
                 for c in compliance_list:
-                    if c.reference == reference_number:
+                    if c.lodgement_number == reference_number:
                         record = {  'id': c.id,
                                     'type': 'compliance' }
             except:

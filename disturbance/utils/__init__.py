@@ -115,7 +115,7 @@ def search_compliance(compliance, searchWords):
                     found = True
             if found:
                 res = {
-                    'number': c.reference,
+                    'number': c.lodgement_number,
                     'id': c.id,
                     'type': 'Compliance',
                     'applicant': name,
@@ -132,7 +132,7 @@ def search_compliance(compliance, searchWords):
                     found = True
             if found:
                 res = {
-                    'number': c.reference,
+                    'number': c.lodgement_number,
                     'id': c.id,
                     'type': 'Compliance',
                     'applicant': name,

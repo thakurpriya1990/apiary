@@ -117,3 +117,6 @@ apiary.txt
 
 disturbance/frontend/disturbance/tests_output*
 session_store
+
+sri-manifest.json
+sri-files/*
