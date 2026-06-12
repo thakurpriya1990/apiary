@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import logging
+
 from django.db import models, transaction
 from rest_framework import serializers
 from django.contrib.sites.models import Site
@@ -13,6 +15,8 @@ from rest_framework import status
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from disturbance.components.main.models import UserAction,CommunicationsLogEntry, LedgerDocument, SanitiseFileMixin, SanitiseMixin
 from disturbance.components.organisations.utils import random_generator
+
+logger = logging.getLogger(__name__)
 from disturbance.components.organisations.emails import (
                         send_organisation_request_accept_email_notification,
                         send_organisation_request_decline_email_notification,
@@ -73,8 +77,19 @@ class Organisation(models.Model):
     @property
     def organisation(self):
         try:
-            return get_organisation(self.organisation_id)['data']
-        except:
+            data = get_organisation(self.organisation_id)['data']
+            if not data:
+                logger.warning(
+                    "Ledger API returned empty data for organisation_id=%s. "
+                    "The organisation may not exist in the ledger database.",
+                    self.organisation_id,
+                )
+            return data
+        except Exception as e:
+            logger.error(
+                "Failed to fetch organisation data for organisation_id=%s: %s",
+                self.organisation_id, e,
+            )
             raise ValidationError("Organisation does not exist")
 
     def __str__(self):
@@ -488,23 +503,30 @@ class Organisation(models.Model):
 
     @property
     def trading_name(self):
-        return self.organisation["organisation_trading_name"]
+        return self.organisation.get("organisation_trading_name", "")
 
     @property
     def name(self):
-        return self.organisation["organisation_name"]
+        value = self.organisation.get("organisation_name")
+        if value is None:
+            logger.warning(
+                "'organisation_name' key missing from ledger data for organisation_id=%s. "
+                "Available keys: %s",
+                self.organisation_id, list(self.organisation.keys()),
+            )
+        return value or ""
 
     @property
     def abn(self):
-        return self.organisation["organisation_abn"]
+        return self.organisation.get("organisation_abn", "")
 
     @property
     def address(self):
-        return self.organisation["postal_address"]
+        return self.organisation.get("postal_address")
     
     @property
     def address_string(self):
-        org_address = self.organisation["postal_address"]
+        org_address = self.organisation.get("postal_address")
         if org_address:
             fields = [str(org_address[key]) for key in org_address if org_address[key]]
             return u', '.join(fields)
@@ -517,7 +539,7 @@ class Organisation(models.Model):
 
     @property
     def email(self):
-        return self.organisation["organisation_email"]
+        return self.organisation.get("organisation_email", "")
 
     @property
     def first_five(self):
