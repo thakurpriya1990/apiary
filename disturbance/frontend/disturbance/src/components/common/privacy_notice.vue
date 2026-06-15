@@ -37,7 +37,7 @@
                     </p>
                     <p>
                         For further details on how DBCA manage your personal information, you can read our
-                        <a href="#privacy-policy-url-placeholder" target="_blank">Privacy Policy</a>.
+                        <a :href="privacyPolicyUrl" target="_blank">Privacy Policy</a>.
                         If you have any questions about how your personal information will be handled, or if you
                         would like to access your personal information, please email
                         <a href="mailto:privacy@dbca.wa.gov.au">privacy@dbca.wa.gov.au</a>.
@@ -54,6 +54,7 @@ export default {
     data() {
         return {
             expanded: true,
+            privacyPolicyUrl: window.env?.privacy_policy_url || '#',
         };
     },
     methods: {
