@@ -2,6 +2,7 @@
 <div class="container" id="externalDash">
     <div class="row">
         <div class="col-sm-12">
+            <PrivacyNotice />
             <div class="card mb-2 bg-light">
                 <div class="card-body">
                     <div class="row align-items-center">
@@ -27,6 +28,7 @@
 <script>
 
 import FormSection from '@/components/forms/section_toggle.vue';
+import PrivacyNotice from '@/components/common/privacy_notice.vue';
 import ProposalDashTable from '@common-utils/proposals_dashboard.vue'
 import ApprovalDashTable from '@common-utils/approvals_dashboard.vue'
 import ComplianceDashTable from '@common-utils/compliances_dashboard.vue'
@@ -46,6 +48,7 @@ export default {
         }
     },
     components:{
+        PrivacyNotice,
         ProposalDashTable,
         ApprovalDashTable,
         ComplianceDashTable,

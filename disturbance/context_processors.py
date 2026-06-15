@@ -48,4 +48,5 @@ def apiary_url(request):
         'LEDGER_SYSTEM_ID': f'{settings.LEDGER_SYSTEM_ID}',
         'DJANGO_SETTINGS': settings,
         'checkouthash' : checkouthash,
+        'PRIVACY_POLICY_URL': settings.PRIVACY_POLICY_URL,
     }
