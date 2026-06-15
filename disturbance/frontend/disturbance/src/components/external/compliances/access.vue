@@ -1,5 +1,6 @@
 <template>
 <div class="container" id="externalCompliance">
+    <PrivacyNotice />
     <div v-if="isDiscarded" class="row" style="color:red;">
         <h3>You cannot access this Compliance with requirements as this has been discarded.</h3>
     </div>
@@ -106,6 +107,7 @@
 </template>
 <script>
 import { v4 as uuid } from 'uuid';
+import PrivacyNotice from '@/components/common/privacy_notice.vue';
 import FormSection from "@/components/forms/section_toggle.vue";
 import alert from '@vue-utils/alert.vue'
 import { toRaw } from 'vue';
@@ -159,6 +161,7 @@ export default {
  
   components: {
     alert,
+    PrivacyNotice,
     FormSection
   },
   computed: {
