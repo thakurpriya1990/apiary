@@ -3,16 +3,23 @@
 {% load django_vite %}
 
 {% block accounts_message_top %}
+<style>
+.privacy-notice-toggle.collapsed .privacy-notice-chevron { transform: rotate(180deg); }
+.privacy-notice-chevron { transition: transform 0.3s ease; display: inline-block; }
+</style>
 <div class="card mb-3 border-info">
-    <div class="card-header d-flex justify-content-between align-items-center"
+    <div class="card-header d-flex justify-content-between align-items-center privacy-notice-toggle"
          style="cursor: pointer;"
-         onclick="var body=document.getElementById('privacy-notice-body-account');var icon=document.getElementById('privacy-notice-icon-account');var expanded=body.style.display!=='none';body.style.display=expanded?'none':'block';icon.className=expanded?'fa fa-chevron-down':'fa fa-chevron-up';">
+         data-bs-toggle="collapse"
+         data-bs-target="#privacy-notice-body-account"
+         aria-expanded="true"
+         aria-controls="privacy-notice-body-account">
         <span class="fw-bold text-info">
-            <i class="fa fa-info-circle me-2"></i>Privacy Notice
+            <i class="bi bi-info-circle me-2"></i>Privacy Notice
         </span>
-        <i id="privacy-notice-icon-account" class="fa fa-chevron-up"></i>
+        <i class="bi bi-chevron-up privacy-notice-chevron"></i>
     </div>
-    <div id="privacy-notice-body-account">
+    <div id="privacy-notice-body-account" class="collapse show">
         <div class="card-body">
             <p>The Department of Biodiversity, Conservation and Attractions (DBCA) collects this personal
             information to assess, approve and grant an Apiary Authority that allows you to
