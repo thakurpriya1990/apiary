@@ -32,11 +32,7 @@ export default {
             commsLogId: 'comms-log-table' + uuid(),
             isModalOpen:false,
             commsDTHeaders:["Date", "Type", "To", "CC", "From", "Subject/Desc", "Text", "Document", "Created"],
-            popoversInitialised: false,
             commsDtOptions: {
-                drawCallback: () => {
-                    this.initPopovers();
-                },
                 language: {
                     processing: constants.DATATABLE_PROCESSING_HTML,
                 },
@@ -128,30 +124,7 @@ export default {
         close: function() {
             this.isModalOpen = false;
         },
-        
-        initPopovers() {
-            const selector = `#${this.commsLogId} [data-bs-toggle="popover"]`;
-
-            document.querySelectorAll(selector).forEach((el) => {
-                const existing = bootstrap.Popover.getInstance(el);
-                if (existing) {
-                    existing.dispose();
-                }
-
-                new bootstrap.Popover(el, {
-                    container: 'body',
-                    trigger: el.getAttribute('data-bs-trigger') || 'click',
-                    html: (el.getAttribute('data-bs-html') || '').toLowerCase() === 'true',
-                });
-            });
-        },
-
     },
-    mounted() {
-        setTimeout(() => {
-            this.initPopovers();
-        }, 0);
-    }
 }
 </script>
 
