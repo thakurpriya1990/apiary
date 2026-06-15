@@ -1968,6 +1968,8 @@ class ProposalRequirementViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMi
             if instance.proposal and instance.proposal.processing_status == Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS:
                 serializer = self.get_serializer(instance, data=request.data.get('data'))
                 serializer.is_valid(raise_exception=True)
+                instance = serializer.save()
+                serializer = self.get_serializer(instance)
                 return Response(serializer.data)
             else:
                 raise serializers.ValidationError("No valid proposal With Assessor (Requirements) for requirement provided.")

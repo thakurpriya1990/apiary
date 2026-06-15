@@ -1309,6 +1309,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         with transaction.atomic():
             if self.can_user_edit:
                 self.processing_status = Proposal.PROCESSING_STATUS_DISCARDED
+                self.customer_status = Proposal.CUSTOMER_STATUS_DISCARDED
                 self.save()
                 self.log_user_action(ProposalUserAction.ACTION_DISCARD_PROPOSAL.format(self.lodgement_number), request)
             else:
