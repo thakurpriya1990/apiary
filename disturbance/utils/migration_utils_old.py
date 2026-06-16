@@ -698,11 +698,6 @@ class ApiaryLicenceReader():
             apiary_site.latest_proposal_link=intermediary_proposal_site
             apiary_site.save()
 
-            #print('******************************************************** 5: {}'.format(time.process_time() - t))
-            #t = time.process_time()
-
-            #approval.generate_doc(submitter)
-
             print('******************************************************** 6: {}'.format(time.process_time() - t)); t = time.process_time()
 
         except Exception as e:
@@ -743,7 +738,7 @@ class ApiaryLicenceReader():
         approvals_migrated = Approval.objects.filter(current_proposal__application_type__name=ApplicationType.APIARY, migrated=True)
         print('Total Approvals: {}'.format(approvals_migrated))
         for idx, a in enumerate(approvals_migrated):
-            a.generate_doc(a.current_proposal.submitter)
+            a.generate_doc()
             print('{}, Created PDF for Approval {}'.format(idx, a))
 
 

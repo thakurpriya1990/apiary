@@ -10,7 +10,7 @@ from reportlab.platypus import BaseDocTemplate, PageTemplate, Frame, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.utils import ImageReader
 from reportlab.lib.colors import HexColor
-
+from ledger_api_client.ledger_models import EmailUserRO
 from django.core.files import File
 from django.conf import settings
 
@@ -157,7 +157,7 @@ def _create_approval_header(canvas, doc, draw_page_number=True):
                           '{}'.format(doc.approval.lodgement_number))
 
 
-def _create_approval(approval_buffer, approval, proposal, copied_to_permit, user):
+def _create_approval(approval_buffer, approval, proposal, copied_to_permit):
     site_url = settings.SITE_URL
     every_page_frame = Frame(PAGE_MARGIN, PAGE_MARGIN, PAGE_WIDTH - 2 * PAGE_MARGIN,
                              PAGE_HEIGHT - 160, id='EveryPagesFrame')
@@ -292,16 +292,22 @@ def _create_approval(approval_buffer, approval, proposal, copied_to_permit, user
     #                                      styles['Left'])] + address_paragraphs]],
     #                         colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
     #                         style=approval_table_style))
-    if user.phone_number:
-        contact_number = user.phone_number
-    elif user.mobile_number:
-        contact_number = user.mobile_number
+
+    user_id = approval.approver_id if approval.approver_id else None
+    user = EmailUserRO.objects.filter(id=user_id).first() if user_id else None
+    if user:
+        if user.phone_number:
+            contact_number = user.phone_number
+        elif user.mobile_number:
+            contact_number = user.mobile_number
+        else:
+            contact_number= settings.DEP_PHONE
     else:
         contact_number= settings.DEP_PHONE
 
     delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
     delegation.append(Paragraph('Should you have any queries about this approval, please contact {} {}, '
-                                'on {} or by email at {}'.format(user.first_name, user.last_name, contact_number, user.email), styles['Left']))
+                                'on {} or by email at {}'.format(user.first_name if user else "", user.last_name if user else "", contact_number, user.email), styles['Left']))
     delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
     delegation.append(Paragraph('To provide feedback on the system used to submit the approval or update contact details, please '
         'contact {} Works Coordinator - {}'.format(settings.SYSTEM_NAME_SHORT, settings.SUPPORT_EMAIL), styles['Left']))
@@ -311,7 +317,7 @@ def _create_approval(approval_buffer, approval, proposal, copied_to_permit, user
     delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
     delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
 
-    delegation.append(Paragraph('{} {}'.format(user.first_name, user.last_name), styles['Left']))
+    delegation.append(Paragraph('{} {}'.format(user.first_name if user else "", user.last_name if user else ""), styles['Left']))
     delegation.append(Paragraph('{}'.format(region_district), styles['Left']))
     delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
     delegation.append(Paragraph(approval.issue_date.strftime(DATE_FORMAT), styles['Left']))
@@ -432,10 +438,10 @@ def _layout_extracted_fields(extracted_fields):
     return elements
 
 
-def create_approval_doc(approval,proposal, copied_to_permit, user):
+def create_approval_doc(approval,proposal, copied_to_permit):
     approval_buffer = BytesIO()
 
-    _create_approval(approval_buffer, approval, proposal, copied_to_permit, user)
+    _create_approval(approval_buffer, approval, proposal, copied_to_permit)
     if proposal.apiary_group_application_type:
         filename = 'approval-{}-{}.pdf'.format(approval.lodgement_number, proposal.lodgement_number)
     else:
@@ -449,8 +455,8 @@ def create_approval_doc(approval,proposal, copied_to_permit, user):
     return document
 
 
-def create_approval_document(approval, proposal, copied_to_permit, user):
-    pdf_contents = create_apiary_licence_pdf_contents(approval, proposal, copied_to_permit, user)
+def create_approval_document(approval, proposal, copied_to_permit):
+    pdf_contents = create_apiary_licence_pdf_contents(approval, proposal, copied_to_permit)
 
     if proposal.apiary_group_application_type:
         filename = 'approval-{}-{}.pdf'.format(approval.lodgement_number, proposal.lodgement_number)
@@ -463,10 +469,10 @@ def create_approval_document(approval, proposal, copied_to_permit, user):
     return document
 
 
-def create_approval_pdf_bytes(approval, proposal, copied_to_permit, user):
+def create_approval_pdf_bytes(approval, proposal, copied_to_permit):
     licence_buffer = BytesIO()
 
-    _create_approval(licence_buffer, approval, proposal, copied_to_permit, user)
+    _create_approval(licence_buffer, approval, proposal, copied_to_permit)
 
     # Get the value of the BytesIO buffer
     value = licence_buffer.getvalue()

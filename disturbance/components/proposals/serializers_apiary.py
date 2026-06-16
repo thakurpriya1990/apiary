@@ -1616,7 +1616,6 @@ class UserApiaryApprovalSerializer(serializers.ModelSerializer):
 
     def get_licence_holders(self, obj):
         originating_approval_id = self.context.get('originating_approval_id')
-        print(originating_approval_id)
         #return 'apiary_approvals'
         licence_holders = []
         #multiple_approvals = False

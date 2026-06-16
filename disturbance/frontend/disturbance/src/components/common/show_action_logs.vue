@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="ShowComms">
-        <modal transition="modal fade" :showOK="false" :showCancel="false" title="Communication logs" large>
+        <modal transition="modal fade" :showOK="false" :showCancel="false" title="Action logs" large>
             <div class="container-fluid">
                 <datatable id="actionLogId" :dtOptions="actionsDtOptions" :dtHeaders="actionsDtHeaders" ></datatable>
             </div>
@@ -63,7 +63,8 @@ export default {
                     {
                         title: 'When',
                         data: 'when',
-                        orderable: false,
+                        className: 'all',
+                        orderable: true,
                         mRender: function (data) {
                             return moment(data).format('DD/MM/YYYY HH:mm:ss');
                         },
