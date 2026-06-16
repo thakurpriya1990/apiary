@@ -160,6 +160,8 @@ class Approval(RevisionedMixin):
     apiary_sites = models.ManyToManyField('ApiarySite', through=ApiarySiteOnApproval, related_name='approval_set')
     migrated = models.BooleanField(default=False)
 
+    approver_id = models.IntegerField(blank=True, null=True)
+
     class Meta:
         app_label = 'disturbance'
         unique_together = ('lodgement_number', 'issue_date')
@@ -393,8 +395,8 @@ class Approval(RevisionedMixin):
                 else:
                     return False
 
-    def generate_apiary_site_transfer_doc(self, request_user, site_transfer_proposal, preview=None):
-        return self.generate_apiary_licence_doc(site_transfer_proposal, request_user, preview)
+    def generate_apiary_site_transfer_doc(self, site_transfer_proposal, preview=None):
+        return self.generate_apiary_licence_doc(site_transfer_proposal, preview)
         # copied_to_permit = self.copiedToPermit_fields(site_transfer_proposal)  # Get data related to isCopiedToPermit tag
         # if preview:
         #     pdf_contents = create_apiary_licence_pdf_contents(self, site_transfer_proposal, copied_to_permit, user)
@@ -403,26 +405,26 @@ class Approval(RevisionedMixin):
         # self.save(version_comment='Created Approval PDF: {}'.format(self.licence_document.name))
         # self.current_proposal.save(version_comment='Created Approval PDF: {}'.format(self.licence_document.name))
 
-    def generate_doc(self, request_user, preview=None, site_transfer_preview=None):
+    def generate_doc(self, preview=None, site_transfer_preview=None):
         #if self.current_proposal and self.current_proposal.apiary_group_application_type:
         if self.apiary_approval:
-            return self.generate_apiary_licence_doc(self.current_proposal, request_user, preview, site_transfer_preview)
+            return self.generate_apiary_licence_doc(self.current_proposal, preview, site_transfer_preview)
         else:
             from disturbance.components.approvals.pdf import create_approval_doc, create_approval_pdf_bytes
             copied_to_permit = self.copiedToPermit_fields(self.current_proposal) #Get data related to isCopiedToPermit tag
             if preview:
-                return create_approval_pdf_bytes(self,self.current_proposal, copied_to_permit, request_user)
-            self.licence_document = create_approval_doc(self,self.current_proposal, copied_to_permit, request_user)
+                return create_approval_pdf_bytes(self,self.current_proposal, copied_to_permit)
+            self.licence_document = create_approval_doc(self,self.current_proposal, copied_to_permit)
             self.save(version_comment='Created Approval PDF: {}'.format(self.licence_document.name))
             self.current_proposal.save(version_comment='Created Approval PDF: {}'.format(self.licence_document.name))
 
-    def generate_apiary_licence_doc(self, proposal, request_user, preview=None, site_transfer_preview=None):
+    def generate_apiary_licence_doc(self, proposal, preview=None, site_transfer_preview=None):
         copied_to_permit = self.copiedToPermit_fields(proposal) #Get data related to isCopiedToPermit tag
         if preview:
-            pdf_contents = create_apiary_licence_pdf_contents(self, proposal, copied_to_permit, request_user, site_transfer_preview)
+            pdf_contents = create_apiary_licence_pdf_contents(self, proposal, copied_to_permit, site_transfer_preview)
             return pdf_contents
         #self.licence_document = create_apiary_licence_pdf_contents(self, proposal, copied_to_permit, request_user)
-        self.licence_document = create_approval_document(self, proposal, copied_to_permit, request_user)
+        self.licence_document = create_approval_document(self, proposal, copied_to_permit)
         self.save(version_comment='Created Approval PDF: {}'.format(self.licence_document.name))
         self.current_proposal.save(version_comment='Created Approval PDF: {}'.format(self.licence_document.name))
 

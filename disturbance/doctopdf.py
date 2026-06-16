@@ -7,7 +7,7 @@ from docx.shared import Mm
 from disturbance.components.main.models import ApiaryGlobalSettings
 
 
-def create_apiary_licence_pdf_contents(approval, proposal, copied_to_permit, approver, site_transfer_preview=None):
+def create_apiary_licence_pdf_contents(approval, proposal, copied_to_permit, site_transfer_preview=None):
 
     licence_template = ApiaryGlobalSettings.objects.get(key=ApiaryGlobalSettings.KEY_APIARY_LICENCE_TEMPLATE_FILE)
 
@@ -22,7 +22,7 @@ def create_apiary_licence_pdf_contents(approval, proposal, copied_to_permit, app
 
     path_to_image = os.path.join(settings.BASE_DIR, 'disturbance', 'static', 'disturbance', 'img', 'dbca-logo.jpg')
     serializer_context = {
-            'approver': approver,
+            'approver_id': approval.approver_id,
             'site_transfer_preview': site_transfer_preview,
             }
     context_obj = ApprovalSerializerForLicenceDoc(approval, context=serializer_context)

@@ -1587,14 +1587,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 if originating_approval_id:
                     preview_approval = Approval.objects.get(id=originating_approval_id)
                     licence_buffer = preview_approval.generate_apiary_site_transfer_doc(
-                            request.user,
                             site_transfer_proposal=self,
                             preview=True
                             )
                 elif target_approval_id:
                     preview_approval = Approval.objects.get(id=target_approval_id)
                     licence_buffer = preview_approval.generate_apiary_site_transfer_doc(
-                            request.user,
                             site_transfer_proposal=self,
                             preview=True
                             )
@@ -1609,10 +1607,11 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         proxy_applicant = self.proxy_applicant,
                         lodgement_number = lodgement_number,
                         apiary_approval = self.apiary_group_application_type,
+                        approver_id = request.user.id,
                     )
 
                     # Generate the preview document - get the value of the BytesIO buffer
-                    licence_buffer = preview_approval.generate_doc(request.user, preview=True)
+                    licence_buffer = preview_approval.generate_doc(preview=True)
 
                     # clean temp preview licence object
                     transaction.set_rollback(True)
@@ -1834,6 +1833,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             previous_approval = self.previous_application.approval
                             approval,created = Approval.objects.update_or_create(
                                 current_proposal = checking_proposal,
+                                approver_id = request.user.id,
                                 defaults = {
                                     'issue_date' : timezone.now(),
                                     'expiry_date' : details.get('expiry_date'),
@@ -1853,6 +1853,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             previous_approval = self.previous_application.approval
                             approval,created = Approval.objects.update_or_create(
                                 current_proposal = checking_proposal,
+                                approver_id = request.user.id,
                                 defaults = {
                                     'issue_date' : timezone.now(),
                                     'expiry_date' : details.get('expiry_date'),
@@ -1869,6 +1870,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     else:
                         approval,created = Approval.objects.update_or_create(
                             current_proposal = checking_proposal,
+                            approver_id = request.user.id,
                             defaults = {
                                 'issue_date' : timezone.now(),
                                 'expiry_date' : details.get('expiry_date'),
@@ -1889,12 +1891,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                     c.delete()
                         # Log creation
                         # Generate the document
-                        approval.generate_doc(request.user)
+                        approval.generate_doc()
                         self.generate_compliances(approval, request)
                         # send the doc and log in approval and org
                     else:
                         # Generate the document
-                        approval.generate_doc(request.user)
+                        approval.generate_doc()
                         #Delete the future compliances if Approval is reissued and generate the compliances again.
                         approval_compliances = Compliance.objects.filter(approval= approval, proposal = self, processing_status='future')
                         if approval_compliances:
@@ -3280,7 +3282,7 @@ class ProposalApiary(RevisionedMixin):
             approval = Approval.objects.filter(proxy_applicant=self.proposal.proxy_applicant, status__in=[Approval.STATUS_CURRENT, Approval.STATUS_SUSPENDED], apiary_approval=True).first()
         return approval
 
-    def create_transferee_approval(self, details, applicant=None, proxy_applicant=None):
+    def create_transferee_approval(self, details, approver, applicant=None, proxy_applicant=None):
         from disturbance.components.approvals.models import Approval
         approval = Approval.objects.create(
             current_proposal = self.proposal,
@@ -3290,6 +3292,7 @@ class ProposalApiary(RevisionedMixin):
             applicant= applicant,
             proxy_applicant= proxy_applicant,
             apiary_approval= self.proposal.apiary_group_application_type,
+            approver_id=approver.id,
         )
         return approval
 
@@ -3325,12 +3328,15 @@ class ProposalApiary(RevisionedMixin):
             elif self.proposal.application_type.name == ApplicationType.SITE_TRANSFER:
                 target_approval = self.target_approval
                 originating_approval = self.originating_approval
+                originating_approval.approver_id = request.user.id 
+                if not preview:
+                    originating_approval.save()
                 # New Licence creation for target_approval
                 if not target_approval:
                     if self.target_approval_organisation:
-                        target_approval = self.create_transferee_approval(details, applicant=Organisation.objects.get(id=self.target_approval_organisation_id))
+                        target_approval = self.create_transferee_approval(details, request.user, applicant=Organisation.objects.get(id=self.target_approval_organisation_id))
                     else:
-                        target_approval = self.create_transferee_approval(details, proxy_applicant=EmailUser.objects.get(id=self.transferee_id))
+                        target_approval = self.create_transferee_approval(details, request.user, proxy_applicant=EmailUser.objects.get(id=self.transferee_id))
                     self.target_approval = target_approval
                     # set proposal_apiary requirements with sitetransfer_approval set to None to target_approval
                     transferee_requirements = self.proposal.requirements.filter(sitetransfer_approval=None).exclude(is_deleted=True)
@@ -3371,6 +3377,7 @@ class ProposalApiary(RevisionedMixin):
                 if not approval:
                     approval, approval_created = Approval.objects.update_or_create(
                         current_proposal = checking_proposal,
+                        approver_id = request.user.id,
                         defaults = {
                         'issue_date' : timezone.now(),
                         'expiry_date' : details.get('expiry_date'),
@@ -3534,7 +3541,7 @@ class ProposalApiary(RevisionedMixin):
                     # Log creation
                     # Generate the document
                     self.link_apiary_approval_requirements(approval)
-                    approval.generate_doc(request.user)
+                    approval.generate_doc()
                     self.generate_apiary_compliances(approval, request)
                     # send the doc and log in approval and org
                     self.proposal.log_user_action(ProposalUserAction.ACTION_ISSUE_APIARY_APPROVAL.format(
@@ -3558,7 +3565,7 @@ class ProposalApiary(RevisionedMixin):
                         for c in approval_compliances:
                             c.delete()
                     self.link_apiary_approval_requirements(approval)
-                    approval.generate_doc(request.user)
+                    approval.generate_doc()
                     self.generate_apiary_compliances(approval, request)
                     # Log proposal action
                     self.proposal.log_user_action(ProposalUserAction.ACTION_UPDATE_APPROVAL_.format(self.proposal.lodgement_number), request)
@@ -3591,7 +3598,7 @@ class ProposalApiary(RevisionedMixin):
                         for c in approval_compliances:
                             c.delete()
                     self.link_apiary_approval_requirements(originating_approval)
-                    originating_approval.generate_apiary_site_transfer_doc(request.user, site_transfer_proposal=self.proposal)
+                    originating_approval.generate_apiary_site_transfer_doc(site_transfer_proposal=self.proposal)
                     self.generate_apiary_compliances(originating_approval, request)
                     # Log proposal action
                     self.proposal.log_user_action(
@@ -3623,7 +3630,7 @@ class ProposalApiary(RevisionedMixin):
                         for c in approval_compliances:
                             c.delete()
                     self.link_apiary_approval_requirements(target_approval)
-                    target_approval.generate_apiary_site_transfer_doc(request.user, site_transfer_proposal=self.proposal)
+                    target_approval.generate_apiary_site_transfer_doc(site_transfer_proposal=self.proposal)
                     self.generate_apiary_compliances(target_approval, request)
                     # Log proposal action
                     self.proposal.log_user_action(

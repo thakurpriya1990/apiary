@@ -561,7 +561,7 @@ class ApiaryLicenceReader():
         print('Total {} approval(s) for creating licence pdf: {}'.format(len(approvals_migrated), approvals_migrated))
 
         for idx, a in enumerate(approvals_migrated):
-            a.generate_doc(a.current_proposal.submitter)
+            a.generate_doc()
             print('{}, Created licence PDF for Approval: {}'.format(idx, a))
 
 

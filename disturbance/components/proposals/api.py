@@ -937,9 +937,9 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                     preview_approval_id = serializer.data.get('approval', {}).get('id')
                 licence_response = HttpResponse(content_type='application/pdf')
                 preview_approval = Approval.objects.get(id=preview_approval_id)
+                preview_approval.approver_id = request.user.id
 
                 licence_response.content = preview_approval.generate_doc(
-                        request.user, 
                         preview=True, 
                         site_transfer_preview=site_transfer_preview
                         )
