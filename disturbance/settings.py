@@ -95,6 +95,8 @@ CACHES = {
 CACHE_TIMEOUT_2_HOURS = 60 * 60 * 2
 CACHE_KEY_FILE_EXTENSION_WHITELIST = "file-extension-whitelist"
 FILE_SIZE_LIMIT_BYTES = env('FILE_SIZE_LIMIT_BYTES' ,128000000)
+MAX_NUM_ROWS_MODEL_EXPORT = 100000
+NUMBER_OF_QUEUE_JOBS = 5
 
 STATIC_ROOT=os.path.join(BASE_DIR, 'staticfiles_ds')
 STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, 'disturbance', 'static')))

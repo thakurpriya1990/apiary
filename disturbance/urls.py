@@ -134,6 +134,8 @@ urlpatterns = [
         name='booking-settlements-report'),
 
     re_path(r'kb-proxy/(?P<path>.*)', views.mapProxyView),
+
+    re_path(r'^email-exports/$', views.EmailExportsView.as_view(), name='email-exports'),
 ] + ledger_patterns #+ media_serv_patterns
 
 if not are_migrations_running():

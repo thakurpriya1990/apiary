@@ -1,0 +1,129 @@
+{% extends 'disturbance/base.html' %}
+
+{% block content %}
+    <style>
+        .debug-box {
+            margin: 0 0 0 3em;
+            background: lightgray;
+            padding: 0.5em;
+        }
+        .row {
+            margin: 0 0 1em 0;
+        }
+    </style>
+    <div class="container">
+        <div class="card card-default">
+            <div class="card-header h4 fw-bold p-4">
+                <h3>
+                    Reports
+                </h3>
+            </div>
+            <div class="card-body collapse show">
+                <div class="row form-group">
+                    <div class="col-sm-12">
+                    {% if message %}
+                    <div class="alert alert-success">{{message}}</div>
+                    {% else %}
+                    <div class="alert alert-info">Email reports will be sent to the requesting user some time after the request has been made.</div>
+                    {% endif %}
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-sm-3 control-label">Format</label>
+                    <div class="col-sm-6">
+                        <select id="format_select" name="format" class="form-control">
+                            <option value="excel">Excel</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-sm-3 control-label"># Records for Report</label>
+                    <div class="col-sm-6">
+                        <input id="num_records" name="num_records" type="number" value=100000 max=500000 min=1 class="form-control">
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-sm-3 control-label">Report Type</label>
+                    <div class="col-sm-6">
+                        <select id="report_select" onchange="selectReport()" class="form-control">
+                            <option value="proposal_report">Proposals</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </br></br>
+        <form class="report_form" id="proposal_report" method="POST" onsubmit="submitReport('proposal_report')">
+            <div class="card card-default">
+                <div class="card-header h4 fw-bold p-4">
+                    <h3>Proposal Report</h3>
+                </div>
+                <div class="card-body collapse show">
+                    {% csrf_token %}
+                    <div class="row">
+                        <label class="col-sm-3 control-label">Lodged From</label>
+                        <div class="col-sm-3">
+                        <input class="proposal_field form-control" type="date" id="proposal_lodged_from" name="lodged_on_from">
+                        </div>
+                        <label class="col-sm-3 control-label">Lodged To</label>
+                        <div class="col-sm-3">
+                        <input class="proposal_field form-control" type="date" id="proposal_lodged_to" name="lodged_on_to">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                        <button class="btn btn-primary"
+                            id="export_proposal" 
+                            type="submit" 
+                            name="export_model" 
+                            value="proposal" 
+                            title="Email Proposals Report">
+                            Email Proposals Report
+                        </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function getFilters(form_id) {
+            var field_class = form_id.replace("_report","_field");
+            var fields = document.getElementsByClassName(field_class);
+            var filters = Object();
+            Array.from(fields).forEach(field => {
+                filters[field.name] = field.value;
+                if (field.type == 'checkbox') {
+                    filters[field.name] = field.checked;
+                }
+            });
+            var input = document.createElement('input');
+            input.setAttribute('name', "filters");
+            input.setAttribute('value', JSON.stringify(filters));
+            input.setAttribute('type', "hidden");
+            return input;
+        }
+
+        function submitReport(form_id) {
+            var form = document.getElementById(form_id);
+            var format = document.getElementById('format_select');
+            format.setAttribute("hidden", true);
+            var num_records = document.getElementById('num_records');
+            num_records.setAttribute("hidden", true);
+            form.appendChild(format);
+            form.appendChild(num_records);
+            form.appendChild(getFilters(form_id));
+        }
+
+        function selectReport() {
+            var report_forms = document.getElementsByClassName("report_form");
+            Array.from(report_forms).forEach(report_form => {
+                report_form.setAttribute("style","display: None");
+            });
+            document.getElementById(document.getElementById("report_select").value).setAttribute("style","display: block");
+        }
+    </script>
+
+{% endblock %}

@@ -8,6 +8,10 @@
     </li>
 {% endif %}
 
+{% if is_internal_login %}
+    <li><a class="dropdown-item" class="dropdown-item" href="{% url 'email-exports' %}">Email Reports</a></li>
+{% endif %}
+
 {% if request.user.is_superuser %}
     <li role="separator" class="divider"></li>
 {% endif %}

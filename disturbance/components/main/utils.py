@@ -13,6 +13,12 @@ from django.db.models.query_utils import Q
 from rest_framework import serializers
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
+import csv
+import xlsxwriter
+import uuid
+
+from disturbance.settings import MAX_NUM_ROWS_MODEL_EXPORT
+
 import re
 import os
 
@@ -1008,3 +1014,86 @@ def get_dob(obj):
         return obj.dob
 
     return ""
+
+def csvExportData(model, header, columns):
+    
+    csv_file = str(settings.BASE_DIR)+'/tmp/{}_{}_{}.csv'.format(model,uuid.uuid4(),int(datetime.now().timestamp()*100000))
+    with open(csv_file, 'w', newline='') as new_file:
+        writer = csv.writer(new_file)
+        writer.writerow(header)
+        for i in columns:
+            writer.writerow(i)
+    return csv_file
+
+def excelExportData(model, header, columns):
+    excel_file = str(settings.BASE_DIR)+'/tmp/{}_{}_{}.xlsx'.format(model,uuid.uuid4(),int(datetime.now().timestamp()*100000))
+    workbook = xlsxwriter.Workbook(excel_file) 
+    worksheet = workbook.add_worksheet("{} Report".format(model.capitalize()))
+    format = workbook.add_format()
+
+    col = 0 
+    row = 0
+
+    col_lens = [0]*len(header)
+
+    for i in header:
+        worksheet.write(row, col, str(i), format)
+        col_lens[col] = len(str(i))+2
+        worksheet.set_column(col, col, col_lens[col])
+        col += 1
+    col = 0 
+    row += 1
+    for i in columns:
+        for j in i:
+            worksheet.write(row, col, str(j), format)
+            if len(str(j)) > col_lens[col]:
+                col_lens[col] = len(str(j))+2
+                worksheet.set_column(col, col, col_lens[col])
+            col += 1
+        col = 0
+        row += 1
+
+    workbook.close() 
+
+    return excel_file
+
+def getProposalExport(filters, num):
+    return []
+
+def exportModelData(model, filters, num_records):
+
+    if not num_records:
+        num_records = MAX_NUM_ROWS_MODEL_EXPORT
+    else:
+        num_records = min(num_records, MAX_NUM_ROWS_MODEL_EXPORT)
+
+    if model == "proposal":
+        return getProposalExport(filters, num_records)
+    else:
+        return
+
+def getProposalExportFields(data):
+    return [],[]
+
+def formatExportData(model, data, format):
+    
+    if model == "proposal":
+        header, columns = getProposalExportFields(data)
+    else:
+        return
+
+    if os.path.isdir(str(settings.BASE_DIR)+'/tmp/') is False:
+        os.makedirs(str(settings.BASE_DIR)+'/tmp/')
+
+    if format == "excel":
+        file_name = excelExportData(model, header, columns)
+        file_buffer = None
+        with open(file_name, 'rb') as f:
+            file_buffer = f.read()    
+        return ('Apiary - {} Report.xlsx'.format(model.capitalize()), file_buffer, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    else:
+        file_name =  csvExportData(model, header, columns)
+        file_buffer = None
+        with open(file_name, 'rb') as f:
+            file_buffer = f.read()    
+        return ('Apiary - {} Report.csv'.format(model.capitalize()), file_buffer, 'application/csv')
