@@ -49,6 +49,7 @@
                         <select id="report_select" onchange="selectReport()" class="form-control">
                             <option value="proposal_report">Proposals</option>
                             <option value="approval_report">Approvals</option>
+                            <option value="compliance_report">Compliances</option>
                         </select>
                     </div>
                 </div>
@@ -113,6 +114,38 @@
                             value="approval" 
                             title="Email Approvals Report">
                             Email Approvals Report
+                        </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <form class="report_form" style="display:None" id="compliance_report" method="POST" onsubmit="submitReport('compliance_report')">
+            <div class="card card-default">
+                <div class="card-header h4 fw-bold p-4">
+                    <h3>Compliance Report</h3>
+                </div>
+                <div class="card-body collapse show">
+                    {% csrf_token %}
+                    <div class="row">
+                        <label class="col-sm-3 control-label">Due From</label>
+                        <div class="col-sm-3">
+                        <input class="compliance_field form-control" type="date" id="compliance_due_from" name="due_from">
+                        </div>
+                        <label class="col-sm-3 control-label">Due To</label>
+                        <div class="col-sm-3">
+                        <input class="compliance_field form-control" type="date" id="compliance_due_to" name="due_to">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                        <button class="btn btn-primary"
+                            id="export_compliance" 
+                            type="submit" 
+                            name="export_model" 
+                            value="compliance" 
+                            title="Email Compliances Report">
+                            Email Compliances Report
                         </button>
                         </div>
                     </div>

@@ -1058,9 +1058,11 @@ def excelExportData(model, header, columns):
     return excel_file
 
 def getProposalExport(filters, num):
-    from disturbance.components.proposals.models import Proposal
+    from disturbance.components.proposals.models import Proposal, ApplicationType
 
-    qs = Proposal.objects.order_by("-lodgement_date")
+    qs = Proposal.objects.filter(
+        application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE]
+    ).order_by("-lodgement_date")
     if filters:
         #lodged_on_from
         if "lodged_on_from" in filters and filters["lodged_on_from"]:
@@ -1074,14 +1076,24 @@ def getProposalExport(filters, num):
 def getApprovalExport(filters, num):
     from disturbance.components.approvals.models import Approval
 
-    qs = Approval.objects.order_by("-issue_date")
+    qs = Approval.objects.filter(apiary_approval=True).order_by("-issue_date")
     if filters:
-        #lodged_on_from
         if "issued_from" in filters and filters["issued_from"]:
             qs = qs.filter(issue_date__gte=filters["issued_from"])
-        #lodged_on_to
         if "issued_to" in filters and filters["issued_to"]:
             qs = qs.filter(issue_date__lte=filters["issued_to"])
+
+    return qs[:num]
+
+def getComplianceExport(filters, num):
+    from disturbance.components.compliances.models import Compliance
+
+    qs = Compliance.objects.filter(apiary_compliance=True).order_by("-due_date")
+    if filters:
+        if "due_from" in filters and filters["due_from"]:
+            qs = qs.filter(due_date__gte=filters["due_from"])
+        if "due_to" in filters and filters["due_to"]:
+            qs = qs.filter(due_date__lte=filters["due_to"])
 
     return qs[:num]
 
@@ -1096,6 +1108,8 @@ def exportModelData(model, filters, num_records):
         return getProposalExport(filters, num_records)
     if model == "approval":
         return getApprovalExport(filters, num_records)
+    if model == "compliance":
+        return getComplianceExport(filters, num_records)
     else:
         return
 
@@ -1180,12 +1194,56 @@ def getApprovalExportFields(data):
 
     return header, columns
 
+def getComplianceExportFields(data):
+    header = ["Number", "Activity", "Due Date", "Holder", "Licence", "Status", "Assigned To"]
+
+    columns = list(
+        data.values_list(
+            "lodgement_number",
+            "proposal__activity",
+            "due_date",
+            "proposal__applicant__property_cache__name",
+            "approval__proxy_applicant_id",
+            "proposal__submitter_id",
+            "approval__lodgement_number",
+            "processing_status",
+            "assigned_to_id",
+        )
+    )
+
+    user_ids = {
+        compliance[i]
+        for compliance in columns
+        for i in (4,5,8)
+        if compliance[i] is not None
+    }
+
+    email_users = EmailUser.objects.filter(id__in=user_ids)
+    
+    user_map = {
+        user.id: f"{user.first_name} {user.last_name}".strip()
+        for user in email_users
+    }
+    columns = list(map(lambda compliance: (
+        compliance[0],
+        compliance[1],
+        compliance[2],
+        compliance[3] if compliance[3] else user_map.get(compliance[4]) if user_map.get(compliance[4]) else user_map.get(compliance[5]),
+        compliance[6],
+        compliance[7].replace("_"," "),
+        user_map.get(compliance[8]) if user_map.get(compliance[8]) else ""
+    ),columns))
+
+    return header, columns
+
 def formatExportData(model, data, format):
     
     if model == "proposal":
         header, columns = getProposalExportFields(data)
-    if model == "approval":
+    elif model == "approval":
         header, columns = getApprovalExportFields(data)
+    elif model == "compliance":
+        header, columns = getComplianceExportFields(data)
     else:
         return
 

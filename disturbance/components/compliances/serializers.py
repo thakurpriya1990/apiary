@@ -15,7 +15,7 @@ class ComplianceSerializer(serializers.ModelSerializer):
     regions = serializers.CharField(source='proposal.region')
     activity = serializers.CharField(source='proposal.activity')
     title = serializers.CharField(source='proposal.title')
-    holder = serializers.CharField(source='approval.applicant.name', allow_null=True, required=False)
+    holder = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source='get_processing_status_display')
     customer_status = serializers.CharField(source='get_customer_status_display')
     submitter = serializers.SerializerMethodField(read_only=True)
@@ -83,6 +83,9 @@ class ComplianceSerializer(serializers.ModelSerializer):
             'district',
             'can_assess',
         )
+
+    def get_holder(self,obj):
+        return obj.holder
 
     def get_documents(self,obj):
         return [[d.name,d._file.url,d.can_delete,d.id] for d in obj.documents.all()]
