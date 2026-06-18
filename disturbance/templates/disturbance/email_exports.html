@@ -48,6 +48,7 @@
                     <div class="col-sm-6">
                         <select id="report_select" onchange="selectReport()" class="form-control">
                             <option value="proposal_report">Proposals</option>
+                            <option value="approval_report">Approvals</option>
                         </select>
                     </div>
                 </div>
@@ -80,6 +81,38 @@
                             value="proposal" 
                             title="Email Proposals Report">
                             Email Proposals Report
+                        </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <form class="report_form" style="display:None" id="approval_report" method="POST" onsubmit="submitReport('approval_report')">
+            <div class="card card-default">
+                <div class="card-header h4 fw-bold p-4">
+                    <h3>Approval Report</h3>
+                </div>
+                <div class="card-body collapse show">
+                    {% csrf_token %}
+                    <div class="row">
+                        <label class="col-sm-3 control-label">Issued From</label>
+                        <div class="col-sm-3">
+                        <input class="approval_field form-control" type="date" id="approval_issued_from" name="issued_from">
+                        </div>
+                        <label class="col-sm-3 control-label">Issued To</label>
+                        <div class="col-sm-3">
+                        <input class="approval_field form-control" type="date" id="approval_issued_to" name="issued_to">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                        <button class="btn btn-primary"
+                            id="export_approval" 
+                            type="submit" 
+                            name="export_model" 
+                            value="approval" 
+                            title="Email Approvals Report">
+                            Email Approvals Report
                         </button>
                         </div>
                     </div>

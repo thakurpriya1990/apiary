@@ -1071,6 +1071,20 @@ def getProposalExport(filters, num):
 
     return qs[:num]
 
+def getApprovalExport(filters, num):
+    from disturbance.components.approvals.models import Approval
+
+    qs = Approval.objects.order_by("-issue_date")
+    if filters:
+        #lodged_on_from
+        if "issued_from" in filters and filters["issued_from"]:
+            qs = qs.filter(issue_date__gte=filters["issued_from"])
+        #lodged_on_to
+        if "issued_to" in filters and filters["issued_to"]:
+            qs = qs.filter(issue_date__lte=filters["issued_to"])
+
+    return qs[:num]
+
 def exportModelData(model, filters, num_records):
 
     if not num_records:
@@ -1080,6 +1094,8 @@ def exportModelData(model, filters, num_records):
 
     if model == "proposal":
         return getProposalExport(filters, num_records)
+    if model == "approval":
+        return getApprovalExport(filters, num_records)
     else:
         return
 
@@ -1127,10 +1143,49 @@ def getProposalExportFields(data):
 
     return header, columns
 
+def getApprovalExportFields(data):
+    header = ["Number", "Holder", "Issue Date", "Start Date", "Expiry Date"]
+
+    columns = list(
+        data.values_list(
+            "lodgement_number",
+            "applicant__property_cache__name",
+            "proxy_applicant_id",
+            "issue_date",
+            "start_date",
+            "expiry_date",
+        )
+    )
+
+    user_ids = {
+        approval[i]
+        for approval in columns
+        for i in (2,)
+        if approval[i] is not None
+    }
+
+    email_users = EmailUser.objects.filter(id__in=user_ids)
+    
+    user_map = {
+        user.id: f"{user.first_name} {user.last_name}".strip()
+        for user in email_users
+    }
+    columns = list(map(lambda approval: (
+        approval[0],
+        approval[1] if approval[1] else user_map.get(approval[2]),
+        approval[3],
+        approval[4],
+        approval[5],
+    ),columns))
+
+    return header, columns
+
 def formatExportData(model, data, format):
     
     if model == "proposal":
         header, columns = getProposalExportFields(data)
+    if model == "approval":
+        header, columns = getApprovalExportFields(data)
     else:
         return
 
