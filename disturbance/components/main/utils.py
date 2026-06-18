@@ -1058,7 +1058,18 @@ def excelExportData(model, header, columns):
     return excel_file
 
 def getProposalExport(filters, num):
-    return []
+    from disturbance.components.proposals.models import Proposal
+
+    qs = Proposal.objects.order_by("-lodgement_date")
+    if filters:
+        #lodged_on_from
+        if "lodged_on_from" in filters and filters["lodged_on_from"]:
+            qs = qs.filter(lodgement_date__gte=filters["lodged_on_from"])
+        #lodged_on_to
+        if "lodged_on_to" in filters and filters["lodged_on_to"]:
+            qs = qs.filter(lodgement_date__lte=filters["lodged_on_to"])
+
+    return qs[:num]
 
 def exportModelData(model, filters, num_records):
 
@@ -1073,7 +1084,48 @@ def exportModelData(model, filters, num_records):
         return
 
 def getProposalExportFields(data):
-    return [],[]
+    header = ["Lodgement Number", "Application Type", "Submitter", "Applicant", "Status", "Lodged On", "Assigned Officer", "Invoice Reference"]
+
+    columns = list(
+        data.values_list(
+            "lodgement_number",
+            "proposal_type",
+            "submitter_id",
+            "applicant__property_cache__name",
+            "proxy_applicant_id",
+            "processing_status",
+            "lodgement_date",
+            "assigned_officer_id",
+            "fee_invoice_references"
+        )
+    )
+
+    user_ids = {
+        proposal[i]
+        for proposal in columns
+        for i in (2, 4, 7)
+        if proposal[i] is not None
+    }
+
+    email_users = EmailUser.objects.filter(id__in=user_ids)
+    
+    user_map = {
+        user.id: f"{user.first_name} {user.last_name}".strip()
+        for user in email_users
+    }
+
+    columns = list(map(lambda proposal: (
+        proposal[0],
+        proposal[1].replace("_"," "),
+        user_map.get(proposal[2]),
+        proposal[3] if proposal[3] else user_map.get(proposal[4]) if user_map.get(proposal[4]) else user_map.get(proposal[2]),
+        proposal[5].replace("_"," "),
+        proposal[6] if proposal[6] else "",
+        user_map.get(proposal[7]) if user_map.get(proposal[7]) else "",
+        proposal[8] if proposal[8] else "",
+    ),columns))
+
+    return header, columns
 
 def formatExportData(model, data, format):
     
