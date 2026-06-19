@@ -50,6 +50,7 @@
                             <option value="proposal_report">Proposals</option>
                             <option value="approval_report">Approvals</option>
                             <option value="compliance_report">Compliances</option>
+                            <option value="organisationrequest_report">Organisation Request</option>
                         </select>
                     </div>
                 </div>
@@ -146,6 +147,38 @@
                             value="compliance" 
                             title="Email Compliances Report">
                             Email Compliances Report
+                        </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <form class="report_form" style="display:None" id="organisationrequest_report" method="POST" onsubmit="submitReport('organisationrequest_report')">
+            <div class="card card-default">
+                <div class="card-header h4 fw-bold p-4">
+                    <h3>Organisation Requests Report</h3>
+                </div>
+                <div class="card-body collapse show">
+                    {% csrf_token %}
+                    <div class="row">
+                        <label class="col-sm-3 control-label">Lodged On From</label>
+                        <div class="col-sm-3">
+                        <input class="organisationrequest_field form-control" type="date" id="organisationrequest_lodged_on_from" name="lodged_on_from">
+                        </div>
+                        <label class="col-sm-3 control-label">Lodged On To</label>
+                        <div class="col-sm-3">
+                        <input class="organisationrequest_field form-control" type="date" id="organisationrequest_lodged_on_to" name="lodged_on_to">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                        <button class="btn btn-primary"
+                            id="export_organisationrequest" 
+                            type="submit" 
+                            name="export_model" 
+                            value="organisationrequest" 
+                            title="Email Organisation Requests Report">
+                            Email Organisation Requests Report
                         </button>
                         </div>
                     </div>

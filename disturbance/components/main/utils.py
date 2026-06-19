@@ -1097,6 +1097,20 @@ def getComplianceExport(filters, num):
 
     return qs[:num]
 
+def getOrganisationRequestExport(filters, num):
+    from disturbance.components.organisations.models import OrganisationRequest
+
+    qs = OrganisationRequest.objects.order_by("-lodgement_date")
+    if filters:
+        #lodged_on_from
+        if "lodged_on_from" in filters and filters["lodged_on_from"]:
+            qs = qs.filter(lodgement_date__gte=filters["lodged_on_from"])
+        #lodged_on_to
+        if "lodged_on_to" in filters and filters["lodged_on_to"]:
+            qs = qs.filter(lodgement_date__lte=filters["lodged_on_to"])
+
+    return qs[:num]
+
 def exportModelData(model, filters, num_records):
 
     if not num_records:
@@ -1106,10 +1120,12 @@ def exportModelData(model, filters, num_records):
 
     if model == "proposal":
         return getProposalExport(filters, num_records)
-    if model == "approval":
+    elif model == "approval":
         return getApprovalExport(filters, num_records)
-    if model == "compliance":
+    elif model == "compliance":
         return getComplianceExport(filters, num_records)
+    elif model == "organisationrequest":
+        return getOrganisationRequestExport(filters, num_records)
     else:
         return
 
@@ -1236,6 +1252,23 @@ def getComplianceExportFields(data):
 
     return header, columns
 
+def getOrganisationRequestExportFields(data):
+    header = ["Request Number", "Organisation Name", "ABN", "Applicant ID", "Applicant Role", "Status", "Lodged On"]
+
+    columns = list(
+        data.values_list(
+            "id",
+            "name",
+            "abn",
+            "requester_id",
+            "role",
+            "status",
+            "lodgement_date"
+        )
+    )
+    
+    return header, columns
+
 def formatExportData(model, data, format):
     
     if model == "proposal":
@@ -1244,6 +1277,8 @@ def formatExportData(model, data, format):
         header, columns = getApprovalExportFields(data)
     elif model == "compliance":
         header, columns = getComplianceExportFields(data)
+    elif model == "organisationrequest":
+        header, columns = getOrganisationRequestExportFields(data)
     else:
         return
 
