@@ -1121,7 +1121,16 @@ def getSiteExport(filters, num):
 
     qs = ApiarySite.objects.order_by("-id")
     if filters:
-        pass #TODO
+        if "is_vacant" in filters and filters["is_vacant"]:
+            if filters["is_vacant"] == "true":
+                qs = qs.filter(is_vacant=True)
+            if filters["is_vacant"] == "false":
+                qs = qs.filter(is_vacant=False)
+        if "is_exempt" in filters and filters["is_exempt"]:
+            if filters["is_exempt"] == "true":
+                qs = qs.filter(exempt_from_radius_restriction=True)
+            if filters["is_exempt"] == "false":
+                qs = qs.filter(exempt_from_radius_restriction=False)
 
     return qs[:num]
 
