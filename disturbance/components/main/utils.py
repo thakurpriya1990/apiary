@@ -13,6 +13,11 @@ from django.db.models.query_utils import Q
 from rest_framework import serializers
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
+
+from django.db.models import Case, When, Value, F, DateTimeField, Func, FloatField
+from django.db.models.functions import Greatest
+
+
 import csv
 import xlsxwriter
 import uuid
@@ -1111,6 +1116,16 @@ def getOrganisationRequestExport(filters, num):
 
     return qs[:num]
 
+def getSiteExport(filters, num):
+    from disturbance.components.proposals.models import ApiarySite
+
+    qs = ApiarySite.objects.order_by("-id")
+    if filters:
+        pass #TODO
+
+    return qs[:num]
+
+
 def exportModelData(model, filters, num_records):
 
     if not num_records:
@@ -1126,6 +1141,8 @@ def exportModelData(model, filters, num_records):
         return getComplianceExport(filters, num_records)
     elif model == "organisationrequest":
         return getOrganisationRequestExport(filters, num_records)
+    elif model == "site":
+        return getSiteExport(filters, num_records)
     else:
         return
 
@@ -1269,6 +1286,87 @@ def getOrganisationRequestExportFields(data):
     
     return header, columns
 
+def getSiteExportFields(data):
+    header = ["ID", "GUID", "Latest Proposal Link", "Latest Approval Link", "Is Vacant?", "Exempt from Radius Restriction?", "Longitude", "Latitude"]
+
+    columns = list(
+        data.annotate(
+            proposal_date=Case(
+                When(
+                    latest_proposal_link__wkb_geometry_processed__isnull=False,
+                    then=F('latest_proposal_link__created_at')
+                ),
+                default=Value(None),
+                output_field=DateTimeField()
+            ),
+            approval_date=Case(
+                When(
+                    latest_approval_link__wkb_geometry__isnull=False,
+                    then=F('latest_approval_link__created_at')
+                ),
+                default=Value(None),
+                output_field=DateTimeField()
+            ),
+            proposal_vacant_date=Case(
+                When(
+                    proposal_link_for_vacant__wkb_geometry_processed__isnull=False,
+                    then=F('proposal_link_for_vacant__created_at')
+                ),
+                default=Value(None),
+                output_field=DateTimeField()
+            ),
+            approval_vacant_date=Case(
+                When(
+                    approval_link_for_vacant__wkb_geometry__isnull=False,
+                    then=F('approval_link_for_vacant__created_at')
+                ),
+                default=Value(None),
+                output_field=DateTimeField()
+            ),
+            latest_date=Greatest(
+                'proposal_date',
+                'approval_date',
+                'proposal_vacant_date',
+                'approval_vacant_date',
+            ),
+        ).annotate(
+            site_coordinates=Case(
+                When(
+                    latest_date=F('proposal_date'),
+                    then=F('latest_proposal_link__wkb_geometry_processed')
+                ),
+                When(
+                    latest_date=F('approval_date'),
+                    then=F('latest_approval_link__wkb_geometry')
+                ),
+                When(
+                    latest_date=F('proposal_vacant_date'),
+                    then=F('proposal_link_for_vacant__wkb_geometry_processed')
+                ),
+                When(
+                    latest_date=F('approval_vacant_date'),
+                    then=F('approval_link_for_vacant__wkb_geometry')
+                ),
+                default=Value(None),
+            )
+        ).annotate(
+            lon=Func(F('site_coordinates'), function='ST_X', output_field=FloatField()),
+            lat=Func(F('site_coordinates'), function='ST_Y', output_field=FloatField()),
+        ).values_list(
+            "id",
+            "site_guid",
+            "latest_proposal_link__proposal_apiary__proposal__lodgement_number",
+            "latest_approval_link__approval__lodgement_number",
+            "is_vacant",
+            "exempt_from_radius_restriction",
+            "lon",
+            "lat",
+        )
+    )
+    
+    return header, columns
+
+
 def formatExportData(model, data, format):
     
     if model == "proposal":
@@ -1279,6 +1377,8 @@ def formatExportData(model, data, format):
         header, columns = getComplianceExportFields(data)
     elif model == "organisationrequest":
         header, columns = getOrganisationRequestExportFields(data)
+    elif model == "site":
+        header, columns = getSiteExportFields(data)
     else:
         return
 
