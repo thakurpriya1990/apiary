@@ -93,7 +93,15 @@ class Compliance(RevisionedMixin):
 
     @property
     def holder(self):
-        return self.approval.applicant
+        try:
+            if self.approval.applicant and self.approval.applicant.property_cache and "name" in self.approval.applicant.property_cache:
+                return self.approval.applicant.property_cache["name"]
+            elif self.approval.proxy_applicant:
+                return self.approval.proxy_applicant.first_name + " " + self.approval.proxy_applicant.last_name
+            else:
+                return self.proposal.submitter.first_name + " " + self.proposal.submitter.last_name
+        except:
+            return ""
 
     @property
     def allowed_assessors(self):

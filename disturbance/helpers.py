@@ -154,3 +154,16 @@ def get_proxy_cache():
     else:
         proxy_cache_array =  proxy_cache_dumped_data
     return proxy_cache_array
+
+def is_internal_user(user):
+    return(
+        user and hasattr(user,'id') and (
+            user.is_superuser or
+            belongs_to(user, settings.APIARY_ADMIN_GROUP) or
+            belongs_to(user, settings.APPROVED_APIARY_EXTERNAL_USERS_GROUP) or
+            ApiaryApproverGroupMember.objects.filter(emailuser_id=user.id).exists() or
+            ApiaryAssessorGroupMember.objects.filter(emailuser_id=user.id).exists() or
+            ApiaryReferralGroupMember.objects.filter(emailuser_id=user.id).exists() or
+            ApiaryOrganisationAccessGroupMember.objects.filter(emailuser_id=user.id).exists()
+        )
+    )

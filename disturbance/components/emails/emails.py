@@ -92,3 +92,13 @@ class TemplateEmailBase(object):
         except Exception as e:
             logger.exception("Error while sending email to {}: {}".format(to_addresses, e))
             return None
+
+class ExportReportEmail(TemplateEmailBase):
+    
+    def __init__(self,model_name=""):
+        self.model_name = model_name
+    
+    model_name = ""
+    subject='Attached: Apiary - {} Report'.format(model_name.capitalize())
+    html_template='disturbance/emails/report_attached.html'
+    txt_template='disturbance/emails/report_attached.txt'

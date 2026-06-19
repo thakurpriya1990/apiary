@@ -13,6 +13,17 @@ from django.db.models.query_utils import Q
 from rest_framework import serializers
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
+
+from django.db.models import Case, When, Value, F, DateTimeField, Func, FloatField
+from django.db.models.functions import Greatest
+
+
+import csv
+import xlsxwriter
+import uuid
+
+from disturbance.settings import MAX_NUM_ROWS_MODEL_EXPORT
+
 import re
 import os
 
@@ -1008,3 +1019,390 @@ def get_dob(obj):
         return obj.dob
 
     return ""
+
+def csvExportData(model, header, columns):
+    
+    csv_file = str(settings.BASE_DIR)+'/tmp/{}_{}_{}.csv'.format(model,uuid.uuid4(),int(datetime.now().timestamp()*100000))
+    with open(csv_file, 'w', newline='') as new_file:
+        writer = csv.writer(new_file)
+        writer.writerow(header)
+        for i in columns:
+            writer.writerow(i)
+    return csv_file
+
+def excelExportData(model, header, columns):
+    excel_file = str(settings.BASE_DIR)+'/tmp/{}_{}_{}.xlsx'.format(model,uuid.uuid4(),int(datetime.now().timestamp()*100000))
+    workbook = xlsxwriter.Workbook(excel_file) 
+    worksheet = workbook.add_worksheet("{} Report".format(model.capitalize()))
+    format = workbook.add_format()
+
+    col = 0 
+    row = 0
+
+    col_lens = [0]*len(header)
+
+    for i in header:
+        worksheet.write(row, col, str(i), format)
+        col_lens[col] = len(str(i))+2
+        worksheet.set_column(col, col, col_lens[col])
+        col += 1
+    col = 0 
+    row += 1
+    for i in columns:
+        for j in i:
+            worksheet.write(row, col, str(j), format)
+            if len(str(j)) > col_lens[col]:
+                col_lens[col] = len(str(j))+2
+                worksheet.set_column(col, col, col_lens[col])
+            col += 1
+        col = 0
+        row += 1
+
+    workbook.close() 
+
+    return excel_file
+
+def getProposalExport(filters, num):
+    from disturbance.components.proposals.models import Proposal, ApplicationType
+
+    qs = Proposal.objects.filter(
+        application_type__name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER, ApplicationType.TEMPORARY_USE]
+    ).order_by("-lodgement_date")
+    if filters:
+        #lodged_on_from
+        if "lodged_on_from" in filters and filters["lodged_on_from"]:
+            qs = qs.filter(lodgement_date__gte=filters["lodged_on_from"])
+        #lodged_on_to
+        if "lodged_on_to" in filters and filters["lodged_on_to"]:
+            qs = qs.filter(lodgement_date__lte=filters["lodged_on_to"])
+
+    return qs[:num]
+
+def getApprovalExport(filters, num):
+    from disturbance.components.approvals.models import Approval
+
+    qs = Approval.objects.filter(apiary_approval=True).order_by("-issue_date")
+    if filters:
+        if "issued_from" in filters and filters["issued_from"]:
+            qs = qs.filter(issue_date__gte=filters["issued_from"])
+        if "issued_to" in filters and filters["issued_to"]:
+            qs = qs.filter(issue_date__lte=filters["issued_to"])
+
+    return qs[:num]
+
+def getComplianceExport(filters, num):
+    from disturbance.components.compliances.models import Compliance
+
+    qs = Compliance.objects.filter(apiary_compliance=True).order_by("-due_date")
+    if filters:
+        if "due_from" in filters and filters["due_from"]:
+            qs = qs.filter(due_date__gte=filters["due_from"])
+        if "due_to" in filters and filters["due_to"]:
+            qs = qs.filter(due_date__lte=filters["due_to"])
+
+    return qs[:num]
+
+def getOrganisationRequestExport(filters, num):
+    from disturbance.components.organisations.models import OrganisationRequest
+
+    qs = OrganisationRequest.objects.order_by("-lodgement_date")
+    if filters:
+        #lodged_on_from
+        if "lodged_on_from" in filters and filters["lodged_on_from"]:
+            qs = qs.filter(lodgement_date__gte=filters["lodged_on_from"])
+        #lodged_on_to
+        if "lodged_on_to" in filters and filters["lodged_on_to"]:
+            qs = qs.filter(lodgement_date__lte=filters["lodged_on_to"])
+
+    return qs[:num]
+
+def getSiteExport(filters, num):
+    from disturbance.components.proposals.models import ApiarySite
+
+    qs = ApiarySite.objects.order_by("-id")
+    if filters:
+        if "is_vacant" in filters and filters["is_vacant"]:
+            if filters["is_vacant"] == "true":
+                qs = qs.filter(is_vacant=True)
+            if filters["is_vacant"] == "false":
+                qs = qs.filter(is_vacant=False)
+        if "is_exempt" in filters and filters["is_exempt"]:
+            if filters["is_exempt"] == "true":
+                qs = qs.filter(exempt_from_radius_restriction=True)
+            if filters["is_exempt"] == "false":
+                qs = qs.filter(exempt_from_radius_restriction=False)
+
+    return qs[:num]
+
+
+def exportModelData(model, filters, num_records):
+
+    if not num_records:
+        num_records = MAX_NUM_ROWS_MODEL_EXPORT
+    else:
+        num_records = min(num_records, MAX_NUM_ROWS_MODEL_EXPORT)
+
+    if model == "proposal":
+        return getProposalExport(filters, num_records)
+    elif model == "approval":
+        return getApprovalExport(filters, num_records)
+    elif model == "compliance":
+        return getComplianceExport(filters, num_records)
+    elif model == "organisationrequest":
+        return getOrganisationRequestExport(filters, num_records)
+    elif model == "site":
+        return getSiteExport(filters, num_records)
+    else:
+        return
+
+def getProposalExportFields(data):
+    header = ["Lodgement Number", "Application Type", "Submitter", "Applicant", "Status", "Lodged On", "Assigned Officer", "Invoice Reference"]
+
+    columns = list(
+        data.values_list(
+            "lodgement_number",
+            "proposal_type",
+            "submitter_id",
+            "applicant__property_cache__name",
+            "proxy_applicant_id",
+            "processing_status",
+            "lodgement_date",
+            "assigned_officer_id",
+            "fee_invoice_references"
+        )
+    )
+
+    user_ids = {
+        proposal[i]
+        for proposal in columns
+        for i in (2, 4, 7)
+        if proposal[i] is not None
+    }
+
+    email_users = EmailUser.objects.filter(id__in=user_ids)
+    
+    user_map = {
+        user.id: f"{user.first_name} {user.last_name}".strip()
+        for user in email_users
+    }
+
+    columns = list(map(lambda proposal: (
+        proposal[0],
+        proposal[1].replace("_"," "),
+        user_map.get(proposal[2]),
+        proposal[3] if proposal[3] else user_map.get(proposal[4]) if user_map.get(proposal[4]) else user_map.get(proposal[2]),
+        proposal[5].replace("_"," "),
+        proposal[6] if proposal[6] else "",
+        user_map.get(proposal[7]) if user_map.get(proposal[7]) else "",
+        proposal[8] if proposal[8] else "",
+    ),columns))
+
+    return header, columns
+
+def getApprovalExportFields(data):
+    header = ["Number", "Holder", "Issue Date", "Start Date", "Expiry Date"]
+
+    columns = list(
+        data.values_list(
+            "lodgement_number",
+            "applicant__property_cache__name",
+            "proxy_applicant_id",
+            "issue_date",
+            "start_date",
+            "expiry_date",
+        )
+    )
+
+    user_ids = {
+        approval[i]
+        for approval in columns
+        for i in (2,)
+        if approval[i] is not None
+    }
+
+    email_users = EmailUser.objects.filter(id__in=user_ids)
+    
+    user_map = {
+        user.id: f"{user.first_name} {user.last_name}".strip()
+        for user in email_users
+    }
+    columns = list(map(lambda approval: (
+        approval[0],
+        approval[1] if approval[1] else user_map.get(approval[2]),
+        approval[3],
+        approval[4],
+        approval[5],
+    ),columns))
+
+    return header, columns
+
+def getComplianceExportFields(data):
+    header = ["Number", "Activity", "Due Date", "Holder", "Licence", "Status", "Assigned To"]
+
+    columns = list(
+        data.values_list(
+            "lodgement_number",
+            "proposal__activity",
+            "due_date",
+            "proposal__applicant__property_cache__name",
+            "approval__proxy_applicant_id",
+            "proposal__submitter_id",
+            "approval__lodgement_number",
+            "processing_status",
+            "assigned_to_id",
+        )
+    )
+
+    user_ids = {
+        compliance[i]
+        for compliance in columns
+        for i in (4,5,8)
+        if compliance[i] is not None
+    }
+
+    email_users = EmailUser.objects.filter(id__in=user_ids)
+    
+    user_map = {
+        user.id: f"{user.first_name} {user.last_name}".strip()
+        for user in email_users
+    }
+    columns = list(map(lambda compliance: (
+        compliance[0],
+        compliance[1],
+        compliance[2],
+        compliance[3] if compliance[3] else user_map.get(compliance[4]) if user_map.get(compliance[4]) else user_map.get(compliance[5]),
+        compliance[6],
+        compliance[7].replace("_"," "),
+        user_map.get(compliance[8]) if user_map.get(compliance[8]) else ""
+    ),columns))
+
+    return header, columns
+
+def getOrganisationRequestExportFields(data):
+    header = ["Request Number", "Organisation Name", "ABN", "Applicant ID", "Applicant Role", "Status", "Lodged On"]
+
+    columns = list(
+        data.values_list(
+            "id",
+            "name",
+            "abn",
+            "requester_id",
+            "role",
+            "status",
+            "lodgement_date"
+        )
+    )
+    
+    return header, columns
+
+def getSiteExportFields(data):
+    header = ["ID", "GUID", "Latest Proposal Link", "Latest Approval Link", "Is Vacant?", "Exempt from Radius Restriction?", "Longitude", "Latitude"]
+
+    columns = list(
+        data.annotate(
+            proposal_date=Case(
+                When(
+                    latest_proposal_link__wkb_geometry_processed__isnull=False,
+                    then=F('latest_proposal_link__created_at')
+                ),
+                default=Value(None),
+                output_field=DateTimeField()
+            ),
+            approval_date=Case(
+                When(
+                    latest_approval_link__wkb_geometry__isnull=False,
+                    then=F('latest_approval_link__created_at')
+                ),
+                default=Value(None),
+                output_field=DateTimeField()
+            ),
+            proposal_vacant_date=Case(
+                When(
+                    proposal_link_for_vacant__wkb_geometry_processed__isnull=False,
+                    then=F('proposal_link_for_vacant__created_at')
+                ),
+                default=Value(None),
+                output_field=DateTimeField()
+            ),
+            approval_vacant_date=Case(
+                When(
+                    approval_link_for_vacant__wkb_geometry__isnull=False,
+                    then=F('approval_link_for_vacant__created_at')
+                ),
+                default=Value(None),
+                output_field=DateTimeField()
+            ),
+            latest_date=Greatest(
+                'proposal_date',
+                'approval_date',
+                'proposal_vacant_date',
+                'approval_vacant_date',
+            ),
+        ).annotate(
+            site_coordinates=Case(
+                When(
+                    latest_date=F('proposal_date'),
+                    then=F('latest_proposal_link__wkb_geometry_processed')
+                ),
+                When(
+                    latest_date=F('approval_date'),
+                    then=F('latest_approval_link__wkb_geometry')
+                ),
+                When(
+                    latest_date=F('proposal_vacant_date'),
+                    then=F('proposal_link_for_vacant__wkb_geometry_processed')
+                ),
+                When(
+                    latest_date=F('approval_vacant_date'),
+                    then=F('approval_link_for_vacant__wkb_geometry')
+                ),
+                default=Value(None),
+            )
+        ).annotate(
+            lon=Func(F('site_coordinates'), function='ST_X', output_field=FloatField()),
+            lat=Func(F('site_coordinates'), function='ST_Y', output_field=FloatField()),
+        ).values_list(
+            "id",
+            "site_guid",
+            "latest_proposal_link__proposal_apiary__proposal__lodgement_number",
+            "latest_approval_link__approval__lodgement_number",
+            "is_vacant",
+            "exempt_from_radius_restriction",
+            "lon",
+            "lat",
+        )
+    )
+    
+    return header, columns
+
+
+def formatExportData(model, data, format):
+    
+    if model == "proposal":
+        header, columns = getProposalExportFields(data)
+    elif model == "approval":
+        header, columns = getApprovalExportFields(data)
+    elif model == "compliance":
+        header, columns = getComplianceExportFields(data)
+    elif model == "organisationrequest":
+        header, columns = getOrganisationRequestExportFields(data)
+    elif model == "site":
+        header, columns = getSiteExportFields(data)
+    else:
+        return
+
+    if os.path.isdir(str(settings.BASE_DIR)+'/tmp/') is False:
+        os.makedirs(str(settings.BASE_DIR)+'/tmp/')
+
+    if format == "excel":
+        file_name = excelExportData(model, header, columns)
+        file_buffer = None
+        with open(file_name, 'rb') as f:
+            file_buffer = f.read()    
+        return ('Apiary - {} Report.xlsx'.format(model.capitalize()), file_buffer, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    else:
+        file_name =  csvExportData(model, header, columns)
+        file_buffer = None
+        with open(file_name, 'rb') as f:
+            file_buffer = f.read()    
+        return ('Apiary - {} Report.csv'.format(model.capitalize()), file_buffer, 'application/csv')
