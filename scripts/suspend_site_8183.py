@@ -6,14 +6,16 @@ This site was omitted from the 33-site cancel batch (cancel_sites_to_dbca.py)
 and requires a different action: suspend (not cancel/transfer to DBCA).
 
 Run (dry run first):
-    python manage_ds.py shell -c "exec(open('disturbance/scripts/suspend_site_8183.py').read())"
+    python manage.py shell -c "exec(open('disturbance/scripts/suspend_site_8183.py').read())"
 
 Then for real (requires explicit ACTUAL_RUN=true):
-    ACTUAL_RUN=true python manage_ds.py shell -c "exec(open('disturbance/scripts/suspend_site_8183.py').read())"
+    ACTUAL_RUN=true python manage.py shell -c "exec(open('disturbance/scripts/suspend_site_8183.py').read())"
 """
 
 import os
+
 from django.db import transaction
+
 from disturbance.components.proposals.models import ApiarySite
 from disturbance.settings import SITE_STATUS_SUSPENDED
 
@@ -22,7 +24,7 @@ from disturbance.settings import SITE_STATUS_SUSPENDED
 TARGET_SITE_ID = 8183
 
 # Safe by default: only runs actual changes when ACTUAL_RUN=true is explicitly set
-DRY_RUN = os.environ.get('ACTUAL_RUN', '').lower() != 'true'
+DRY_RUN = os.environ.get("ACTUAL_RUN", "").lower() != "true"
 
 # -----------------------------------------------------------------------------
 
@@ -52,8 +54,11 @@ if link.site_status == SITE_STATUS_SUSPENDED:
     print("Site {} is already suspended — nothing to do.".format(TARGET_SITE_ID))
     raise SystemExit(0)
 
-print("Planned action: set ApiarySiteOnApproval id={} site_status {!r} -> {!r}".format(
-    link.id, link.site_status, SITE_STATUS_SUSPENDED))
+print(
+    "Planned action: set ApiarySiteOnApproval id={} site_status {!r} -> {!r}".format(
+        link.id, link.site_status, SITE_STATUS_SUSPENDED
+    )
+)
 print()
 
 if DRY_RUN:
@@ -64,8 +69,11 @@ else:
     with transaction.atomic():
         link.site_status = SITE_STATUS_SUSPENDED
         link.save()
-        print("  Done: ApiarySiteOnApproval id={} site_status -> {!r}".format(
-            link.id, link.site_status))
+        print(
+            "  Done: ApiarySiteOnApproval id={} site_status -> {!r}".format(
+                link.id, link.site_status
+            )
+        )
     print()
     print("Change committed successfully.")
 
