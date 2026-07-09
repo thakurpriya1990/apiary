@@ -3,44 +3,78 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
 trigger:
-- main
-
+  - main
 
 resources:
-- repo: self
+  - repo: self
 
 variables:
-  tag: '$(Build.BuildId)'
+  tag: "$(Build.BuildId)"
   tagDate: $[ format('{0:yyyy}.{0:MM}.{0:dd}.{0:HH}.{0:mm}{0:ss}', pipeline.startTime) ]
   isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
-  
+
 stages:
-- stage: Build
-  condition: and(succeeded(), eq(variables.isMain, 'true'))
-  displayName: Build image
-  jobs:
-  - job: Build
-    displayName: Build
-    pool:
-      vmImage: ubuntu-latest
-    steps:
-    - task: Docker@2
-      displayName: Build an image and Push
-      inputs:
-        command: buildAndPush
-        dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
-        tags: | 
-              latest
-              $(tagDate)
-        containerRegistry: DockerGitHub
-        repository: ghcr.io/dbca-wa/apiary
-    - task: Docker@2
-      displayName: Dev Build image and Push
-      inputs:
-        command: buildAndPush
-        dockerfile: '$(Build.SourcesDirectory)/dockerdev/Dockerfile'
-        tags: | 
-              apiary_dev_latest
-              apiary_dev_$(tagDate)              
-        containerRegistry: DockerGitHub
-        repository: ghcr.io/dbca-wa/docker_app_dev 
+  - stage: Build
+    condition: and(succeeded(), eq(variables.isMain, 'true'))
+    displayName: Build image
+    jobs:
+      - job: Build
+        displayName: Build
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - bash: |
+              set -euo pipefail
+              echo "Computing IMAGE_NAME and IMAGE_TAG"
+              SHORT_SHA=$(git rev-parse --short=7 $(Build.SourceVersion))
+              IMAGE_NAME=ghcr.io/dbca-wa/apiary
+              IMAGE_TAG="$(tagDate)-${SHORT_SHA}"
+              echo "##vso[task.setvariable variable=IMAGE_NAME]$IMAGE_NAME"
+              echo "##vso[task.setvariable variable=IMAGE_TAG]$IMAGE_TAG"
+            displayName: "Set IMAGE_NAME and IMAGE_TAG"
+
+          - task: Docker@2
+            displayName: Login to GHCR
+            inputs:
+              command: login
+              containerRegistry: DockerGitHub
+
+          - task: Docker@2
+            displayName: Build image
+            inputs:
+              command: build
+              dockerfile: "$(Build.SourcesDirectory)/Dockerfile"
+              buildContext: "$(Build.SourcesDirectory)"
+              tags: |
+                latest
+                $(IMAGE_TAG)
+              containerRegistry: DockerGitHub
+              repository: $(IMAGE_NAME)
+              # Pass useful build args and avoid copying git repo into image
+              arguments: >
+                --build-arg IMAGE_TAG=$(IMAGE_TAG)
+                --build-arg IMAGE_NAME=$(IMAGE_NAME)
+                --build-arg GIT_COMMIT_VERSION=$(Build.SourceVersion)
+            env:
+              DOCKER_BUILDKIT: 1
+
+          - task: Docker@2
+            displayName: Push image
+            inputs:
+              command: push
+              containerRegistry: DockerGitHub
+              repository: $(IMAGE_NAME)
+              tags: |
+                latest
+                $(IMAGE_TAG)
+
+          - task: Docker@2
+            displayName: Dev Build image and Push
+            inputs:
+              command: buildAndPush
+              dockerfile: "$(Build.SourcesDirectory)/dockerdev/Dockerfile"
+              tags: |
+                apiary_dev_latest
+                apiary_dev_$(IMAGE_TAG)
+              containerRegistry: DockerGitHub
+              repository: ghcr.io/dbca-wa/docker_app_dev

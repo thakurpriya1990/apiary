@@ -34,7 +34,7 @@ delete from django_migrations where id > 11;
 ```
 ### 3. Apply ledger_api_client migrations
 ```
-python manage_ds.py migrate ledger_api_client
+python manage.py migrate ledger_api_client
 ```
 ### 4. Reinsert the migrations that were deleted in the Step 4-2
 ```
@@ -42,7 +42,7 @@ insert into django_migrations (id,app,name,applied) select * from  django_migrat
 ```
 ### 5. Apply other migrations
 ```
-./manage_ds.py migrate admin
-./manage_ds.py migrate disturbance
-./manage_ds.py migrate
+./manage.py migrate admin
+./manage.py migrate disturbance
+./manage.py migrate
 ```
