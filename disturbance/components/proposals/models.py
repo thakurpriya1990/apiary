@@ -1,72 +1,79 @@
 
 
-import logging
 import copy
-import subprocess
-import json
 import datetime
-import pytz
+import json
+import logging
 import re
+import subprocess
 
-from django.forms.models import model_to_dict
+import pytz
+from deepdiff import DeepDiff
+from dirtyfields import DirtyFieldsMixin
+from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.fields import PointField
-from django.db.models import Manager as GeoManager
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.measure import Distance
 from django.contrib.postgres.fields import ArrayField
-from django.db import models,transaction
-from django.contrib.gis.db import models as gis_models
-from django.db.models import Q, Max
-from django.dispatch import receiver
-from django.db.models.signals import pre_delete
-from six import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
-from django.db.models import JSONField
+from django.db import models, transaction
+from django.db.models import JSONField, Max, Q
+from django.db.models import Manager as GeoManager
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
+from django.forms.models import model_to_dict
 from django.utils import timezone
-
-from dirtyfields import DirtyFieldsMixin
-from reversion.models import Version
-from deepdiff import DeepDiff
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from ledger_api_client.settings_base import TIME_ZONE
 from multiselectfield import MultiSelectField
-from smart_selects.db_fields import ChainedForeignKey
 from rest_framework import serializers
+from reversion.models import Version
+from six import python_2_unicode_compatible
+from smart_selects.db_fields import ChainedForeignKey
 from taggit.models import TaggedItemBase
 
-from ledger_api_client.settings_base import TIME_ZONE
-
-from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from disturbance import exceptions
-from disturbance.components.organisations.models import Organisation
 from disturbance.components.main.models import (
-    CommunicationsLogEntry, UserAction, 
-    Document, Region, District, 
-    ApplicationType, RevisionedMixin, SanitiseMixin
+    ApplicationType,
+    CommunicationsLogEntry,
+    District,
+    Document,
+    Region,
+    RevisionedMixin,
+    SanitiseMixin,
+    UserAction,
+    private_storage,
 )
 from disturbance.components.main.utils import get_department_user
+from disturbance.components.organisations.models import Organisation
 from disturbance.components.proposals.email import (
-        send_referral_email_notification,
-        send_apiary_referral_email_notification,
-        send_apiary_referral_complete_email_notification,
-        send_proposal_decline_email_notification,
-        send_proposal_approval_email_notification,
-        send_amendment_email_notification,
-        send_submit_email_notification,
-        send_external_submit_email_notification,
-        send_approver_decline_email_notification,
-        send_approver_approve_email_notification,
-        send_referral_complete_email_notification,
-        send_proposal_approver_sendback_email_notification,
-        send_referral_recall_email_notification,
-        send_site_transfer_approval_email_notification,
-        )
+    send_amendment_email_notification,
+    send_apiary_referral_complete_email_notification,
+    send_apiary_referral_email_notification,
+    send_approver_approve_email_notification,
+    send_approver_decline_email_notification,
+    send_external_submit_email_notification,
+    send_proposal_approval_email_notification,
+    send_proposal_approver_sendback_email_notification,
+    send_proposal_decline_email_notification,
+    send_referral_complete_email_notification,
+    send_referral_email_notification,
+    send_referral_recall_email_notification,
+    send_site_transfer_approval_email_notification,
+    send_submit_email_notification,
+)
 from disturbance.ordered_model import OrderedModel
-
-
-from disturbance.settings import SITE_STATUS_DRAFT, SITE_STATUS_PENDING, SITE_STATUS_APPROVED, SITE_STATUS_DENIED, \
-    SITE_STATUS_CURRENT, RESTRICTED_RADIUS, SITE_STATUS_TRANSFERRED, PAYMENT_SYSTEM_ID, PAYMENT_SYSTEM_PREFIX, \
-    SITE_STATUS_SUSPENDED, SITE_STATUS_NOT_TO_BE_REISSUED
-
-from disturbance.components.main.models import private_storage
+from disturbance.settings import (
+    RESTRICTED_RADIUS,
+    SITE_STATUS_APPROVED,
+    SITE_STATUS_CURRENT,
+    SITE_STATUS_DENIED,
+    SITE_STATUS_DRAFT,
+    SITE_STATUS_NOT_TO_BE_REISSUED,
+    SITE_STATUS_PENDING,
+    SITE_STATUS_SUSPENDED,
+    SITE_STATUS_TRANSFERRED,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -1367,7 +1374,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             try:
                 if not self.can_assess(request.user):
                     raise exceptions.ProposalNotAuthorized()
-                if not officer in self.allowed_assessors:
+                if officer not in self.allowed_assessors:
                     raise ValidationError('The selected person is not authorised to be assigned to this proposal')
                 if self.processing_status == 'with_approver':
                     if officer != self.assigned_approver:
@@ -1566,8 +1573,10 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 raise
 
     def preview_approval(self,request,details):
-        from disturbance.components.approvals.models import PreviewTempApproval
-        from disturbance.components.approvals.models import Approval
+        from disturbance.components.approvals.models import (
+            Approval,
+            PreviewTempApproval,
+        )
         with transaction.atomic():
             try:
                 if self.processing_status != 'with_approver':
@@ -1678,7 +1687,9 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             if apiary_site.get('checked'):
                                 apiary_sites_list.append(apiary_site.get('id'))
                                 relation = self.proposal_apiary.get_relation(my_site)
-                                from disturbance.components.proposals.serializers_apiary import ApiarySiteOnProposalProcessedLicensedSiteSaveSerializer
+                                from disturbance.components.proposals.serializers_apiary import (
+                                    ApiarySiteOnProposalProcessedLicensedSiteSaveSerializer,
+                                )
                                 serializer = ApiarySiteOnProposalProcessedLicensedSiteSaveSerializer(relation, data=apiary_site['properties'])
                                 serializer.is_valid(raise_exception=True)
                                 serializer.save()
@@ -1689,7 +1700,9 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
                                 # Update coordinate (Assessor and Approver can move the proposed site location)
                                 geom_str = GEOSGeometry('POINT(' + str(apiary_site['coordinates_moved']['lng']) + ' ' + str(apiary_site['coordinates_moved']['lat']) + ')', srid=4326)
-                                from disturbance.components.proposals.serializers_apiary import ApiarySiteOnProposalProcessedGeometrySaveSerializer
+                                from disturbance.components.proposals.serializers_apiary import (
+                                    ApiarySiteOnProposalProcessedGeometrySaveSerializer,
+                                )
                                 serializer = ApiarySiteOnProposalProcessedGeometrySaveSerializer(relation, data={'wkb_geometry_processed': geom_str, 'licensed_site': apiary_site['properties'].get('licensed_site')})
                                 serializer.is_valid(raise_exception=True)
                                 serializer.save()
@@ -1919,7 +1932,10 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     def generate_compliances(self,approval, request):
         today = timezone.now().date()
         timedelta = datetime.timedelta
-        from disturbance.components.compliances.models import Compliance, ComplianceUserAction
+        from disturbance.components.compliances.models import (
+            Compliance,
+            ComplianceUserAction,
+        )
         #For amendment type of Proposal, check for copied requirements from previous proposal
         if self.proposal_type == 'amendment':
             try:
@@ -2158,7 +2174,9 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     if self.applicant:
                         self.applicant.log_user_action(ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.lodgement_number), request)
                     #Log entry for approval
-                    from disturbance.components.approvals.models import ApprovalUserAction
+                    from disturbance.components.approvals.models import (
+                        ApprovalUserAction,
+                    )
                     self.approval.log_user_action(ApprovalUserAction.ACTION_RENEW_APPROVAL.format(self.approval.lodgement_number), request)
                     proposal.save(version_comment='New Amendment/Renewal Proposal created, from origin {}'.format(proposal.previous_application_id))
             else:
@@ -2863,9 +2881,9 @@ def clone_apiary_proposal_with_status_reset(original_proposal):
 
 #TODO on-cleanup - improve or remove if not needed for apiary
 def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance, is_internal= True):
-    from disturbance.utils import search, search_approval, search_compliance
     from disturbance.components.approvals.models import Approval
     from disturbance.components.compliances.models import Compliance
+    from disturbance.utils import search, search_approval, search_compliance
     qs = []
     if is_internal:
         proposal_list = Proposal.objects.filter(application_type__name__in=['Apiary', 'Site Transfer', 'Temporary Use']).exclude(processing_status__in=[Proposal.PROCESSING_STATUS_DISCARDED, Proposal.PROCESSING_STATUS_DRAFT])
@@ -2959,6 +2977,8 @@ def search_reference(reference_number):
 
 #TODO on cleanup - remove if not needed for apiary
 from ckeditor.fields import RichTextField
+
+
 class HelpPage(models.Model):
     HELP_TEXT_EXTERNAL = 1
     HELP_TEXT_INTERNAL = 2
@@ -3427,7 +3447,9 @@ class ProposalApiary(RevisionedMixin):
                         )
                 for site_transfer_apiary_site in transfer_sites:
                     relation_original = site_transfer_apiary_site.apiary_site_on_approval
-                    from disturbance.components.approvals.models import ApiarySiteOnApproval
+                    from disturbance.components.approvals.models import (
+                        ApiarySiteOnApproval,
+                    )
 
                     relation_target, asoa_created = ApiarySiteOnApproval.objects.get_or_create(
                         apiary_site=relation_original.apiary_site,
@@ -3583,7 +3605,7 @@ class ProposalApiary(RevisionedMixin):
                 self.proposal.approval.documents.all().update(can_delete=False)
             elif self.proposal.application_type.name == ApplicationType.SITE_TRANSFER and not preview:
                 # add Site Transfer Compliance/Requirements logic here
-                from disturbance.components.compliances.models import Compliance, ComplianceUserAction
+                from disturbance.components.compliances.models import Compliance
                 ## Originating approval
                 if self.reissue_originating_approval or not originating_approval.reissued:
                     originating_approval.issue_date = timezone.now()
@@ -3681,7 +3703,10 @@ class ProposalApiary(RevisionedMixin):
     def generate_apiary_compliances(self, approval, request):
         today = timezone.now().date()
         timedelta = datetime.timedelta
-        from disturbance.components.compliances.models import Compliance, ComplianceUserAction
+        from disturbance.components.compliances.models import (
+            Compliance,
+            ComplianceUserAction,
+        )
 
         #For amendment type of Proposal, check for copied requirements from previous proposal
         if self.proposal.previous_application:
@@ -3792,7 +3817,9 @@ class ProposalApiary(RevisionedMixin):
             if 'coordinates_moved' in my_site:
                 prev_coordinates = {'lng': apiary_site_on_proposal.wkb_geometry.x, 'lat': apiary_site_on_proposal.wkb_geometry.y}
                 geom_str = GEOSGeometry('POINT(' + str(my_site['coordinates_moved']['lng']) + ' ' + str(my_site['coordinates_moved']['lat']) + ')', srid=4326)
-                from disturbance.components.proposals.serializers_apiary import ApiarySiteOnProposalProcessedGeometrySaveSerializer
+                from disturbance.components.proposals.serializers_apiary import (
+                    ApiarySiteOnProposalProcessedGeometrySaveSerializer,
+                )
                 serializer = ApiarySiteOnProposalProcessedGeometrySaveSerializer(apiary_site_on_proposal, data={'wkb_geometry_processed': geom_str})
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
@@ -4699,6 +4726,8 @@ class QuestionOption(models.Model):
 
 #TODO on-cleanup remove if no longer needed
 from ckeditor.fields import RichTextField
+
+
 @python_2_unicode_compatible
 class MasterlistQuestion(models.Model):
     ANSWER_TYPE_CHECKBOX = 'checkbox'
@@ -4955,6 +4984,8 @@ def limit_sectionquestion_choices_another():
    return {'id__in':MasterlistQuestion.objects.filter(option__isnull=False).distinct('option__label').all().values_list('id', flat=True)}
 
 from django.db import connection
+
+
 def limit_sectionquestion_choices_sql():
     sql='''
             select m.id from disturbance_masterlistquestion as m 
@@ -4990,7 +5021,7 @@ class SectionQuestion(models.Model):
         blank=True,
         related_name='children_question',
         #limit_choices_to=Q(option__isnull=False)
-        limit_choices_to=limit_sectionquestion_choices_sql(),
+        limit_choices_to=limit_sectionquestion_choices_sql,
         on_delete=models.SET_NULL
     )
 
@@ -5099,6 +5130,7 @@ class SectionQuestion(models.Model):
 # --------------------------------------------------------------------------------------
 
 import reversion
+
 reversion.register(Proposal, follow=['proposal_apiary'])
 reversion.register(ProposalType)
 reversion.register(ProposalRequirement)            # related_name=requirements
