@@ -1,154 +1,127 @@
-# Prepare the base environment.
-# Based on the Dockerfile: https://github.com/dbca-wa/commercialoperator/blob/cols_fe_py3/Dockerfile
-FROM ghcr.io/dbca-wa/docker-apps-dev:ubuntu_2510_base_python as builder_base
-MAINTAINER asi@dbca.wa.gov.au
-ENV DEBIAN_FRONTEND=noninteractive
-ENV DEBUG=True
-ENV TZ=Australia/Perth
-ENV EMAIL_HOST=""
-ENV DEFAULT_FROM_EMAIL='no-reply@dbca.wa.gov.au'
-ENV NOTIFICATION_EMAIL='no-reply@dbca.wa.gov.au'
-ENV NON_PROD_EMAIL='no-reply@dbca.wa.gov.au'
-ENV PRODUCTION_EMAIL=False
-ENV EMAIL_INSTANCE='DEV'
-ENV SECRET_KEY="ThisisNotRealKey"
-ENV SITE_PREFIX='das-apiary'
-ENV SITE_DOMAIN='dbca.wa.gov.au'
-ENV BPAY_ALLOWED=False
-ENV APIARY_SUPPORT_EMAIL="no-reply@dbca.wa.gov.au"
-ENV SUPPORT_EMAIL="das@dbca.wa.gov.au"
-ENV SYSTEM_NAME_SHORT="apiary"
-ENV SITE_DOMAIN="localhost"
-ENV APIARY_URL=[]
-ENV SYSTEM_NAME="Disturbance Assessment System"
-ENV APIARY_SYSTEM_NAME="Apiary System"
-ENV PAYMENT_OFFICERS_GROUP="Apiary Payments Officers"
-ENV NODE_MAJOR=20
+# syntax = docker/dockerfile:1
 
-# Use Australian Mirrors
-RUN sed 's/archive.ubuntu.com/au.archive.ubuntu.com/g' /etc/apt/sources.list > /etc/apt/sourcesau.list
-RUN mv /etc/apt/sourcesau.list /etc/apt/sources.list
-# Use Australian Mirrors
+ARG BASE_IMAGE=ghcr.io/dbca-wa/docker-apps-dev:ubuntu_2604_base_python
 
-#ARG build_tag=None
-#ENV BUILD_TAG=$build_tag
-#RUN echo "*************************************************** Build TAG = $build_tag ***************************************************"
+FROM ${BASE_IMAGE} AS builder
 
-RUN apt-get update && apt-get install -y software-properties-common
+LABEL maintainer="asi@dbca.wa.gov.au"
 
-RUN apt-get clean && \
-apt-get update && \
-apt-get upgrade -y && \
-apt-get install --no-install-recommends -y \
-wget \
-git \
-libmagic-dev \
-gcc \
-binutils \
-libproj-dev \
-gdal-bin \
-libgdal-dev \
-python3 \
-python3-setuptools \
-python3-dev \
-python3-pip \
-tzdata \
-libreoffice \
-libpq-dev \
-patch \
-postgresql-client \
-mtr \
-htop \
-vim \
-software-properties-common \
-imagemagick \
-libspatialindex-dev \
-bzip2 \
-curl \
-npm \
-virtualenv
-#RUN apt-get install -y ca-certificates curl gnupg build-essential
-#RUN mkdir -p /etc/apt/keyrings && \
-#    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
-#    NODE_MAJOR=10 && \
-#    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-#RUN apt-get update
-#RUN apt-get install nodejs -y
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=Australia/Perth \
+    NODE_MAJOR=24 \
+    PRODUCTION_EMAIL=True \
+    SECRET_KEY="ThisisNotRealKey" \
+    SYSTEM_NAME_SHORT="apiary" \
+    SITE_PREFIX='apiary-dev' \
+    SITE_DOMAIN='dbca.wa.gov.au' \
+    DEBUG=True
 
-# nvm env vars
-# RUN mkdir -p /usr/local/nvm
-# ENV NVM_DIR /usr/local/nvm
-# ENV NODE_VERSION v10.19.0
-# RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-# RUN /bin/bash -c ". $NVM_DIR/nvm.sh && nvm install $NODE_VERSION && nvm use --delete-prefix $NODE_VERSION"
-# ENV NODE_PATH $NVM_DIR/versions/node/$NODE_VERSION/bin
-# ENV PATH $NODE_PATH:$PATH
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install --no-install-recommends -y \
+        build-essential \
+        ca-certificates \
+        curl \
+        git \
+        g++ \
+        python3-venv \
+        python3-dev \
+        wget \
+        gnupg \
+        libgdal-dev \
+        libproj-dev \
+        libpq-dev \
+        tzdata && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-
-# RUN add-apt-repository ppa:deadsnakes/ppa
-# RUN apt-get install --no-install-recommends -y python3.7 python3.7-dev python3.7-distutils 
-# RUN ln -s /usr/bin/python3.7 /usr/bin/python && \
-# python3.7 -m pip install --upgrade pip==21.3.1 && \
-RUN update-ca-certificates
+# Install Node.js and clean up in the same layer.
 RUN mkdir -p /etc/apt/keyrings && \
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" \
     | tee /etc/apt/sources.list.d/nodesource.list && \
     apt-get update && \
-    apt-get install -y nodejs
+    apt-get install --no-install-recommends -y nodejs && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN wget https://raw.githubusercontent.com/dbca-wa/wagov_utils/main/wagov_utils/bin/default_script_installer.sh -O /tmp/default_script_installer.sh
-RUN chmod 755 /tmp/default_script_installer.sh
-RUN /tmp/default_script_installer.sh
+RUN groupadd -g 5000 oim && useradd -g 5000 -u 5000 oim -s /bin/bash -d /app && \
+    mkdir -p /app && chown -R oim:oim /app
 
-# Install nodejs
-COPY startup.sh /
-COPY ./timezone /etc/timezone
-RUN chmod 755 /startup.sh && \
-    chmod +s /startup.sh && \
-    groupadd -g 5000 oim && \
-    useradd -g 5000 -u 5000 oim -s /bin/bash -d /app && \
-    mkdir /app && \
-    chown -R oim.oim /app && \
-    mkdir /container-config/ && \
-    chown -R oim.oim /container-config/ && \
-    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
-    touch /app/rand_hash
-
-# Install Python libs from requirements.txt.
-FROM builder_base as python_libs_das
 WORKDIR /app
 USER oim
-RUN virtualenv /app/venv
-ENV PATH=/app/venv/bin:$PATH
-RUN git config --global --add safe.directory /app
-COPY --chown=oim:oim requirements.txt ./
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
 
-# Install the project (ensure that frontend projects have been built prior to this step).
-FROM python_libs_das
+ENV VIRTUAL_ENV=/app/venv
+ENV PATH=$VIRTUAL_ENV/bin:$PATH
+
+# Install Python dependencies early to leverage caching
+COPY --chown=oim:oim requirements.txt ./
+RUN python3 -m venv $VIRTUAL_ENV && \
+    $VIRTUAL_ENV/bin/pip install --upgrade pip && \
+    $VIRTUAL_ENV/bin/pip install --no-cache-dir -r requirements.txt
+
+# Copy project files
 COPY --chown=oim:oim gunicorn.ini.py manage.py ./
-RUN touch /app/.env
 COPY --chown=oim:oim .git ./.git
 COPY --chown=oim:oim python-cron python-cron
 COPY --chown=oim:oim disturbance ./disturbance
-RUN mkdir -p /app/disturbance/static/disturbance_vue/static
-RUN ls -al /app/disturbance/frontend/disturbance
-RUN cd /app/disturbance/frontend/disturbance/; npm install
-RUN cd /app/disturbance/frontend/disturbance/; npm run build
-RUN python manage.py collectstatic --noinput
-RUN python manage.py script_hash_indexes --skip-checks
-RUN mkdir /app/tmp/
-RUN chmod 777 /app/tmp/
 
-# IPYTHONDIR - Will allow shell_plus (in Docker) to remember history between sessions
-# 1. will create dir, if it does not already exist
-# 2. will create profile, if it does not already exist
-# RUN mkdir /app/logs/.ipython
-# RUN export IPYTHONDIR=/app/logs/.ipython/
-#RUN python profile create 
+# Build frontend
+RUN if [ -d /app/disturbance/frontend/disturbance ]; then \
+      cd /app/disturbance/frontend/disturbance && npm ci --omit=dev && npm run build && rm -rf node_modules; \
+    fi
 
+# Collect static files and prepare DB indexes
+RUN touch /app/.env && \
+    $VIRTUAL_ENV/bin/python manage.py collectstatic --noinput && \
+    $VIRTUAL_ENV/bin/python manage.py script_hash_indexes --skip-checks
+
+# --- Runtime image ---
+FROM ${BASE_IMAGE} AS runtime
+
+ARG IMAGE_TAG
+ARG IMAGE_NAME
+
+LABEL maintainer="asi@dbca.wa.gov.au"
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    DEBUG=True \
+    TZ=Australia/Perth \
+    PRODUCTION_EMAIL=False \
+    SECRET_KEY="ThisisNotRealKey" \
+    SITE_PREFIX='das-apiary' \
+    SITE_DOMAIN='dbca.wa.gov.au' \
+    CONTAINER_IMAGE_TAG=${IMAGE_TAG} \
+    CONTAINER_IMAGE_NAME=${IMAGE_NAME}
+
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install --no-install-recommends -y ca-certificates tzdata wget && \
+    apt-get remove --purge -y binutils rust-coreutils git mtr patch vim 2>/dev/null || true && \
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd -g 5000 oim && useradd -g 5000 -u 5000 oim -s /bin/bash -d /app && \
+    mkdir -p /app/logs && chown -R oim:oim /app && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+COPY startup.sh /
+RUN chmod 755 /startup.sh
+
+USER oim
+WORKDIR /app
+
+ENV VIRTUAL_ENV=/app/venv
+ENV PATH=$VIRTUAL_ENV/bin:$PATH
+
+# Copy venv and built application from builder
+COPY --from=builder --chown=oim:oim /app/venv /app/venv
+COPY --from=builder --chown=oim:oim /app/disturbance /app/disturbance
+COPY --from=builder --chown=oim:oim /app/gunicorn.ini.py /app/gunicorn.ini.py
+COPY --from=builder --chown=oim:oim /app/manage.py /app/manage.py
+COPY --from=builder --chown=oim:oim /app/.env /app/.env
+
+# Cleanup
+USER root
+RUN wget -q https://raw.githubusercontent.com/dbca-wa/wagov_utils/refs/heads/main/wagov_utils/bin/package_cleanup_2604.sh -O /tmp/package_cleanup_2604.sh || true
+RUN chmod 755 /tmp/package_cleanup_2604.sh || true
+RUN /tmp/package_cleanup_2604.sh || true
+USER oim
 
 EXPOSE 8080
 HEALTHCHECK --interval=1m --timeout=5s --start-period=10s --retries=3 CMD ["wget", "-q", "-O", "-", "http://localhost:8080/"]
