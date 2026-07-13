@@ -1,18 +1,20 @@
-
-import $ from 'jquery';
+import $ from "jquery";
 
 function unwrapErrorDetail(input) {
   //Error unwrap for DRF errors
 
-  if (typeof input !== 'string') return input;
+  if (typeof input !== "string") return input;
   let t = input.trim();
   // If the whole string is bracketed once, strip it: "[...]" -> "..."
-  if (t.startsWith('[') && t.endsWith(']')) {
+  if (t.startsWith("[") && t.endsWith("]")) {
     t = t.slice(1, -1).trim();
   }
 
   // If still quoted, strip quotes
-  if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
+  if (
+    (t.startsWith('"') && t.endsWith('"')) ||
+    (t.startsWith("'") && t.endsWith("'"))
+  ) {
     t = t.slice(1, -1).trim();
   }
 
@@ -23,173 +25,164 @@ function unwrapErrorDetail(input) {
 
   if (m) return m[1];
 
-  // If it's a simple one-item list in string form 
+  // If it's a simple one-item list in string form
   const bracketMsg =
-    t.match(/^\[\s*'([^']*)'\s*\]$/) ||
-    t.match(/^\[\s*"([^"]*)"\s*\]$/);
+    t.match(/^\[\s*'([^']*)'\s*\]$/) || t.match(/^\[\s*"([^"]*)"\s*\]$/);
 
   if (bracketMsg) return bracketMsg[1];
 
-  return input; 
+  return input;
 }
 
-
 export default {
-  truncate(text, { length = 30, omission = '...', separator } = {}) {
-        if (text == null) return '';
-        const str = String(text);
-        if (str.length <= length) return str;
-        const end = length - omission.length;
-        if (end < 1) return omission;
-        let slice = str.slice(0, end);
-        if (separator) {
-            const sepIdx = slice.lastIndexOf(separator);
-            if (sepIdx > -1) {
-                slice = slice.slice(0, sepIdx);
-            }
-        }
-        return slice + omission;
-    },
-    escapeAttr(value) {
-        // Normalize first so objects/arrays become readable JSON not [object Object]
-        let str;
-        if (value == null) {
-            str = '';
-        } else if (typeof value === 'string') {
-            str = value;
-        } else if (typeof value === 'number' || typeof value === 'boolean') {
-            str = String(value);
+  truncate(text, { length = 30, omission = "...", separator } = {}) {
+    if (text == null) return "";
+    const str = String(text);
+    if (str.length <= length) return str;
+    const end = length - omission.length;
+    if (end < 1) return omission;
+    let slice = str.slice(0, end);
+    if (separator) {
+      const sepIdx = slice.lastIndexOf(separator);
+      if (sepIdx > -1) {
+        slice = slice.slice(0, sepIdx);
+      }
+    }
+    return slice + omission;
+  },
+  escapeAttr(value) {
+    // Normalize first so objects/arrays become readable JSON not [object Object]
+    let str;
+    if (value == null) {
+      str = "";
+    } else if (typeof value === "string") {
+      str = value;
+    } else if (typeof value === "number" || typeof value === "boolean") {
+      str = String(value);
+    } else {
+      try {
+        str = JSON.stringify(value);
+      } catch {
+        str = String(value);
+      }
+    }
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  },
+  apiError: function (resp) {
+    var error_str = "";
+    if (resp.status === 400) {
+      try {
+        let obj = JSON.parse(resp.responseText);
+        error_str = obj.non_field_errors[0].replace(/[[\]"]/g, "");
+      } catch (e) {
+        console.log(e);
+        error_str = resp.responseText.replace(/[[\]"]/g, "");
+      }
+    } else if (resp.status === 404) {
+      error_str = "The resource you are looking for does not exist.";
+    } else {
+      error_str = resp.responseText.replace(/[[\]"]/g, "");
+    }
+    return error_str;
+  },
+  apiVueResourceError: async function (resp) {
+    let body;
+    try {
+      body = await resp.clone().json();
+    } catch {
+      try {
+        body = await resp.text();
+      } catch {
+        body = "";
+      }
+    }
+
+    let error_str = "";
+    let text = null;
+
+    if (resp.status === 400) {
+      if (Array.isArray(body)) {
+        text = body[0];
+      } else if (typeof body === "object" && body !== null) {
+        text = body;
+      } else {
+        text = body;
+      }
+
+      if (typeof text === "object" && text !== null) {
+        if (Object.prototype.hasOwnProperty.call(text, "non_field_errors")) {
+          const first = text.non_field_errors && text.non_field_errors[0];
+          let cleaned = unwrapErrorDetail(
+            typeof first === "string" ? first : String(first || ""),
+          );
+          cleaned = cleaned.replace(/[[\]"]/g, "").replace(/^'"['"]$/, "$1");
+          error_str = cleaned;
         } else {
-            try {
-                str = JSON.stringify(value);
-            } catch {
-                str = String(value);
-            }
+          error_str = JSON.stringify(text);
         }
-        return str
-            .replace(/&/g, '&amp;')
-            .replace(/"/g, '&quot;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-    },
-    apiError: function ( resp ) {
-        var error_str = '';
-        if ( resp.status === 400 ) {
-        try {
-            let obj = JSON.parse( resp.responseText );
-            error_str = obj.non_field_errors[ 0 ].replace( /[[\]"]/g, '' );
-        }
-        catch ( e ) {
-            console.log(e);
-            error_str = resp.responseText.replace( /[[\]"]/g, '' );
-        }
-        }
-        else if ( resp.status === 404 ) {
-        error_str = 'The resource you are looking for does not exist.';
-        }
-        else {
-        error_str = resp.responseText.replace( /[[\]"]/g, '' );
-        }
-        return error_str;
-    }, 
-    apiVueResourceError: async function (resp) {
-        let body;
-        try {
-            body = await resp.clone().json();
-        } catch {
-            try {
-                body = await resp.text();
-            } catch {
-                body = '';
-            }
-        }
-
-        let error_str = '';
-        let text = null;
-
-        if (resp.status === 400) {
-            if (Array.isArray(body)) {
-                text = body[0];
-            } else if (typeof body === 'object' && body !== null) {
-                text = body;
-            } else {
-                text = body; 
-            }
-
-            if (typeof text === 'object' && text !== null) {
-                if (Object.prototype.hasOwnProperty.call(text, 'non_field_errors')) {
-                    const first = text.non_field_errors && text.non_field_errors[0];
-                    let cleaned = unwrapErrorDetail(
-                    typeof first === 'string' ? first : String(first || '')
-                    );
-                    cleaned = cleaned.replace(/[[\]"]/g, '').replace(/^'"['"]$/, '$1');
-                    error_str = cleaned;
-                } else {
-                    error_str = JSON.stringify(text);
-                }
-            } else if (typeof text === 'string') {
-                let cleaned = unwrapErrorDetail(text);
-                cleaned = cleaned.replace(/[[\]"]/g, '').replace(/^'"['"]$/, '$1');
-                error_str = cleaned;
-            }
-        } else if (resp.status === 404) {
-            error_str = 'The resource you are looking for does not exist.';
-        }
-        console.log(error_str)
-        return error_str;
-    },
-
-  goBack: function ( vm ) {
-    vm.$router.go( window.history.back() );
+      } else if (typeof text === "string") {
+        let cleaned = unwrapErrorDetail(text);
+        cleaned = cleaned.replace(/[[\]"]/g, "").replace(/^'"['"]$/, "$1");
+        error_str = cleaned;
+      }
+    } else if (resp.status === 404) {
+      error_str = "The resource you are looking for does not exist.";
+    }
+    console.log(error_str);
+    return error_str;
   },
-  copyObject: function(obj){
-        return JSON.parse(JSON.stringify(obj));
+
+  goBack: function (vm) {
+    vm.$router.go(window.history.back());
   },
-  getCookie: function ( name ) {
+  copyObject: function (obj) {
+    return JSON.parse(JSON.stringify(obj));
+  },
+  getCookie: function (name) {
     var value = null;
-    if ( document.cookie && document.cookie !== '' ) {
-      var cookies = document.cookie.split( ';' );
-      for ( var i = 0; i < cookies.length; i++ ) {
-        var cookie = cookies[ i ].trim();
-        if ( cookie.substring( 0, name.length + 1 )
-          .trim() === ( name + '=' ) ) {
-          value = decodeURIComponent( cookie.substring( name.length + 1 ) );
+    if (document.cookie && document.cookie !== "") {
+      var cookies = document.cookie.split(";");
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1).trim() === name + "=") {
+          value = decodeURIComponent(cookie.substring(name.length + 1));
           break;
         }
       }
     }
     return value;
   },
-  namePopover: function ( $, vmDataTable ) {
-    vmDataTable.on( 'mouseover', '.name_popover', function () {
-      $( this )
-        .popover( 'show' );
-      $( this )
-        .on( 'mouseout', function () {
-          $( this )
-            .popover( 'hide' );
-        } );
-    } );
+  namePopover: function ($, vmDataTable) {
+    vmDataTable.on("mouseover", ".name_popover", function () {
+      $(this).popover("show");
+      $(this).on("mouseout", function () {
+        $(this).popover("hide");
+      });
+    });
   },
-  add_endpoint_join: function ( api_string, addition ) {
+  add_endpoint_join: function (api_string, addition) {
     // assumes api_string has trailing forward slash "/" character required for POST
     return api_string + addition;
   },
-  add_endpoint_json: function ( string, addition ) {
-    var res = string.split( ".json" )
-    return res[ 0 ] + '/' + addition + '.json';
+  add_endpoint_json: function (string, addition) {
+    var res = string.split(".json");
+    return res[0] + "/" + addition + ".json";
   },
-  dtPopover(value, truncate_length = 30, trigger = 'hover') {
-        const ellipsis = '...';
-        const raw = value == null ? '' : String(value);
-        const truncated = this.truncate(raw, {
-            length: truncate_length,
-            omission: ellipsis,
-            separator: ' ',
-        });
-        let result = '<span>' + truncated + '</span>';
-        if (raw.length > truncated.length) {
-            result += `<a class="mx-0 ps-1 pe-0" href="javascript://"
+  dtPopover(value, truncate_length = 30, trigger = "hover") {
+    const ellipsis = "...";
+    const raw = value == null ? "" : String(value);
+    const truncated = this.truncate(raw, {
+      length: truncate_length,
+      omission: ellipsis,
+      separator: " ",
+    });
+    let result = "<span>" + truncated + "</span>";
+    if (raw.length > truncated.length) {
+      result += `<a class="mx-0 ps-1 pe-0" href="javascript://"
                 role="button"
                 data-bs-toggle="popover"
                 data-bs-trigger="${this.escapeAttr(trigger)}"
@@ -197,106 +190,133 @@ export default {
                 data-bs-html="true"
                 data-bs-content="${this.escapeAttr(raw)}"
             ><small>More</small></a>`;
-        }
-        return result;
-    },
-    enablePopovers: function () {
-        let popoverTriggerList = [].slice.call(
-            document.querySelectorAll('[data-bs-toggle="popover"]')
-        );
-        // eslint-disable-next-line no-unused-vars
-        let popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-            return new bootstrap.Popover(popoverTriggerEl);
-        });
-    },
-  guid: function(){
-    function s4(){
-      return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
     }
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    return result;
   },
-  mimic_redirect: function(url, postData){
-      console.log('in mimic...')
-      /* http.post and ajax do not allow redirect from Django View (post method),
+  dtPopoverCellFn: function (cell) {
+    $(cell)
+      .find('[data-bs-toggle="popover"]')
+      .each(function () {
+        new bootstrap.Popover(this);
+      });
+  },
+  enablePopovers: function () {
+    let popoverTriggerList = [].slice.call(
+      document.querySelectorAll('[data-bs-toggle="popover"]'),
+    );
+    // eslint-disable-next-line no-unused-vars
+    let popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+      return new bootstrap.Popover(popoverTriggerEl);
+    });
+  },
+  guid: function () {
+    function s4() {
+      return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
+    }
+    return (
+      s4() +
+      s4() +
+      "-" +
+      s4() +
+      "-" +
+      s4() +
+      "-" +
+      s4() +
+      "-" +
+      s4() +
+      s4() +
+      s4()
+    );
+  },
+  mimic_redirect: function (url, postData) {
+    console.log("in mimic...");
+    /* http.post and ajax do not allow redirect from Django View (post method),
           this function allows redirect by mimicking a form submit.
 
           usage:  vm.post_and_redirect(vm.application_fee_url, {'csrfmiddlewaretoken' : vm.csrf_token});
       */
-      var postFormStr = "<form method='POST' action='" + url + "'>";
+    var postFormStr = "<form method='POST' action='" + url + "'>";
 
-      for (var key in postData) {
-          if (Object.prototype.hasOwnProperty.call(postData, key)) {
-              postFormStr += "<input type='hidden' name='" + key + "' value='" + postData[key] + "'>";
-          }
+    for (var key in postData) {
+      if (Object.prototype.hasOwnProperty.call(postData, key)) {
+        postFormStr +=
+          "<input type='hidden' name='" +
+          key +
+          "' value='" +
+          postData[key] +
+          "'>";
       }
-      postFormStr += "</form>";
-      var formElement = $(postFormStr);
-      $('body').append(formElement);
-      $(formElement).submit();
+    }
+    postFormStr += "</form>";
+    var formElement = $(postFormStr);
+    $("body").append(formElement);
+    $(formElement).submit();
   },
-  processError: async function(err){
-      console.log(err)
-      let errorText = '';
-      if (err.body && err.body.non_field_errors) {
-          console.log('non_field_errors')
-          // When non field errors raised
-          for (let i=0; i<err.body.non_field_errors.length; i++){
-              errorText += err.body.non_field_errors[i] + '<br />';
-          }
-      } else if(err.body && Array.isArray(err.body)) {
-          console.log('isArray')
-          // When serializers.ValidationError raised
-          for (let i=0; i<err.body.length; i++){
-              errorText += err.body[i] + '<br />';
-          }
-      } else if (err.body) {
-          console.log('else')
-          // When field errors raised
-          for (let field_name in err.body){
-              if (Object.prototype.hasOwnProperty.call(err.body, field_name)){
-                  errorText += field_name + ':<br />';
-                  for (let j=0; j<err.body[field_name].length; j++){
-                      errorText += err.body[field_name][j] + '<br />';
-                  }
-              }
-          }
+  processError: async function (err) {
+    console.log(err);
+    let errorText = "";
+    if (err.body && err.body.non_field_errors) {
+      console.log("non_field_errors");
+      // When non field errors raised
+      for (let i = 0; i < err.body.non_field_errors.length; i++) {
+        errorText += err.body.non_field_errors[i] + "<br />";
       }
-        await swal.fire({
-          title: "Error",
-          text: errorText,
-          icon: "error",
-          customClass: {
-              confirmButton: 'btn btn-primary',
-          },
-      });
-  },
-  formatFetchError: function(err){
-        console.log(err)
-        let errorText = '';
-        if (err.non_field_errors) {
-            console.log('non_field_errors')
-            // When non field errors raised
-            for (let i=0; i<err.non_field_errors.length; i++){
-                errorText += err.non_field_errors[i];
-            }
-        } else if(Array.isArray(err)) {
-            console.log('isArray')
-            // When serializers.ValidationError raised
-            for (let i=0; i<err.length; i++){
-                errorText += err[i];
-            }
-        } else {
-            console.log('else')
-            // When field errors raised
-            for (let field_name in err){
-                if (Object.prototype.hasOwnProperty.call(err, field_name)){
-                    errorText += field_name + ':';
-                    for (let j=0; j<err[field_name].length; j++){
-                        errorText += err[field_name][j];
-                    }
-                }
-            }
+    } else if (err.body && Array.isArray(err.body)) {
+      console.log("isArray");
+      // When serializers.ValidationError raised
+      for (let i = 0; i < err.body.length; i++) {
+        errorText += err.body[i] + "<br />";
+      }
+    } else if (err.body) {
+      console.log("else");
+      // When field errors raised
+      for (let field_name in err.body) {
+        if (Object.prototype.hasOwnProperty.call(err.body, field_name)) {
+          errorText += field_name + ":<br />";
+          for (let j = 0; j < err.body[field_name].length; j++) {
+            errorText += err.body[field_name][j] + "<br />";
+          }
         }
-        return errorText;
-    },
+      }
+    }
+    await swal.fire({
+      title: "Error",
+      text: errorText,
+      icon: "error",
+      customClass: {
+        confirmButton: "btn btn-primary",
+      },
+    });
+  },
+  formatFetchError: function (err) {
+    console.log(err);
+    let errorText = "";
+    if (err.non_field_errors) {
+      console.log("non_field_errors");
+      // When non field errors raised
+      for (let i = 0; i < err.non_field_errors.length; i++) {
+        errorText += err.non_field_errors[i];
+      }
+    } else if (Array.isArray(err)) {
+      console.log("isArray");
+      // When serializers.ValidationError raised
+      for (let i = 0; i < err.length; i++) {
+        errorText += err[i];
+      }
+    } else {
+      console.log("else");
+      // When field errors raised
+      for (let field_name in err) {
+        if (Object.prototype.hasOwnProperty.call(err, field_name)) {
+          errorText += field_name + ":";
+          for (let j = 0; j < err[field_name].length; j++) {
+            errorText += err[field_name][j];
+          }
+        }
+      }
+    }
+    return errorText;
+  },
 };
