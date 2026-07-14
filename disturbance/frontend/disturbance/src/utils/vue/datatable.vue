@@ -116,11 +116,30 @@ export default {
                     encodeURIComponent(window.location.pathname);
                 }, 0);
               }
+              if (xhr.status >= 400 && xhr.status < 600) {
+                swal.fire({
+                  title: "Datatable Server Error",
+                  html: "<p>An error occurred while processing the request.</p><p> Please try again later and if the error persists lodge a ticket with OIM Service Desk.<p>",
+                  icon: "error",
+                  customClass: {
+                    confirmButton: "btn btn-primary",
+                  },
+                  footer:
+                    `<small class="text-muted" style="color: #6c757d;">` +
+                    `<strong>Error Details:</strong> HTTP status ${xhr.status} (${xhr.statusText || "Internal Error"}).<br />See console for more details.` +
+                    `</small>`,
+                });
+              }
+              const currentDrawToken =
+                settings && settings.oAjaxData && settings.oAjaxData.draw
+                  ? parseInt(settings.oAjaxData.draw, 10)
+                  : 0;
+
               callback({
                 data: [],
                 recordsTotal: 0,
                 recordsFiltered: 0,
-                draw: settings && settings.draw ? settings.draw : 0,
+                draw: currentDrawToken,
               });
             },
           });
