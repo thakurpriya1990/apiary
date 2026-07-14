@@ -1,80 +1,90 @@
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from disturbance.components.main.models import CommunicationsLogEntry, Region, District, Tenure, ApplicationType, \
-    ActivityMatrix, WaCoast, MapLayer, MapColumn
-from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from disturbance.components.main.models import (
+    ActivityMatrix,
+    ApplicationType,
+    CommunicationsLogEntry,
+    District,
+    MapColumn,
+    MapLayer,
+    Region,
+    Tenure,
+    WaCoast,
+)
 
 
 class WaCoastOptimisedSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = WaCoast
         fields = (
-            'id',
-            'type',
+            "id",
+            "type",
             # 'source',
             # 'smoothed',
         )
 
 
 class WaCoastSerializer(GeoFeatureModelSerializer):
-
     class Meta:
         model = WaCoast
-        geo_field = 'wkb_geometry'
+        geo_field = "wkb_geometry"
         fields = (
-            'id',
-            'type',
+            "id",
+            "type",
             # 'source',
             # 'smoothed',
         )
 
 
 class CommunicationLogEntrySerializer(serializers.ModelSerializer):
-    customer = serializers.PrimaryKeyRelatedField(queryset=EmailUser.objects.all(),required=False)
+    customer = serializers.PrimaryKeyRelatedField(
+        queryset=EmailUser.objects.all(), required=False
+    )
     documents = serializers.SerializerMethodField()
+
     class Meta:
         model = CommunicationsLogEntry
         fields = (
-            'id',
-            'customer',
-            'to',
-            'fromm',
-            'cc',
-            'type',
-            'reference',
-            'subject'
-            'text',
-            'created',
-            'staff',
-            'proposal'
-            'documents'
+            "id",
+            "customer",
+            "to",
+            "fromm",
+            "cc",
+            "type",
+            "reference",
+            "subjecttext",
+            "created",
+            "staff",
+            "proposaldocuments",
         )
 
-    def get_documents(self,obj):
-        return [[d.name,d._file.url] for d in obj.documents.all()]
+    def get_documents(self, obj):
+        return [[d.name, d._file.url] for d in obj.documents.all()]
 
 
 class DistrictSerializer(serializers.ModelSerializer):
     class Meta:
         model = District
-        fields = ('id', 'name', 'code')
+        fields = ("id", "name", "code")
 
 
 class RegionSerializer(serializers.ModelSerializer):
     districts = DistrictSerializer(many=True)
+
     class Meta:
         model = Region
-        fields = ('id', 'name', 'forest_region', 'districts')
+        fields = ("id", "name", "forest_region", "districts")
+
 
 class ActivityMatrixSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActivityMatrix
-        fields = ('id', 'name', 'description', 'version', 'ordered', 'schema')
+        fields = ("id", "name", "description", "version", "ordered", "schema")
 
 
-#class ActivitySerializer(serializers.ModelSerializer):
+# class ActivitySerializer(serializers.ModelSerializer):
 #    class Meta:
 #        model = Activity
 #        #ordering = ('order', 'name')
@@ -84,37 +94,41 @@ class ActivityMatrixSerializer(serializers.ModelSerializer):
 class TenureSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tenure
-        fields = ('id', 'name', 'application_type')
+        fields = ("id", "name", "application_type")
 
 
 class ApplicationTypeSerializer(serializers.ModelSerializer):
-    #regions = RegionSerializer(many=True)
-    #activity_app_types = ActivitySerializer(many=True)
+    # regions = RegionSerializer(many=True)
+    # activity_app_types = ActivitySerializer(many=True)
     tenure_app_types = TenureSerializer(many=True)
 
     class Meta:
         model = ApplicationType
-        #fields = ('id', 'name', 'activity_app_types', 'tenure_app_types')
-        fields = ('id', 'name', 'tenure_app_types', 'domain_used',)
+        # fields = ('id', 'name', 'activity_app_types', 'tenure_app_types')
+        fields = (
+            "id",
+            "name",
+            "tenure_app_types",
+            "domain_used",
+        )
 
 
 class BookingSettlementReportSerializer(serializers.Serializer):
-    date = serializers.DateTimeField(input_formats=['%d/%m/%Y'])
+    date = serializers.DateTimeField(input_formats=["%d/%m/%Y"])
 
 
 class OracleSerializer(serializers.Serializer):
-    date = serializers.DateField(input_formats=['%d/%m/%Y','%Y-%m-%d'])
+    date = serializers.DateField(input_formats=["%d/%m/%Y", "%Y-%m-%d"])
     override = serializers.BooleanField(default=False)
 
 
 class MapColumnSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = MapColumn
         fields = (
-            'name',
-            'option_for_internal',
-            'option_for_external',
+            "name",
+            "option_for_internal",
+            "option_for_external",
         )
 
 
@@ -127,19 +141,40 @@ class MapLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = MapLayer
         fields = (
-            'display_name',
-            'layer_full_name',
-            'layer_group_name',
-            'layer_name',
-            'display_all_columns',
-            'columns',
+            "display_name",
+            "layer_full_name",
+            "layer_group_name",
+            "layer_name",
+            "display_all_columns",
+            "columns",
         )
 
+    def _get_layer_name(self, obj):
+        layer_name = getattr(obj, "layer_name", None)
+        if not layer_name:
+            return None
+        layer_name = layer_name.strip()
+        return layer_name or None
+
+    def _get_layer_name_without_namespace(self, obj):
+        layer_name = self._get_layer_name(obj)
+        if not layer_name:
+            return None
+        namespace, separator, name = layer_name.partition(":")
+        if not separator:
+            return layer_name
+        return name or None
+
     def get_layer_full_name(self, obj):
-        return obj.layer_name.strip()
+        return self._get_layer_name(obj)
 
     def get_layer_group_name(self, obj):
-        return obj.layer_name.strip().split(':')[0]
+        layer_name = self._get_layer_name(obj)
+        if not layer_name:
+            return ""
+        if ":" not in layer_name:
+            return ""
+        return layer_name.partition(":")[0]
 
     def get_layer_name(self, obj):
-        return obj.layer_name.strip().split(':')[1]
+        return self._get_layer_name_without_namespace(obj)
