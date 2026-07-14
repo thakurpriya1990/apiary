@@ -97,8 +97,12 @@ export default {
           {
             data: "requirement",
             //orderable: false,
-            render: function (value) {
-              return helpers.dtPopover(value, 25, "hover");
+            render: function (value, type) {
+              if (type === "display" && value && value.length > 50) {
+                return helpers.dtPopover(value, 25, "hover");
+              }
+
+              return value;
             },
             createdCell: helpers.dtPopoverCellFn,
             defaultContent: "",
