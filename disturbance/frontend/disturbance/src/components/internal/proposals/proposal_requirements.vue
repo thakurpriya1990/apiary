@@ -40,6 +40,7 @@ export default {
   props: {
     proposal: Object,
   },
+  emits: ["refreshRequirements"],
   data: function () {
     let vm = this;
     return {
