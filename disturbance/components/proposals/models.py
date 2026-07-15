@@ -1,5 +1,3 @@
-
-
 import copy
 import datetime
 import json
@@ -77,40 +75,58 @@ from disturbance.settings import (
 
 logger = logging.getLogger(__name__)
 
+
 def update_proposal_doc_filename(instance, filename):
-    return 'proposals/{}/documents/{}'.format(instance.proposal.id,filename)
+    return "proposals/{}/documents/{}".format(instance.proposal.id, filename)
+
 
 def update_proposal_comms_log_filename(instance, filename):
-    return 'proposals/{}/communications/{}/{}'.format(instance.log_entry.proposal.id,instance.log_entry.id,filename)
+    return "proposals/{}/communications/{}/{}".format(
+        instance.log_entry.proposal.id, instance.log_entry.id, filename
+    )
+
 
 def update_amendment_request_doc_filename(instance, filename):
-    return 'proposals/{}/amendment_request_documents/{}'.format(instance.amendment_request.proposal.id,filename)
+    return "proposals/{}/amendment_request_documents/{}".format(
+        instance.amendment_request.proposal.id, filename
+    )
+
 
 def update_apiary_doc_filename(instance, filename):
-    return 'proposals/{}/apiary_documents/{}'.format(instance.apiary_documents.proposal.id, filename)
+    return "proposals/{}/apiary_documents/{}".format(
+        instance.apiary_documents.proposal.id, filename
+    )
 
 
 class ProposalType(models.Model):
-
     description = models.CharField(max_length=256, blank=True, null=True)
-    name = models.CharField(verbose_name='Application name (eg. Disturbance, Apiary)', max_length=64, choices=ApplicationType.APPLICATION_TYPES, default=ApplicationType.APPLICATION_TYPES[0][0])
+    name = models.CharField(
+        verbose_name="Application name (eg. Disturbance, Apiary)",
+        max_length=64,
+        choices=ApplicationType.APPLICATION_TYPES,
+        default=ApplicationType.APPLICATION_TYPES[0][0],
+    )
     schema = JSONField()
-    replaced_by = models.ForeignKey('self', on_delete=models.PROTECT, blank=True, null=True)
+    replaced_by = models.ForeignKey(
+        "self", on_delete=models.PROTECT, blank=True, null=True
+    )
     version = models.SmallIntegerField(default=1, blank=False, null=False)
 
     def __str__(self):
-        return '{} - v{}'.format(self.name, self.version)
+        return "{} - v{}".format(self.name, self.version)
 
     class Meta:
-        app_label = 'disturbance'
-        unique_together = ('name', 'version')
-        verbose_name= 'Schema Proposal Type'
+        app_label = "disturbance"
+        unique_together = ("name", "version")
+        verbose_name = "Schema Proposal Type"
 
     @property
     def latest(self):
         if self.name:
-            last_record=ProposalType.objects.filter(name=self.name).order_by('-version')[0]
-            if last_record==self:
+            last_record = ProposalType.objects.filter(name=self.name).order_by(
+                "-version"
+            )[0]
+            if last_record == self:
                 return True
             else:
                 False
@@ -118,60 +134,63 @@ class ProposalType(models.Model):
 
     @property
     def name_with_version(self):
-        return '{} - v{}'.format(self.name, self.version)
+        return "{} - v{}".format(self.name, self.version)
 
     @property
     def apiary_group_proposal_type(self):
         apiary = False
         if self.name and self.name in (
-                ApplicationType.APIARY,
-                ApplicationType.TEMPORARY_USE,
-                ApplicationType.SITE_TRANSFER,
-                ):
+            ApplicationType.APIARY,
+            ApplicationType.TEMPORARY_USE,
+            ApplicationType.SITE_TRANSFER,
+        ):
             apiary = True
         return apiary
 
 
 class TaggedProposalAssessorGroupRegions(TaggedItemBase):
-    content_object = models.ForeignKey("ProposalAssessorGroup", on_delete=models.CASCADE)
+    content_object = models.ForeignKey(
+        "ProposalAssessorGroup", on_delete=models.CASCADE
+    )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
+
 
 class TaggedProposalAssessorGroupActivities(TaggedItemBase):
-    content_object = models.ForeignKey("ProposalAssessorGroup", on_delete=models.CASCADE)
+    content_object = models.ForeignKey(
+        "ProposalAssessorGroup", on_delete=models.CASCADE
+    )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
+
 
 class ProposalAssessorGroupMember(models.Model):
-
-    emailuser = models.ForeignKey(
-        EmailUser, 
-        null=False,
-        on_delete=models.CASCADE
-    )
+    emailuser = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
 
     proposalassessorgroup = models.ForeignKey(
-        'disturbance.ProposalAssessorGroup', 
-        null=False,
-        on_delete=models.CASCADE
+        "disturbance.ProposalAssessorGroup", null=False, on_delete=models.CASCADE
     )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
         db_table = "disturbance_proposalassessorgroup_members"
-        unique_together=('proposalassessorgroup','emailuser')
+        unique_together = ("proposalassessorgroup", "emailuser")
 
-#TODO on-cleanup determine if this is needed or can just be replaced with the Apiary Assessor Group (some applications may still come under this one)
+
+# TODO on-cleanup determine if this is needed or can just be replaced with the Apiary Assessor Group (some applications may still come under this one)
 class ProposalAssessorGroup(models.Model):
     name = models.CharField(max_length=255)
-    members = models.ManyToManyField(EmailUser, through=ProposalAssessorGroupMember,)
+    members = models.ManyToManyField(
+        EmailUser,
+        through=ProposalAssessorGroupMember,
+    )
     region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.CASCADE)
     default = models.BooleanField(default=False)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
     def __str__(self):
         return self.name
@@ -183,9 +202,11 @@ class ProposalAssessorGroup(models.Model):
         """
         member_ids = ProposalAssessorGroupMember.objects.filter(
             proposalassessorgroup=self
-        ).values_list('emailuser_id', flat=True)
+        ).values_list("emailuser_id", flat=True)
 
-        return EmailUser.objects.using('ledger_db').filter(Q(pk__in=list(member_ids))|Q(is_superuser=True))
+        return EmailUser.objects.using("ledger_db").filter(
+            Q(pk__in=list(member_ids)) | Q(is_superuser=True)
+        )
 
     def clean(self):
         try:
@@ -195,12 +216,16 @@ class ProposalAssessorGroup(models.Model):
 
         if self.pk:
             if not self.default and not self.region:
-                raise ValidationError('Only default can have no region set for proposal assessor group. Please specifiy region')
+                raise ValidationError(
+                    "Only default can have no region set for proposal assessor group. Please specifiy region"
+                )
         else:
             if default and self.default:
-                raise ValidationError('There can only be one default proposal assessor group')
+                raise ValidationError(
+                    "There can only be one default proposal assessor group"
+                )
 
-    def member_is_assigned(self,member):
+    def member_is_assigned(self, member):
         for p in self.current_proposals:
             if p.assigned_officer == member:
                 return True
@@ -208,53 +233,61 @@ class ProposalAssessorGroup(models.Model):
 
     @property
     def current_proposals(self):
-        assessable_states = ['with_assessor','with_referral','with_assessor_requirements']
+        assessable_states = [
+            "with_assessor",
+            "with_referral",
+            "with_assessor_requirements",
+        ]
         return Proposal.objects.filter(processing_status__in=assessable_states)
 
     @property
     def members_email(self):
         return [i.email for i in self.resolved_members]
 
+
 class TaggedProposalApproverGroupRegions(TaggedItemBase):
-    content_object = models.ForeignKey("ProposalApproverGroup", on_delete=models.CASCADE)
+    content_object = models.ForeignKey(
+        "ProposalApproverGroup", on_delete=models.CASCADE
+    )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
+
 
 class TaggedProposalApproverGroupActivities(TaggedItemBase):
-    content_object = models.ForeignKey("ProposalApproverGroup", on_delete=models.CASCADE)
+    content_object = models.ForeignKey(
+        "ProposalApproverGroup", on_delete=models.CASCADE
+    )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
+
 
 class ProposalApproverGroupMember(models.Model):
-
-    emailuser = models.ForeignKey(
-        EmailUser, 
-        null=False,
-        on_delete=models.CASCADE
-    )
+    emailuser = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
 
     proposalapprovergroup = models.ForeignKey(
-        'disturbance.ProposalApproverGroup', 
-        null=False,
-        on_delete=models.CASCADE
+        "disturbance.ProposalApproverGroup", null=False, on_delete=models.CASCADE
     )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
         db_table = "disturbance_proposalapprovergroup_members"
-        unique_together=('proposalapprovergroup','emailuser')
+        unique_together = ("proposalapprovergroup", "emailuser")
 
-#TODO on-cleanup determine if this is needed or can just be replaced with the Apiary Approver Group (some applications may still come under this one)
+
+# TODO on-cleanup determine if this is needed or can just be replaced with the Apiary Approver Group (some applications may still come under this one)
 class ProposalApproverGroup(models.Model):
     name = models.CharField(max_length=255)
-    members = models.ManyToManyField(EmailUser, through=ProposalApproverGroupMember,)
+    members = models.ManyToManyField(
+        EmailUser,
+        through=ProposalApproverGroupMember,
+    )
     region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.CASCADE)
     default = models.BooleanField(default=False)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
     def __str__(self):
         return self.name
@@ -266,9 +299,11 @@ class ProposalApproverGroup(models.Model):
         """
         member_ids = ProposalApproverGroupMember.objects.filter(
             proposalapprovergroup=self
-        ).values_list('emailuser_id', flat=True)
+        ).values_list("emailuser_id", flat=True)
 
-        return EmailUser.objects.using('ledger_db').filter(Q(pk__in=list(member_ids))|Q(is_superuser=True))
+        return EmailUser.objects.using("ledger_db").filter(
+            Q(pk__in=list(member_ids)) | Q(is_superuser=True)
+        )
 
     def clean(self):
         try:
@@ -278,12 +313,16 @@ class ProposalApproverGroup(models.Model):
 
         if self.pk:
             if not self.default and not self.region:
-                raise ValidationError('Only default can have no region set for proposal assessor group. Please specifiy region')
+                raise ValidationError(
+                    "Only default can have no region set for proposal assessor group. Please specifiy region"
+                )
         else:
             if default and self.default:
-                raise ValidationError('There can only be one default proposal approver group')
+                raise ValidationError(
+                    "There can only be one default proposal approver group"
+                )
 
-    def member_is_assigned(self,member):
+    def member_is_assigned(self, member):
         for p in self.current_proposals:
             if p.assigned_approver == member:
                 return True
@@ -291,227 +330,361 @@ class ProposalApproverGroup(models.Model):
 
     @property
     def current_proposals(self):
-        assessable_states = ['with_approver']
+        assessable_states = ["with_approver"]
         return Proposal.objects.filter(processing_status__in=assessable_states)
 
     @property
     def members_email(self):
         return [i.email for i in self.resolved_members]
 
+
 class DefaultDocument(Document):
-    input_name = models.CharField(max_length=255,null=True,blank=True)
-    can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
-    visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history
+    input_name = models.CharField(max_length=255, null=True, blank=True)
+    can_delete = models.BooleanField(
+        default=True
+    )  # after initial submit prevent document from being deleted
+    visible = models.BooleanField(
+        default=True
+    )  # to prevent deletion on file system, hidden and still be available in history
 
     class Meta:
-        app_label = 'disturbance'
-        abstract =True
+        app_label = "disturbance"
+        abstract = True
 
     def delete(self):
         if self.can_delete:
             return super(DefaultDocument, self).delete()
-        logger.info('Cannot delete existing document object after Application has been submitted (including document submitted before Application pushback to status Draft): {}'.format(self.name))
+        logger.info(
+            "Cannot delete existing document object after Application has been submitted (including document submitted before Application pushback to status Draft): {}".format(
+                self.name
+            )
+        )
 
 
 class ProposalDocument(Document):
-    proposal = models.ForeignKey('Proposal',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_proposal_doc_filename, max_length=500, storage=private_storage)
-    input_name = models.CharField(max_length=255,null=True,blank=True)
-    can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
-    can_hide= models.BooleanField(default=False) # after initial submit, document cannot be deleted but can be hidden
-    hidden=models.BooleanField(default=False) # after initial submit prevent document from being deleted
+    proposal = models.ForeignKey(
+        "Proposal", related_name="documents", on_delete=models.CASCADE
+    )
+    _file = models.FileField(
+        upload_to=update_proposal_doc_filename, max_length=500, storage=private_storage
+    )
+    input_name = models.CharField(max_length=255, null=True, blank=True)
+    can_delete = models.BooleanField(
+        default=True
+    )  # after initial submit prevent document from being deleted
+    can_hide = models.BooleanField(
+        default=False
+    )  # after initial submit, document cannot be deleted but can be hidden
+    hidden = models.BooleanField(
+        default=False
+    )  # after initial submit prevent document from being deleted
 
     def delete(self):
         if self.can_delete:
             return super(ProposalDocument, self).delete()
-        logger.info('Cannot delete existing document object after Proposal has been submitted (including document submitted before Proposal pushback to status Draft): {}'.format(self.name))
+        logger.info(
+            "Cannot delete existing document object after Proposal has been submitted (including document submitted before Proposal pushback to status Draft): {}".format(
+                self.name
+            )
+        )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
+
 
 def fee_invoice_references_default():
     return []
 
-class Proposal(DirtyFieldsMixin, RevisionedMixin):
-    CUSTOMER_STATUS_TEMP = 'temp'
-    CUSTOMER_STATUS_DRAFT = 'draft'
-    CUSTOMER_STATUS_WITH_ASSESSOR = 'with_assessor'
-    CUSTOMER_STATUS_AMENDMENT_REQUEST = 'amendment_required'
-    CUSTOMER_STATUS_APPROVED = 'approved'
-    CUSTOMER_STATUS_DECLINED = 'declined'
-    CUSTOMER_STATUS_DISCARDED = 'discarded'
-    CUSTOMER_STATUS_CHOICES = ((CUSTOMER_STATUS_TEMP, 'Temporary'),
-                               (CUSTOMER_STATUS_DRAFT, 'Draft'),
-                               (CUSTOMER_STATUS_WITH_ASSESSOR, 'Under Review'),
-                               (CUSTOMER_STATUS_AMENDMENT_REQUEST, 'Amendment Required'),
-                               (CUSTOMER_STATUS_APPROVED, 'Approved'),
-                               (CUSTOMER_STATUS_DECLINED, 'Declined'),
-                               (CUSTOMER_STATUS_DISCARDED, 'Discarded'),
-                               )
-    # List of statuses from above that allow a customer to edit an application.
-    CUSTOMER_EDITABLE_STATE = [CUSTOMER_STATUS_TEMP, CUSTOMER_STATUS_DRAFT, CUSTOMER_STATUS_AMENDMENT_REQUEST, ]
 
-    APPLICANT_TYPE_ORGANISATION = 'organisation'
-    APPLICANT_TYPE_PROXY = 'proxy' # proxy also represents an individual making an Apiary application
-    APPLICANT_TYPE_SUBMITTER = 'submitter'
+class Proposal(DirtyFieldsMixin, RevisionedMixin):
+    CUSTOMER_STATUS_TEMP = "temp"
+    CUSTOMER_STATUS_DRAFT = "draft"
+    CUSTOMER_STATUS_WITH_ASSESSOR = "with_assessor"
+    CUSTOMER_STATUS_AMENDMENT_REQUEST = "amendment_required"
+    CUSTOMER_STATUS_APPROVED = "approved"
+    CUSTOMER_STATUS_DECLINED = "declined"
+    CUSTOMER_STATUS_DISCARDED = "discarded"
+    CUSTOMER_STATUS_CHOICES = (
+        (CUSTOMER_STATUS_TEMP, "Temporary"),
+        (CUSTOMER_STATUS_DRAFT, "Draft"),
+        (CUSTOMER_STATUS_WITH_ASSESSOR, "Under Review"),
+        (CUSTOMER_STATUS_AMENDMENT_REQUEST, "Amendment Required"),
+        (CUSTOMER_STATUS_APPROVED, "Approved"),
+        (CUSTOMER_STATUS_DECLINED, "Declined"),
+        (CUSTOMER_STATUS_DISCARDED, "Discarded"),
+    )
+    # List of statuses from above that allow a customer to edit an application.
+    CUSTOMER_EDITABLE_STATE = [
+        CUSTOMER_STATUS_TEMP,
+        CUSTOMER_STATUS_DRAFT,
+        CUSTOMER_STATUS_AMENDMENT_REQUEST,
+    ]
+
+    APPLICANT_TYPE_ORGANISATION = "organisation"
+    APPLICANT_TYPE_PROXY = (
+        "proxy"  # proxy also represents an individual making an Apiary application
+    )
+    APPLICANT_TYPE_SUBMITTER = "submitter"
 
     # List of statuses from above that allow a customer to view an application (read-only)
-    CUSTOMER_VIEWABLE_STATE = ['with_assessor', 'under_review', 'id_required', 'returns_required', 'approved', 'declined']
+    CUSTOMER_VIEWABLE_STATE = [
+        "with_assessor",
+        "under_review",
+        "id_required",
+        "returns_required",
+        "approved",
+        "declined",
+    ]
 
-    PROCESSING_STATUS_TEMP = 'temp'
-    PROCESSING_STATUS_DRAFT = 'draft'
-    PROCESSING_STATUS_WITH_ASSESSOR = 'with_assessor'
-    PROCESSING_STATUS_WITH_REFERRAL = 'with_referral'
-    PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS = 'with_assessor_requirements'
-    PROCESSING_STATUS_WITH_APPROVER = 'with_approver'
-    PROCESSING_STATUS_RENEWAL = 'renewal'
-    PROCESSING_STATUS_LICENCE_AMENDMENT = 'licence_amendment'
-    PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE = 'awaiting_applicant_response'
-    PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE = 'awaiting_assessor_response'
-    PROCESSING_STATUS_AWAITING_RESPONSES = 'awaiting_responses'
-    PROCESSING_STATUS_READY_FOR_CONDITIONS = 'ready_for_conditions'
-    PROCESSING_STATUS_READY_TO_ISSUE = 'ready_to_issue'
-    PROCESSING_STATUS_APPROVED = 'approved'
-    PROCESSING_STATUS_DECLINED = 'declined'
-    PROCESSING_STATUS_DISCARDED = 'discarded'
-    PROCESSING_STATUS_CHOICES = ((PROCESSING_STATUS_TEMP, 'Temporary'),
-                                 (PROCESSING_STATUS_DRAFT, 'Draft'),
-                                 (PROCESSING_STATUS_WITH_ASSESSOR, 'With Assessor'),
-                                 (PROCESSING_STATUS_WITH_REFERRAL, 'With Referral'),
-                                 (PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS, 'With Assessor (Requirements)'),
-                                 (PROCESSING_STATUS_WITH_APPROVER, 'With Approver'),
-                                 (PROCESSING_STATUS_RENEWAL, 'Renewal'),
-                                 (PROCESSING_STATUS_LICENCE_AMENDMENT, 'Licence Amendment'),
-                                 (PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE, 'Awaiting Applicant Response'),
-                                 (PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE, 'Awaiting Assessor Response'),
-                                 (PROCESSING_STATUS_AWAITING_RESPONSES, 'Awaiting Responses'),
-                                 (PROCESSING_STATUS_READY_FOR_CONDITIONS, 'Ready for Conditions'),
-                                 (PROCESSING_STATUS_READY_TO_ISSUE, 'Ready to Issue'),
-                                 (PROCESSING_STATUS_APPROVED, 'Approved'),
-                                 (PROCESSING_STATUS_DECLINED, 'Declined'),
-                                 (PROCESSING_STATUS_DISCARDED, 'Discarded'),
-                                 )
-
-    ID_CHECK_STATUS_CHOICES = (('not_checked', 'Not Checked'), ('awaiting_update', 'Awaiting Update'),
-                               ('updated', 'Updated'), ('accepted', 'Accepted'))
-
-    COMPLIANCE_CHECK_STATUS_CHOICES = (
-        ('not_checked', 'Not Checked'), ('awaiting_returns', 'Awaiting Returns'), ('completed', 'Completed'),
-        ('accepted', 'Accepted'))
-
-    CHARACTER_CHECK_STATUS_CHOICES = (
-        ('not_checked', 'Not Checked'), ('accepted', 'Accepted'))
-
-    REVIEW_STATUS_CHOICES = (
-        ('not_reviewed', 'Not Reviewed'), ('awaiting_amendments', 'Awaiting Amendments'), ('amended', 'Amended'),
-        ('accepted', 'Accepted'))
-
-    APPLICATION_TYPE_CHOICES = (
-        ('new_proposal', 'New Proposal'),
-        ('amendment', 'Amendment'),
-        ('renewal', 'Renewal'),
+    PROCESSING_STATUS_TEMP = "temp"
+    PROCESSING_STATUS_DRAFT = "draft"
+    PROCESSING_STATUS_WITH_ASSESSOR = "with_assessor"
+    PROCESSING_STATUS_WITH_REFERRAL = "with_referral"
+    PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS = "with_assessor_requirements"
+    PROCESSING_STATUS_WITH_APPROVER = "with_approver"
+    PROCESSING_STATUS_RENEWAL = "renewal"
+    PROCESSING_STATUS_LICENCE_AMENDMENT = "licence_amendment"
+    PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE = "awaiting_applicant_response"
+    PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE = "awaiting_assessor_response"
+    PROCESSING_STATUS_AWAITING_RESPONSES = "awaiting_responses"
+    PROCESSING_STATUS_READY_FOR_CONDITIONS = "ready_for_conditions"
+    PROCESSING_STATUS_READY_TO_ISSUE = "ready_to_issue"
+    PROCESSING_STATUS_APPROVED = "approved"
+    PROCESSING_STATUS_DECLINED = "declined"
+    PROCESSING_STATUS_DISCARDED = "discarded"
+    PROCESSING_STATUS_CHOICES = (
+        (PROCESSING_STATUS_TEMP, "Temporary"),
+        (PROCESSING_STATUS_DRAFT, "Draft"),
+        (PROCESSING_STATUS_WITH_ASSESSOR, "With Assessor"),
+        (PROCESSING_STATUS_WITH_REFERRAL, "With Referral"),
+        (PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS, "With Assessor (Requirements)"),
+        (PROCESSING_STATUS_WITH_APPROVER, "With Approver"),
+        (PROCESSING_STATUS_RENEWAL, "Renewal"),
+        (PROCESSING_STATUS_LICENCE_AMENDMENT, "Licence Amendment"),
+        (PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE, "Awaiting Applicant Response"),
+        (PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE, "Awaiting Assessor Response"),
+        (PROCESSING_STATUS_AWAITING_RESPONSES, "Awaiting Responses"),
+        (PROCESSING_STATUS_READY_FOR_CONDITIONS, "Ready for Conditions"),
+        (PROCESSING_STATUS_READY_TO_ISSUE, "Ready to Issue"),
+        (PROCESSING_STATUS_APPROVED, "Approved"),
+        (PROCESSING_STATUS_DECLINED, "Declined"),
+        (PROCESSING_STATUS_DISCARDED, "Discarded"),
     )
 
-    proposal_type = models.CharField('Proposal Type', max_length=40, choices=APPLICATION_TYPE_CHOICES,
-                                        default=APPLICATION_TYPE_CHOICES[0][0])
+    ID_CHECK_STATUS_CHOICES = (
+        ("not_checked", "Not Checked"),
+        ("awaiting_update", "Awaiting Update"),
+        ("updated", "Updated"),
+        ("accepted", "Accepted"),
+    )
+
+    COMPLIANCE_CHECK_STATUS_CHOICES = (
+        ("not_checked", "Not Checked"),
+        ("awaiting_returns", "Awaiting Returns"),
+        ("completed", "Completed"),
+        ("accepted", "Accepted"),
+    )
+
+    CHARACTER_CHECK_STATUS_CHOICES = (
+        ("not_checked", "Not Checked"),
+        ("accepted", "Accepted"),
+    )
+
+    REVIEW_STATUS_CHOICES = (
+        ("not_reviewed", "Not Reviewed"),
+        ("awaiting_amendments", "Awaiting Amendments"),
+        ("amended", "Amended"),
+        ("accepted", "Accepted"),
+    )
+
+    APPLICATION_TYPE_CHOICES = (
+        ("new_proposal", "New Proposal"),
+        ("amendment", "Amendment"),
+        ("renewal", "Renewal"),
+    )
+
+    proposal_type = models.CharField(
+        "Proposal Type",
+        max_length=40,
+        choices=APPLICATION_TYPE_CHOICES,
+        default=APPLICATION_TYPE_CHOICES[0][0],
+    )
     data = JSONField(blank=True, null=True)
     assessor_data = JSONField(blank=True, null=True)
     comment_data = JSONField(blank=True, null=True)
     schema = JSONField(blank=False, null=False)
     proposed_issuance_approval = JSONField(blank=True, null=True)
 
-    customer_status = models.CharField('Customer Status', max_length=40, choices=CUSTOMER_STATUS_CHOICES,
-                                       default=CUSTOMER_STATUS_CHOICES[1][0])
-    applicant = models.ForeignKey(Organisation, blank=True, null=True, related_name='proposals', on_delete=models.CASCADE)
+    customer_status = models.CharField(
+        "Customer Status",
+        max_length=40,
+        choices=CUSTOMER_STATUS_CHOICES,
+        default=CUSTOMER_STATUS_CHOICES[1][0],
+    )
+    applicant = models.ForeignKey(
+        Organisation,
+        blank=True,
+        null=True,
+        related_name="proposals",
+        on_delete=models.CASCADE,
+    )
 
-    lodgement_number = models.CharField(max_length=9, blank=True, default='')
+    lodgement_number = models.CharField(max_length=9, blank=True, default="")
     lodgement_sequence = models.IntegerField(blank=True, default=0)
     lodgement_date = models.DateTimeField(blank=True, null=True)
 
-    proxy_applicant = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_proxy', on_delete=models.CASCADE)
-    submitter = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_proposals', on_delete=models.CASCADE)
+    proxy_applicant = models.ForeignKey(
+        EmailUser,
+        blank=True,
+        null=True,
+        related_name="disturbance_proxy",
+        on_delete=models.CASCADE,
+    )
+    submitter = models.ForeignKey(
+        EmailUser,
+        blank=True,
+        null=True,
+        related_name="disturbance_proposals",
+        on_delete=models.CASCADE,
+    )
 
-    assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_proposals_assigned', on_delete=models.SET_NULL)
-    assigned_approver = models.ForeignKey(EmailUser, blank=True, null=True, related_name='disturbance_proposals_approvals', on_delete=models.SET_NULL)
-    processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
-                                         default=PROCESSING_STATUS_CHOICES[1][0])
-    id_check_status = models.CharField('Identification Check Status', max_length=30, choices=ID_CHECK_STATUS_CHOICES,
-                                       default=ID_CHECK_STATUS_CHOICES[0][0])
-    compliance_check_status = models.CharField('Return Check Status', max_length=30, choices=COMPLIANCE_CHECK_STATUS_CHOICES,
-                                            default=COMPLIANCE_CHECK_STATUS_CHOICES[0][0])
-    character_check_status = models.CharField('Character Check Status', max_length=30,
-                                              choices=CHARACTER_CHECK_STATUS_CHOICES,
-                                              default=CHARACTER_CHECK_STATUS_CHOICES[0][0])
-    review_status = models.CharField('Review Status', max_length=30, choices=REVIEW_STATUS_CHOICES,
-                                     default=REVIEW_STATUS_CHOICES[0][0])
+    assigned_officer = models.ForeignKey(
+        EmailUser,
+        blank=True,
+        null=True,
+        related_name="disturbance_proposals_assigned",
+        on_delete=models.SET_NULL,
+    )
+    assigned_approver = models.ForeignKey(
+        EmailUser,
+        blank=True,
+        null=True,
+        related_name="disturbance_proposals_approvals",
+        on_delete=models.SET_NULL,
+    )
+    processing_status = models.CharField(
+        "Processing Status",
+        max_length=30,
+        choices=PROCESSING_STATUS_CHOICES,
+        default=PROCESSING_STATUS_CHOICES[1][0],
+    )
+    id_check_status = models.CharField(
+        "Identification Check Status",
+        max_length=30,
+        choices=ID_CHECK_STATUS_CHOICES,
+        default=ID_CHECK_STATUS_CHOICES[0][0],
+    )
+    compliance_check_status = models.CharField(
+        "Return Check Status",
+        max_length=30,
+        choices=COMPLIANCE_CHECK_STATUS_CHOICES,
+        default=COMPLIANCE_CHECK_STATUS_CHOICES[0][0],
+    )
+    character_check_status = models.CharField(
+        "Character Check Status",
+        max_length=30,
+        choices=CHARACTER_CHECK_STATUS_CHOICES,
+        default=CHARACTER_CHECK_STATUS_CHOICES[0][0],
+    )
+    review_status = models.CharField(
+        "Review Status",
+        max_length=30,
+        choices=REVIEW_STATUS_CHOICES,
+        default=REVIEW_STATUS_CHOICES[0][0],
+    )
 
-    approval = models.ForeignKey('disturbance.Approval',null=True,blank=True, on_delete=models.CASCADE)
+    approval = models.ForeignKey(
+        "disturbance.Approval", null=True, blank=True, on_delete=models.CASCADE
+    )
 
-    previous_application = models.ForeignKey('self', on_delete=models.PROTECT, blank=True, null=True)
+    previous_application = models.ForeignKey(
+        "self", on_delete=models.PROTECT, blank=True, null=True
+    )
     proposed_decline_status = models.BooleanField(default=False)
 
     # Special Fields
-    title = models.CharField(max_length=255,null=True,blank=True)
-    activity = models.CharField(max_length=255,null=True,blank=True)
-    tenure = models.CharField(max_length=255,null=True,blank=True)
+    title = models.CharField(max_length=255, null=True, blank=True)
+    activity = models.CharField(max_length=255, null=True, blank=True)
+    tenure = models.CharField(max_length=255, null=True, blank=True)
     region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.CASCADE)
-    district = models.ForeignKey(District, null=True, blank=True, on_delete=models.CASCADE)
+    district = models.ForeignKey(
+        District, null=True, blank=True, on_delete=models.CASCADE
+    )
     application_type = models.ForeignKey(ApplicationType, on_delete=models.CASCADE)
-    approval_level = models.CharField('Activity matrix approval level', max_length=255,null=True,blank=True)
-    approval_level_document = models.ForeignKey(ProposalDocument, blank=True, null=True, related_name='approval_level_document', on_delete=models.CASCADE)
+    approval_level = models.CharField(
+        "Activity matrix approval level", max_length=255, null=True, blank=True
+    )
+    approval_level_document = models.ForeignKey(
+        ProposalDocument,
+        blank=True,
+        null=True,
+        related_name="approval_level_document",
+        on_delete=models.CASCADE,
+    )
     approval_level_comment = models.TextField(blank=True)
     approval_comment = models.TextField(blank=True)
     assessment_reminder_sent = models.BooleanField(default=False)
     weekly_reminder_sent_date = models.DateField(blank=True, null=True)
-    sub_activity_level1 = models.CharField(max_length=255,null=True,blank=True)
-    sub_activity_level2 = models.CharField(max_length=255,null=True,blank=True)
-    management_area = models.CharField(max_length=255,null=True,blank=True)
+    sub_activity_level1 = models.CharField(max_length=255, null=True, blank=True)
+    sub_activity_level2 = models.CharField(max_length=255, null=True, blank=True)
+    management_area = models.CharField(max_length=255, null=True, blank=True)
 
-    fee_invoice_references = ArrayField(models.CharField(max_length=50, null=True, blank=True, default=''), null=True, default=fee_invoice_references_default)
+    fee_invoice_references = ArrayField(
+        models.CharField(max_length=50, null=True, blank=True, default=""),
+        null=True,
+        default=fee_invoice_references_default,
+    )
     migrated = models.BooleanField(default=False)
     reissued = models.BooleanField(default=False)
 
-
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
     def __str__(self):
         return str(self.id)
-      
+
     def save(self, *args, **kwargs):
-        # Store the original values of fields we want to keep track of in 
+        # Store the original values of fields we want to keep track of in
         # django reversion before they are overwritten by super() below
-        original_processing_status = self._original_state['processing_status']
-        original_assessor_data = self._original_state['assessor_data']
-        original_comment_data = self._original_state['comment_data']
+        original_processing_status = self._original_state["processing_status"]
+        original_assessor_data = self._original_state["assessor_data"]
+        original_comment_data = self._original_state["comment_data"]
 
         # Populate self with the new field values
         super(Proposal, self).save(*args, **kwargs)
 
         # Append 'P' to Proposal id to generate Lodgement number.
         # Lodgement number and lodgement sequence are used to generate Reference.
-        if self.lodgement_number == '':
-            new_lodgment_id = 'P{0:06d}'.format(self.pk)
+        if self.lodgement_number == "":
+            new_lodgment_id = "P{0:06d}".format(self.pk)
             self.lodgement_number = new_lodgment_id
             self.save()
 
         # If the processing_status has changed then add a reversion comment
         # so we have a way of filtering based on the status changing
         if self.processing_status != original_processing_status:
-            self.save(version_comment=f'processing_status: {self.processing_status}')
+            self.save(version_comment=f"processing_status: {self.processing_status}")
         elif self.assessor_data != original_assessor_data:
             # Although the status hasn't changed we add the text 'processing_status'
             # So we can filter based on it later (for both assessor_data and comment_data)
-            self.save(version_comment='assessor_data: Has changed - tagging with processing_status')
+            self.save(
+                version_comment="assessor_data: Has changed - tagging with processing_status"
+            )
         elif self.comment_data != original_comment_data:
-            self.save(version_comment='comment_data: Has changed - tagging with processing_status')
+            self.save(
+                version_comment="comment_data: Has changed - tagging with processing_status"
+            )
 
     @property
     def fee_paid(self):
         if not self.apiary_group_application_type:
             return False
         else:
-            return True if self.fee_invoice_references or self.proposal_type == 'amendment' else False
+            return (
+                True
+                if self.fee_invoice_references or self.proposal_type == "amendment"
+                else False
+            )
 
     @property
     def relevant_applicant(self):
@@ -537,16 +710,18 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             return self.applicant.organisation.name
         elif self.proxy_applicant:
             return "{} {}".format(
-                self.proxy_applicant.first_name,
-                self.proxy_applicant.last_name)
+                self.proxy_applicant.first_name, self.proxy_applicant.last_name
+            )
         else:
-            return "{} {}".format(
-                self.submitter.first_name,
-                self.submitter.last_name)
+            return "{} {}".format(self.submitter.first_name, self.submitter.last_name)
 
     @property
     def relevant_applicant_email(self):
-        if self.applicant and hasattr(self.applicant.organisation, 'email') and self.applicant.organisation.email:
+        if (
+            self.applicant
+            and hasattr(self.applicant.organisation, "email")
+            and self.applicant.organisation.email
+        ):
             return self.applicant.organisation.email
         elif self.proxy_applicant:
             return self.proxy_applicant.email
@@ -556,30 +731,38 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     @property
     def relevant_applicant_details(self):
         if self.applicant:
-            return '{} \n{}'.format(
-                self.applicant.organisation.name,
-                self.applicant.address)
+            return "{} \n{}".format(
+                self.applicant.organisation.name, self.applicant.address
+            )
         elif self.proxy_applicant:
             return "{} {}\n{}".format(
                 self.proxy_applicant.first_name,
                 self.proxy_applicant.last_name,
-                self.proxy_applicant.addresses.all().first())
+                self.proxy_applicant.addresses.all().first(),
+            )
         else:
             return "{} {}\n{}".format(
                 self.submitter.first_name,
                 self.submitter.last_name,
-                self.submitter.addresses.all().first())
+                self.submitter.addresses.all().first(),
+            )
 
     @property
     def relevant_applicant_address(self):
         if self.applicant:
             return self.applicant.address
         elif self.proxy_applicant:
-            data = model_to_dict(self.proxy_applicant.residential_address, fields=["line1", "locality", "state", "postcode"])
+            data = model_to_dict(
+                self.proxy_applicant.residential_address,
+                fields=["line1", "locality", "state", "postcode"],
+            )
             data["country"] = self.proxy_applicant.residential_address.country.code
             return data
         else:
-            data = model_to_dict(self.submitter.residential_address, fields=["line1", "locality", "state", "postcode"])
+            data = model_to_dict(
+                self.submitter.residential_address,
+                fields=["line1", "locality", "state", "postcode"],
+            )
             data["country"] = self.submitter.residential_address.country.code
             return data
 
@@ -604,32 +787,37 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     @property
     def applicant_field(self):
         if self.applicant:
-            return 'applicant'
+            return "applicant"
         elif self.proxy_applicant:
-            return 'proxy_applicant'
+            return "proxy_applicant"
         else:
-            return 'submitter'
+            return "submitter"
 
     @property
     def reference(self):
-        return '{}-{}'.format(self.lodgement_number, self.lodgement_sequence)
+        return "{}-{}".format(self.lodgement_number, self.lodgement_sequence)
 
     @property
     def get_history(self):
-        """ Return the prev proposal versions """
+        """Return the prev proposal versions"""
         l = []
         p = copy.deepcopy(self)
-        while (p.previous_application):
-            l.append( dict(id=p.previous_application.id, modified=p.previous_application.modified_date) )
+        while p.previous_application:
+            l.append(
+                dict(
+                    id=p.previous_application.id,
+                    modified=p.previous_application.modified_date,
+                )
+            )
             p = p.previous_application
         return l
 
     def _get_history(self):
-        """ Return the prev proposal versions """
+        """Return the prev proposal versions"""
         l = []
         p = copy.deepcopy(self)
-        while (p.previous_application):
-            l.append( [p.id, p.previous_application.id] )
+        while p.previous_application:
+            l.append([p.id, p.previous_application.id])
             p = p.previous_application
         return l
 
@@ -639,7 +827,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
     @property
     def is_temporary(self):
-        return self.customer_status == 'temp' and self.processing_status == 'temp'
+        return self.customer_status == "temp" and self.processing_status == "temp"
 
     @property
     def can_user_edit(self):
@@ -662,7 +850,10 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         1 - It is a draft
         2- or if the application has been pushed back to the user
         """
-        return self.customer_status == 'draft' or self.processing_status == 'awaiting_applicant_response'
+        return (
+            self.customer_status == "draft"
+            or self.processing_status == "awaiting_applicant_response"
+        )
 
     @property
     def is_deletable(self):
@@ -670,7 +861,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         An application can be deleted only if it is a draft and it hasn't been lodged yet
         :return:
         """
-        return self.customer_status == 'draft' and not self.lodgement_number
+        return self.customer_status == "draft" and not self.lodgement_number
 
     @property
     def latest_referrals(self):
@@ -686,19 +877,19 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
     @property
     def allowed_assessors(self):
-        if self.processing_status == 'with_approver':
+        if self.processing_status == "with_approver":
             group = self.__approver_group()
         else:
             group = self.__assessor_group()
         return group.resolved_members if group else []
 
-    #Compliance and Approvals use assessor group to show/hide compliance/approvals actions on dashboard
+    # Compliance and Approvals use assessor group to show/hide compliance/approvals actions on dashboard
     @property
     def compliance_assessors(self):
         group = self.__assessor_group()
         return group.resolved_members if group else []
 
-    #Approver group required to show/hide reissue actions on Approval dashboard
+    # Approver group required to show/hide reissue actions on Approval dashboard
     @property
     def allowed_approvers(self):
         group = self.__approver_group()
@@ -709,7 +900,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         """
         :return: True if the application is in one of the processable status for Assessor role.
         """
-        officer_view_state = ['draft','approved','declined','temp','discarded']
+        officer_view_state = ["draft", "approved", "declined", "temp", "discarded"]
         if self.processing_status in officer_view_state:
             return False
         else:
@@ -717,17 +908,17 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
     @property
     def amendment_requests(self):
-        qs =AmendmentRequest.objects.filter(proposal = self)
+        qs = AmendmentRequest.objects.filter(proposal=self)
         return qs
 
     @property
     def apiary_group_application_type(self):
         apiary = False
         if self.application_type and self.application_type.name in (
-                ApplicationType.APIARY,
-                ApplicationType.TEMPORARY_USE,
-                ApplicationType.SITE_TRANSFER,
-                ):
+            ApplicationType.APIARY,
+            ApplicationType.TEMPORARY_USE,
+            ApplicationType.SITE_TRANSFER,
+        ):
             apiary = True
         return apiary
 
@@ -752,13 +943,13 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
             out = {}
             for k, v in dic.items():
-                out[k.split('_0_')[1]] = v
+                out[k.split("_0_")[1]] = v
             return out
         except:
             return {}
 
     def flatten_json(self, dictionary):
-        """ 
+        """
         Flatten a nested json string.
         """
         from itertools import chain, starmap
@@ -766,27 +957,28 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         def unpack(parent_key, parent_value):
             # Unpack one level of nesting in json file.
             # Unpack one level only!!!
-            
+
             if isinstance(parent_value, dict):
                 for key, value in parent_value.items():
-                    temp1 = parent_key + '_' + key
+                    temp1 = parent_key + "_" + key
                     yield temp1, value
             elif isinstance(parent_value, list):
-                i = 0 
+                i = 0
                 for value in parent_value:
-                    temp2 = parent_key + '_'+str(i) 
+                    temp2 = parent_key + "_" + str(i)
                     i += 1
                     yield temp2, value
             else:
-                yield parent_key, parent_value    
+                yield parent_key, parent_value
 
         # Keep iterating until the termination condition is satisfied
         while True:
             # Keep unpacking the json file until all values are atomic elements (not dictionary or list)
             dictionary = dict(chain.from_iterable(starmap(unpack, dictionary.items())))
             # Terminate condition: not any value in the json file is dictionary or list
-            if not any(isinstance(value, dict) for value in dictionary.values()) and \
-            not any(isinstance(value, list) for value in dictionary.values()):
+            if not any(
+                isinstance(value, dict) for value in dictionary.values()
+            ) and not any(isinstance(value, list) for value in dictionary.values()):
                 break
 
         return dictionary
@@ -805,12 +997,15 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         for v in diffs.items():
             if "values_changed" in v:
                 for k, v in v[1].items():
-                    diffs_list.append({k.split('\'')[-2]:v['new_value'],})
+                    diffs_list.append(
+                        {
+                            k.split("'")[-2]: v["new_value"],
+                        }
+                    )
         return diffs_list
 
-
     def get_version_differences(self, newer_version: int, older_version: int):
-        """ Returns the differences between two versions
+        """Returns the differences between two versions
 
         The most recent version is always 0.
 
@@ -826,37 +1021,51 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         """
 
         # Fail if either argument is negative
-        if(newer_version<0 or older_version<0):
-            raise Exception('The newer_version and older_version arguements must be 0 or higher')
+        if newer_version < 0 or older_version < 0:
+            raise Exception(
+                "The newer_version and older_version arguements must be 0 or higher"
+            )
 
         # Refuse to compare if the newer version is not actually newer
-        if(newer_version>=older_version):
-            raise Exception('The newer_version arguement must be smaller than the older_version argument')
+        if newer_version >= older_version:
+            raise Exception(
+                "The newer_version arguement must be smaller than the older_version argument"
+            )
 
         versions = self.get_reversion_history()
 
         # Complain if either requested version doesn't exist
-        if (newer_version>=(len(versions)-1)):
-            raise IndexError(f'The newer_version you requested "{newer_version}" doesn\'t exist')
+        if newer_version >= (len(versions) - 1):
+            raise IndexError(
+                f'The newer_version you requested "{newer_version}" doesn\'t exist'
+            )
 
-        if (older_version>(len(versions)-1)):
-            raise IndexError(f'The older_version you requested "{older_version}" doesn\'t exist')
+        if older_version > (len(versions) - 1):
+            raise IndexError(
+                f'The older_version you requested "{older_version}" doesn\'t exist'
+            )
 
         newer_version_data = versions[newer_version].field_dict
         older_version_data = versions[older_version].field_dict
 
-        differences = DeepDiff(newer_version_data, older_version_data, ignore_order=True)
+        differences = DeepDiff(
+            newer_version_data, older_version_data, ignore_order=True
+        )
 
         default_mapping = {datetime.datetime: lambda d: str(d)}
 
-        json_differences = json.loads(differences.to_json(default_mapping=default_mapping))
+        json_differences = json.loads(
+            differences.to_json(default_mapping=default_mapping)
+        )
 
         return json_differences
 
-    def get_version_differences_comment_and_assessor_data(self, field, newer_version: int, older_version: int):
-        """ Returns the differences between the comment data of two versions
+    def get_version_differences_comment_and_assessor_data(
+        self, field, newer_version: int, older_version: int
+    ):
+        """Returns the differences between the comment data of two versions
 
-        Due to the structure of the 'comment_data' and 'assessor_data' fields being different to the 
+        Due to the structure of the 'comment_data' and 'assessor_data' fields being different to the
         structure of the 'data' field, we need some custom logic to return the section identifier and
         the email for the referrer.
 
@@ -881,33 +1090,43 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         """
 
         # Fail if either argument is negative
-        if(newer_version<0 or older_version<0):
-            raise Exception('The newer_version and older_version arguements must be 0 or higher')
+        if newer_version < 0 or older_version < 0:
+            raise Exception(
+                "The newer_version and older_version arguements must be 0 or higher"
+            )
 
         # Refuse to compare if the newer version is not actually newer
-        if(newer_version>=older_version):
-            raise Exception('The newer_version arguement must be smaller than the older_version argument')
+        if newer_version >= older_version:
+            raise Exception(
+                "The newer_version arguement must be smaller than the older_version argument"
+            )
 
-        versions = list(Version.objects.get_for_object(self).select_related('revision')\
-            .filter(revision__comment__contains='processing_status').get_unique())
+        versions = list(
+            Version.objects.get_for_object(self)
+            .select_related("revision")
+            .filter(revision__comment__contains="processing_status")
+            .get_unique()
+        )
 
         older_version_data = versions[older_version].field_dict[field]
         newer_version_data = versions[newer_version].field_dict[field]
 
-        differences = DeepDiff(older_version_data, newer_version_data, ignore_order=True)
+        differences = DeepDiff(
+            older_version_data, newer_version_data, ignore_order=True
+        )
 
         json_differences = json.loads(differences.to_json())
 
         differences_list = []
 
-        if 'values_changed' in json_differences:            
-            logger.debug('\n\n values_changed ========================= ')
-            values_changed = json_differences['values_changed']
+        if "values_changed" in json_differences:
+            logger.debug("\n\n values_changed ========================= ")
+            values_changed = json_differences["values_changed"]
 
             for key in values_changed:
                 # Due to the structure of comment_data and assessor_data we need to get the section name
                 # for both the comments and the referral comments.
-                #    
+                #
                 # We also need the email for the Refferal comments.
                 #
                 # With this information we can attach the revision notes in the right place on the frontend
@@ -915,116 +1134,201 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 #
                 # Also keep in mind that deep diff will return a different data structure once referral
                 # comments have been added.
-                
+
                 # Get the number between the first set of square brackets i.e. x in 'root[x].etc[y].etc[z]
-                regex = re.search('(?<=\[).+?(?=\])', str(key))
+                regex = re.search("(?<=\[).+?(?=\])", str(key))
                 root_level = regex.group(0)
 
-                differences_list = self.append_to_differences_list_by_field(field, older_version_data, newer_version_data, \
-                    values_changed, key, root_level,differences_list)
+                differences_list = self.append_to_differences_list_by_field(
+                    field,
+                    older_version_data,
+                    newer_version_data,
+                    values_changed,
+                    key,
+                    root_level,
+                    differences_list,
+                )
 
         return differences_list
 
-    def append_to_differences_list_by_field(self, field, older_version_data, newer_version_data, values_changed, key, root_level, \
-                                            differences_list):
-        """ Returns the differences list with the appropriate keys for the assessor_data field. """
-        
-        older_assessor_comment = older_version_data[int(root_level)]['assessor']
-        newer_assessor_comment = newer_version_data[int(root_level)]['assessor']
+    def append_to_differences_list_by_field(
+        self,
+        field,
+        older_version_data,
+        newer_version_data,
+        values_changed,
+        key,
+        root_level,
+        differences_list,
+    ):
+        """Returns the differences list with the appropriate keys for the assessor_data field."""
 
-        root_level_name = newer_version_data[int(root_level)]['name']
+        older_assessor_comment = older_version_data[int(root_level)]["assessor"]
+        newer_assessor_comment = newer_version_data[int(root_level)]["assessor"]
 
-        if 'assessor_data' == field:
-            assessor_suffix = '-Assessor'
-            referral_suffix = '-Referral-'
-        elif 'comment_data' == field:
-            assessor_suffix = '-comment-field-Assessor'
-            referral_suffix = '-comment-field-Referral-'            
+        root_level_name = newer_version_data[int(root_level)]["name"]
+
+        if "assessor_data" == field:
+            assessor_suffix = "-Assessor"
+            referral_suffix = "-Referral-"
+        elif "comment_data" == field:
+            assessor_suffix = "-comment-field-Assessor"
+            referral_suffix = "-comment-field-Referral-"
         else:
-            raise ValueError('The field argument must be either assessor_data or comment_data')
+            raise ValueError(
+                "The field argument must be either assessor_data or comment_data"
+            )
 
         if older_assessor_comment:
-            logger.debug('\n There is an older comment: \n' + str(older_assessor_comment))
+            logger.debug(
+                "\n There is an older comment: \n" + str(older_assessor_comment)
+            )
             # if the assessor comment hasn't changed then it must be a referral comment change that deep diff picked up
             if newer_assessor_comment == older_assessor_comment:
-                older_referrals = older_version_data[int(root_level)]['referrals']
-                newer_referrals = newer_version_data[int(root_level)]['referrals']
+                older_referrals = older_version_data[int(root_level)]["referrals"]
+                newer_referrals = newer_version_data[int(root_level)]["referrals"]
                 if newer_referrals:
                     if older_referrals:
                         for i, new_referral in enumerate(newer_referrals):
-                            referrer_email = new_referral['email']
-                            root_level_name_appended = root_level_name + f'{referral_suffix}{referrer_email}'
-                            try:                
-                                if new_referral['value'] != older_referrals[i]['value']:
-                                    if {root_level_name_appended:older_referrals[i]['value']} not in differences_list:
-                                        differences_list.append({root_level_name_appended:older_referrals[i]['value']})
+                            referrer_email = new_referral["email"]
+                            root_level_name_appended = (
+                                root_level_name + f"{referral_suffix}{referrer_email}"
+                            )
+                            try:
+                                if new_referral["value"] != older_referrals[i]["value"]:
+                                    if {
+                                        root_level_name_appended: older_referrals[i][
+                                            "value"
+                                        ]
+                                    } not in differences_list:
+                                        differences_list.append(
+                                            {
+                                                root_level_name_appended: older_referrals[
+                                                    i
+                                                ]["value"]
+                                            }
+                                        )
                             except IndexError:
                                 # This referral doesn't exist in the older version
-                                if new_referral['value']:
-                                    differences_list.append({root_level_name_appended:'(Previously Blank)'})
+                                if new_referral["value"]:
+                                    differences_list.append(
+                                        {root_level_name_appended: "(Previously Blank)"}
+                                    )
             else:
-                logger.debug('key = ' + str(key))
-                if 'referral' not in key:
+                logger.debug("key = " + str(key))
+                if "referral" not in key:
                     root_level_name_appended = root_level_name + assessor_suffix
-                    old_value = values_changed[key]['old_value']
-                    logger.debug('old_value = ' + str(old_value))
-                    if(type(old_value) is dict):
+                    old_value = values_changed[key]["old_value"]
+                    logger.debug("old_value = " + str(old_value))
+                    if type(old_value) is dict:
                         # In certain circumstances, deep diff returns a dictionary rather than just a value
-                        differences_list.append({root_level_name_appended:old_value['assessor']})
+                        differences_list.append(
+                            {root_level_name_appended: old_value["assessor"]}
+                        )
                     else:
-                        differences_list.append({root_level_name_appended:old_value})
+                        differences_list.append({root_level_name_appended: old_value})
                 else:
-                    older_referrals = older_version_data[int(root_level)]['referrals']
-                    newer_referrals = newer_version_data[int(root_level)]['referrals']
+                    older_referrals = older_version_data[int(root_level)]["referrals"]
+                    newer_referrals = newer_version_data[int(root_level)]["referrals"]
                     if newer_referrals:
                         for i, new_referral in enumerate(newer_referrals):
-                            logger.debug('\n new_referral \n' + str(new_referral['value'] ))
-                            logger.debug('\n older_referral \n' + str(older_referrals[i]['value']))
-                            referrer_email = new_referral['email']
-                            root_level_name_appended = root_level_name + f'{referral_suffix}{referrer_email}'
+                            logger.debug(
+                                "\n new_referral \n" + str(new_referral["value"])
+                            )
+                            logger.debug(
+                                "\n older_referral \n"
+                                + str(older_referrals[i]["value"])
+                            )
+                            referrer_email = new_referral["email"]
+                            root_level_name_appended = (
+                                root_level_name + f"{referral_suffix}{referrer_email}"
+                            )
                             try:
-                                if new_referral['value'] != older_referrals[i]['value']:
-                                    if {root_level_name_appended:older_referrals[i]['value']} not in differences_list:                        
-                                        differences_list.append({root_level_name_appended:older_referrals[i]['value']})
+                                if new_referral["value"] != older_referrals[i]["value"]:
+                                    if {
+                                        root_level_name_appended: older_referrals[i][
+                                            "value"
+                                        ]
+                                    } not in differences_list:
+                                        differences_list.append(
+                                            {
+                                                root_level_name_appended: older_referrals[
+                                                    i
+                                                ]["value"]
+                                            }
+                                        )
                             except IndexError:
                                 # This referral doesn't exist in the older version
-                                if new_referral['value']:
-                                    differences_list.append({root_level_name_appended:'(Previously Blank)'})
+                                if new_referral["value"]:
+                                    differences_list.append(
+                                        {root_level_name_appended: "(Previously Blank)"}
+                                    )
         else:
             if newer_assessor_comment:
                 root_level_name_appended = root_level_name + assessor_suffix
-                differences_list.append({root_level_name_appended:'(Previously Blank)'})
-                older_referrals = older_version_data[int(root_level)]['referrals']
-                newer_referrals = newer_version_data[int(root_level)]['referrals']
+                differences_list.append(
+                    {root_level_name_appended: "(Previously Blank)"}
+                )
+                older_referrals = older_version_data[int(root_level)]["referrals"]
+                newer_referrals = newer_version_data[int(root_level)]["referrals"]
                 if newer_referrals:
                     for i, new_referral in enumerate(newer_referrals):
                         try:
-                            if new_referral['value'] != older_referrals[i]['value']:                           
-                                referrer_email = new_referral['email']
-                                root_level_name_appended = root_level_name + f'{referral_suffix}{referrer_email}'
-                                if {root_level_name_appended:older_referrals[i]['value']} not in differences_list:                        
-                                    differences_list.append({root_level_name_appended:older_referrals[i]['value']})
+                            if new_referral["value"] != older_referrals[i]["value"]:
+                                referrer_email = new_referral["email"]
+                                root_level_name_appended = (
+                                    root_level_name
+                                    + f"{referral_suffix}{referrer_email}"
+                                )
+                                if {
+                                    root_level_name_appended: older_referrals[i][
+                                        "value"
+                                    ]
+                                } not in differences_list:
+                                    differences_list.append(
+                                        {
+                                            root_level_name_appended: older_referrals[
+                                                i
+                                            ]["value"]
+                                        }
+                                    )
                         except IndexError:
                             # This referral doesn't exist in the older version
-                            if new_referral['value']:
-                                differences_list.append({root_level_name_appended:'(Previously Blank)'})
+                            if new_referral["value"]:
+                                differences_list.append(
+                                    {root_level_name_appended: "(Previously Blank)"}
+                                )
             else:
                 # Edge case. Both the old assessor comment and the new assessor comment are empty
                 # Which means the change deep diff picked up must be a referral comment
-                older_referrals = older_version_data[int(root_level)]['referrals']
-                newer_referrals = newer_version_data[int(root_level)]['referrals']
+                older_referrals = older_version_data[int(root_level)]["referrals"]
+                newer_referrals = newer_version_data[int(root_level)]["referrals"]
                 if newer_referrals:
                     for i, new_referral in enumerate(newer_referrals):
-                        referrer_email = new_referral['email']
-                        root_level_name_appended = root_level_name + f'{referral_suffix}{referrer_email}'
+                        referrer_email = new_referral["email"]
+                        root_level_name_appended = (
+                            root_level_name + f"{referral_suffix}{referrer_email}"
+                        )
                         try:
-                            if new_referral['value'] != older_referrals[i]['value']:
-                                if {root_level_name_appended:older_referrals[i]['value']} not in differences_list:                         
-                                    differences_list.append({root_level_name_appended:older_referrals[i]['value']})
+                            if new_referral["value"] != older_referrals[i]["value"]:
+                                if {
+                                    root_level_name_appended: older_referrals[i][
+                                        "value"
+                                    ]
+                                } not in differences_list:
+                                    differences_list.append(
+                                        {
+                                            root_level_name_appended: older_referrals[
+                                                i
+                                            ]["value"]
+                                        }
+                                    )
                         except IndexError:
                             # This referral doesn't exist in the older version
-                            if new_referral['value']:
-                                differences_list.append({root_level_name_appended:'(Previously Blank)'})
+                            if new_referral["value"]:
+                                differences_list.append(
+                                    {root_level_name_appended: "(Previously Blank)"}
+                                )
 
         return differences_list
 
@@ -1033,109 +1337,138 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         Get the revisions for this Proposal where the processing_status has changed
         """
         # Get all revisions that have been submitted (not just saved by user) including the original.
-        #all_revisions = [v for v in Version.objects.get_for_object(self)[0:] if not v.field_dict['customer_status'] == 'draft']
+        # all_revisions = [v for v in Version.objects.get_for_object(self)[0:] if not v.field_dict['customer_status'] == 'draft']
         # Strip out duplicates (only take the most recent of a revision).
-        #unique_revisions = collections.OrderedDict({v.field_dict['lodgement_date']:v for v in all_revisions})
+        # unique_revisions = collections.OrderedDict({v.field_dict['lodgement_date']:v for v in all_revisions})
 
-        unique_revisions = Version.objects.get_for_object(self).select_related('revision').filter(revision__comment__contains='processing_status')
+        unique_revisions = (
+            Version.objects.get_for_object(self)
+            .select_related("revision")
+            .filter(revision__comment__contains="processing_status")
+        )
 
         return unique_revisions
 
     def get_full_reversion_history(self):
-        """  Get all the revisions for this Proposal.
-        """
+        """Get all the revisions for this Proposal."""
 
-        revisions = Version.objects.get_for_object(self).select_related('revision')
+        revisions = Version.objects.get_for_object(self).select_related("revision")
 
         return revisions
 
     def get_documents_for_version(self, version_number):
         # get the datetime the requested version was lodged
-        versions = list(Version.objects.get_for_object(self).select_related('revision')\
-            .filter(revision__comment__contains='processing_status').get_unique())
+        versions = list(
+            Version.objects.get_for_object(self)
+            .select_related("revision")
+            .filter(revision__comment__contains="processing_status")
+            .get_unique()
+        )
         version = versions[version_number]
-        version_lodgement_date = version.field_dict['lodgement_date']
-        version_documents = ProposalDocument.objects.filter(proposal=self, uploaded_date__lte=version_lodgement_date)\
-            .order_by('input_name', 'uploaded_date')
+        version_lodgement_date = version.field_dict["lodgement_date"]
+        version_documents = ProposalDocument.objects.filter(
+            proposal=self, uploaded_date__lte=version_lodgement_date
+        ).order_by("input_name", "uploaded_date")
         return version_documents, version_lodgement_date
 
     def get_document_differences(self, newer_version, older_version, differences_only):
-        newer_version_documents, newer_version_lodgement_date = self.get_documents_for_version(newer_version)
-        older_version_documents, older_version_lodgement_date = self.get_documents_for_version(older_version)
+        newer_version_documents, newer_version_lodgement_date = (
+            self.get_documents_for_version(newer_version)
+        )
+        older_version_documents, older_version_lodgement_date = (
+            self.get_documents_for_version(older_version)
+        )
 
         newer_documents_list = []
-        input_name = ''
+        input_name = ""
         for document in newer_version_documents:
             if not document.hidden:
                 if input_name != document.input_name:
                     input_name = document.input_name
-                    input_item = {input_name:[]}
+                    input_item = {input_name: []}
                     newer_documents_list.append(input_item)
 
-                input_item[input_name] += [{document.name:document._file.url}]
+                input_item[input_name] += [{document.name: document._file.url}]
 
         older_documents_list = []
-        input_name = ''
+        input_name = ""
         for document in older_version_documents:
             # We need to get the state (hidden or not) of the document as it was in the older version
-            older_document_version = Version.objects.get_for_object(document)\
-            .select_related('revision').filter(revision__date_created__lte=older_version_lodgement_date).order_by('-revision__date_created').first()
+            older_document_version = (
+                Version.objects.get_for_object(document)
+                .select_related("revision")
+                .filter(revision__date_created__lte=older_version_lodgement_date)
+                .order_by("-revision__date_created")
+                .first()
+            )
             older_document = ProposalDocument(**older_document_version.field_dict)
             if not older_document.hidden:
                 if input_name != older_document.input_name:
                     input_name = older_document.input_name
-                    input_item = {input_name:[]}
+                    input_item = {input_name: []}
                     older_documents_list.append(input_item)
 
-                input_item[input_name] += [{older_document.name:older_document._file.url}]
+                input_item[input_name] += [
+                    {older_document.name: older_document._file.url}
+                ]
 
-        differences = DeepDiff(newer_documents_list, older_documents_list, ignore_order=True)
+        differences = DeepDiff(
+            newer_documents_list, older_documents_list, ignore_order=True
+        )
 
         differences_list = []
         for difference in differences.items():
             if "values_changed" in difference:
                 for key, value in difference[1].items():
-                    key_suffix = key.split('\'')[-1]
-                    section = key.split('\'')[-2]
+                    key_suffix = key.split("'")[-1]
+                    section = key.split("'")[-2]
                     # Add the old value document to the list as an remove
-                    old_value_dict = value['old_value']
-                    operation = '-'
+                    old_value_dict = value["old_value"]
+                    operation = "-"
                     for item in old_value_dict:
                         file_name = item
                         file_path = old_value_dict[item]
-                        differences_list.append({section:(operation, file_name, file_path)})
+                        differences_list.append(
+                            {section: (operation, file_name, file_path)}
+                        )
                     # Add the new value document to the list as an add
-                    new_value_dict = value['new_value']
-                    operation = '+'
+                    new_value_dict = value["new_value"]
+                    operation = "+"
                     for item in new_value_dict:
                         file_name = item
                         file_path = new_value_dict[item]
-                        differences_list.append({section:(operation, file_name, file_path)})
+                        differences_list.append(
+                            {section: (operation, file_name, file_path)}
+                        )
 
             if "iterable_item_removed" in difference:
-                operation = '-'
+                operation = "-"
                 for item in difference[1]:
                     document = difference[1][item]
                     for x in document:
-                        section = item.split('\'')[-2]
+                        section = item.split("'")[-2]
                         for key, value in document.items():
                             file_name = key
                             file_path = document[key]
-                            differences_list.append({section:(operation, file_name, file_path)})
+                            differences_list.append(
+                                {section: (operation, file_name, file_path)}
+                            )
 
             if "iterable_item_added" in difference:
-                operation = '+'
+                operation = "+"
                 for item in difference[1]:
                     document = difference[1][item]
                     for x in document:
-                        section = item.split('\'')[-2]
+                        section = item.split("'")[-2]
                         for key, value in document.items():
                             file_name = key
                             file_path = document[key]
-                            differences_list.append({section:(operation, file_name, file_path)})
+                            differences_list.append(
+                                {section: (operation, file_name, file_path)}
+                            )
 
         return differences_list
-        
+
     def __assessor_group(self):
         group = ApiaryAssessorGroup.objects.first()
         if group:
@@ -1151,10 +1484,10 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             raise exceptions.ProposalNotComplete()
         missing_fields = []
         required_fields = {
-            'region':'Region/District',
+            "region": "Region/District",
         }
-        for k,v in required_fields.items():
-            val = getattr(self,k)
+        for k, v in required_fields.items():
+            val = getattr(self, k)
             if not val:
                 missing_fields.append(v)
         return missing_fields
@@ -1174,14 +1507,14 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     @property
     def hasAmendmentRequest(self):
         qs = self.amendment_requests
-        qs = qs.filter(status = 'requested')
+        qs = qs.filter(status="requested")
         if qs:
             return True
         return False
 
-    def referral_email_list(self,user):
-        qs=self.referrals.all()
-        email_list=[]
+    def referral_email_list(self, user):
+        qs = self.referrals.all()
+        email_list = []
         if self.assigned_officer:
             email_list.append(self.assigned_officer.email)
         else:
@@ -1189,40 +1522,44 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         if qs:
             for r in qs:
                 email_list.append(r.referral.email)
-        separator=','
-        email_list_string=separator.join(email_list)
+        separator = ","
+        email_list_string = separator.join(email_list)
         return email_list_string
 
-    def can_assess(self,user):
+    def can_assess(self, user):
         """
         Superusers can always assess/approve if at the appropriate status
-        Otherwise they can assess/approve if the user is assigned and an assessor/approver 
-        or they are an assessor/approver and no one is assigned 
+        Otherwise they can assess/approve if the user is assigned and an assessor/approver
+        or they are an assessor/approver and no one is assigned
         """
-        if self.processing_status in ['with_assessor', 'with_referral', 'with_assessor_requirements']:
+        if self.processing_status in [
+            "with_assessor",
+            "with_referral",
+            "with_assessor_requirements",
+        ]:
             return (
-                (
-                    (self.assigned_officer == user or self.assigned_officer == None) 
-                    and user in self.allowed_assessors
-                ) 
-                or user.is_superuser
-            )
-        elif self.processing_status == 'with_approver':
+                (self.assigned_officer == user or self.assigned_officer == None)
+                and user in self.allowed_assessors
+            ) or user.is_superuser
+        elif self.processing_status == "with_approver":
             return (
-                (
-                    (self.assigned_approver == user or self.assigned_approver == None) 
-                    and user in self.allowed_approvers
-                ) 
-                or user.is_superuser
-            )
+                (self.assigned_approver == user or self.assigned_approver == None)
+                and user in self.allowed_approvers
+            ) or user.is_superuser
         else:
             return False
 
-    def assessor_comments_view(self,user):
+    def assessor_comments_view(self, user):
 
-        if self.processing_status == 'with_assessor' or self.processing_status == 'with_referral' or self.processing_status == 'with_assessor_requirements' or self.processing_status == 'with_approver' or self.processing_status == 'approved':
+        if (
+            self.processing_status == "with_assessor"
+            or self.processing_status == "with_referral"
+            or self.processing_status == "with_assessor_requirements"
+            or self.processing_status == "with_approver"
+            or self.processing_status == "approved"
+        ):
             try:
-                referral = Referral.objects.get(proposal=self,referral=user)
+                referral = Referral.objects.get(proposal=self, referral=user)
             except:
                 referral = None
             if referral:
@@ -1236,57 +1573,82 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         else:
             return False
 
-    @property   
+    @property
     def status_without_assessor(self):
-        status_without_assessor = ['with_approver','approved','declined','draft', 'with_referral']
+        status_without_assessor = [
+            "with_approver",
+            "approved",
+            "declined",
+            "draft",
+            "with_referral",
+        ]
         if self.processing_status in status_without_assessor:
             return True
         return False
 
-    def has_assessor_mode(self,user):
-        status_without_assessor = ['with_approver','approved','declined','draft']
+    def has_assessor_mode(self, user):
+        status_without_assessor = ["with_approver", "approved", "declined", "draft"]
         if self.processing_status in status_without_assessor:
             return False
         else:
             if self.assigned_officer:
                 if self.assigned_officer == user:
-                    return self.__assessor_group() in user.apiaryassessorgroup_set.all() or user.is_superuser
+                    return (
+                        self.__assessor_group() in user.apiaryassessorgroup_set.all()
+                        or user.is_superuser
+                    )
                 else:
                     return False
             else:
-                return self.__assessor_group() in user.apiaryassessorgroup_set.all() or user.is_superuser
+                return (
+                    self.__assessor_group() in user.apiaryassessorgroup_set.all()
+                    or user.is_superuser
+                )
 
     def log_user_action(self, action, request):
         return ProposalUserAction.log_action(self, action, request.user)
 
-    #TODO on-cleanup review and remove if not used
-    def submit(self,request,viewset):
+    # TODO on-cleanup review and remove if not used
+    def submit(self, request, viewset):
         from disturbance.components.proposals.utils import save_proponent_data
+
         with transaction.atomic():
             if self.can_user_edit:
                 # Save the data first
-                save_proponent_data(self,request,viewset)
+                save_proponent_data(self, request, viewset)
                 if self.application_type.name != ApplicationType.APIARY:
                     # Check if the special fields have been completed
                     missing_fields = self.__check_proposal_filled_out()
                     if missing_fields:
-                        error_text = 'The proposal has these missing fields, {}'.format(','.join(missing_fields))
+                        error_text = "The proposal has these missing fields, {}".format(
+                            ",".join(missing_fields)
+                        )
                         raise exceptions.ProposalMissingFields(detail=error_text)
-                    
+
                 self.submitter = request.user
                 self.lodgement_date = timezone.now()
-                if (self.amendment_requests):
-                    qs = self.amendment_requests.filter(status = "requested")
-                    if (qs):
+                if self.amendment_requests:
+                    qs = self.amendment_requests.filter(status="requested")
+                    if qs:
                         for q in qs:
-                            q.status = 'amended'
+                            q.status = "amended"
                             q.save()
 
                 # Create a log entry for the proposal
-                self.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(self.lodgement_number), request)
+                self.log_user_action(
+                    ProposalUserAction.ACTION_LODGE_APPLICATION.format(
+                        self.lodgement_number
+                    ),
+                    request,
+                )
                 # Create a log entry for the organisation
                 if self.applicant:
-                    self.applicant.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(self.lodgement_number), request)
+                    self.applicant.log_user_action(
+                        ProposalUserAction.ACTION_LODGE_APPLICATION.format(
+                            self.lodgement_number
+                        ),
+                        request,
+                    )
 
                 ret1 = send_submit_email_notification(request, self)
                 ret2 = send_external_submit_email_notification(request, self)
@@ -1297,37 +1659,48 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     self.documents.all().update(can_delete=False)
                     self.save()
                 else:
-                    raise ValidationError('An error occurred while submitting proposal (Submit email notifications failed)')
+                    raise ValidationError(
+                        "An error occurred while submitting proposal (Submit email notifications failed)"
+                    )
             else:
-                raise ValidationError('You can\'t edit this proposal at this moment')
+                raise ValidationError("You can't edit this proposal at this moment")
         return self
 
-    def update(self,request,viewset):
+    def update(self, request, viewset):
         from disturbance.components.proposals.utils import save_proponent_data
+
         with transaction.atomic():
             if self.can_user_edit:
                 # Save the data first
-                save_proponent_data(self,request,viewset)
+                save_proponent_data(self, request, viewset)
                 self.save()
             else:
-                raise ValidationError('You can\'t edit this proposal at this moment')
+                raise ValidationError("You can't edit this proposal at this moment")
 
-    def discard(self,request):
+    def discard(self, request):
         with transaction.atomic():
             if self.can_user_edit:
                 self.processing_status = Proposal.PROCESSING_STATUS_DISCARDED
                 self.customer_status = Proposal.CUSTOMER_STATUS_DISCARDED
                 self.save()
-                self.log_user_action(ProposalUserAction.ACTION_DISCARD_PROPOSAL.format(self.lodgement_number), request)
+                self.log_user_action(
+                    ProposalUserAction.ACTION_DISCARD_PROPOSAL.format(
+                        self.lodgement_number
+                    ),
+                    request,
+                )
             else:
-                raise ValidationError('You can\'t discard this proposal at this moment')
+                raise ValidationError("You can't discard this proposal at this moment")
 
-    def send_referral(self,request,referral_email,referral_text):
+    def send_referral(self, request, referral_email, referral_text):
         with transaction.atomic():
             try:
                 referral_email = referral_email.lower()
-                if self.processing_status == 'with_assessor' or self.processing_status == 'with_referral':
-                    self.processing_status = 'with_referral'
+                if (
+                    self.processing_status == "with_assessor"
+                    or self.processing_status == "with_referral"
+                ):
+                    self.processing_status = "with_referral"
                     self.save()
                     referral = None
 
@@ -1338,88 +1711,157 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         # Validate if it is a deparment user
                         department_user = get_department_user(referral_email)
                         if not department_user:
-                            raise ValidationError('The user you want to send the referral to is not a member of the department')
+                            raise ValidationError(
+                                "The user you want to send the referral to is not a member of the department"
+                            )
                         # Check if the user is in ledger or create
 
-                        user,created = EmailUser.objects.get_or_create(email=department_user['email'].lower())
+                        user, created = EmailUser.objects.get_or_create(
+                            email=department_user["email"].lower()
+                        )
                         if created:
-                            user.first_name = department_user['given_name']
-                            user.last_name = department_user['surname']
+                            user.first_name = department_user["given_name"]
+                            user.last_name = department_user["surname"]
                             user.save()
                     try:
-                        Referral.objects.get(referral=user,proposal=self)
-                        raise ValidationError('A referral has already been sent to this user')
+                        Referral.objects.get(referral=user, proposal=self)
+                        raise ValidationError(
+                            "A referral has already been sent to this user"
+                        )
                     except Referral.DoesNotExist:
                         # Create Referral
                         referral = Referral.objects.create(
-                            proposal = self,
+                            proposal=self,
                             referral=user,
                             sent_by=request.user,
-                            text=referral_text
+                            text=referral_text,
                         )
                     # Create a log entry for the proposal
-                    self.log_user_action(ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(referral.id, self.lodgement_number, '{}({})'.format(user.get_full_name(), user.email)), request)
+                    self.log_user_action(
+                        ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(
+                            referral.id,
+                            self.lodgement_number,
+                            "{}({})".format(user.get_full_name(), user.email),
+                        ),
+                        request,
+                    )
                     # Create a log entry for the organisation
                     if self.applicant:
-                        self.applicant.log_user_action(ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(referral.id, self.lodgement_number, '{}({})'.format(user.get_full_name(), user.email)), request)
+                        self.applicant.log_user_action(
+                            ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(
+                                referral.id,
+                                self.lodgement_number,
+                                "{}({})".format(user.get_full_name(), user.email),
+                            ),
+                            request,
+                        )
                     # send email
-                    send_referral_email_notification(referral,request)
+                    send_referral_email_notification(referral, request)
                 else:
                     raise exceptions.ProposalReferralCannotBeSent()
             except:
                 raise
 
-    def assign_officer(self,request,officer):
+    def assign_officer(self, request, officer):
         with transaction.atomic():
             try:
                 if not self.can_assess(request.user):
                     raise exceptions.ProposalNotAuthorized()
                 if officer not in self.allowed_assessors:
-                    raise ValidationError('The selected person is not authorised to be assigned to this proposal')
-                if self.processing_status == 'with_approver':
+                    raise ValidationError(
+                        "The selected person is not authorised to be assigned to this proposal"
+                    )
+                if self.processing_status == "with_approver":
                     if officer != self.assigned_approver:
                         self.assigned_approver = officer
                         self.save()
                         # Create a log entry for the proposal
-                        self.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_APPROVER.format(self.lodgement_number, '{}({})'.format(officer.get_full_name(),officer.email)), request)
+                        self.log_user_action(
+                            ProposalUserAction.ACTION_ASSIGN_TO_APPROVER.format(
+                                self.lodgement_number,
+                                "{}({})".format(officer.get_full_name(), officer.email),
+                            ),
+                            request,
+                        )
                         # Create a log entry for the organisation
                         if self.applicant:
-                            self.applicant.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_APPROVER.format(self.lodgement_number, '{}({})'.format(officer.get_full_name(), officer.email)), request)
+                            self.applicant.log_user_action(
+                                ProposalUserAction.ACTION_ASSIGN_TO_APPROVER.format(
+                                    self.lodgement_number,
+                                    "{}({})".format(
+                                        officer.get_full_name(), officer.email
+                                    ),
+                                ),
+                                request,
+                            )
                 else:
                     if officer != self.assigned_officer:
                         self.assigned_officer = officer
                         self.save()
                         # Create a log entry for the proposal
-                        self.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(self.lodgement_number, '{}({})'.format(officer.get_full_name(), officer.email)), request)
+                        self.log_user_action(
+                            ProposalUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(
+                                self.lodgement_number,
+                                "{}({})".format(officer.get_full_name(), officer.email),
+                            ),
+                            request,
+                        )
                         # Create a log entry for the organisation
                         if self.applicant:
-                            self.applicant.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(self.lodgement_number, '{}({})'.format(officer.get_full_name(), officer.email)), request)
+                            self.applicant.log_user_action(
+                                ProposalUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(
+                                    self.lodgement_number,
+                                    "{}({})".format(
+                                        officer.get_full_name(), officer.email
+                                    ),
+                                ),
+                                request,
+                            )
             except:
                 raise
 
     def assing_approval_level_document(self, request):
         with transaction.atomic():
             try:
-                approval_level_document = request.data['approval_level_document']
-                if approval_level_document != 'null':
+                approval_level_document = request.data["approval_level_document"]
+                if approval_level_document != "null":
                     try:
-                        document = self.documents.get(input_name=str(approval_level_document))
+                        document = self.documents.get(
+                            input_name=str(approval_level_document)
+                        )
                     except ProposalDocument.DoesNotExist:
-                        document = self.documents.get_or_create(input_name=str(approval_level_document), name=str(approval_level_document))[0]
+                        document = self.documents.get_or_create(
+                            input_name=str(approval_level_document),
+                            name=str(approval_level_document),
+                        )[0]
                     document.name = str(approval_level_document)
                     document._file = approval_level_document
                     document.save()
-                    d=ProposalDocument.objects.get(id=document.id)
+                    d = ProposalDocument.objects.get(id=document.id)
                     self.approval_level_document = d
-                    comment = 'Approval Level Document Added: {}'.format(document.name)
+                    comment = "Approval Level Document Added: {}".format(document.name)
                 else:
                     self.approval_level_document = None
-                    comment = 'Approval Level Document Deleted: {}'.format(request.data['approval_level_document_name'])
-                self.save(version_comment=comment) # to allow revision to be added to reversion history
-                self.log_user_action(ProposalUserAction.ACTION_APPROVAL_LEVEL_DOCUMENT.format(self.lodgement_number), request)
+                    comment = "Approval Level Document Deleted: {}".format(
+                        request.data["approval_level_document_name"]
+                    )
+                self.save(
+                    version_comment=comment
+                )  # to allow revision to be added to reversion history
+                self.log_user_action(
+                    ProposalUserAction.ACTION_APPROVAL_LEVEL_DOCUMENT.format(
+                        self.lodgement_number
+                    ),
+                    request,
+                )
                 # Create a log entry for the organisation
                 if self.applicant:
-                    self.applicant.log_user_action(ProposalUserAction.ACTION_APPROVAL_LEVEL_DOCUMENT.format(self.lodgement_number), request)
+                    self.applicant.log_user_action(
+                        ProposalUserAction.ACTION_APPROVAL_LEVEL_DOCUMENT.format(
+                            self.lodgement_number
+                        ),
+                        request,
+                    )
                 return self
             except:
                 raise
@@ -1427,71 +1869,124 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     def save_approval_level_comment(self, request):
         with transaction.atomic():
             try:
-                approval_level_comment = request.data['approval_level_comment']
-                self.approval_level_comment=approval_level_comment
+                approval_level_comment = request.data["approval_level_comment"]
+                self.approval_level_comment = approval_level_comment
                 self.save()
-                self.log_user_action(ProposalUserAction.ACTION_APPROVAL_LEVEL_COMMENT.format(self.lodgement_number), request)
+                self.log_user_action(
+                    ProposalUserAction.ACTION_APPROVAL_LEVEL_COMMENT.format(
+                        self.lodgement_number
+                    ),
+                    request,
+                )
                 # Create a log entry for the organisation
                 if self.applicant:
-                    self.applicant.log_user_action(ProposalUserAction.ACTION_APPROVAL_LEVEL_COMMENT.format(self.lodgement_number), request)
+                    self.applicant.log_user_action(
+                        ProposalUserAction.ACTION_APPROVAL_LEVEL_COMMENT.format(
+                            self.lodgement_number
+                        ),
+                        request,
+                    )
                 return self
             except:
                 raise
 
-    def unassign(self,request):
+    def unassign(self, request):
         with transaction.atomic():
             try:
                 if not self.can_assess(request.user):
                     raise exceptions.ProposalNotAuthorized()
-                if self.processing_status == 'with_approver':
+                if self.processing_status == "with_approver":
                     if self.assigned_approver:
                         self.assigned_approver = None
                         self.save()
                         # Create a log entry for the proposal
-                        self.log_user_action(ProposalUserAction.ACTION_UNASSIGN_APPROVER.format(self.lodgement_number), request)
+                        self.log_user_action(
+                            ProposalUserAction.ACTION_UNASSIGN_APPROVER.format(
+                                self.lodgement_number
+                            ),
+                            request,
+                        )
                         # Create a log entry for the organisation
                         if self.applicant:
-                            self.applicant.log_user_action(ProposalUserAction.ACTION_UNASSIGN_APPROVER.format(self.lodgement_number), request)
+                            self.applicant.log_user_action(
+                                ProposalUserAction.ACTION_UNASSIGN_APPROVER.format(
+                                    self.lodgement_number
+                                ),
+                                request,
+                            )
                 else:
                     if self.assigned_officer:
                         self.assigned_officer = None
                         self.save()
                         # Create a log entry for the proposal
-                        self.log_user_action(ProposalUserAction.ACTION_UNASSIGN_ASSESSOR.format(self.lodgement_number), request)
+                        self.log_user_action(
+                            ProposalUserAction.ACTION_UNASSIGN_ASSESSOR.format(
+                                self.lodgement_number
+                            ),
+                            request,
+                        )
                         # Create a log entry for the organisation
                         if self.applicant:
-                            self.applicant.log_user_action(ProposalUserAction.ACTION_UNASSIGN_ASSESSOR.format(self.lodgement_number), request)
+                            self.applicant.log_user_action(
+                                ProposalUserAction.ACTION_UNASSIGN_ASSESSOR.format(
+                                    self.lodgement_number
+                                ),
+                                request,
+                            )
             except:
                 raise
 
-    def move_to_status(self,request,status, approver_comment):
+    def move_to_status(self, request, status, approver_comment):
         if not self.can_assess(request.user):
             raise exceptions.ProposalNotAuthorized()
-        if status in ['with_assessor','with_assessor_requirements','with_approver']:
-            if self.processing_status == 'with_referral' or self.can_user_edit:
-                raise ValidationError('You cannot change the current status at this time')
+        if status in ["with_assessor", "with_assessor_requirements", "with_approver"]:
+            if self.processing_status == "with_referral" or self.can_user_edit:
+                raise ValidationError(
+                    "You cannot change the current status at this time"
+                )
             if self.processing_status != status:
-                if self.processing_status =='with_approver':
+                if self.processing_status == "with_approver":
                     if approver_comment:
                         self.approver_comment = approver_comment
                         self.save()
-                        send_proposal_approver_sendback_email_notification(request, self)
+                        send_proposal_approver_sendback_email_notification(
+                            request, self
+                        )
                 self.processing_status = status
                 self.save()
 
                 # Create a log entry for the proposal
                 if self.processing_status == self.PROCESSING_STATUS_WITH_ASSESSOR:
-                    self.log_user_action(ProposalUserAction.ACTION_BACK_TO_PROCESSING.format(self.lodgement_number), request)
-                elif self.processing_status == self.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS:
-                    self.log_user_action(ProposalUserAction.ACTION_ENTER_REQUIREMENTS.format(self.lodgement_number), request)
+                    self.log_user_action(
+                        ProposalUserAction.ACTION_BACK_TO_PROCESSING.format(
+                            self.lodgement_number
+                        ),
+                        request,
+                    )
+                elif (
+                    self.processing_status
+                    == self.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS
+                ):
+                    self.log_user_action(
+                        ProposalUserAction.ACTION_ENTER_REQUIREMENTS.format(
+                            self.lodgement_number
+                        ),
+                        request,
+                    )
         else:
-            raise ValidationError('The provided status cannot be found.')
+            raise ValidationError("The provided status cannot be found.")
 
-    def reissue_approval(self,request,status):
+    def reissue_approval(self, request, status):
         with transaction.atomic():
-            if not self.processing_status=='approved' :
-                raise ValidationError('You cannot change the current status at this time')
-            elif self.application_type.name == 'Site Transfer' and self.__approver_group() in request.user.apiaryapprovergroup_set.all():
+            if not self.processing_status == "approved":
+                raise ValidationError(
+                    "You cannot change the current status at this time"
+                )
+            elif (
+                self.application_type.name == "Site Transfer"
+                and self.__approver_group()
+                in request.user.apiaryapprovergroup_set.all()
+            ):
                 # track changes to apiary sites and proposal requirements in save() methods instead
                 self.processing_status = status
                 self.save()
@@ -1504,119 +1999,175 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 self.proposal_apiary.target_approval.save()
             elif self.approval and self.approval.can_reissue:
                 # Apiary logic in first condition
-                if self.apiary_group_application_type and self.__approver_group() in request.user.apiaryapprovergroup_set.all():
+                if (
+                    self.apiary_group_application_type
+                    and self.__approver_group()
+                    in request.user.apiaryapprovergroup_set.all()
+                ):
                     self.processing_status = status
                     self.save()
-                    self.approval.reissued=True
+                    self.approval.reissued = True
                     self.approval.save()
                     # Create a log entry for the proposal
-                    self.log_user_action(ProposalUserAction.ACTION_REISSUE_APPROVAL.format(self.lodgement_number), request)
+                    self.log_user_action(
+                        ProposalUserAction.ACTION_REISSUE_APPROVAL.format(
+                            self.lodgement_number
+                        ),
+                        request,
+                    )
                 else:
-                    raise ValidationError('Cannot reissue Approval')
+                    raise ValidationError("Cannot reissue Approval")
             else:
-                raise ValidationError('Cannot reissue Approval')
+                raise ValidationError("Cannot reissue Approval")
 
-    def proposed_decline(self,request,details):
+    def proposed_decline(self, request, details):
         with transaction.atomic():
             try:
                 if not self.can_assess(request.user):
                     raise exceptions.ProposalNotAuthorized()
                 if self.processing_status != Proposal.PROCESSING_STATUS_WITH_ASSESSOR:
-                    raise ValidationError('You cannot propose to decline if it is not with assessor')
+                    raise ValidationError(
+                        "You cannot propose to decline if it is not with assessor"
+                    )
 
-                reason = details.get('reason')
+                reason = details.get("reason")
                 ProposalDeclinedDetails.objects.update_or_create(
-                    proposal = self,
-                    defaults={'officer': request.user, 'reason': reason, 'cc_email': details.get('cc_email',None)}
+                    proposal=self,
+                    defaults={
+                        "officer": request.user,
+                        "reason": reason,
+                        "cc_email": details.get("cc_email", None),
+                    },
                 )
                 self.proposed_decline_status = True
-                approver_comment = ''
-                self.move_to_status(request,'with_approver', approver_comment)
+                approver_comment = ""
+                self.move_to_status(request, "with_approver", approver_comment)
                 # Log proposal action
-                self.log_user_action(ProposalUserAction.ACTION_PROPOSED_DECLINE.format(self.lodgement_number), request)
+                self.log_user_action(
+                    ProposalUserAction.ACTION_PROPOSED_DECLINE.format(
+                        self.lodgement_number
+                    ),
+                    request,
+                )
                 # Log entry for organisation
                 if self.applicant:
-                    self.applicant.log_user_action(ProposalUserAction.ACTION_PROPOSED_DECLINE.format(self.lodgement_number), request)
+                    self.applicant.log_user_action(
+                        ProposalUserAction.ACTION_PROPOSED_DECLINE.format(
+                            self.lodgement_number
+                        ),
+                        request,
+                    )
 
                 send_approver_decline_email_notification(reason, request, self)
             except:
                 raise
 
-    def final_decline(self,request,details):
+    def final_decline(self, request, details):
         with transaction.atomic():
             try:
                 if not self.can_assess(request.user):
                     raise exceptions.ProposalNotAuthorized()
-                if self.processing_status != 'with_approver':
-                    raise ValidationError('You cannot decline if it is not with approver')
+                if self.processing_status != "with_approver":
+                    raise ValidationError(
+                        "You cannot decline if it is not with approver"
+                    )
 
-                proposal_decline, success = ProposalDeclinedDetails.objects.update_or_create(
-                    proposal = self,
-                    defaults={'officer':request.user,'reason':details.get('reason'),'cc_email':details.get('cc_email',None)}
+                proposal_decline, success = (
+                    ProposalDeclinedDetails.objects.update_or_create(
+                        proposal=self,
+                        defaults={
+                            "officer": request.user,
+                            "reason": details.get("reason"),
+                            "cc_email": details.get("cc_email", None),
+                        },
+                    )
                 )
                 self.proposed_decline_status = True
-                self.processing_status = 'declined'
-                self.customer_status = 'declined'
+                self.processing_status = "declined"
+                self.customer_status = "declined"
                 self.save()
 
-                if hasattr(self, 'proposal_apiary') and self.proposal_apiary:
+                if hasattr(self, "proposal_apiary") and self.proposal_apiary:
                     # Update apiary site status
                     self.proposal_apiary.final_decline()
 
                 # Log proposal action
-                self.log_user_action(ProposalUserAction.ACTION_DECLINE.format(self.lodgement_number), request)
+                self.log_user_action(
+                    ProposalUserAction.ACTION_DECLINE.format(self.lodgement_number),
+                    request,
+                )
                 # Log entry for organisation
                 if self.applicant:
-                    self.applicant.log_user_action(ProposalUserAction.ACTION_DECLINE.format(self.lodgement_number), request)
-                send_proposal_decline_email_notification(self,request, proposal_decline)
+                    self.applicant.log_user_action(
+                        ProposalUserAction.ACTION_DECLINE.format(self.lodgement_number),
+                        request,
+                    )
+                send_proposal_decline_email_notification(
+                    self, request, proposal_decline
+                )
             except:
                 raise
 
-    def preview_approval(self,request,details):
+    def preview_approval(self, request, details):
         from disturbance.components.approvals.models import (
             Approval,
             PreviewTempApproval,
         )
+
         with transaction.atomic():
             try:
-                if self.processing_status != 'with_approver':
-                    raise ValidationError('Licence preview only available when processing status is with_approver. Current status {}'.format(self.processing_status))
+                if self.processing_status != "with_approver":
+                    raise ValidationError(
+                        "Licence preview only available when processing status is with_approver. Current status {}".format(
+                            self.processing_status
+                        )
+                    )
                 if not self.can_assess(request.user):
                     raise exceptions.ProposalNotAuthorized()
                 if not self.relevant_applicant_address:
-                    raise ValidationError('The applicant needs to have set their postal address before approving this proposal. (Applicant: {})'.format(self.relevant_applicant))
+                    raise ValidationError(
+                        "The applicant needs to have set their postal address before approving this proposal. (Applicant: {})".format(
+                            self.relevant_applicant
+                        )
+                    )
 
-                lodgement_number = self.previous_application.approval.lodgement_number if self.proposal_type in ['renewal', 'amendment'] else '' # renewals/amendments keep same licence number
+                lodgement_number = (
+                    self.previous_application.approval.lodgement_number
+                    if self.proposal_type in ["renewal", "amendment"]
+                    else ""
+                )  # renewals/amendments keep same licence number
                 # Apiary Site Transfer logic
-                form_data_str = request.POST.get('formData')
+                form_data_str = request.POST.get("formData")
                 form_data = json.loads(form_data_str)
-                originating_approval_id = form_data.get('originating_approval_id')
-                target_approval_id = form_data.get('target_approval_id')
+                originating_approval_id = form_data.get("originating_approval_id")
+                target_approval_id = form_data.get("target_approval_id")
                 licence_buffer = None
                 if originating_approval_id:
                     preview_approval = Approval.objects.get(id=originating_approval_id)
                     licence_buffer = preview_approval.generate_apiary_site_transfer_doc(
-                            site_transfer_proposal=self,
-                            preview=True
-                            )
+                        site_transfer_proposal=self, preview=True
+                    )
                 elif target_approval_id:
                     preview_approval = Approval.objects.get(id=target_approval_id)
                     licence_buffer = preview_approval.generate_apiary_site_transfer_doc(
-                            site_transfer_proposal=self,
-                            preview=True
-                            )
+                        site_transfer_proposal=self, preview=True
+                    )
                 # All other logic
                 else:
                     preview_approval = PreviewTempApproval.objects.create(
-                        current_proposal = self,
-                        issue_date = timezone.now(),
-                        expiry_date = datetime.datetime.strptime(details.get('due_date'), '%d/%m/%Y').date(),
-                        start_date = datetime.datetime.strptime(details.get('start_date'), '%d/%m/%Y').date(),
-                        applicant = self.applicant,
-                        proxy_applicant = self.proxy_applicant,
-                        lodgement_number = lodgement_number,
-                        apiary_approval = self.apiary_group_application_type,
-                        approver_id = request.user.id,
+                        current_proposal=self,
+                        issue_date=timezone.now(),
+                        expiry_date=datetime.datetime.strptime(
+                            details.get("due_date"), "%d/%m/%Y"
+                        ).date(),
+                        start_date=datetime.datetime.strptime(
+                            details.get("start_date"), "%d/%m/%Y"
+                        ).date(),
+                        applicant=self.applicant,
+                        proxy_applicant=self.proxy_applicant,
+                        lodgement_number=lodgement_number,
+                        apiary_approval=self.apiary_group_application_type,
+                        approver_id=request.user.id,
                     )
 
                     # Generate the preview document - get the value of the BytesIO buffer
@@ -1629,134 +2180,226 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             except:
                 raise
 
-    def proposed_approval(self,request,details):
+    def proposed_approval(self, request, details):
         with transaction.atomic():
             try:
                 if not self.can_assess(request.user):
                     raise exceptions.ProposalNotAuthorized()
-                if self.processing_status != 'with_assessor_requirements':
-                    raise ValidationError('You cannot propose for approval if it is not with assessor for requirements')
+                if self.processing_status != "with_assessor_requirements":
+                    raise ValidationError(
+                        "You cannot propose for approval if it is not with assessor for requirements"
+                    )
                 # Do not accept new start and expiry dates for Apiary group applications with a licence, unless the licence has been reissued
-                start_date = details.get('start_date').strftime('%d/%m/%Y') if details.get('start_date') else None
-                expiry_date = details.get('expiry_date').strftime('%d/%m/%Y') if details.get('expiry_date') else None
+                start_date = (
+                    details.get("start_date").strftime("%d/%m/%Y")
+                    if details.get("start_date")
+                    else None
+                )
+                expiry_date = (
+                    details.get("expiry_date").strftime("%d/%m/%Y")
+                    if details.get("expiry_date")
+                    else None
+                )
 
-                if self.application_type.name == 'Apiary':
-                    if self.approval and (self.approval.reissued or self.proposal_type == 'renewal'):
+                if self.application_type.name == "Apiary":
+                    if self.approval and (
+                        self.approval.reissued or self.proposal_type == "renewal"
+                    ):
                         self.proposed_issuance_approval = {
-                            'start_date' : start_date,
-                            'expiry_date' : expiry_date,
-                            'details' : details.get('details'),
-                            'cc_email' : details.get('cc_email'),
+                            "start_date": start_date,
+                            "expiry_date": expiry_date,
+                            "details": details.get("details"),
+                            "cc_email": details.get("cc_email"),
                         }
                     elif self.proposed_issuance_approval:
                         self.proposed_issuance_approval = {
-                                'start_date' : self.proposed_issuance_approval.get('start_date') if self.proposed_issuance_approval.get('start_date') else details.get('start_date').strftime('%d/%m/%Y'),
-                                'expiry_date' : self.proposed_issuance_approval.get('expiry_date') if self.proposed_issuance_approval.get('expiry_date') else details.get('expiry_date').strftime('%d/%m/%Y'),
-                                'details' : details.get('details'),
-                                'cc_email' : details.get('cc_email'),
+                            "start_date": self.proposed_issuance_approval.get(
+                                "start_date"
+                            )
+                            if self.proposed_issuance_approval.get("start_date")
+                            else details.get("start_date").strftime("%d/%m/%Y"),
+                            "expiry_date": self.proposed_issuance_approval.get(
+                                "expiry_date"
+                            )
+                            if self.proposed_issuance_approval.get("expiry_date")
+                            else details.get("expiry_date").strftime("%d/%m/%Y"),
+                            "details": details.get("details"),
+                            "cc_email": details.get("cc_email"),
                         }
                     else:
                         self.proposed_issuance_approval = {
-                                'start_date' : start_date,
-                                'expiry_date' : expiry_date,
-                                'details' : details.get('details'),
-                                'cc_email' : details.get('cc_email'),
+                            "start_date": start_date,
+                            "expiry_date": expiry_date,
+                            "details": details.get("details"),
+                            "cc_email": details.get("cc_email"),
                         }
-                #Apiary Site Transfers
+                # Apiary Site Transfers
                 else:
                     self.proposed_issuance_approval = {
-                            'start_date' : start_date,
-                            'expiry_date' : expiry_date,
-                            'details' : details.get('details'),
-                            'cc_email' : details.get('cc_email'),
+                        "start_date": start_date,
+                        "expiry_date": expiry_date,
+                        "details": details.get("details"),
+                        "cc_email": details.get("cc_email"),
                     }
 
                 self.proposed_decline_status = False
-                approver_comment = ''
-                self.move_to_status(request,'with_approver', approver_comment)
+                approver_comment = ""
+                self.move_to_status(request, "with_approver", approver_comment)
                 self.assigned_officer = None
 
-                apiary_sites = request.data.get('apiary_sites', None)
+                apiary_sites = request.data.get("apiary_sites", None)
                 apiary_sites_list = []
                 if apiary_sites:
                     # When new apiary proposal
                     if self.application_type.name == ApplicationType.APIARY:
                         for apiary_site in apiary_sites:
-                            my_site = ApiarySite.objects.get(id=apiary_site['id'])
-                            self.proposal_apiary.set_workflow_selected_status(my_site, apiary_site.get('checked'))
-                            if apiary_site.get('checked'):
-                                apiary_sites_list.append(apiary_site.get('id'))
+                            my_site = ApiarySite.objects.get(id=apiary_site["id"])
+                            self.proposal_apiary.set_workflow_selected_status(
+                                my_site, apiary_site.get("checked")
+                            )
+                            if apiary_site.get("checked"):
+                                apiary_sites_list.append(apiary_site.get("id"))
                                 relation = self.proposal_apiary.get_relation(my_site)
                                 from disturbance.components.proposals.serializers_apiary import (
                                     ApiarySiteOnProposalProcessedLicensedSiteSaveSerializer,
                                 )
-                                serializer = ApiarySiteOnProposalProcessedLicensedSiteSaveSerializer(relation, data=apiary_site['properties'])
+
+                                serializer = ApiarySiteOnProposalProcessedLicensedSiteSaveSerializer(
+                                    relation, data=apiary_site["properties"]
+                                )
                                 serializer.is_valid(raise_exception=True)
                                 serializer.save()
 
-                            if apiary_site.get('checked') and 'coordinates_moved' in apiary_site:
+                            if (
+                                apiary_site.get("checked")
+                                and "coordinates_moved" in apiary_site
+                            ):
                                 relation = self.proposal_apiary.get_relation(my_site)
-                                prev_coordinates = {'lng': relation.wkb_geometry_processed.wkb_geometry.x, 'lat': relation.wkb_geometry_processed.wkb_geometry.y}
+                                prev_coordinates = {
+                                    "lng": relation.wkb_geometry_processed.wkb_geometry.x,
+                                    "lat": relation.wkb_geometry_processed.wkb_geometry.y,
+                                }
 
                                 # Update coordinate (Assessor and Approver can move the proposed site location)
-                                geom_str = GEOSGeometry('POINT(' + str(apiary_site['coordinates_moved']['lng']) + ' ' + str(apiary_site['coordinates_moved']['lat']) + ')', srid=4326)
+                                geom_str = GEOSGeometry(
+                                    "POINT("
+                                    + str(apiary_site["coordinates_moved"]["lng"])
+                                    + " "
+                                    + str(apiary_site["coordinates_moved"]["lat"])
+                                    + ")",
+                                    srid=4326,
+                                )
                                 from disturbance.components.proposals.serializers_apiary import (
                                     ApiarySiteOnProposalProcessedGeometrySaveSerializer,
                                 )
-                                serializer = ApiarySiteOnProposalProcessedGeometrySaveSerializer(relation, data={'wkb_geometry_processed': geom_str, 'licensed_site': apiary_site['properties'].get('licensed_site')})
+
+                                serializer = (
+                                    ApiarySiteOnProposalProcessedGeometrySaveSerializer(
+                                        relation,
+                                        data={
+                                            "wkb_geometry_processed": geom_str,
+                                            "licensed_site": apiary_site[
+                                                "properties"
+                                            ].get("licensed_site"),
+                                        },
+                                    )
+                                )
                                 serializer.is_valid(raise_exception=True)
                                 serializer.save()
 
-                                self.log_user_action(ProposalUserAction.APIARY_SITE_MOVED.format(apiary_site['id'], prev_coordinates, (apiary_site['coordinates_moved']['lng'], apiary_site['coordinates_moved']['lat'])), request)
+                                self.log_user_action(
+                                    ProposalUserAction.APIARY_SITE_MOVED.format(
+                                        apiary_site["id"],
+                                        prev_coordinates,
+                                        (
+                                            apiary_site["coordinates_moved"]["lng"],
+                                            apiary_site["coordinates_moved"]["lat"],
+                                        ),
+                                    ),
+                                    request,
+                                )
 
                     # Site transfer
                     elif self.application_type.name == ApplicationType.SITE_TRANSFER:
                         for apiary_site in apiary_sites:
                             transfer_site = SiteTransferApiarySite.objects.get(
-                                    proposal_apiary=self.proposal_apiary,
-                                    apiary_site_on_approval__apiary_site__id=apiary_site.get('id'),
-                                    )
-                            transfer_site.internal_selected = apiary_site.get('checked') if transfer_site.customer_selected else False
-                            if apiary_site.get('checked'):
-                                apiary_sites_list.append(apiary_site.get('id'))
+                                proposal_apiary=self.proposal_apiary,
+                                apiary_site_on_approval__apiary_site__id=apiary_site.get(
+                                    "id"
+                                ),
+                            )
+                            transfer_site.internal_selected = (
+                                apiary_site.get("checked")
+                                if transfer_site.customer_selected
+                                else False
+                            )
+                            if apiary_site.get("checked"):
+                                apiary_sites_list.append(apiary_site.get("id"))
                             transfer_site.save()
 
                             asoa = transfer_site.apiary_site_on_approval
-                            asoa.licensed_site = apiary_site.get('properties')['licensed_site']
+                            asoa.licensed_site = apiary_site.get("properties")[
+                                "licensed_site"
+                            ]
                             asoa.save()
                 self.save()
 
                 # Log proposal action
                 if self.apiary_group_application_type:
-                    if self.application_type and self.application_type.name == ApplicationType.SITE_TRANSFER:
-                        target_approval_lodgement_number = (self.proposal_apiary.target_approval.lodgement_number if 
-                                self.proposal_apiary.target_approval else '')
-                        self.log_user_action(ProposalUserAction.ACTION_PROPOSED_APIARY_APPROVAL_SITE_TRANSFER.format(
-                            self.lodgement_number,
-                            self.proposal_apiary.originating_approval.lodgement_number,
-                            target_approval_lodgement_number,
-                            str(apiary_sites_list).lstrip('[').rstrip(']')
-                        ), request)
+                    if (
+                        self.application_type
+                        and self.application_type.name == ApplicationType.SITE_TRANSFER
+                    ):
+                        target_approval_lodgement_number = (
+                            self.proposal_apiary.target_approval.lodgement_number
+                            if self.proposal_apiary.target_approval
+                            else ""
+                        )
+                        self.log_user_action(
+                            ProposalUserAction.ACTION_PROPOSED_APIARY_APPROVAL_SITE_TRANSFER.format(
+                                self.lodgement_number,
+                                self.proposal_apiary.originating_approval.lodgement_number,
+                                target_approval_lodgement_number,
+                                str(apiary_sites_list).lstrip("[").rstrip("]"),
+                            ),
+                            request,
+                        )
                     else:
-                        self.log_user_action(ProposalUserAction.ACTION_PROPOSED_APIARY_APPROVAL.format(
-                            self.lodgement_number,
-                            self.proposed_issuance_approval.get('start_date'),
-                            self.proposed_issuance_approval.get('expiry_date'),
-                            str(apiary_sites_list).lstrip('[').rstrip(']')
-                            ), request)
+                        self.log_user_action(
+                            ProposalUserAction.ACTION_PROPOSED_APIARY_APPROVAL.format(
+                                self.lodgement_number,
+                                self.proposed_issuance_approval.get("start_date"),
+                                self.proposed_issuance_approval.get("expiry_date"),
+                                str(apiary_sites_list).lstrip("[").rstrip("]"),
+                            ),
+                            request,
+                        )
                 else:
-                    self.log_user_action(ProposalUserAction.ACTION_PROPOSED_APPROVAL.format(self.lodgement_number), request)
+                    self.log_user_action(
+                        ProposalUserAction.ACTION_PROPOSED_APPROVAL.format(
+                            self.lodgement_number
+                        ),
+                        request,
+                    )
                 # Log entry for organisation
                 if self.applicant:
                     if self.apiary_group_application_type:
-                        self.applicant.log_user_action(ProposalUserAction.ACTION_PROPOSED_APIARY_APPROVAL.format(
-                            self.lodgement_number,
-                            self.proposed_issuance_approval.get('start_date'),
-                            self.proposed_issuance_approval.get('expiry_date'),
-                            str(apiary_sites_list).lstrip('[').rstrip(']')
-                            ),request)
+                        self.applicant.log_user_action(
+                            ProposalUserAction.ACTION_PROPOSED_APIARY_APPROVAL.format(
+                                self.lodgement_number,
+                                self.proposed_issuance_approval.get("start_date"),
+                                self.proposed_issuance_approval.get("expiry_date"),
+                                str(apiary_sites_list).lstrip("[").rstrip("]"),
+                            ),
+                            request,
+                        )
                     else:
-                        self.applicant.log_user_action(ProposalUserAction.ACTION_PROPOSED_APPROVAL.format(self.lodgement_number), request)
+                        self.applicant.log_user_action(
+                            ProposalUserAction.ACTION_PROPOSED_APPROVAL.format(
+                                self.lodgement_number
+                            ),
+                            request,
+                        )
 
                 send_approver_approve_email_notification(request, self)
             except:
@@ -1769,19 +2412,31 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     raise exceptions.ProposalNotAuthorized()
                 if self.processing_status != Proposal.PROCESSING_STATUS_WITH_ASSESSOR:
                     # For temporary Use Application, assessor approves it
-                    raise ValidationError('You cannot approve the proposal if it is not with an assessor')
+                    raise ValidationError(
+                        "You cannot approve the proposal if it is not with an assessor"
+                    )
 
                 self.proposed_decline_status = False
                 self.processing_status = Proposal.PROCESSING_STATUS_APPROVED
-                self.customer_status = 'approved'
+                self.customer_status = "approved"
 
                 # Log proposal action
-                self.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.lodgement_number), request)
+                self.log_user_action(
+                    ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(
+                        self.lodgement_number
+                    ),
+                    request,
+                )
                 # Log entry for organisation
                 if self.applicant:
-                    self.applicant.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.lodgement_number), request)
+                    self.applicant.log_user_action(
+                        ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(
+                            self.lodgement_number
+                        ),
+                        request,
+                    )
 
-                #TODO on cleanup: review (old comment) Email?
+                # TODO on cleanup: review (old comment) Email?
 
                 self.save()
 
@@ -1795,110 +2450,140 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     raise exceptions.ProposalNotAuthorized()
                 if self.processing_status != Proposal.PROCESSING_STATUS_WITH_ASSESSOR:
                     # For temporary Use Application, assessor approves it
-                    raise ValidationError('You cannot approve the proposal if it is not with an assessor')
+                    raise ValidationError(
+                        "You cannot approve the proposal if it is not with an assessor"
+                    )
 
                 self.proposed_decline_status = True
-                self.processing_status = 'declined'
-                self.customer_status = 'declined'
+                self.processing_status = "declined"
+                self.customer_status = "declined"
                 self.save()
                 # Log proposal action
-                self.log_user_action(ProposalUserAction.ACTION_DECLINE.format(self.lodgement_number), request)
+                self.log_user_action(
+                    ProposalUserAction.ACTION_DECLINE.format(self.lodgement_number),
+                    request,
+                )
                 # Log entry for organisation
                 if self.applicant:
-                    self.applicant.log_user_action(ProposalUserAction.ACTION_DECLINE.format(self.lodgement_number), request)
+                    self.applicant.log_user_action(
+                        ProposalUserAction.ACTION_DECLINE.format(self.lodgement_number),
+                        request,
+                    )
 
-                #TODO on cleanup: review (old comment) Email?
+                # TODO on cleanup: review (old comment) Email?
                 # send_proposal_decline_email_notification(self,request, proposal_decline)
 
             except:
                 raise
 
-    def final_approval(self,request,details):
+    def final_approval(self, request, details):
         from disturbance.components.approvals.models import Approval
+
         with transaction.atomic():
             try:
                 if not self.can_assess(request.user):
                     raise exceptions.ProposalNotAuthorized()
-                if self.processing_status != 'with_approver':
-                    raise ValidationError('You cannot issue the approval if it is not with an approver')
+                if self.processing_status != "with_approver":
+                    raise ValidationError(
+                        "You cannot issue the approval if it is not with an approver"
+                    )
                 if not self.relevant_applicant_address:
-                    raise ValidationError('The applicant needs to have set their postal address before approving this proposal. (Applicant: {})'.format(self.relevant_applicant))
+                    raise ValidationError(
+                        "The applicant needs to have set their postal address before approving this proposal. (Applicant: {})".format(
+                            self.relevant_applicant
+                        )
+                    )
 
                 self.proposed_issuance_approval = {
-                    'start_date' : details.get('start_date').strftime('%d/%m/%Y'),
-                    'expiry_date' : details.get('expiry_date').strftime('%d/%m/%Y'),
-                    'details': details.get('details'),
-                    'cc_email':details.get('cc_email'),
+                    "start_date": details.get("start_date").strftime("%d/%m/%Y"),
+                    "expiry_date": details.get("expiry_date").strftime("%d/%m/%Y"),
+                    "details": details.get("details"),
+                    "cc_email": details.get("cc_email"),
                 }
                 self.proposed_decline_status = False
-                self.processing_status = 'approved'
-                self.customer_status = 'approved'
+                self.processing_status = "approved"
+                self.customer_status = "approved"
                 # Log proposal action
-                self.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.lodgement_number), request)
+                self.log_user_action(
+                    ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(
+                        self.lodgement_number
+                    ),
+                    request,
+                )
                 # Log entry for organisation
                 if self.applicant:
-                    self.applicant.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.lodgement_number), request)
+                    self.applicant.log_user_action(
+                        ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(
+                            self.lodgement_number
+                        ),
+                        request,
+                    )
 
-                if self.processing_status == 'approved':
+                if self.processing_status == "approved":
                     checking_proposal = self
-                    if self.proposal_type == 'renewal':
+                    if self.proposal_type == "renewal":
                         if self.previous_application:
                             previous_approval = self.previous_application.approval
-                            approval,created = Approval.objects.update_or_create(
-                                current_proposal = checking_proposal,
-                                approver_id = request.user.id,
-                                defaults = {
-                                    'issue_date' : timezone.now(),
-                                    'expiry_date' : details.get('expiry_date'),
-                                    'start_date' : details.get('start_date'),
-                                    'applicant' : self.applicant,
-                                    'proxy_applicant' : self.proxy_applicant,
-                                    'lodgement_number': previous_approval.lodgement_number,
-                                    'apiary_approval': self.apiary_group_application_type,
-                                }
+                            approval, created = Approval.objects.update_or_create(
+                                current_proposal=checking_proposal,
+                                approver_id=request.user.id,
+                                defaults={
+                                    "issue_date": timezone.now(),
+                                    "expiry_date": details.get("expiry_date"),
+                                    "start_date": details.get("start_date"),
+                                    "applicant": self.applicant,
+                                    "proxy_applicant": self.proxy_applicant,
+                                    "lodgement_number": previous_approval.lodgement_number,
+                                    "apiary_approval": self.apiary_group_application_type,
+                                },
                             )
                             if created:
                                 previous_approval.replaced_by = approval
                                 previous_approval.save()
 
-                    elif self.proposal_type == 'amendment':
+                    elif self.proposal_type == "amendment":
                         if self.previous_application:
                             previous_approval = self.previous_application.approval
-                            approval,created = Approval.objects.update_or_create(
-                                current_proposal = checking_proposal,
-                                approver_id = request.user.id,
-                                defaults = {
-                                    'issue_date' : timezone.now(),
-                                    'expiry_date' : details.get('expiry_date'),
-                                    'start_date' : details.get('start_date'),
-                                    'applicant' : self.applicant,
-                                    'proxy_applicant' : self.proxy_applicant,
-                                    'lodgement_number': previous_approval.lodgement_number,
-                                    'apiary_approval': self.apiary_group_application_type,
-                                }
+                            approval, created = Approval.objects.update_or_create(
+                                current_proposal=checking_proposal,
+                                approver_id=request.user.id,
+                                defaults={
+                                    "issue_date": timezone.now(),
+                                    "expiry_date": details.get("expiry_date"),
+                                    "start_date": details.get("start_date"),
+                                    "applicant": self.applicant,
+                                    "proxy_applicant": self.proxy_applicant,
+                                    "lodgement_number": previous_approval.lodgement_number,
+                                    "apiary_approval": self.apiary_group_application_type,
+                                },
                             )
                             if created:
                                 previous_approval.replaced_by = approval
                                 previous_approval.save()
                     else:
-                        approval,created = Approval.objects.update_or_create(
-                            current_proposal = checking_proposal,
-                            approver_id = request.user.id,
-                            defaults = {
-                                'issue_date' : timezone.now(),
-                                'expiry_date' : details.get('expiry_date'),
-                                'start_date' : details.get('start_date'),
-                                'applicant' : self.applicant,
-                                'proxy_applicant' : self.proxy_applicant,
-                                'apiary_approval': self.apiary_group_application_type,
-                            }
+                        approval, created = Approval.objects.update_or_create(
+                            current_proposal=checking_proposal,
+                            approver_id=request.user.id,
+                            defaults={
+                                "issue_date": timezone.now(),
+                                "expiry_date": details.get("expiry_date"),
+                                "start_date": details.get("start_date"),
+                                "applicant": self.applicant,
+                                "proxy_applicant": self.proxy_applicant,
+                                "apiary_approval": self.apiary_group_application_type,
+                            },
                         )
 
                     # Generate compliances
                     from disturbance.components.compliances.models import Compliance
+
                     if created:
-                        if self.proposal_type == 'amendment':
-                            approval_compliances = Compliance.objects.filter(approval= previous_approval, proposal = self.previous_application, processing_status='future')
+                        if self.proposal_type == "amendment":
+                            approval_compliances = Compliance.objects.filter(
+                                approval=previous_approval,
+                                proposal=self.previous_application,
+                                processing_status="future",
+                            )
                             if approval_compliances:
                                 for c in approval_compliances:
                                     c.delete()
@@ -1910,98 +2595,133 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     else:
                         # Generate the document
                         approval.generate_doc()
-                        #Delete the future compliances if Approval is reissued and generate the compliances again.
-                        approval_compliances = Compliance.objects.filter(approval= approval, proposal = self, processing_status='future')
+                        # Delete the future compliances if Approval is reissued and generate the compliances again.
+                        approval_compliances = Compliance.objects.filter(
+                            approval=approval, proposal=self, processing_status="future"
+                        )
                         if approval_compliances:
                             for c in approval_compliances:
                                 c.delete()
                         self.generate_compliances(approval, request)
                         # Log proposal action
-                        self.log_user_action(ProposalUserAction.ACTION_UPDATE_APPROVAL_.format(self.lodgement_number), request)
+                        self.log_user_action(
+                            ProposalUserAction.ACTION_UPDATE_APPROVAL_.format(
+                                self.lodgement_number
+                            ),
+                            request,
+                        )
                         # Log entry for organisation
                         if self.applicant:
-                            self.applicant.log_user_action(ProposalUserAction.ACTION_UPDATE_APPROVAL_.format(self.lodgement_number), request)
+                            self.applicant.log_user_action(
+                                ProposalUserAction.ACTION_UPDATE_APPROVAL_.format(
+                                    self.lodgement_number
+                                ),
+                                request,
+                            )
                     self.approval = approval
-                #send Proposal approval email with attachment
-                send_proposal_approval_email_notification(self,request)
-                self.save(version_comment='Final Approval: {}'.format(self.approval.lodgement_number))
+                # send Proposal approval email with attachment
+                send_proposal_approval_email_notification(self, request)
+                self.save(
+                    version_comment="Final Approval: {}".format(
+                        self.approval.lodgement_number
+                    )
+                )
                 self.approval.documents.all().update(can_delete=False)
             except:
                 raise
 
-    def generate_compliances(self,approval, request):
+    def generate_compliances(self, approval, request):
         today = timezone.now().date()
         timedelta = datetime.timedelta
         from disturbance.components.compliances.models import (
             Compliance,
             ComplianceUserAction,
         )
-        #For amendment type of Proposal, check for copied requirements from previous proposal
-        if self.proposal_type == 'amendment':
+
+        # For amendment type of Proposal, check for copied requirements from previous proposal
+        if self.proposal_type == "amendment":
             try:
                 for r in self.requirements.filter(copied_from__isnull=False):
-                    cs=[]
-                    cs=Compliance.objects.filter(requirement=r.copied_from, proposal=self.previous_application, processing_status='due')
+                    cs = []
+                    cs = Compliance.objects.filter(
+                        requirement=r.copied_from,
+                        proposal=self.previous_application,
+                        processing_status="due",
+                    )
                     if cs:
                         if r.is_deleted == True:
                             for c in cs:
-                                c.processing_status='discarded'
-                                c.customer_status = 'discarded'
-                                c.reminder_sent=True
-                                c.post_reminder_sent=True
+                                c.processing_status = "discarded"
+                                c.customer_status = "discarded"
+                                c.reminder_sent = True
+                                c.post_reminder_sent = True
                                 c.save()
                         if r.is_deleted == False:
                             for c in cs:
-                                c.proposal= self
-                                c.approval=approval
-                                c.requirement=r
+                                c.proposal = self
+                                c.approval = approval
+                                c.requirement = r
                                 c.save()
             except:
                 raise
-        requirement_set= self.requirements.all().exclude(is_deleted=True)
+        requirement_set = self.requirements.all().exclude(is_deleted=True)
 
         for req in requirement_set:
             try:
                 if req.due_date and req.due_date >= today:
                     current_date = req.due_date
-                    #create a first Compliance
+                    # create a first Compliance
                     try:
-                        compliance= Compliance.objects.get(requirement = req, due_date = current_date)
-                    except Compliance.DoesNotExist:
-                        compliance =Compliance.objects.create(
-                                    proposal=self,
-                                    due_date=current_date,
-                                    processing_status='future',
-                                    approval=approval,
-                                    requirement=req,
+                        compliance = Compliance.objects.get(
+                            requirement=req, due_date=current_date
                         )
-                        compliance.log_user_action(ComplianceUserAction.ACTION_CREATE.format(compliance.lodgement_number), request)
+                    except Compliance.DoesNotExist:
+                        compliance = Compliance.objects.create(
+                            proposal=self,
+                            due_date=current_date,
+                            processing_status="future",
+                            approval=approval,
+                            requirement=req,
+                        )
+                        compliance.log_user_action(
+                            ComplianceUserAction.ACTION_CREATE.format(
+                                compliance.lodgement_number
+                            ),
+                            request,
+                        )
                     if req.recurrence:
                         while current_date < approval.expiry_date:
                             for x in range(req.recurrence_schedule):
-                            #Weekly
+                                # Weekly
                                 if req.recurrence_pattern == 1:
                                     current_date += timedelta(weeks=1)
-                            #Monthly
+                                # Monthly
                                 elif req.recurrence_pattern == 2:
                                     current_date += timedelta(weeks=4)
                                     pass
-                            #Yearly
+                                # Yearly
                                 elif req.recurrence_pattern == 3:
                                     current_date += timedelta(days=365)
                             # Create the compliance
                             if current_date <= approval.expiry_date:
                                 try:
-                                    compliance= Compliance.objects.get(requirement = req, due_date = current_date)
-                                except Compliance.DoesNotExist:
-                                    compliance =Compliance.objects.create(
-                                                proposal=self,
-                                                due_date=current_date,
-                                                processing_status='future',
-                                                approval=approval,
-                                                requirement=req,
+                                    compliance = Compliance.objects.get(
+                                        requirement=req, due_date=current_date
                                     )
-                                    compliance.log_user_action(ComplianceUserAction.ACTION_CREATE.format(compliance.lodgement_number), request)
+                                except Compliance.DoesNotExist:
+                                    compliance = Compliance.objects.create(
+                                        proposal=self,
+                                        due_date=current_date,
+                                        processing_status="future",
+                                        approval=approval,
+                                        requirement=req,
+                                    )
+                                    compliance.log_user_action(
+                                        ComplianceUserAction.ACTION_CREATE.format(
+                                            compliance.lodgement_number
+                                        ),
+                                        request,
+                                    )
             except:
                 raise
 
@@ -2009,59 +2729,84 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         from disturbance.components.approvals.models import Approval
 
         if self.application_type.name == ApplicationType.SITE_TRANSFER:
-            #determine whether or not the approval was the recipient or originating approval
+            # determine whether or not the approval was the recipient or originating approval
             approval = self.proposal_apiary.originating_approval
 
             try:
-                approval_id = int(request.GET.get('approval_id',None))
+                approval_id = int(request.GET.get("approval_id", None))
             except:
-                raise ValidationError("Invalid approval id provided for approval amendment/renewal.")
-            
+                raise ValidationError(
+                    "Invalid approval id provided for approval amendment/renewal."
+                )
+
             if not approval:
-                raise ValidationError("Invalid proposal id provided for approval amendment/renewal.")
-            
+                raise ValidationError(
+                    "Invalid proposal id provided for approval amendment/renewal."
+                )
+
             if approval.id != approval_id:
-                #if the originating id does not match the provided approval id - it must be the recipient
+                # if the originating id does not match the provided approval id - it must be the recipient
                 try:
                     approval = Approval.objects.get(id=approval_id)
                 except:
-                    raise ValidationError("Invalid approval id provided for approval amendment/renewal.")
+                    raise ValidationError(
+                        "Invalid approval id provided for approval amendment/renewal."
+                    )
 
-            return Proposal.objects.filter(approval=approval).exclude(application_type__name=ApplicationType.SITE_TRANSFER).exclude(processing_status=Proposal.PROCESSING_STATUS_DISCARDED).order_by("id").last()
+            return (
+                Proposal.objects.filter(approval=approval)
+                .exclude(application_type__name=ApplicationType.SITE_TRANSFER)
+                .exclude(processing_status=Proposal.PROCESSING_STATUS_DISCARDED)
+                .order_by("id")
+                .last()
+            )
 
     def create_renewal_from_site_transferee(self, request):
-        #Create a new proposal to renew an approval without an existing previous proposal 
+        # Create a new proposal to renew an approval without an existing previous proposal
         with transaction.atomic():
             try:
                 proposal = None
                 if self.application_type.name == ApplicationType.SITE_TRANSFER:
                     from disturbance.components.approvals.models import Approval
-                    
-                    approval_id = request.GET.get('approval_id',None)
+
+                    approval_id = request.GET.get("approval_id", None)
                     try:
                         approval = Approval.objects.get(id=approval_id)
                     except:
-                        raise ValidationError("Invalid approval id provided for approval amendment/renewal.")
-                    
-                    if self.proposal_apiary and self.proposal_apiary.target_approval == approval:
+                        raise ValidationError(
+                            "Invalid approval id provided for approval amendment/renewal."
+                        )
+
+                    if (
+                        self.proposal_apiary
+                        and self.proposal_apiary.target_approval == approval
+                    ):
                         applicant = self.proposal_apiary.target_approval_organisation
                     else:
-                        raise ValidationError("Unable to identify applicant for Approval renewal")
+                        raise ValidationError(
+                            "Unable to identify applicant for Approval renewal"
+                        )
 
                     proxy_applicant = None
                     if not applicant:
                         proxy_applicant = self.proposal_apiary.transferee
 
-                    #if somehow we still have no applicant, use the approval applicant/proxy applicant (in case it had not been carried over)
+                    # if somehow we still have no applicant, use the approval applicant/proxy applicant (in case it had not been carried over)
                     if not applicant and not proxy_applicant:
                         proxy_applicant = approval.proxy_applicant
-                        applicant = approval.applicant 
-                        #last resort, use submitter
+                        applicant = approval.applicant
+                        # last resort, use submitter
                         if not applicant and not proxy_applicant:
                             proxy_applicant = request.user
 
-                    application_type = ApplicationType.objects.get(name=ApplicationType.APIARY)
-                    qs_proposal_type = ProposalType.objects.all().order_by('name', '-version').distinct('name')
+                    application_type = ApplicationType.objects.get(
+                        name=ApplicationType.APIARY
+                    )
+                    qs_proposal_type = (
+                        ProposalType.objects.all()
+                        .order_by("name", "-version")
+                        .distinct("name")
+                    )
                     proposal_type = qs_proposal_type.get(name=application_type.name)
 
                     proposal = Proposal.objects.create(
@@ -2078,11 +2823,11 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     proposal_apiary = ProposalApiary.objects.create(proposal=proposal)
                     proposal_apiary.save()
 
-                    proposal.customer_status = 'draft'
-                    proposal.processing_status = 'draft'
+                    proposal.customer_status = "draft"
+                    proposal.processing_status = "draft"
                     proposal.assessor_data = None
                     proposal.comment_data = None
-                    proposal.lodgement_number = ''
+                    proposal.lodgement_number = ""
                     proposal.lodgement_sequence = 0
                     proposal.lodgement_date = None
 
@@ -2091,7 +2836,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
                     proposal.approval_level_document = None
                     proposal.fee_invoice_references = []
-                    proposal.activity = 'Apiary Renewal'
+                    proposal.activity = "Apiary Renewal"
 
                     proposal.save(no_revision=True)
 
@@ -2101,140 +2846,213 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             old_r = copy.deepcopy(r)
                             r.proposal = proposal
                             r.apiary_approval = None
-                            r.copied_from=old_r
-                            r.copied_for_renewal=True
+                            r.copied_from = old_r
+                            r.copied_for_renewal = True
                             if r.due_date:
-                                r.due_date=None
-                                r.require_due_date=True
+                                r.due_date = None
+                                r.require_due_date = True
                             r.id = None
                             r.save()
 
                     # update apiary_sites with new proposal
-                    approval.add_apiary_sites_to_proposal_apiary_for_renewal(proposal_apiary)
+                    approval.add_apiary_sites_to_proposal_apiary_for_renewal(
+                        proposal_apiary
+                    )
 
                     # Checklist questions
                     for question in ApiaryChecklistQuestion.objects.filter(
-                            checklist_type='apiary',
-                            checklist_role='applicant'
-                            ):
-                        ApiaryChecklistAnswer.objects.create(proposal = proposal.proposal_apiary, question = question)
-                    
-                return proposal 
+                        checklist_type="apiary", checklist_role="applicant"
+                    ):
+                        ApiaryChecklistAnswer.objects.create(
+                            proposal=proposal.proposal_apiary, question=question
+                        )
+
+                return proposal
             except Exception as e:
                 print(e)
                 raise
 
-    def renew_approval(self,request):
+    def renew_approval(self, request):
         with transaction.atomic():
             previous_proposal = self
-            if previous_proposal.application_type and previous_proposal.application_type.name == "Site Transfer":
-                #if this application is a site transfer, set the previous proposal to last apiary proposal on the approval
-                previous_proposal = previous_proposal.get_latest_related_amend_renew_proposal(request)
+            if (
+                previous_proposal.application_type
+                and previous_proposal.application_type.name == "Site Transfer"
+            ):
+                # if this application is a site transfer, set the previous proposal to last apiary proposal on the approval
+                previous_proposal = (
+                    previous_proposal.get_latest_related_amend_renew_proposal(request)
+                )
                 if previous_proposal and previous_proposal != self:
                     proposal = previous_proposal.renew_approval(request)
                     return proposal
-                
+
             if previous_proposal:
-                #NOTE: this try except is explicitly designed to fail on first attempt as part of the renewal process - should be refactored to work more gracefully 
+                # NOTE: this try except is explicitly designed to fail on first attempt as part of the renewal process - should be refactored to work more gracefully
                 try:
-                    proposal = Proposal.objects.exclude(processing_status__in=[Proposal.PROCESSING_STATUS_DISCARDED,Proposal.PROCESSING_STATUS_DECLINED]).get(previous_application=previous_proposal)
-                    if proposal.customer_status=='with_assessor':
+                    proposal = Proposal.objects.exclude(
+                        processing_status__in=[
+                            Proposal.PROCESSING_STATUS_DISCARDED,
+                            Proposal.PROCESSING_STATUS_DECLINED,
+                        ]
+                    ).get(previous_application=previous_proposal)
+                    if proposal.customer_status == "with_assessor":
                         if not proposal.apiary_group_application_type:
-                            raise ValidationError('A renewal or amendment proposal for this approval has already been lodged and is awaiting review.')
+                            raise ValidationError(
+                                "A renewal or amendment proposal for this approval has already been lodged and is awaiting review."
+                            )
                         else:
-                            raise ValidationError('A renewal or amendment application for this licence has already been lodged and is awaiting review.')
+                            raise ValidationError(
+                                "A renewal or amendment application for this licence has already been lodged and is awaiting review."
+                            )
                 except Proposal.DoesNotExist:
                     if previous_proposal.apiary_group_application_type:
-                        proposal = clone_apiary_proposal_with_status_reset(previous_proposal)
+                        proposal = clone_apiary_proposal_with_status_reset(
+                            previous_proposal
+                        )
                     else:
                         previous_proposal = Proposal.objects.get(id=self.id)
                         proposal = clone_proposal_with_status_reset(previous_proposal)
 
-                    proposal.proposal_type = 'renewal'
+                    proposal.proposal_type = "renewal"
                     proposal.submitter = request.user
                     proposal.previous_application = self
                     if not previous_proposal.apiary_group_application_type:
                         # for Apiary, we copy requirements in the clone method above
-                        req=self.requirements.all().exclude(is_deleted=True)
+                        req = self.requirements.all().exclude(is_deleted=True)
                         from copy import deepcopy
+
                         if req:
                             for r in req:
                                 old_r = deepcopy(r)
                                 r.proposal = proposal
-                                r.copied_from=None
-                                r.copied_for_renewal=True
+                                r.copied_from = None
+                                r.copied_for_renewal = True
                                 if r.due_date:
-                                    r.due_date=None
-                                    r.require_due_date=True
+                                    r.due_date = None
+                                    r.require_due_date = True
                                 r.id = None
                                 r.save()
                     # Create a log entry for the proposal
-                    self.log_user_action(ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.lodgement_number), request)
+                    self.log_user_action(
+                        ProposalUserAction.ACTION_RENEW_PROPOSAL.format(
+                            self.lodgement_number
+                        ),
+                        request,
+                    )
                     # Create a log entry for the organisation
                     if self.applicant:
-                        self.applicant.log_user_action(ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.lodgement_number), request)
-                    #Log entry for approval
+                        self.applicant.log_user_action(
+                            ProposalUserAction.ACTION_RENEW_PROPOSAL.format(
+                                self.lodgement_number
+                            ),
+                            request,
+                        )
+                    # Log entry for approval
                     from disturbance.components.approvals.models import (
                         ApprovalUserAction,
                     )
-                    self.approval.log_user_action(ApprovalUserAction.ACTION_RENEW_APPROVAL.format(self.approval.lodgement_number), request)
-                    proposal.save(version_comment='New Amendment/Renewal Proposal created, from origin {}'.format(proposal.previous_application_id))
+
+                    self.approval.log_user_action(
+                        ApprovalUserAction.ACTION_RENEW_APPROVAL.format(
+                            self.approval.lodgement_number
+                        ),
+                        request,
+                    )
+                    proposal.save(
+                        version_comment="New Amendment/Renewal Proposal created, from origin {}".format(
+                            proposal.previous_application_id
+                        )
+                    )
             else:
-                #if we are here it means that no previous proposal exists, likely because the approval was created from a site transfer
+                # if we are here it means that no previous proposal exists, likely because the approval was created from a site transfer
                 if self.application_type.name == ApplicationType.SITE_TRANSFER:
                     proposal = self.create_renewal_from_site_transferee(request)
             return proposal
 
-    def amend_approval(self,request):
+    def amend_approval(self, request):
         with transaction.atomic():
             previous_proposal = self
-            if previous_proposal.application_type and previous_proposal.application_type.name == "Site Transfer":
-                #if this application is a site transfer, set the previous proposal to last apiary proposal on the approval
-                previous_proposal = previous_proposal.get_latest_related_amend_renew_proposal(request)
+            if (
+                previous_proposal.application_type
+                and previous_proposal.application_type.name == "Site Transfer"
+            ):
+                # if this application is a site transfer, set the previous proposal to last apiary proposal on the approval
+                previous_proposal = (
+                    previous_proposal.get_latest_related_amend_renew_proposal(request)
+                )
                 if previous_proposal and previous_proposal != self:
                     proposal = previous_proposal.amend_approval(request)
                     return proposal
                 else:
-                    raise ValidationError("Approval has no valid proposal to amend with.")
-                
-            #NOTE: this try except is explicitly designed to fail on first attempt as part of the renewal process - should be refactored to work more gracefully 
+                    raise ValidationError(
+                        "Approval has no valid proposal to amend with."
+                    )
+
+            # NOTE: this try except is explicitly designed to fail on first attempt as part of the renewal process - should be refactored to work more gracefully
             try:
                 amend_conditions = {
-                    'previous_application': previous_proposal,
-                    'proposal_type': 'amendment'
+                    "previous_application": previous_proposal,
+                    "proposal_type": "amendment",
                 }
-                proposal=Proposal.objects.get(**amend_conditions)
-                if proposal.customer_status=='with_assessor':
-                    raise ValidationError('An amendment proposal for this approval has already been lodged and is awaiting review.')
+                proposal = Proposal.objects.get(**amend_conditions)
+                if proposal.customer_status == "with_assessor":
+                    raise ValidationError(
+                        "An amendment proposal for this approval has already been lodged and is awaiting review."
+                    )
             except Proposal.DoesNotExist:
                 previous_proposal = Proposal.objects.get(id=self.id)
                 proposal = clone_proposal_with_status_reset(previous_proposal)
-                proposal.proposal_type = 'amendment'
+                proposal.proposal_type = "amendment"
                 proposal.submitter = request.user
                 proposal.previous_application = self
-                #copy all the requirements from the previous proposal
-                req=self.requirements.all().exclude(is_deleted=True)
+                # copy all the requirements from the previous proposal
+                req = self.requirements.all().exclude(is_deleted=True)
                 from copy import deepcopy
+
                 if req:
                     for r in req:
                         old_r = deepcopy(r)
                         r.proposal = proposal
-                        r.copied_from=old_r
+                        r.copied_from = old_r
                         r.id = None
                         r.save()
                 # Create a log entry for the proposal
-                self.log_user_action(ProposalUserAction.ACTION_AMEND_PROPOSAL.format(self.lodgement_number), request)
+                self.log_user_action(
+                    ProposalUserAction.ACTION_AMEND_PROPOSAL.format(
+                        self.lodgement_number
+                    ),
+                    request,
+                )
                 # Create a log entry for the organisation
                 if self.applicant:
-                    self.applicant.log_user_action(ProposalUserAction.ACTION_AMEND_PROPOSAL.format(self.lodgement_number), request)
-                #Log entry for approval
+                    self.applicant.log_user_action(
+                        ProposalUserAction.ACTION_AMEND_PROPOSAL.format(
+                            self.lodgement_number
+                        ),
+                        request,
+                    )
+                # Log entry for approval
                 from disturbance.components.approvals.models import ApprovalUserAction
-                self.approval.log_user_action(ApprovalUserAction.ACTION_AMEND_APPROVAL.format(self.approval.lodgement_number), request)
-                proposal.save(version_comment='New Amendment/Renewal Proposal created, from origin {}'.format(proposal.previous_application_id))
+
+                self.approval.log_user_action(
+                    ApprovalUserAction.ACTION_AMEND_APPROVAL.format(
+                        self.approval.lodgement_number
+                    ),
+                    request,
+                )
+                proposal.save(
+                    version_comment="New Amendment/Renewal Proposal created, from origin {}".format(
+                        proposal.previous_application_id
+                    )
+                )
             return proposal
 
-    def internal_view_log(self,request):
-        self.log_user_action(ProposalUserAction.ACTION_VIEW_PROPOSAL.format(self.lodgement_number), request)
+    def internal_view_log(self, request):
+        self.log_user_action(
+            ProposalUserAction.ACTION_VIEW_PROPOSAL.format(self.lodgement_number),
+            request,
+        )
         return self
 
     def apiary_requirements(self, approval=None):
@@ -2245,18 +3063,28 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         else:
             return self.requirements.all()
 
+
 class ProposalLogDocument(Document):
-    log_entry = models.ForeignKey('ProposalLogEntry',related_name='documents', on_delete=models.CASCADE)
-    _file = models.FileField(max_length=255, upload_to=update_proposal_comms_log_filename, storage=private_storage)
+    log_entry = models.ForeignKey(
+        "ProposalLogEntry", related_name="documents", on_delete=models.CASCADE
+    )
+    _file = models.FileField(
+        max_length=255,
+        upload_to=update_proposal_comms_log_filename,
+        storage=private_storage,
+    )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
+
 
 class ProposalLogEntry(CommunicationsLogEntry):
-    proposal = models.ForeignKey(Proposal, related_name='comms_logs', on_delete=models.CASCADE)
+    proposal = models.ForeignKey(
+        Proposal, related_name="comms_logs", on_delete=models.CASCADE
+    )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
     def save(self, **kwargs):
         # save the application reference if the reference not provided
@@ -2264,19 +3092,33 @@ class ProposalLogEntry(CommunicationsLogEntry):
             self.reference = self.proposal.reference
         super(ProposalLogEntry, self).save(**kwargs)
 
+
 class AmendmentRequestDocument(Document):
-    amendment_request = models.ForeignKey('disturbance.AmendmentRequest',related_name='amendment_request_documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_amendment_request_doc_filename, max_length=500, storage=private_storage)
-    input_name = models.CharField(max_length=255,null=True,blank=True)
-    can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
-    visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history
+    amendment_request = models.ForeignKey(
+        "disturbance.AmendmentRequest",
+        related_name="amendment_request_documents",
+        on_delete=models.CASCADE,
+    )
+    _file = models.FileField(
+        upload_to=update_amendment_request_doc_filename,
+        max_length=500,
+        storage=private_storage,
+    )
+    input_name = models.CharField(max_length=255, null=True, blank=True)
+    can_delete = models.BooleanField(
+        default=True
+    )  # after initial submit prevent document from being deleted
+    visible = models.BooleanField(
+        default=True
+    )  # to prevent deletion on file system, hidden and still be available in history
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
     def delete(self):
         if self.can_delete:
             return super(AmendmentRequestDocument, self).delete()
+
 
 class ProposalRequest(SanitiseMixin):
     proposal = models.ForeignKey(Proposal, on_delete=models.CASCADE)
@@ -2285,23 +3127,31 @@ class ProposalRequest(SanitiseMixin):
     officer = models.ForeignKey(EmailUser, null=True, on_delete=models.CASCADE)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
+
 
 class ComplianceRequest(ProposalRequest):
-    REASON_CHOICES = (('outstanding', 'There are currently outstanding returns for the previous licence'),
-                      ('other', 'Other'))
-    reason = models.CharField('Reason', max_length=30, choices=REASON_CHOICES, default=REASON_CHOICES[0][0])
+    REASON_CHOICES = (
+        (
+            "outstanding",
+            "There are currently outstanding returns for the previous licence",
+        ),
+        ("other", "Other"),
+    )
+    reason = models.CharField(
+        "Reason", max_length=30, choices=REASON_CHOICES, default=REASON_CHOICES[0][0]
+    )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
 
 class AmendmentReason(SanitiseMixin):
-    reason = models.CharField('Reason', max_length=125)
+    reason = models.CharField("Reason", max_length=125)
 
     class Meta:
-        app_label = 'disturbance'
-        verbose_name = "Proposal Amendment Reason" # display name in Admin
+        app_label = "disturbance"
+        verbose_name = "Proposal Amendment Reason"  # display name in Admin
         verbose_name_plural = "Proposal Amendment Reasons"
 
     def __str__(self):
@@ -2309,35 +3159,43 @@ class AmendmentReason(SanitiseMixin):
 
 
 class AmendmentRequest(ProposalRequest):
-    STATUS_CHOICES = (('requested', 'Requested'), ('amended', 'Amended'))
+    STATUS_CHOICES = (("requested", "Requested"), ("amended", "Amended"))
 
-    status = models.CharField('Status', max_length=30, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
-    reason = models.ForeignKey(AmendmentReason, blank=True, null=True, on_delete=models.CASCADE)
+    status = models.CharField(
+        "Status", max_length=30, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0]
+    )
+    reason = models.ForeignKey(
+        AmendmentReason, blank=True, null=True, on_delete=models.CASCADE
+    )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
-    def generate_amendment(self,request):
+    def generate_amendment(self, request):
         with transaction.atomic():
             try:
                 if not self.proposal.can_assess(request.user):
                     raise exceptions.ProposalNotAuthorized()
-                if self.status == 'requested':
+                if self.status == "requested":
                     proposal = self.proposal
-                    if proposal.processing_status != 'draft':
-                        proposal.processing_status = 'draft'
-                        proposal.customer_status = 'draft'
+                    if proposal.processing_status != "draft":
+                        proposal.processing_status = "draft"
+                        proposal.customer_status = "draft"
                         proposal.save()
                         proposal.documents.all().update(can_hide=True)
 
                     # Create a log entry for the proposal
-                    proposal.log_user_action(ProposalUserAction.ACTION_ID_REQUEST_AMENDMENTS, request)
+                    proposal.log_user_action(
+                        ProposalUserAction.ACTION_ID_REQUEST_AMENDMENTS, request
+                    )
                     # Create a log entry for the organisation
                     if proposal.applicant:
-                        proposal.applicant.log_user_action(ProposalUserAction.ACTION_ID_REQUEST_AMENDMENTS, request)
+                        proposal.applicant.log_user_action(
+                            ProposalUserAction.ACTION_ID_REQUEST_AMENDMENTS, request
+                        )
 
                     # send email
-                    send_amendment_email_notification(self,request, proposal)
+                    send_amendment_email_notification(self, request, proposal)
 
                 self.save()
             except:
@@ -2347,14 +3205,18 @@ class AmendmentRequest(ProposalRequest):
         with transaction.atomic():
             try:
                 # save the files
-                data = json.loads(request.data.get('data'))
-                if not data.get('update'):
-                    documents_qs = self.amendment_request_documents.filter(input_name='amendment_request_doc', visible=True)
+                data = json.loads(request.data.get("data"))
+                if not data.get("update"):
+                    documents_qs = self.amendment_request_documents.filter(
+                        input_name="amendment_request_doc", visible=True
+                    )
                     documents_qs.delete()
-                for idx in range(data['num_files']):
-                    _file = request.data.get('file-'+str(idx))
-                    document = self.amendment_request_documents.create(_file=_file, name=_file.name)
-                    document.input_name = data['input_name']
+                for idx in range(data["num_files"]):
+                    _file = request.data.get("file-" + str(idx))
+                    document = self.amendment_request_documents.create(
+                        _file=_file, name=_file.name
+                    )
+                    document.input_name = data["input_name"]
                     document.can_delete = True
                     document.save()
                 # end save documents
@@ -2363,17 +3225,26 @@ class AmendmentRequest(ProposalRequest):
                 raise
         return
 
+
 class Assessment(ProposalRequest):
-    STATUS_CHOICES = (('awaiting_assessment', 'Awaiting Assessment'), ('assessed', 'Assessed'),
-                      ('assessment_expired', 'Assessment Period Expired'))
-    assigned_assessor = models.ForeignKey(EmailUser, blank=True, null=True, on_delete=models.CASCADE)
-    status = models.CharField('Status', max_length=20, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
+    STATUS_CHOICES = (
+        ("awaiting_assessment", "Awaiting Assessment"),
+        ("assessed", "Assessed"),
+        ("assessment_expired", "Assessment Period Expired"),
+    )
+    assigned_assessor = models.ForeignKey(
+        EmailUser, blank=True, null=True, on_delete=models.CASCADE
+    )
+    status = models.CharField(
+        "Status", max_length=20, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0]
+    )
     date_last_reminded = models.DateField(null=True, blank=True)
     comment = models.TextField(blank=True)
     purpose = models.TextField(blank=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
+
 
 class ProposalDeclinedDetails(SanitiseMixin):
     proposal = models.OneToOneField(Proposal, on_delete=models.CASCADE)
@@ -2382,15 +3253,18 @@ class ProposalDeclinedDetails(SanitiseMixin):
     cc_email = models.TextField(null=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
+
 
 @python_2_unicode_compatible
 class ProposalStandardRequirement(RevisionedMixin):
     SYSTEM_CHOICES = (
-            ('disturbance', 'Disturbance'),
-            ('apiary', 'Apiary'),
-                      )
-    system = models.CharField('System', max_length=20, choices=SYSTEM_CHOICES, default=SYSTEM_CHOICES[0][0])
+        ("disturbance", "Disturbance"),
+        ("apiary", "Apiary"),
+    )
+    system = models.CharField(
+        "System", max_length=20, choices=SYSTEM_CHOICES, default=SYSTEM_CHOICES[0][0]
+    )
     text = models.TextField()
     code = models.CharField(max_length=10, unique=True)
     obsolete = models.BooleanField(default=False)
@@ -2399,31 +3273,28 @@ class ProposalStandardRequirement(RevisionedMixin):
         return self.code
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
+
 
 class ApiaryReferralGroupMember(models.Model):
-
-    emailuser = models.ForeignKey(
-        EmailUser, 
-        null=False,
-        on_delete=models.CASCADE
-    )
+    emailuser = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
 
     apiaryreferralgroup = models.ForeignKey(
-        'disturbance.ApiaryReferralGroup', 
-        null=False,
-        on_delete=models.CASCADE
+        "disturbance.ApiaryReferralGroup", null=False, on_delete=models.CASCADE
     )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
         db_table = "disturbance_apiaryreferralgroup_members"
-        unique_together=('apiaryreferralgroup','emailuser')
+        unique_together = ("apiaryreferralgroup", "emailuser")
 
 
 class ApiaryReferralGroup(models.Model):
     name = models.CharField(max_length=30, unique=True)
-    members = models.ManyToManyField(EmailUser, through=ApiaryReferralGroupMember,)
+    members = models.ManyToManyField(
+        EmailUser,
+        through=ApiaryReferralGroupMember,
+    )
     region = models.ForeignKey(Region, blank=True, null=True, on_delete=models.PROTECT)
     district = ChainedForeignKey(
         District,
@@ -2436,7 +3307,7 @@ class ApiaryReferralGroup(models.Model):
 
     def __str__(self):
         return self.name
-    
+
     @property
     def resolved_members(self):
         """
@@ -2445,9 +3316,11 @@ class ApiaryReferralGroup(models.Model):
         """
         member_ids = ApiaryReferralGroupMember.objects.filter(
             apiaryreferralgroup=self
-        ).values_list('emailuser_id', flat=True)
+        ).values_list("emailuser_id", flat=True)
 
-        return EmailUser.objects.using('ledger_db').filter(Q(pk__in=list(member_ids))|Q(is_superuser=True))
+        return EmailUser.objects.using("ledger_db").filter(
+            Q(pk__in=list(member_ids)) | Q(is_superuser=True)
+        )
 
     @property
     def all_members(self):
@@ -2459,56 +3332,95 @@ class ApiaryReferralGroup(models.Model):
 
     @property
     def members_list(self):
-        return list(self.resolved_members.values_list('email', flat=True))
+        return list(self.resolved_members.values_list("email", flat=True))
 
     @property
     def members_email(self):
         return [i.email for i in self.resolved_members]
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
         verbose_name = "Apiary Referral Group"
         verbose_name_plural = "Apiary Referral groups"
 
+
 class ProposalRequirement(OrderedModel):
-    RECURRENCE_PATTERNS = [(1, 'Weekly'), (2, 'Monthly'), (3, 'Yearly')]
-    standard_requirement = models.ForeignKey(ProposalStandardRequirement,null=True,blank=True, on_delete=models.CASCADE)
-    free_requirement = models.TextField(null=True,blank=True)
+    RECURRENCE_PATTERNS = [(1, "Weekly"), (2, "Monthly"), (3, "Yearly")]
+    standard_requirement = models.ForeignKey(
+        ProposalStandardRequirement, null=True, blank=True, on_delete=models.CASCADE
+    )
+    free_requirement = models.TextField(null=True, blank=True)
     standard = models.BooleanField(default=True)
-    proposal = models.ForeignKey(Proposal,related_name='requirements', on_delete=models.CASCADE)
-    due_date = models.DateField(null=True,blank=True)
+    proposal = models.ForeignKey(
+        Proposal, related_name="requirements", on_delete=models.CASCADE
+    )
+    due_date = models.DateField(null=True, blank=True)
     recurrence = models.BooleanField(default=False)
-    recurrence_pattern = models.SmallIntegerField(choices=RECURRENCE_PATTERNS,default=1)
-    recurrence_schedule = models.IntegerField(null=True,blank=True)
-    copied_from = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True)
+    recurrence_pattern = models.SmallIntegerField(
+        choices=RECURRENCE_PATTERNS, default=1
+    )
+    recurrence_schedule = models.IntegerField(null=True, blank=True)
+    copied_from = models.ForeignKey(
+        "self", on_delete=models.SET_NULL, blank=True, null=True
+    )
     is_deleted = models.BooleanField(default=False)
     copied_for_renewal = models.BooleanField(default=False)
     require_due_date = models.BooleanField(default=False)
-    sitetransfer_approval = models.ForeignKey('disturbance.Approval',null=True,blank=True, related_name='sitetransferapproval_requirement', on_delete=models.CASCADE)
+    sitetransfer_approval = models.ForeignKey(
+        "disturbance.Approval",
+        null=True,
+        blank=True,
+        related_name="sitetransferapproval_requirement",
+        on_delete=models.CASCADE,
+    )
     # permanent location for apiary / site transfer approvals
-    apiary_approval = models.ForeignKey('disturbance.Approval',null=True,blank=True, related_name='proposalrequirement_set', on_delete=models.CASCADE)
-    # referral_group is no longer required for Apiary 
-    #TODO on cleanup remove (?)
-    referral_group = models.ForeignKey(ApiaryReferralGroup,null=True,blank=True,related_name='apiary_requirement_referral_groups', on_delete=models.CASCADE)
+    apiary_approval = models.ForeignKey(
+        "disturbance.Approval",
+        null=True,
+        blank=True,
+        related_name="proposalrequirement_set",
+        on_delete=models.CASCADE,
+    )
+    # referral_group is no longer required for Apiary
+    # TODO on cleanup remove (?)
+    referral_group = models.ForeignKey(
+        ApiaryReferralGroup,
+        null=True,
+        blank=True,
+        related_name="apiary_requirement_referral_groups",
+        on_delete=models.CASCADE,
+    )
 
     class Meta:
-        app_label = 'disturbance'
-
+        app_label = "disturbance"
 
     @property
     def requirement(self):
-        return self.standard_requirement.text if self.standard else self.free_requirement
+        return (
+            self.standard_requirement.text if self.standard else self.free_requirement
+        )
 
     def save(self, *args, **kwargs):
-        super(ProposalRequirement, self).save(*args,**kwargs)
+        super(ProposalRequirement, self).save(*args, **kwargs)
         # update reissue flags as needed
-        if self.proposal and hasattr(self.proposal, 'proposal_apiary') and self.proposal.proposal_apiary and self.proposal.application_type.name == 'Site Transfer':
-            #if self.sitetransfer_approval == self.apiary_approval we know that the requirement is already attached to the target/originating approval, i.e. is not new
+        if (
+            self.proposal
+            and hasattr(self.proposal, "proposal_apiary")
+            and self.proposal.proposal_apiary
+            and self.proposal.application_type.name == "Site Transfer"
+        ):
+            # if self.sitetransfer_approval == self.apiary_approval we know that the requirement is already attached to the target/originating approval, i.e. is not new
             # now find out whether it is target/originating
             # update relevant reissue flag
-            if self.sitetransfer_approval == self.proposal.proposal_apiary.originating_approval:
+            if (
+                self.sitetransfer_approval
+                == self.proposal.proposal_apiary.originating_approval
+            ):
                 self.proposal.proposal_apiary.reissue_originating_approval = True
-            elif self.sitetransfer_approval == self.proposal.proposal_apiary.target_approval:
+            elif (
+                self.sitetransfer_approval
+                == self.proposal.proposal_apiary.target_approval
+            ):
                 self.proposal.proposal_apiary.reissue_target_approval = True
             self.proposal.proposal_apiary.save()
 
@@ -2524,10 +3436,10 @@ class ProposalUserAction(UserAction):
     ACTION_UNASSIGN_APPROVER = "Unassign approver from proposal {}"
     ACTION_ACCEPT_ID = "Accept ID"
     ACTION_RESET_ID = "Reset ID"
-    ACTION_ID_REQUEST_UPDATE = 'Request ID update'
-    ACTION_ACCEPT_CHARACTER = 'Accept character'
+    ACTION_ID_REQUEST_UPDATE = "Request ID update"
+    ACTION_ACCEPT_CHARACTER = "Accept character"
     ACTION_RESET_CHARACTER = "Reset character"
-    ACTION_ACCEPT_REVIEW = 'Accept review'
+    ACTION_ACCEPT_REVIEW = "Accept review"
     ACTION_RESET_REVIEW = "Reset review"
     ACTION_ID_REQUEST_AMENDMENTS = "Request amendments"
     ACTION_SEND_FOR_ASSESSMENT_TO_ = "Send for assessment to {}"
@@ -2559,7 +3471,7 @@ class ProposalUserAction(UserAction):
     ACTION_BACK_TO_PROCESSING = "Back to processing for proposal {}"
     RECALL_REFERRAL = "Referral {} for proposal {} has been recalled"
     CONCLUDE_REFERRAL = "Referral {} for proposal {} has been concluded by {}"
-    #Approval
+    # Approval
     ACTION_REISSUE_APPROVAL = "Reissue approval for proposal {}"
     ACTION_CANCEL_APPROVAL = "Cancel approval for proposal {}"
     ACTION_SUSPEND_APPROVAL = "Suspend approval for proposal {}"
@@ -2569,142 +3481,231 @@ class ProposalUserAction(UserAction):
     ACTION_AMEND_PROPOSAL = "Create Amendment proposal for proposal {}"
     # Apiary Actions
     APIARY_ACTION_SEND_REFERRAL_TO = "Send Apiary referral {} for application {} to {}"
-    APIARY_ACTION_RESEND_REFERRAL_TO = "Resend Apiary referral {} for application {} to {}"
-    APIARY_ACTION_REMIND_REFERRAL = "Send reminder for Apiary referral {} for application {} to {}"
+    APIARY_ACTION_RESEND_REFERRAL_TO = (
+        "Resend Apiary referral {} for application {} to {}"
+    )
+    APIARY_ACTION_REMIND_REFERRAL = (
+        "Send reminder for Apiary referral {} for application {} to {}"
+    )
     APIARY_ACTION_ENTER_REQUIREMENTS = "Enter Requirements for application {}"
     APIARY_ACTION_BACK_TO_PROCESSING = "Back to processing for application {}"
     APIARY_RECALL_REFERRAL = "Apiary Referral {} for application {} has been recalled"
-    APIARY_CONCLUDE_REFERRAL = "Apiary Referral {} for application {} has been concluded by {}"
+    APIARY_CONCLUDE_REFERRAL = (
+        "Apiary Referral {} for application {} has been concluded by {}"
+    )
     APIARY_ACTION_SAVE_APPLICATION = "Save Apiary application {}"
     APIARY_SITE_MOVED = "Apiary Site {} has been moved from {} to {}"
-    APIARY_REFERRAL_ASSIGN_TO_ASSESSOR = "Assign Referral {} of application {} to {} as the assessor"
-    APIARY_REFERRAL_UNASSIGN_ASSESSOR = "Unassign assessor from Referral {} of application {}"
+    APIARY_REFERRAL_ASSIGN_TO_ASSESSOR = (
+        "Assign Referral {} of application {} to {} as the assessor"
+    )
+    APIARY_REFERRAL_UNASSIGN_ASSESSOR = (
+        "Unassign assessor from Referral {} of application {}"
+    )
 
     class Meta:
-        app_label = 'disturbance'
-        ordering = ('-when',)
+        app_label = "disturbance"
+        ordering = ("-when",)
 
     @classmethod
     def log_action(cls, proposal, action, user):
         if proposal.apiary_group_application_type:
-            action = action.replace('Approval', 'Licence').replace('approval', 'licence').replace('proposal', 'application').replace('Proposal', 'Application')
-        return cls.objects.create(
-            proposal=proposal,
-            who=user,
-            what=str(action)
-        )
+            action = (
+                action.replace("Approval", "Licence")
+                .replace("approval", "licence")
+                .replace("proposal", "application")
+                .replace("Proposal", "Application")
+            )
+        return cls.objects.create(proposal=proposal, who=user, what=str(action))
 
-    proposal = models.ForeignKey(Proposal, related_name='action_logs', on_delete=models.CASCADE)
+    proposal = models.ForeignKey(
+        Proposal, related_name="action_logs", on_delete=models.CASCADE
+    )
 
 
 class Referral(SanitiseMixin):
-    SENT_CHOICES = (
-        (1,'Sent From Assessor'),
-        (2,'Sent From Referral')
-    )
+    SENT_CHOICES = ((1, "Sent From Assessor"), (2, "Sent From Referral"))
     PROCESSING_STATUS_CHOICES = (
-                                 ('with_referral', 'Awaiting'),
-                                 ('recalled', 'Recalled'),
-                                 ('completed', 'Completed'),
-                                 )
+        ("with_referral", "Awaiting"),
+        ("recalled", "Recalled"),
+        ("completed", "Completed"),
+    )
     lodged_on = models.DateTimeField(auto_now_add=True)
-    proposal = models.ForeignKey(Proposal,related_name='referrals', on_delete=models.CASCADE)
-    sent_by = models.ForeignKey(EmailUser,related_name='disturbance_assessor_referrals', on_delete=models.CASCADE)
-    referral = models.ForeignKey(EmailUser,null=True,blank=True,related_name='disturbance_referalls', on_delete=models.CASCADE)
+    proposal = models.ForeignKey(
+        Proposal, related_name="referrals", on_delete=models.CASCADE
+    )
+    sent_by = models.ForeignKey(
+        EmailUser,
+        related_name="disturbance_assessor_referrals",
+        on_delete=models.CASCADE,
+    )
+    referral = models.ForeignKey(
+        EmailUser,
+        null=True,
+        blank=True,
+        related_name="disturbance_referalls",
+        on_delete=models.CASCADE,
+    )
     linked = models.BooleanField(default=False)
-    sent_from = models.SmallIntegerField(choices=SENT_CHOICES,default=SENT_CHOICES[0][0])
-    processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
-                                         default=PROCESSING_STATUS_CHOICES[0][0])
-    text = models.TextField(blank=True) #Assessor text
+    sent_from = models.SmallIntegerField(
+        choices=SENT_CHOICES, default=SENT_CHOICES[0][0]
+    )
+    processing_status = models.CharField(
+        "Processing Status",
+        max_length=30,
+        choices=PROCESSING_STATUS_CHOICES,
+        default=PROCESSING_STATUS_CHOICES[0][0],
+    )
+    text = models.TextField(blank=True)  # Assessor text
     referral_text = models.TextField(blank=True)
 
-
     class Meta:
-        app_label = 'disturbance'
-        ordering = ('-lodged_on',)
+        app_label = "disturbance"
+        ordering = ("-lodged_on",)
 
     def __str__(self):
-        return 'Proposal {} - Referral {}'.format(self.proposal.id,self.id)
+        return "Proposal {} - Referral {}".format(self.proposal.id, self.id)
 
     # Methods
     @property
     def latest_referrals(self):
-        return Referral.objects.filter(sent_by=self.referral, proposal=self.proposal)[:2]
+        return Referral.objects.filter(sent_by=self.referral, proposal=self.proposal)[
+            :2
+        ]
 
     @property
     def can_be_completed(self):
-        #Referral cannot be completed until second level referral sent by referral has been completed/recalled
-        qs=Referral.objects.filter(sent_by=self.referral, proposal=self.proposal, processing_status='with_referral')
+        # Referral cannot be completed until second level referral sent by referral has been completed/recalled
+        qs = Referral.objects.filter(
+            sent_by=self.referral,
+            proposal=self.proposal,
+            processing_status="with_referral",
+        )
         if qs:
             return False
         else:
             return True
 
-    def recall(self,request):
+    def recall(self, request):
         with transaction.atomic():
             if not self.proposal.can_assess(request.user):
                 raise exceptions.ProposalNotAuthorized()
-            self.processing_status = 'recalled'
+            self.processing_status = "recalled"
             self.save()
             send_referral_recall_email_notification(self, request)
-            #Log proposal action
-            self.proposal.log_user_action(ProposalUserAction.RECALL_REFERRAL.format(self.id, self.proposal.lodgement_number), request)
-            #log organisation action
-            self.proposal.applicant.log_user_action(ProposalUserAction.RECALL_REFERRAL.format(self.id, self.proposal.lodgement_number), request)
+            # Log proposal action
+            self.proposal.log_user_action(
+                ProposalUserAction.RECALL_REFERRAL.format(
+                    self.id, self.proposal.lodgement_number
+                ),
+                request,
+            )
+            # log organisation action
+            self.proposal.applicant.log_user_action(
+                ProposalUserAction.RECALL_REFERRAL.format(
+                    self.id, self.proposal.lodgement_number
+                ),
+                request,
+            )
 
-    def remind(self,request):
+    def remind(self, request):
         with transaction.atomic():
             if not self.proposal.can_assess(request.user):
                 raise exceptions.ProposalNotAuthorized()
             # Create a log entry for the proposal
-            self.proposal.log_user_action(ProposalUserAction.ACTION_REMIND_REFERRAL.format(self.id,self.proposal.lodgement_number,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
+            self.proposal.log_user_action(
+                ProposalUserAction.ACTION_REMIND_REFERRAL.format(
+                    self.id,
+                    self.proposal.lodgement_number,
+                    "{}({})".format(self.referral.get_full_name(), self.referral.email),
+                ),
+                request,
+            )
             # Create a log entry for the organisation
-            self.proposal.applicant.log_user_action(ProposalUserAction.ACTION_REMIND_REFERRAL.format(self.id,self.proposal.lodgement_number,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
+            self.proposal.applicant.log_user_action(
+                ProposalUserAction.ACTION_REMIND_REFERRAL.format(
+                    self.id,
+                    self.proposal.lodgement_number,
+                    "{}({})".format(self.referral.get_full_name(), self.referral.email),
+                ),
+                request,
+            )
             # send email
-            send_referral_email_notification(self,request,reminder=True)
+            send_referral_email_notification(self, request, reminder=True)
 
-    def resend(self,request):
+    def resend(self, request):
         with transaction.atomic():
             if not self.proposal.can_assess(request.user):
                 raise exceptions.ProposalNotAuthorized()
-            self.processing_status = 'with_referral'
-            self.proposal.processing_status = 'with_referral'
+            self.processing_status = "with_referral"
+            self.proposal.processing_status = "with_referral"
             self.proposal.save()
             self.sent_from = 1
             self.save()
             # Create a log entry for the proposal
-            self.proposal.log_user_action(ProposalUserAction.ACTION_RESEND_REFERRAL_TO.format(self.id,self.proposal.lodgement_number,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
+            self.proposal.log_user_action(
+                ProposalUserAction.ACTION_RESEND_REFERRAL_TO.format(
+                    self.id,
+                    self.proposal.lodgement_number,
+                    "{}({})".format(self.referral.get_full_name(), self.referral.email),
+                ),
+                request,
+            )
             # Create a log entry for the organisation
-            self.proposal.applicant.log_user_action(ProposalUserAction.ACTION_RESEND_REFERRAL_TO.format(self.id,self.proposal.lodgement_number,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
+            self.proposal.applicant.log_user_action(
+                ProposalUserAction.ACTION_RESEND_REFERRAL_TO.format(
+                    self.id,
+                    self.proposal.lodgement_number,
+                    "{}({})".format(self.referral.get_full_name(), self.referral.email),
+                ),
+                request,
+            )
             # send email
-            send_referral_email_notification(self,request)
+            send_referral_email_notification(self, request)
 
-    def complete(self,request, referral_comment):
+    def complete(self, request, referral_comment):
         with transaction.atomic():
             try:
                 if request.user != self.referral:
                     raise exceptions.ReferralNotAuthorized()
-                self.processing_status = 'completed'
+                self.processing_status = "completed"
                 self.referral_text = referral_comment
                 self.save()
-                #Log proposal action
-                self.proposal.log_user_action(ProposalUserAction.CONCLUDE_REFERRAL.format(self.id,self.proposal.lodgement_number,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
-                #log organisation action
-                self.proposal.applicant.log_user_action(ProposalUserAction.CONCLUDE_REFERRAL.format(self.id,self.proposal.lodgement_number,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
-                send_referral_complete_email_notification(self,request)
+                # Log proposal action
+                self.proposal.log_user_action(
+                    ProposalUserAction.CONCLUDE_REFERRAL.format(
+                        self.id,
+                        self.proposal.lodgement_number,
+                        "{}({})".format(
+                            self.referral.get_full_name(), self.referral.email
+                        ),
+                    ),
+                    request,
+                )
+                # log organisation action
+                self.proposal.applicant.log_user_action(
+                    ProposalUserAction.CONCLUDE_REFERRAL.format(
+                        self.id,
+                        self.proposal.lodgement_number,
+                        "{}({})".format(
+                            self.referral.get_full_name(), self.referral.email
+                        ),
+                    ),
+                    request,
+                )
+                send_referral_complete_email_notification(self, request)
             except:
                 raise
 
-    def send_referral(self,request,referral_email,referral_text):
+    def send_referral(self, request, referral_email, referral_text):
         with transaction.atomic():
             try:
                 referral_email = referral_email.lower()
-                if self.proposal.processing_status == 'with_referral':
+                if self.proposal.processing_status == "with_referral":
                     if request.user != self.referral:
                         raise exceptions.ReferralNotAuthorized()
                     if self.sent_from != 1:
                         raise exceptions.ReferralCanNotSend()
-                    self.proposal.processing_status = 'with_referral'
+                    self.proposal.processing_status = "with_referral"
                     self.proposal.save()
                     referral = None
                     # Check if the user is in ledger
@@ -2714,35 +3715,55 @@ class Referral(SanitiseMixin):
                         # Validate if it is a deparment user
                         department_user = get_department_user(referral_email)
                         if not department_user:
-                            raise ValidationError('The user you want to send the referral to is not a member of the department')
+                            raise ValidationError(
+                                "The user you want to send the referral to is not a member of the department"
+                            )
                         # Check if the user is in ledger or create
 
-                        user,created = EmailUser.objects.get_or_create(email=department_user['email'].lower())
+                        user, created = EmailUser.objects.get_or_create(
+                            email=department_user["email"].lower()
+                        )
                         if created:
-                            user.first_name = department_user['given_name']
-                            user.last_name = department_user['surname']
+                            user.first_name = department_user["given_name"]
+                            user.last_name = department_user["surname"]
                             user.save()
-                    qs=Referral.objects.filter(sent_by=user, proposal=self.proposal)
+                    qs = Referral.objects.filter(sent_by=user, proposal=self.proposal)
                     if qs:
-                        raise ValidationError('You cannot send referral to this user')
+                        raise ValidationError("You cannot send referral to this user")
                     try:
-                        Referral.objects.get(referral=user,proposal=self.proposal)
-                        raise ValidationError('A referral has already been sent to this user')
+                        Referral.objects.get(referral=user, proposal=self.proposal)
+                        raise ValidationError(
+                            "A referral has already been sent to this user"
+                        )
                     except Referral.DoesNotExist:
                         # Create Referral
                         referral = Referral.objects.create(
-                            proposal = self.proposal,
+                            proposal=self.proposal,
                             referral=user,
                             sent_by=request.user,
                             sent_from=2,
-                            text=referral_text
+                            text=referral_text,
                         )
                     # Create a log entry for the proposal
-                    self.proposal.log_user_action(ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(referral.id,self.proposal.lodgement_number,'{}({})'.format(user.get_full_name(),user.email)),request)
+                    self.proposal.log_user_action(
+                        ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(
+                            referral.id,
+                            self.proposal.lodgement_number,
+                            "{}({})".format(user.get_full_name(), user.email),
+                        ),
+                        request,
+                    )
                     # Create a log entry for the organisation
-                    self.proposal.applicant.log_user_action(ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(referral.id,self.proposal.lodgement_number,'{}({})'.format(user.get_full_name(),user.email)),request)
+                    self.proposal.applicant.log_user_action(
+                        ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(
+                            referral.id,
+                            self.proposal.lodgement_number,
+                            "{}({})".format(user.get_full_name(), user.email),
+                        ),
+                        request,
+                    )
                     # send email
-                    send_referral_email_notification(referral,request)
+                    send_referral_email_notification(referral, request)
                 else:
                     raise exceptions.ProposalReferralCannotBeSent()
             except:
@@ -2767,55 +3788,66 @@ class Referral(SanitiseMixin):
 
     @property
     def can_be_processed(self):
-        return self.processing_status == 'with_referral'
+        return self.processing_status == "with_referral"
 
-    def can_assess_referral(self,user):
-        return self.processing_status == 'with_referral'
+    def can_assess_referral(self, user):
+        return self.processing_status == "with_referral"
+
 
 @receiver(pre_delete, sender=Proposal)
 def delete_documents(sender, instance, *args, **kwargs):
     for document in instance.documents.all():
         document.delete()
 
+
 def clone_proposal_with_status_reset(proposal):
-        with transaction.atomic():
-            try:
-                proposal.customer_status = 'draft'
-                proposal.processing_status = 'draft'
-                proposal.assessor_data = None
-                proposal.comment_data = None
+    with transaction.atomic():
+        try:
+            proposal.customer_status = "draft"
+            proposal.processing_status = "draft"
+            proposal.assessor_data = None
+            proposal.comment_data = None
 
-                proposal.lodgement_number = ''
-                proposal.lodgement_sequence = 0
-                proposal.lodgement_date = None
+            proposal.lodgement_number = ""
+            proposal.lodgement_sequence = 0
+            proposal.lodgement_date = None
 
-                proposal.assigned_officer = None
-                proposal.assigned_approver = None
+            proposal.assigned_officer = None
+            proposal.assigned_approver = None
 
-                proposal.approval = None
+            proposal.approval = None
 
-                original_proposal_id = proposal.id
+            original_proposal_id = proposal.id
 
-                proposal.id = None
-                proposal.approval_level_document = None
-                proposal.reissued=False
+            proposal.id = None
+            proposal.approval_level_document = None
+            proposal.reissued = False
 
-                proposal.save(no_revision=True)
+            proposal.save(no_revision=True)
 
-                # clone documents
-                for proposal_document in ProposalDocument.objects.filter(proposal=original_proposal_id):
-                    proposal_document.proposal = proposal
-                    proposal_document.id = None
-                    proposal_document._file.name = u'proposals/{}/documents/{}'.format(proposal.id, proposal_document.name)
-                    proposal_document.can_delete = True
-                    proposal_document.save()
+            # clone documents
+            for proposal_document in ProposalDocument.objects.filter(
+                proposal=original_proposal_id
+            ):
+                proposal_document.proposal = proposal
+                proposal_document.id = None
+                proposal_document._file.name = "proposals/{}/documents/{}".format(
+                    proposal.id, proposal_document.name
+                )
+                proposal_document.can_delete = True
+                proposal_document.save()
 
-                # copy documents on file system and reset can_delete flag
-                subprocess.call('cp -pr media/proposals/{} media/proposals/{}'.format(original_proposal_id, proposal.id), shell=True)
+            # copy documents on file system and reset can_delete flag
+            subprocess.call(
+                "cp -pr media/proposals/{} media/proposals/{}".format(
+                    original_proposal_id, proposal.id
+                ),
+                shell=True,
+            )
 
-                return proposal
-            except:
-                raise
+            return proposal
+        except:
+            raise
 
 
 def clone_apiary_proposal_with_status_reset(original_proposal):
@@ -2824,18 +3856,20 @@ def clone_apiary_proposal_with_status_reset(original_proposal):
         try:
             proposal = copy.deepcopy(original_proposal)
             proposal.id = None
-            proposal.application_type = ApplicationType.objects.get(name=ApplicationType.APIARY)
+            proposal.application_type = ApplicationType.objects.get(
+                name=ApplicationType.APIARY
+            )
 
             proposal.save(no_revision=True)
             # create proposal_apiary and associate it with the proposal
             proposal_apiary = ProposalApiary.objects.create(proposal=proposal)
             proposal_apiary.save()
 
-            proposal.customer_status = 'draft'
-            proposal.processing_status = 'draft'
+            proposal.customer_status = "draft"
+            proposal.processing_status = "draft"
             proposal.assessor_data = None
             proposal.comment_data = None
-            proposal.lodgement_number = ''
+            proposal.lodgement_number = ""
             proposal.lodgement_sequence = 0
             proposal.lodgement_date = None
 
@@ -2845,7 +3879,7 @@ def clone_apiary_proposal_with_status_reset(original_proposal):
             proposal.approval_level_document = None
             # proposal.fee_invoice_reference = None
             proposal.fee_invoice_references = []
-            proposal.activity = 'Apiary Renewal'
+            proposal.activity = "Apiary Renewal"
 
             proposal.save(no_revision=True)
             # clone requirements - ensure due dates are None
@@ -2856,11 +3890,11 @@ def clone_apiary_proposal_with_status_reset(original_proposal):
                     old_r = copy.deepcopy(r)
                     r.proposal = proposal
                     r.apiary_approval = None
-                    r.copied_from=old_r
-                    r.copied_for_renewal=True
+                    r.copied_from = old_r
+                    r.copied_for_renewal = True
                     if r.due_date:
-                        r.due_date=None
-                        r.require_due_date=True
+                        r.due_date = None
+                        r.require_due_date = True
                     r.id = None
                     r.save()
 
@@ -2869,39 +3903,58 @@ def clone_apiary_proposal_with_status_reset(original_proposal):
 
             # Checklist questions
             for question in ApiaryChecklistQuestion.objects.filter(
-                    checklist_type='apiary',
-                    checklist_role='applicant'
-                    ):
-                new_answer = ApiaryChecklistAnswer.objects.create(proposal = proposal.proposal_apiary,
-                                                                           question = question)
+                checklist_type="apiary", checklist_role="applicant"
+            ):
+                new_answer = ApiaryChecklistAnswer.objects.create(
+                    proposal=proposal.proposal_apiary, question=question
+                )
 
             return proposal
         except:
             raise
 
-#TODO on-cleanup - improve or remove if not needed for apiary
-def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance, is_internal= True):
+
+# TODO on-cleanup - improve or remove if not needed for apiary
+def searchKeyWords(
+    searchWords, searchProposal, searchApproval, searchCompliance, is_internal=True
+):
     from disturbance.components.approvals.models import Approval
     from disturbance.components.compliances.models import Compliance
     from disturbance.utils import search, search_approval, search_compliance
+
     qs = []
     if is_internal:
-        proposal_list = Proposal.objects.filter(application_type__name__in=['Apiary', 'Site Transfer', 'Temporary Use']).exclude(processing_status__in=[Proposal.PROCESSING_STATUS_DISCARDED, Proposal.PROCESSING_STATUS_DRAFT])
-        approval_list = Approval.objects.all().order_by('lodgement_number', '-issue_date').distinct('lodgement_number')
+        proposal_list = Proposal.objects.filter(
+            application_type__name__in=["Apiary", "Site Transfer", "Temporary Use"]
+        ).exclude(
+            processing_status__in=[
+                Proposal.PROCESSING_STATUS_DISCARDED,
+                Proposal.PROCESSING_STATUS_DRAFT,
+            ]
+        )
+        approval_list = (
+            Approval.objects.all()
+            .order_by("lodgement_number", "-issue_date")
+            .distinct("lodgement_number")
+        )
         compliance_list = Compliance.objects.all()
 
     if searchWords:
         search_words_regex = "(?:"
-        for i in range(0,len(searchWords)):
+        for i in range(0, len(searchWords)):
             search_words_regex = search_words_regex + searchWords[i]
-            if i == len(searchWords)-1:
+            if i == len(searchWords) - 1:
                 search_words_regex = search_words_regex + ")"
             else:
                 search_words_regex = search_words_regex + "|"
 
-        filter_regex = ".*\".*\":\s\"(\\\\\"|[^\"])*"+search_words_regex+"(\\\\\"|[^\"])*\".*"
+        filter_regex = (
+            '.*".*":\s"(\\\\"|[^"])*' + search_words_regex + '(\\\\"|[^"])*".*'
+        )
         if searchProposal:
-            proposal_list = proposal_list.filter(proposed_issuance_approval__iregex=filter_regex)
+            proposal_list = proposal_list.filter(
+                proposed_issuance_approval__iregex=filter_regex
+            )
             for p in proposal_list:
                 name = ""
                 if p.applicant:
@@ -2915,19 +3968,23 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
                         if results:
                             for r in results:
                                 for key, value in r.items():
-                                    final_results.update({'key': key, 'value': value})                           
+                                    final_results.update({"key": key, "value": value})
                             res = {
-                                'number': p.lodgement_number,
-                                'id': p.id,
-                                'type': 'Proposal',
-                                'applicant': name,
-                                'text': final_results,
-                                }
+                                "number": p.lodgement_number,
+                                "id": p.id,
+                                "type": "Proposal",
+                                "applicant": name,
+                                "text": final_results,
+                            }
                             qs.append(res)
                     except:
                         raise
         if searchApproval:
-            approval_list = approval_list.filter(Q(surrender_details__iregex=filter_regex) | Q(suspension_details__iregex=filter_regex) | Q(cancellation_details__iregex=search_words_regex))
+            approval_list = approval_list.filter(
+                Q(surrender_details__iregex=filter_regex)
+                | Q(suspension_details__iregex=filter_regex)
+                | Q(cancellation_details__iregex=search_words_regex)
+            )
             for a in approval_list:
                 try:
                     results = search_approval(a, searchWords)
@@ -2935,7 +3992,11 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
                 except:
                     raise
         if searchCompliance:
-            compliance_list = compliance_list.filter(Q(text__iregex=search_words_regex) | Q(requirement__free_requirement__iregex=search_words_regex) | Q(requirement__standard_requirement__text__iregex=search_words_regex))
+            compliance_list = compliance_list.filter(
+                Q(text__iregex=search_words_regex)
+                | Q(requirement__free_requirement__iregex=search_words_regex)
+                | Q(requirement__standard_requirement__text__iregex=search_words_regex)
+            )
             for c in compliance_list:
                 try:
                     results = search_compliance(c, searchWords)
@@ -2948,34 +4009,49 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
 def search_reference(reference_number):
     from disturbance.components.approvals.models import Approval
     from disturbance.components.compliances.models import Compliance
-    proposal_list = Proposal.objects.all().exclude(processing_status__in=[Proposal.PROCESSING_STATUS_DISCARDED,])
-    approval_list = Approval.objects.all().order_by('lodgement_number', '-issue_date').distinct('lodgement_number')
-    compliance_list = Compliance.objects.all().exclude(processing_status__in=['future'])
-    record = {}
-    try:
-        result = proposal_list.get(lodgement_number = reference_number)
-        record = {  'id': result.id,
-                    'type': 'proposal' }
-    except Proposal.DoesNotExist:
-        try:
-            result = approval_list.get(lodgement_number = reference_number)
-            record = {  'id': result.id,
-                        'type': 'approval' }
-        except Approval.DoesNotExist:
-            try:
-                for c in compliance_list:
-                    if c.lodgement_number == reference_number:
-                        record = {  'id': c.id,
-                                    'type': 'compliance' }
-            except:
-                raise ValidationError('Record with provided reference number does not exist')
-    if record:
-        return record
-    else:
-        raise ValidationError('Record with provided reference number does not exist')
+
+    reference_number = (reference_number or "").strip()
+    if not reference_number:
+        raise ValidationError("Record with provided reference number does not exist")
+
+    proposal_list = Proposal.objects.exclude(
+        processing_status=Proposal.PROCESSING_STATUS_DISCARDED
+    ).filter(
+        application_type__name__in=[
+            ApplicationType.APIARY,
+            ApplicationType.SITE_TRANSFER,
+            ApplicationType.TEMPORARY_USE,
+        ]
+    )
+    approval_list = (
+        Approval.objects.filter(apiary_approval=True)
+        .order_by("lodgement_number", "-issue_date")
+        .distinct("lodgement_number")
+    )
+    compliance_list = Compliance.objects.filter(apiary_compliance=True).exclude(
+        processing_status__in=["future", "discarded"]
+    )
+
+    proposal = proposal_list.filter(lodgement_number=reference_number).first()
+    if proposal:
+        return {"id": proposal.id, "type": "proposal"}
+
+    approval = approval_list.filter(lodgement_number=reference_number).first()
+    if approval:
+        return {"id": approval.id, "type": "approval"}
+
+    compliance = None
+    for record in compliance_list:
+        if record.lodgement_number == reference_number:
+            compliance = record
+
+    if compliance:
+        return {"id": compliance.id, "type": "compliance"}
+
+    raise ValidationError("Record with provided reference number does not exist")
 
 
-#TODO on cleanup - remove if not needed for apiary
+# TODO on cleanup - remove if not needed for apiary
 from ckeditor.fields import RichTextField
 
 
@@ -2983,42 +4059,69 @@ class HelpPage(models.Model):
     HELP_TEXT_EXTERNAL = 1
     HELP_TEXT_INTERNAL = 2
     HELP_TYPE_CHOICES = (
-        (HELP_TEXT_EXTERNAL, 'External'),
-        (HELP_TEXT_INTERNAL, 'Internal'),
+        (HELP_TEXT_EXTERNAL, "External"),
+        (HELP_TEXT_INTERNAL, "Internal"),
     )
 
     application_type = models.ForeignKey(ApplicationType, on_delete=models.CASCADE)
     content = RichTextField()
     description = models.CharField(max_length=256, blank=True, null=True)
-    help_type = models.SmallIntegerField('Help Type', choices=HELP_TYPE_CHOICES, default=HELP_TEXT_EXTERNAL)
+    help_type = models.SmallIntegerField(
+        "Help Type", choices=HELP_TYPE_CHOICES, default=HELP_TEXT_EXTERNAL
+    )
     version = models.SmallIntegerField(default=1, blank=False, null=False)
 
     class Meta:
-        app_label = 'disturbance'
-        unique_together = ('application_type', 'help_type', 'version')
+        app_label = "disturbance"
+        unique_together = ("application_type", "help_type", "version")
 
 
 # --------------------------------------------------------------------------------------
 # Apiary Models Start
 # --------------------------------------------------------------------------------------
 
+
 class ApiarySiteOnProposal(RevisionedMixin):
-    apiary_site = models.ForeignKey('ApiarySite', on_delete=models.CASCADE)
-    proposal_apiary = models.ForeignKey('ProposalApiary', on_delete=models.CASCADE)
+    apiary_site = models.ForeignKey("ApiarySite", on_delete=models.CASCADE)
+    proposal_apiary = models.ForeignKey("ProposalApiary", on_delete=models.CASCADE)
     apiary_site_status_when_submitted = models.CharField(max_length=40, blank=True)
     apiary_site_is_vacant_when_submitted = models.BooleanField(default=False)
     for_renewal = models.BooleanField(default=False)
-    site_status = models.CharField(default=SITE_STATUS_DRAFT, max_length=20, db_index=True)
+    site_status = models.CharField(
+        default=SITE_STATUS_DRAFT, max_length=20, db_index=True
+    )
     making_payment = models.BooleanField(default=False)
-    workflow_selected_status = models.BooleanField(default=False)  # This field is used only during approval process to select/deselect the site to be approved
+    workflow_selected_status = models.BooleanField(
+        default=False
+    )  # This field is used only during approval process to select/deselect the site to be approved
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    wkb_geometry_draft = PointField(srid=4326, blank=True, null=True)  # store the coordinates before submit
-    wkb_geometry_processed = PointField(srid=4326, blank=True, null=True)  # store approved coordinates
-    site_category_draft = models.ForeignKey('SiteCategory', null=True, blank=True, related_name='intermediate_draft', on_delete=models.CASCADE)
-    site_category_processed = models.ForeignKey('SiteCategory', null=True, blank=True, related_name='intermediate_processed', on_delete=models.CASCADE)
-    application_fee_paid = models.BooleanField(default=False)  # To avoid overcharging when the proposal is sent back to the customer, we need this flag
-    licensed_site = models.BooleanField(default=False)  # used only during approval process, licensed site, have an independent PDF Licence page
+    wkb_geometry_draft = PointField(
+        srid=4326, blank=True, null=True
+    )  # store the coordinates before submit
+    wkb_geometry_processed = PointField(
+        srid=4326, blank=True, null=True
+    )  # store approved coordinates
+    site_category_draft = models.ForeignKey(
+        "SiteCategory",
+        null=True,
+        blank=True,
+        related_name="intermediate_draft",
+        on_delete=models.CASCADE,
+    )
+    site_category_processed = models.ForeignKey(
+        "SiteCategory",
+        null=True,
+        blank=True,
+        related_name="intermediate_processed",
+        on_delete=models.CASCADE,
+    )
+    application_fee_paid = models.BooleanField(
+        default=False
+    )  # To avoid overcharging when the proposal is sent back to the customer, we need this flag
+    licensed_site = models.BooleanField(
+        default=False
+    )  # used only during approval process, licensed site, have an independent PDF Licence page
     issuance_details = JSONField(blank=True, null=True)
 
     # permit issuance details
@@ -3036,47 +4139,80 @@ class ApiarySiteOnProposal(RevisionedMixin):
     objects = GeoManager()
 
     def __str__(self):
-        return 'id:{}: (apiary_site: {}, proposal_apiary: {})'.format(self.id, self.apiary_site.id, self.proposal_apiary.id)
+        return "id:{}: (apiary_site: {}, proposal_apiary: {})".format(
+            self.id, self.apiary_site.id, self.proposal_apiary.id
+        )
 
     def get_relevant_applicant_name(self):
         if self.proposal_apiary and self.proposal_apiary.proposal:
             return self.proposal_apiary.proposal.relevant_applicant_name
-        return ''
+        return ""
 
     class Meta:
-        app_label = 'disturbance'
-        unique_together = ['apiary_site', 'proposal_apiary',]
+        app_label = "disturbance"
+        unique_together = [
+            "apiary_site",
+            "proposal_apiary",
+        ]
 
 
 class ProposalApiary(RevisionedMixin):
-    title = models.CharField('Title', max_length=200, null=True)
+    title = models.CharField("Title", max_length=200, null=True)
     location = gis_models.PointField(srid=4326, blank=True, null=True)
-    proposal = models.OneToOneField(Proposal, related_name='proposal_apiary', null=True, on_delete=models.CASCADE)
+    proposal = models.OneToOneField(
+        Proposal, related_name="proposal_apiary", null=True, on_delete=models.CASCADE
+    )
 
     # We don't use GIS field, because these are just fields user input into the <input> field
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    latitude = models.DecimalField(
+        max_digits=9, decimal_places=6, null=True, blank=True
+    )
+    longitude = models.DecimalField(
+        max_digits=9, decimal_places=6, null=True, blank=True
+    )
 
     # required for Site Transfer applications
     # transferee used to store EmailUser without existing licence
-    transferee = models.ForeignKey(EmailUser, blank=True, null=True, related_name='apiary_transferee', on_delete=models.CASCADE)
+    transferee = models.ForeignKey(
+        EmailUser,
+        blank=True,
+        null=True,
+        related_name="apiary_transferee",
+        on_delete=models.CASCADE,
+    )
     transferee_email_text = models.CharField(max_length=200, null=True)
-    originating_approval = models.ForeignKey('disturbance.Approval', blank=True, null=True, related_name="site_transfer_originating_approval", on_delete=models.CASCADE)
-    target_approval = models.ForeignKey('disturbance.Approval', blank=True, null=True, related_name="site_transfer_target_approval", on_delete=models.CASCADE)
-    target_approval_organisation = models.ForeignKey(Organisation, blank=True, null=True, on_delete=models.CASCADE)
+    originating_approval = models.ForeignKey(
+        "disturbance.Approval",
+        blank=True,
+        null=True,
+        related_name="site_transfer_originating_approval",
+        on_delete=models.CASCADE,
+    )
+    target_approval = models.ForeignKey(
+        "disturbance.Approval",
+        blank=True,
+        null=True,
+        related_name="site_transfer_target_approval",
+        on_delete=models.CASCADE,
+    )
+    target_approval_organisation = models.ForeignKey(
+        Organisation, blank=True, null=True, on_delete=models.CASCADE
+    )
     target_approval_start_date = models.DateField(blank=True, null=True)
     target_approval_expiry_date = models.DateField(blank=True, null=True)
     reissue_originating_approval = models.BooleanField(default=False)
     reissue_target_approval = models.BooleanField(default=False)
 
-    apiary_sites = models.ManyToManyField('ApiarySite', through=ApiarySiteOnProposal, related_name='proposal_apiary_set')
+    apiary_sites = models.ManyToManyField(
+        "ApiarySite", through=ApiarySiteOnProposal, related_name="proposal_apiary_set"
+    )
     public_liability_insurance_expiry_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return 'id:{} - {}'.format(self.id, self.title)
+        return "id:{} - {}".format(self.id, self.title)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
     def validate_apiary_sites(self, raise_exception=False):
         validity = True
@@ -3085,7 +4221,10 @@ class ProposalApiary(RevisionedMixin):
         for apiary_site in self.apiary_sites.all():
             if apiary_site.is_vacant:
                 # The site is 'vacant'
-                others = ApiarySiteOnProposal.objects.filter(Q(apiary_site=apiary_site), (Q(making_payment=True) | Q(site_status=SITE_STATUS_PENDING))).exclude(proposal_apiary=self)
+                others = ApiarySiteOnProposal.objects.filter(
+                    Q(apiary_site=apiary_site),
+                    (Q(making_payment=True) | Q(site_status=SITE_STATUS_PENDING)),
+                ).exclude(proposal_apiary=self)
                 if others:
                     # Someone has been making payment for this apiary site
                     validity = False
@@ -3096,22 +4235,36 @@ class ProposalApiary(RevisionedMixin):
                     validity = False
 
             if not validity and raise_exception:
-                raise serializers.ValidationError({
-                    'type': 'site_no_longer_available',
-                    'message': 'The vacant apiary site: {} is no longer available.'.format(apiary_site.id),
-                    'apiary_site_id': apiary_site.id})
+                raise serializers.ValidationError(
+                    {
+                        "type": "site_no_longer_available",
+                        "message": "The vacant apiary site: {} is no longer available.".format(
+                            apiary_site.id
+                        ),
+                        "apiary_site_id": apiary_site.id,
+                    }
+                )
 
         # Check the distance among the requested sites
         for apiary_site in self.apiary_sites.all():
             relation = self.get_relation(apiary_site)
             # Check among the apiary sites in this proposal except current one of the loop
             q_objects = Q(apiary_site__in=self.apiary_sites.all())
-            q_objects &= Q(wkb_geometry_draft__distance_lte=(relation.wkb_geometry_draft, Distance(m=RESTRICTED_RADIUS)))
-            qs_sites_within = ApiarySiteOnProposal.objects.filter(q_objects).exclude(apiary_site=apiary_site)
+            q_objects &= Q(
+                wkb_geometry_draft__distance_lte=(
+                    relation.wkb_geometry_draft,
+                    Distance(m=RESTRICTED_RADIUS),
+                )
+            )
+            qs_sites_within = ApiarySiteOnProposal.objects.filter(q_objects).exclude(
+                apiary_site=apiary_site
+            )
             if qs_sites_within:
                 # In this proposal, there are apiary sites which are too close to each other
                 if raise_exception:
-                    raise ValidationError('There are apiary sites in this proposal which are too close to each other.')
+                    raise ValidationError(
+                        "There are apiary sites in this proposal which are too close to each other."
+                    )
                 validity = False
 
         return validity
@@ -3119,7 +4272,9 @@ class ProposalApiary(RevisionedMixin):
     def final_decline(self):
         relations = self.get_relations()
         relations.update(site_status=SITE_STATUS_DENIED)
-        self.apiary_sites.all().update(is_vacant=False)  # Once delclined or approved, is_vacant status must be set to False
+        self.apiary_sites.all().update(
+            is_vacant=False
+        )  # Once delclined or approved, is_vacant status must be set to False
 
     def post_payment_success(self):
         """
@@ -3127,8 +4282,10 @@ class ProposalApiary(RevisionedMixin):
         """
         for relation in self.get_relations():
             relation.apiary_site_status_when_submitted = relation.site_status
-            relation.apiary_site_is_vacant_when_submitted = relation.apiary_site.is_vacant
-            if isinstance(relation,ApiarySiteOnProposal):
+            relation.apiary_site_is_vacant_when_submitted = (
+                relation.apiary_site.is_vacant
+            )
+            if isinstance(relation, ApiarySiteOnProposal):
                 relation.wkb_geometry_processed = relation.wkb_geometry_draft
                 relation.site_category_processed = relation.site_category_draft
             relation.site_status = SITE_STATUS_PENDING
@@ -3164,16 +4321,25 @@ class ProposalApiary(RevisionedMixin):
 
     def get_relation(self, apiary_site):
         if isinstance(apiary_site, dict):
-            apiary_site = ApiarySite.objects.get(id=apiary_site['id'])
-        relation_obj = ApiarySiteOnProposal.objects.get(apiary_site=apiary_site, proposal_apiary=self)
+            apiary_site = ApiarySite.objects.get(id=apiary_site["id"])
+        relation_obj = ApiarySiteOnProposal.objects.get(
+            apiary_site=apiary_site, proposal_apiary=self
+        )
         return relation_obj
 
     def get_relations(self):
-        if self.proposal.application_type.name == 'Site Transfer':
+        if self.proposal.application_type.name == "Site Transfer":
             from disturbance.components.approvals.models import ApiarySiteOnApproval
-            relation_objs = ApiarySiteOnApproval.objects.filter(id__in=SiteTransferApiarySite.objects.filter(proposal_apiary=self).values('apiary_site_on_approval_id'))
+
+            relation_objs = ApiarySiteOnApproval.objects.filter(
+                id__in=SiteTransferApiarySite.objects.filter(
+                    proposal_apiary=self
+                ).values("apiary_site_on_approval_id")
+            )
         else:
-            relation_objs = ApiarySiteOnProposal.objects.filter(apiary_site__in=self.apiary_sites.all(), proposal_apiary=self)
+            relation_objs = ApiarySiteOnProposal.objects.filter(
+                apiary_site__in=self.apiary_sites.all(), proposal_apiary=self
+            )
         return relation_objs
 
     def delete_relation(self, apiary_site):
@@ -3194,8 +4360,11 @@ class ProposalApiary(RevisionedMixin):
     def send_referral(self, request, group_id, referral_text):
         with transaction.atomic():
             try:
-                if self.proposal.processing_status == 'with_assessor' or self.proposal.processing_status == 'with_referral':
-                    self.proposal.processing_status = 'with_referral'
+                if (
+                    self.proposal.processing_status == "with_assessor"
+                    or self.proposal.processing_status == "with_referral"
+                ):
+                    self.proposal.processing_status = "with_referral"
                     self.proposal.save()
                     self.save()
                     referral = None
@@ -3205,80 +4374,90 @@ class ProposalApiary(RevisionedMixin):
                         referral_group = ApiaryReferralGroup.objects.get(id=group_id)
                     except ApiaryReferralGroup.DoesNotExist:
                         raise exceptions.ProposalReferralCannotBeSent()
-                    
+
                     existing_referrals = Referral.objects.filter(proposal=self.proposal)
-                    apiary_referral_list = ApiaryReferral.objects.filter(referral_group=referral_group,referral__in=existing_referrals) if existing_referrals else None
+                    apiary_referral_list = (
+                        ApiaryReferral.objects.filter(
+                            referral_group=referral_group,
+                            referral__in=existing_referrals,
+                        )
+                        if existing_referrals
+                        else None
+                    )
                     if apiary_referral_list:
-                        raise ValidationError('A referral has already been sent to this group')
+                        raise ValidationError(
+                            "A referral has already been sent to this group"
+                        )
                     else:
                         # Create Referral
                         referral = Referral.objects.create(
-                            proposal = self.proposal,
+                            proposal=self.proposal,
                             sent_by=request.user,
-                            text=referral_text
+                            text=referral_text,
                         )
                         # Create corresponding ApiaryReferral
                         apiary_referral = ApiaryReferral.objects.create(
                             referral=referral,
                             referral_group=referral_group,
                         )
-                        if self.proposal.application_type.name == 'Apiary':
+                        if self.proposal.application_type.name == "Apiary":
                             # create referral checklist answers
                             for question in ApiaryChecklistQuestion.objects.filter(
-                                    checklist_type='apiary',
-                                    checklist_role='referrer'
-                                    ):
+                                checklist_type="apiary", checklist_role="referrer"
+                            ):
                                 new_answer = ApiaryChecklistAnswer.objects.create(
-                                        proposal = self,
-                                        apiary_referral = apiary_referral,
-                                        question = question
-                                        )
+                                    proposal=self,
+                                    apiary_referral=apiary_referral,
+                                    question=question,
+                                )
 
                             for question in ApiaryChecklistQuestion.objects.filter(
-                                    checklist_type='apiary_per_site',
-                                    checklist_role='referrer'
-                                    ):
+                                checklist_type="apiary_per_site",
+                                checklist_role="referrer",
+                            ):
                                 for site in self.get_relations():
                                     new_answer = ApiaryChecklistAnswer.objects.create(
-                                            proposal = self,
-                                            apiary_referral = apiary_referral,
-                                            question = question,
-                                            apiary_site=site.apiary_site
-                                            )
-                        elif self.proposal.application_type.name == 'Site Transfer':
+                                        proposal=self,
+                                        apiary_referral=apiary_referral,
+                                        question=question,
+                                        apiary_site=site.apiary_site,
+                                    )
+                        elif self.proposal.application_type.name == "Site Transfer":
                             # create referral checklist answers
                             for question in ApiaryChecklistQuestion.objects.filter(
-                                    checklist_type='site_transfer',
-                                    checklist_role='referrer'
-                                    ):
+                                checklist_type="site_transfer",
+                                checklist_role="referrer",
+                            ):
                                 new_answer = ApiaryChecklistAnswer.objects.create(
-                                        proposal = self,
-                                        apiary_referral = apiary_referral,
-                                        question = question
-                                        )
+                                    proposal=self,
+                                    apiary_referral=apiary_referral,
+                                    question=question,
+                                )
 
                             for question in ApiaryChecklistQuestion.objects.filter(
-                                    checklist_type='site_transfer_per_site',
-                                    checklist_role='referrer'
-                                    ):
+                                checklist_type="site_transfer_per_site",
+                                checklist_role="referrer",
+                            ):
                                 for site in self.get_relations():
                                     new_answer = ApiaryChecklistAnswer.objects.create(
-                                            proposal = self,
-                                            apiary_referral = apiary_referral,
-                                            question = question,
-                                            apiary_site=site.apiary_site
-                                            )
+                                        proposal=self,
+                                        apiary_referral=apiary_referral,
+                                        question=question,
+                                        apiary_site=site.apiary_site,
+                                    )
 
                         self.proposal.log_user_action(
-                                ProposalUserAction.APIARY_ACTION_SEND_REFERRAL_TO.format(
-                                    referral.id,
-                                    self.proposal.lodgement_number,
-                                    '{}'.format(referral_group.name)
-                                    ),
-                                request
-                                )
+                            ProposalUserAction.APIARY_ACTION_SEND_REFERRAL_TO.format(
+                                referral.id,
+                                self.proposal.lodgement_number,
+                                "{}".format(referral_group.name),
+                            ),
+                            request,
+                        )
                         recipients = referral_group.members_list
-                        send_apiary_referral_email_notification(referral, recipients, request)
+                        send_apiary_referral_email_notification(
+                            referral, recipients, request
+                        )
                 else:
                     raise exceptions.ProposalReferralCannotBeSent()
             except:
@@ -3295,51 +4474,83 @@ class ProposalApiary(RevisionedMixin):
     @property
     def retrieve_approval(self):
         from disturbance.components.approvals.models import Approval
+
         approval = None
         if self.proposal.applicant:
-            approval = Approval.objects.filter(applicant=self.proposal.applicant, status__in=[Approval.STATUS_CURRENT, Approval.STATUS_SUSPENDED], apiary_approval=True).first()
+            approval = Approval.objects.filter(
+                applicant=self.proposal.applicant,
+                status__in=[Approval.STATUS_CURRENT, Approval.STATUS_SUSPENDED],
+                apiary_approval=True,
+            ).first()
         elif self.proposal.proxy_applicant:
-            approval = Approval.objects.filter(proxy_applicant=self.proposal.proxy_applicant, status__in=[Approval.STATUS_CURRENT, Approval.STATUS_SUSPENDED], apiary_approval=True).first()
+            approval = Approval.objects.filter(
+                proxy_applicant=self.proposal.proxy_applicant,
+                status__in=[Approval.STATUS_CURRENT, Approval.STATUS_SUSPENDED],
+                apiary_approval=True,
+            ).first()
         return approval
 
-    def create_transferee_approval(self, details, approver, applicant=None, proxy_applicant=None):
+    def create_transferee_approval(
+        self, details, approver, applicant=None, proxy_applicant=None
+    ):
         from disturbance.components.approvals.models import Approval
+
         approval = Approval.objects.create(
-            current_proposal = self.proposal,
-            issue_date= timezone.now(),
-            start_date= details.get('start_date'),
-            expiry_date= details.get('expiry_date'),
-            applicant= applicant,
-            proxy_applicant= proxy_applicant,
-            apiary_approval= self.proposal.apiary_group_application_type,
+            current_proposal=self.proposal,
+            issue_date=timezone.now(),
+            start_date=details.get("start_date"),
+            expiry_date=details.get("expiry_date"),
+            applicant=applicant,
+            proxy_applicant=proxy_applicant,
+            apiary_approval=self.proposal.apiary_group_application_type,
             approver_id=approver.id,
         )
         return approval
 
     # ProposalApiary final approval
-    def final_approval(self,request,details,preview=False):
+    def final_approval(self, request, details, preview=False):
         from disturbance.components.approvals.models import Approval
+
         try:
             approval_created = None
             if not self.proposal.can_assess(request.user):
                 raise exceptions.ProposalNotAuthorized()
-            if self.proposal.processing_status != Proposal.PROCESSING_STATUS_WITH_APPROVER:
-                raise ValidationError('You cannot issue the approval if it is not with an approver')
+            if (
+                self.proposal.processing_status
+                != Proposal.PROCESSING_STATUS_WITH_APPROVER
+            ):
+                raise ValidationError(
+                    "You cannot issue the approval if it is not with an approver"
+                )
             if not self.proposal.relevant_applicant_address:
-                raise ValidationError('The applicant needs to have set their postal address before approving this proposal (Applicant: {})'.format(self.proposal.relevant_applicant))
-            start_date = details.get('start_date').strftime('%d/%m/%Y') if details.get('start_date') else None
-            expiry_date = details.get('expiry_date').strftime('%d/%m/%Y') if details.get('expiry_date') else None
+                raise ValidationError(
+                    "The applicant needs to have set their postal address before approving this proposal (Applicant: {})".format(
+                        self.proposal.relevant_applicant
+                    )
+                )
+            start_date = (
+                details.get("start_date").strftime("%d/%m/%Y")
+                if details.get("start_date")
+                else None
+            )
+            expiry_date = (
+                details.get("expiry_date").strftime("%d/%m/%Y")
+                if details.get("expiry_date")
+                else None
+            )
             self.proposal.proposed_issuance_approval = {
-                    'start_date': start_date,
-                    'expiry_date': expiry_date,
-                    'details': details.get('details'),
-                    'cc_email': details.get('cc_email'),
+                "start_date": start_date,
+                "expiry_date": expiry_date,
+                "details": details.get("details"),
+                "cc_email": details.get("cc_email"),
             }
 
-            sites_received = request.data.get('apiary_sites', [])
-            sites_approved = [site for site in sites_received if site['checked']]
+            sites_received = request.data.get("apiary_sites", [])
+            sites_approved = [site for site in sites_received if site["checked"]]
             if len(sites_approved) == 0:
-                raise ValidationError("There must be at least one apiary site to approve")
+                raise ValidationError(
+                    "There must be at least one apiary site to approve"
+                )
             self.save()
 
             approval = None
@@ -3348,18 +4559,32 @@ class ProposalApiary(RevisionedMixin):
             elif self.proposal.application_type.name == ApplicationType.SITE_TRANSFER:
                 target_approval = self.target_approval
                 originating_approval = self.originating_approval
-                originating_approval.approver_id = request.user.id 
+                originating_approval.approver_id = request.user.id
                 if not preview:
                     originating_approval.save()
                 # New Licence creation for target_approval
                 if not target_approval:
                     if self.target_approval_organisation:
-                        target_approval = self.create_transferee_approval(details, request.user, applicant=Organisation.objects.get(id=self.target_approval_organisation_id))
+                        target_approval = self.create_transferee_approval(
+                            details,
+                            request.user,
+                            applicant=Organisation.objects.get(
+                                id=self.target_approval_organisation_id
+                            ),
+                        )
                     else:
-                        target_approval = self.create_transferee_approval(details, request.user, proxy_applicant=EmailUser.objects.get(id=self.transferee_id))
+                        target_approval = self.create_transferee_approval(
+                            details,
+                            request.user,
+                            proxy_applicant=EmailUser.objects.get(
+                                id=self.transferee_id
+                            ),
+                        )
                     self.target_approval = target_approval
                     # set proposal_apiary requirements with sitetransfer_approval set to None to target_approval
-                    transferee_requirements = self.proposal.requirements.filter(sitetransfer_approval=None).exclude(is_deleted=True)
+                    transferee_requirements = self.proposal.requirements.filter(
+                        sitetransfer_approval=None
+                    ).exclude(is_deleted=True)
                     for req in transferee_requirements:
                         req.sitetransfer_approval = target_approval
                         req.save()
@@ -3369,12 +4594,12 @@ class ProposalApiary(RevisionedMixin):
                     # ensure ProposalApiary object has been updated
                     self.save()
                 elif self.transferee:
-                    if self.target_approval.start_date != details.get('start_date'):
+                    if self.target_approval.start_date != details.get("start_date"):
                         self.reissue_target_approval = True
-                        self.target_approval.start_date = details.get('start_date')
-                    if self.target_approval.expiry_date != details.get('expiry_date'):
+                        self.target_approval.start_date = details.get("start_date")
+                    if self.target_approval.expiry_date != details.get("expiry_date"):
                         self.reissue_target_approval = True
-                        self.target_approval.expiry_date = details.get('expiry_date')
+                        self.target_approval.expiry_date = details.get("expiry_date")
                     self.target_approval.save()
 
             self.proposal.proposed_decline_status = False
@@ -3383,7 +4608,9 @@ class ProposalApiary(RevisionedMixin):
             # Log proposal action
 
             checking_proposal = self.proposal
-            checking_proposal.proposed_issuance_approval = self.proposal.proposed_issuance_approval
+            checking_proposal.proposed_issuance_approval = (
+                self.proposal.proposed_issuance_approval
+            )
             checking_proposal.save()
 
             if self.proposal.application_type.name == ApplicationType.SITE_TRANSFER:
@@ -3394,36 +4621,55 @@ class ProposalApiary(RevisionedMixin):
             else:
                 # Apiary approval
                 from disturbance.components.approvals.models import ApprovalUserAction
+
                 if not approval:
                     approval, approval_created = Approval.objects.update_or_create(
-                        current_proposal = checking_proposal,
-                        approver_id = request.user.id,
-                        defaults = {
-                        'issue_date' : timezone.now(),
-                        'expiry_date' : details.get('expiry_date'),
-                        'start_date' : details.get('start_date'),
-                        'applicant' : self.proposal.applicant,
-                        'proxy_applicant' : self.proposal.proxy_applicant,
-                        'apiary_approval': self.proposal.apiary_group_application_type,
-                        }
+                        current_proposal=checking_proposal,
+                        approver_id=request.user.id,
+                        defaults={
+                            "issue_date": timezone.now(),
+                            "expiry_date": details.get("expiry_date"),
+                            "start_date": details.get("start_date"),
+                            "applicant": self.proposal.applicant,
+                            "proxy_applicant": self.proposal.proxy_applicant,
+                            "apiary_approval": self.proposal.apiary_group_application_type,
+                        },
                     )
                     if approval_created:
-                        ApprovalUserAction.log_action(approval, ApprovalUserAction.ACTION_CREATE_APPROVAL.format(approval.lodgement_number), request.user)
+                        ApprovalUserAction.log_action(
+                            approval,
+                            ApprovalUserAction.ACTION_CREATE_APPROVAL.format(
+                                approval.lodgement_number
+                            ),
+                            request.user,
+                        )
                     else:
-                        ApprovalUserAction.log_action(approval, ApprovalUserAction.ACTION_UPDATE_APPROVAL.format(approval.lodgement_number), request.user)
+                        ApprovalUserAction.log_action(
+                            approval,
+                            ApprovalUserAction.ACTION_UPDATE_APPROVAL.format(
+                                approval.lodgement_number
+                            ),
+                            request.user,
+                        )
                 else:
                     approval.issue_date = timezone.now()
                     # ensure current_proposal is updated with this proposal
                     approval.current_proposal = checking_proposal
                     if approval.reissued:
-                        approval.expiry_date = details.get('expiry_date')
-                        approval.start_date = details.get('start_date')
-                    elif self.proposal.proposal_type == 'renewal':
-                        approval.expiry_date = details.get('expiry_date')
+                        approval.expiry_date = details.get("expiry_date")
+                        approval.start_date = details.get("start_date")
+                    elif self.proposal.proposal_type == "renewal":
+                        approval.expiry_date = details.get("expiry_date")
                     # always reset this flag
                     approval.renewal_sent = False  # For the apiary, we have to rest this to False for the next renewal
                     approval.save()
-                    ApprovalUserAction.log_action(approval, ApprovalUserAction.ACTION_UPDATE_APPROVAL.format(approval.lodgement_number), request.user)
+                    ApprovalUserAction.log_action(
+                        approval,
+                        ApprovalUserAction.ACTION_UPDATE_APPROVAL.format(
+                            approval.lodgement_number
+                        ),
+                        request.user,
+                    )
                 if preview:
                     # do this instead of generate compliances section below
                     self.link_apiary_approval_requirements(approval)
@@ -3431,59 +4677,103 @@ class ProposalApiary(RevisionedMixin):
             # Get apiary sites from proposal
             if self.proposal.application_type.name == ApplicationType.SITE_TRANSFER:
                 # updated apiary_site.selected with 'checked' flag status
-                apiary_sites = request.data.get('apiary_sites', [])
+                apiary_sites = request.data.get("apiary_sites", [])
                 for apiary_site in apiary_sites:
                     transfer_site = SiteTransferApiarySite.objects.get(
-                            proposal_apiary=self,
-                            apiary_site_on_approval__apiary_site_id=apiary_site.get('id')
-                            )
-                    transfer_site.internal_selected = apiary_site.get('checked') if transfer_site.customer_selected else False
+                        proposal_apiary=self,
+                        apiary_site_on_approval__apiary_site_id=apiary_site.get("id"),
+                    )
+                    transfer_site.internal_selected = (
+                        apiary_site.get("checked")
+                        if transfer_site.customer_selected
+                        else False
+                    )
                     transfer_site.save()
                 # update approval for all selected apiary sites
                 transfer_sites = SiteTransferApiarySite.objects.filter(
-                        proposal_apiary=self,
-                        internal_selected=True,
-                        customer_selected=True
-                        )
+                    proposal_apiary=self, internal_selected=True, customer_selected=True
+                )
                 for site_transfer_apiary_site in transfer_sites:
-                    relation_original = site_transfer_apiary_site.apiary_site_on_approval
+                    relation_original = (
+                        site_transfer_apiary_site.apiary_site_on_approval
+                    )
                     from disturbance.components.approvals.models import (
                         ApiarySiteOnApproval,
                     )
 
-                    relation_target, asoa_created = ApiarySiteOnApproval.objects.get_or_create(
-                        apiary_site=relation_original.apiary_site,
-                        approval=target_approval,
+                    relation_target, asoa_created = (
+                        ApiarySiteOnApproval.objects.get_or_create(
+                            apiary_site=relation_original.apiary_site,
+                            approval=target_approval,
+                        )
                     )
                     if asoa_created:
                         for apiary_site in apiary_sites:
-                            site_id = apiary_site.get('id')
+                            site_id = apiary_site.get("id")
                             if site_id == relation_target.apiary_site_id:
-                                relation_target.licensed_site = apiary_site.get('properties')['licensed_site']
-                                relation_target.batch_no = apiary_site.get('properties')['batch_no']
+                                relation_target.licensed_site = apiary_site.get(
+                                    "properties"
+                                )["licensed_site"]
+                                relation_target.batch_no = apiary_site.get(
+                                    "properties"
+                                )["batch_no"]
 
-                                if apiary_site.get('properties')['approval_cpc_date']:
-                                    relation_target.approval_cpc_date = datetime.datetime.strptime(apiary_site.get('properties')['approval_cpc_date'], '%Y-%M-%d')
+                                if apiary_site.get("properties")["approval_cpc_date"]:
+                                    relation_target.approval_cpc_date = (
+                                        datetime.datetime.strptime(
+                                            apiary_site.get("properties")[
+                                                "approval_cpc_date"
+                                            ],
+                                            "%Y-%M-%d",
+                                        )
+                                    )
                                 else:
                                     relation_target.approval_cpc_date = None
 
-                                if apiary_site.get('properties')['approval_minister_date']:
-                                    relation_target.approval_minister_date = datetime.datetime.strptime(apiary_site.get('properties')['approval_minister_date'], '%Y-%M-%d')
+                                if apiary_site.get("properties")[
+                                    "approval_minister_date"
+                                ]:
+                                    relation_target.approval_minister_date = (
+                                        datetime.datetime.strptime(
+                                            apiary_site.get("properties")[
+                                                "approval_minister_date"
+                                            ],
+                                            "%Y-%M-%d",
+                                        )
+                                    )
                                 else:
                                     relation_target.approval_minister_date = None
 
-                                relation_target.map_ref = apiary_site.get('properties')['map_ref']
-                                relation_target.forest_block = apiary_site.get('properties')['forest_block']
-                                relation_target.cog = apiary_site.get('properties')['cog']
-                                relation_target.roadtrack = apiary_site.get('properties')['roadtrack']
-                                relation_target.zone = apiary_site.get('properties')['zone']
-                                relation_target.catchment = apiary_site.get('properties')['catchment']
-                                relation_target.dra_permit = apiary_site.get('properties')['dra_permit']
+                                relation_target.map_ref = apiary_site.get("properties")[
+                                    "map_ref"
+                                ]
+                                relation_target.forest_block = apiary_site.get(
+                                    "properties"
+                                )["forest_block"]
+                                relation_target.cog = apiary_site.get("properties")[
+                                    "cog"
+                                ]
+                                relation_target.roadtrack = apiary_site.get(
+                                    "properties"
+                                )["roadtrack"]
+                                relation_target.zone = apiary_site.get("properties")[
+                                    "zone"
+                                ]
+                                relation_target.catchment = apiary_site.get(
+                                    "properties"
+                                )["catchment"]
+                                relation_target.dra_permit = apiary_site.get(
+                                    "properties"
+                                )["dra_permit"]
 
                                 relation_target.save()
 
-                    if relation_original.site_status != SITE_STATUS_TRANSFERRED:  # Reissue both licences
-                        relation_target.site_status = relation_original.site_status  # Copy the site status from the original to the target
+                    if (
+                        relation_original.site_status != SITE_STATUS_TRANSFERRED
+                    ):  # Reissue both licences
+                        relation_target.site_status = (
+                            relation_original.site_status
+                        )  # Copy the site status from the original to the target
                         # if at least one site is transferred, both licences should be reissued
                         self.reissue_originating_approval = True
                         self.reissue_target_approval = True
@@ -3497,7 +4787,7 @@ class ProposalApiary(RevisionedMixin):
 
             else:
                 self._update_apiary_sites(approval, sites_received, request)
-                #TODO on-cleanup: remaining code in this else block is not used currently - implement or remove (commenting out for now)
+                # TODO on-cleanup: remaining code in this else block is not used currently - implement or remove (commenting out for now)
                 # could this be refactored into a separate method?
             #    from disturbance.management.commands.send_annual_rental_fee_invoice import get_annual_rental_fee_period
             #    from disturbance.components.ap_payments.models import AnnualRentalFeePeriod
@@ -3505,14 +4795,14 @@ class ProposalApiary(RevisionedMixin):
             #    from disturbance.management.commands.send_annual_rental_fee_invoice import make_serializable
             #    from disturbance.components.ap_payments.models import AnnualRentalFee, AnnualRentalFeeApiarySite
             #    from disturbance.components.approvals.email import send_annual_rental_fee_awaiting_payment_confirmation
-                
-                # Check the current annual site fee period
-                # Determine the start and end date of the annual site fee, for which the invoices should be issued
+
+            # Check the current annual site fee period
+            # Determine the start and end date of the annual site fee, for which the invoices should be issued
             #    today_now_local = datetime.datetime.now(pytz.timezone(TIME_ZONE))
             #    today_date_local = today_now_local.date()
             #    period_start_date, period_end_date = get_annual_rental_fee_period(today_date_local)
-                # Retrieve annual site fee period object for the period calculated above
-                # This period should not overwrap the existings, otherwise you will need a refund
+            # Retrieve annual site fee period object for the period calculated above
+            # This period should not overwrap the existings, otherwise you will need a refund
             #    annual_rental_fee_period, perioed_created = AnnualRentalFeePeriod.objects.get_or_create(period_start_date=period_start_date, period_end_date=period_end_date)
             #    run_date = ApiaryAnnualRentalFeeRunDate.objects.get(name=ApiaryAnnualRentalFeeRunDate.NAME_CRON)
             #    if run_date.enabled_for_new_site:
@@ -3523,7 +4813,7 @@ class ProposalApiary(RevisionedMixin):
             #            sites_approved
             #        )
             #        if line_items:
-            #            
+            #
             #            basket = createCustomBasket(line_items, approval.relevant_applicant_email_user, PAYMENT_SYSTEM_ID)
             #            order = CreateInvoiceBasket(
             #                payment_method='other', system=PAYMENT_SYSTEM_PREFIX
@@ -3557,8 +4847,12 @@ class ProposalApiary(RevisionedMixin):
             #                serializer.save()
 
             # Generate compliances
-            if self.proposal.application_type.name == ApplicationType.APIARY and not preview:
+            if (
+                self.proposal.application_type.name == ApplicationType.APIARY
+                and not preview
+            ):
                 from disturbance.components.compliances.models import Compliance
+
                 if approval_created:
                     # Log creation
                     # Generate the document
@@ -3566,23 +4860,31 @@ class ProposalApiary(RevisionedMixin):
                     approval.generate_doc()
                     self.generate_apiary_compliances(approval, request)
                     # send the doc and log in approval and org
-                    self.proposal.log_user_action(ProposalUserAction.ACTION_ISSUE_APIARY_APPROVAL.format(
-                        self.proposal.lodgement_number,
-                        start_date,
-                        expiry_date,
-                        str([site['id'] for site in sites_approved]).lstrip('[').rstrip(']')
-                    ), request)
+                    self.proposal.log_user_action(
+                        ProposalUserAction.ACTION_ISSUE_APIARY_APPROVAL.format(
+                            self.proposal.lodgement_number,
+                            start_date,
+                            expiry_date,
+                            str([site["id"] for site in sites_approved])
+                            .lstrip("[")
+                            .rstrip("]"),
+                        ),
+                        request,
+                    )
                     # Log entry for organisation
                     if self.proposal.applicant:
                         self.proposal.applicant.log_user_action(
-                            ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.proposal.lodgement_number), request)
+                            ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(
+                                self.proposal.lodgement_number
+                            ),
+                            request,
+                        )
                 else:
                     # Generate the document
-                    #Delete the future compliances if Approval is reissued and generate the compliances again.
+                    # Delete the future compliances if Approval is reissued and generate the compliances again.
                     approval_compliances = Compliance.objects.filter(
-                            approval= approval,
-                            processing_status='future'
-                            )
+                        approval=approval, processing_status="future"
+                    )
                     if approval_compliances:
                         for c in approval_compliances:
                             c.delete()
@@ -3590,51 +4892,79 @@ class ProposalApiary(RevisionedMixin):
                     approval.generate_doc()
                     self.generate_apiary_compliances(approval, request)
                     # Log proposal action
-                    self.proposal.log_user_action(ProposalUserAction.ACTION_UPDATE_APPROVAL_.format(self.proposal.lodgement_number), request)
+                    self.proposal.log_user_action(
+                        ProposalUserAction.ACTION_UPDATE_APPROVAL_.format(
+                            self.proposal.lodgement_number
+                        ),
+                        request,
+                    )
                     # Log entry for organisation
                     if self.proposal.applicant:
-                        self.proposal.applicant.log_user_action(ProposalUserAction.ACTION_UPDATE_APPROVAL_.format(self.proposal.lodgement_number), request)
+                        self.proposal.applicant.log_user_action(
+                            ProposalUserAction.ACTION_UPDATE_APPROVAL_.format(
+                                self.proposal.lodgement_number
+                            ),
+                            request,
+                        )
 
                 self.proposal.approval = approval
-                #send Proposal approval email with attachment
-                send_proposal_approval_email_notification(self.proposal,request)
+                # send Proposal approval email with attachment
+                send_proposal_approval_email_notification(self.proposal, request)
                 # flag must be reset after email is sent
                 approval.reissued = False
                 approval.save()
-                self.proposal.save(version_comment='Final Approval: {}'.format(self.proposal.approval.lodgement_number))
+                self.proposal.save(
+                    version_comment="Final Approval: {}".format(
+                        self.proposal.approval.lodgement_number
+                    )
+                )
                 self.proposal.approval.documents.all().update(can_delete=False)
-            elif self.proposal.application_type.name == ApplicationType.SITE_TRANSFER and not preview:
+            elif (
+                self.proposal.application_type.name == ApplicationType.SITE_TRANSFER
+                and not preview
+            ):
                 # add Site Transfer Compliance/Requirements logic here
                 from disturbance.components.compliances.models import Compliance
+
                 ## Originating approval
-                if self.reissue_originating_approval or not originating_approval.reissued:
+                if (
+                    self.reissue_originating_approval
+                    or not originating_approval.reissued
+                ):
                     originating_approval.issue_date = timezone.now()
                     originating_approval.current_proposal = checking_proposal
                     originating_approval.save()
-                    #Delete the future compliances if Approval is reissued and generate the compliances again.
+                    # Delete the future compliances if Approval is reissued and generate the compliances again.
                     approval_compliances = Compliance.objects.filter(
-                        approval= originating_approval,
-                        processing_status='future'
+                        approval=originating_approval, processing_status="future"
                     )
                     if approval_compliances:
                         for c in approval_compliances:
                             c.delete()
                     self.link_apiary_approval_requirements(originating_approval)
-                    originating_approval.generate_apiary_site_transfer_doc(site_transfer_proposal=self.proposal)
+                    originating_approval.generate_apiary_site_transfer_doc(
+                        site_transfer_proposal=self.proposal
+                    )
                     self.generate_apiary_compliances(originating_approval, request)
                     # Log proposal action
                     self.proposal.log_user_action(
                         ProposalUserAction.ACTION_UPDATE_APPROVAL_FOR_PROPOSAL.format(
-                            originating_approval.lodgement_number,
-                            self.proposal.id), request)
+                            originating_approval.lodgement_number, self.proposal.id
+                        ),
+                        request,
+                    )
                     # Log entry for organisation
                     if self.proposal.applicant:
                         self.proposal.applicant.log_user_action(
                             ProposalUserAction.ACTION_UPDATE_APPROVAL_FOR_PROPOSAL.format(
-                                originating_approval.lodgement_number,
-                                self.proposal.id), request)
-                    #send Proposal approval email with attachment
-                    send_site_transfer_approval_email_notification(self.proposal, request, originating_approval)
+                                originating_approval.lodgement_number, self.proposal.id
+                            ),
+                            request,
+                        )
+                    # send Proposal approval email with attachment
+                    send_site_transfer_approval_email_notification(
+                        self.proposal, request, originating_approval
+                    )
                     # reset flag after email is sent
                     originating_approval.reissued = False
                     originating_approval.save()
@@ -3643,36 +4973,44 @@ class ProposalApiary(RevisionedMixin):
                     target_approval.issue_date = timezone.now()
                     target_approval.current_proposal = checking_proposal
                     target_approval.save()
-                    #Delete the future compliances if Approval is reissued and generate the compliances again.
+                    # Delete the future compliances if Approval is reissued and generate the compliances again.
                     approval_compliances = Compliance.objects.filter(
-                            approval=target_approval,
-                            processing_status='future'
-                            )
+                        approval=target_approval, processing_status="future"
+                    )
                     if approval_compliances:
                         for c in approval_compliances:
                             c.delete()
                     self.link_apiary_approval_requirements(target_approval)
-                    target_approval.generate_apiary_site_transfer_doc(site_transfer_proposal=self.proposal)
+                    target_approval.generate_apiary_site_transfer_doc(
+                        site_transfer_proposal=self.proposal
+                    )
                     self.generate_apiary_compliances(target_approval, request)
                     # Log proposal action
                     self.proposal.log_user_action(
                         ProposalUserAction.ACTION_UPDATE_APPROVAL_FOR_PROPOSAL.format(
-                            target_approval.lodgement_number,
-                            self.proposal.id), request)
+                            target_approval.lodgement_number, self.proposal.id
+                        ),
+                        request,
+                    )
                     # Log entry for organisation
                     if self.proposal.applicant:
                         self.proposal.applicant.log_user_action(
-                                ProposalUserAction.ACTION_UPDATE_APPROVAL_FOR_PROPOSAL.format(
-                                    target_approval.lodgement_number,
-                                    self.proposal.id), request)
-                    #send Proposal approval email with attachment
-                    send_site_transfer_approval_email_notification(self.proposal, request, target_approval)
+                            ProposalUserAction.ACTION_UPDATE_APPROVAL_FOR_PROPOSAL.format(
+                                target_approval.lodgement_number, self.proposal.id
+                            ),
+                            request,
+                        )
+                    # send Proposal approval email with attachment
+                    send_site_transfer_approval_email_notification(
+                        self.proposal, request, target_approval
+                    )
                     # reset flag after approval is sent
                     target_approval.reissued = False
                     target_approval.save()
-                    self.proposal.save(version_comment='Originating Approval: {}, Target Approval: {}'.format(
-                        originating_approval.lodgement_number,
-                        target_approval.lodgement_number,
+                    self.proposal.save(
+                        version_comment="Originating Approval: {}, Target Approval: {}".format(
+                            originating_approval.lodgement_number,
+                            target_approval.lodgement_number,
                         )
                     )
                     originating_approval.documents.all().update(can_delete=False)
@@ -3695,7 +5033,9 @@ class ProposalApiary(RevisionedMixin):
                 link_r.save()
 
         # Remove apiary approval link from previous requirements
-        unlink_requirement_set = approval.proposalrequirement_set.exclude(proposal=self.proposal)
+        unlink_requirement_set = approval.proposalrequirement_set.exclude(
+            proposal=self.proposal
+        )
         for unlink_r in unlink_requirement_set:
             unlink_r.apiary_approval = None
             unlink_r.save()
@@ -3708,101 +5048,137 @@ class ProposalApiary(RevisionedMixin):
             ComplianceUserAction,
         )
 
-        #For amendment type of Proposal, check for copied requirements from previous proposal
+        # For amendment type of Proposal, check for copied requirements from previous proposal
         if self.proposal.previous_application:
             try:
-                for r in self.proposal.requirements.filter(apiary_approval=approval).filter(copied_from__isnull=False):
+                for r in self.proposal.requirements.filter(
+                    apiary_approval=approval
+                ).filter(copied_from__isnull=False):
                     cs = []
                     # Now discard all of the due compliances
                     cs = Compliance.objects.filter(
-                            requirement=r.copied_from,
-                            approval=approval,
-                            processing_status='due'
-                            )
+                        requirement=r.copied_from,
+                        approval=approval,
+                        processing_status="due",
+                    )
                     if cs:
                         if r.is_deleted:
                             for c in cs:
-                                c.processing_status = 'discarded'
-                                c.customer_status = 'discarded'
+                                c.processing_status = "discarded"
+                                c.customer_status = "discarded"
                                 c.reminder_sent = True
                                 c.post_reminder_sent = True
                                 c.save()
             except:
                 raise
 
-        requirement_set= self.proposal.requirements.filter(apiary_approval=approval).exclude(is_deleted=True)
+        requirement_set = self.proposal.requirements.filter(
+            apiary_approval=approval
+        ).exclude(is_deleted=True)
         for req in requirement_set:
             try:
                 if req.due_date and req.due_date >= today:
                     current_date = req.due_date
-                    #create a first Compliance
+                    # create a first Compliance
                     try:
-                        compliance = Compliance.objects.get(requirement=req, due_date=current_date)
-                    except Compliance.DoesNotExist:
-                        compliance =Compliance.objects.create(
-                                    proposal=self.proposal,
-                                    due_date=current_date,
-                                    processing_status='future',
-                                    approval=approval,
-                                    requirement=req,
-                                    apiary_compliance=True
+                        compliance = Compliance.objects.get(
+                            requirement=req, due_date=current_date
                         )
-                        compliance.log_user_action(ComplianceUserAction.ACTION_CREATE.format(compliance.lodgement_number), request)
+                    except Compliance.DoesNotExist:
+                        compliance = Compliance.objects.create(
+                            proposal=self.proposal,
+                            due_date=current_date,
+                            processing_status="future",
+                            approval=approval,
+                            requirement=req,
+                            apiary_compliance=True,
+                        )
+                        compliance.log_user_action(
+                            ComplianceUserAction.ACTION_CREATE.format(
+                                compliance.lodgement_number
+                            ),
+                            request,
+                        )
                     if req.recurrence:
                         while current_date < approval.expiry_date:
                             for x in range(req.recurrence_schedule):
-                            #Weekly
+                                # Weekly
                                 if req.recurrence_pattern == 1:
                                     current_date += timedelta(weeks=1)
-                            #Monthly
+                                # Monthly
                                 elif req.recurrence_pattern == 2:
                                     current_date += timedelta(weeks=4)
                                     pass
-                            #Yearly
+                                # Yearly
                                 elif req.recurrence_pattern == 3:
                                     current_date += timedelta(days=365)
                             # Create the compliance
                             if current_date <= approval.expiry_date:
                                 try:
-                                    compliance = Compliance.objects.get(requirement = req, due_date = current_date)
+                                    compliance = Compliance.objects.get(
+                                        requirement=req, due_date=current_date
+                                    )
                                 except Compliance.DoesNotExist:
                                     compliance = Compliance.objects.create(
-                                                proposal=self.proposal,
-                                                due_date=current_date,
-                                                processing_status='future',
-                                                approval=approval,
-                                                requirement=req,
-                                                apiary_compliance=True
+                                        proposal=self.proposal,
+                                        due_date=current_date,
+                                        processing_status="future",
+                                        approval=approval,
+                                        requirement=req,
+                                        apiary_compliance=True,
                                     )
-                                    compliance.log_user_action(ComplianceUserAction.ACTION_CREATE.format(compliance.lodgement_number), request)
+                                    compliance.log_user_action(
+                                        ComplianceUserAction.ACTION_CREATE.format(
+                                            compliance.lodgement_number
+                                        ),
+                                        request,
+                                    )
             except:
                 raise
 
     def _update_apiary_sites(self, approval, sites_approved, request):
-        for site in request.data.get('apiary_sites'):
+        for site in request.data.get("apiary_sites"):
             # During final approval - Approver may have updated these values
-            if not site['properties'].get('licensed_site'):
-                a_site = ApiarySite.objects.get(id=site['id'])
+            if not site["properties"].get("licensed_site"):
+                a_site = ApiarySite.objects.get(id=site["id"])
                 apiary_site_on_proposal = self.get_relation(a_site)
 
-                apiary_site_on_proposal.licensed_site = site['properties'].get('licensed_site')
-                apiary_site_on_proposal.batch_no = site['properties'].get('batch_no')
-                apiary_site_on_proposal.approval_cpc_date = datetime.datetime.strptime(site['properties'].get('approval_cpc_date'), '%Y-%M-%d') if site['properties'].get('approval_cpc_date') else None
-                apiary_site_on_proposal.approval_minister_date = datetime.datetime.strptime(site['properties'].get('approval_minister_date'), '%Y-%M-%d') if site['properties'].get('approval_minister_date') else None
-                apiary_site_on_proposal.map_ref = site['properties'].get('map_ref')
-                apiary_site_on_proposal.forest_block = site['properties'].get('forest_block')
-                apiary_site_on_proposal.cog = site['properties'].get('cog')
-                apiary_site_on_proposal.roadtrack = site['properties'].get('roadtrack')
-                apiary_site_on_proposal.zone = site['properties'].get('zone')
-                apiary_site_on_proposal.catchment = site['properties'].get('catchment')
-                apiary_site_on_proposal.dra_permit = site['properties'].get('dra_permit')
+                apiary_site_on_proposal.licensed_site = site["properties"].get(
+                    "licensed_site"
+                )
+                apiary_site_on_proposal.batch_no = site["properties"].get("batch_no")
+                apiary_site_on_proposal.approval_cpc_date = (
+                    datetime.datetime.strptime(
+                        site["properties"].get("approval_cpc_date"), "%Y-%M-%d"
+                    )
+                    if site["properties"].get("approval_cpc_date")
+                    else None
+                )
+                apiary_site_on_proposal.approval_minister_date = (
+                    datetime.datetime.strptime(
+                        site["properties"].get("approval_minister_date"), "%Y-%M-%d"
+                    )
+                    if site["properties"].get("approval_minister_date")
+                    else None
+                )
+                apiary_site_on_proposal.map_ref = site["properties"].get("map_ref")
+                apiary_site_on_proposal.forest_block = site["properties"].get(
+                    "forest_block"
+                )
+                apiary_site_on_proposal.cog = site["properties"].get("cog")
+                apiary_site_on_proposal.roadtrack = site["properties"].get("roadtrack")
+                apiary_site_on_proposal.zone = site["properties"].get("zone")
+                apiary_site_on_proposal.catchment = site["properties"].get("catchment")
+                apiary_site_on_proposal.dra_permit = site["properties"].get(
+                    "dra_permit"
+                )
                 apiary_site_on_proposal.save()
-           
+
         for my_site in sites_approved:
-            a_site = ApiarySite.objects.get(id=my_site['id'])
+            a_site = ApiarySite.objects.get(id=my_site["id"])
             apiary_site_on_proposal = self.get_relation(a_site)
 
-            if my_site['checked']:
+            if my_site["checked"]:
                 # relation.approval = approval
                 apiary_site_on_proposal.site_status = SITE_STATUS_APPROVED
             else:
@@ -3814,32 +5190,72 @@ class ProposalApiary(RevisionedMixin):
             a_site.save()
 
             # Apiary Site can be moved by assessor and/or approver
-            if 'coordinates_moved' in my_site:
-                prev_coordinates = {'lng': apiary_site_on_proposal.wkb_geometry.x, 'lat': apiary_site_on_proposal.wkb_geometry.y}
-                geom_str = GEOSGeometry('POINT(' + str(my_site['coordinates_moved']['lng']) + ' ' + str(my_site['coordinates_moved']['lat']) + ')', srid=4326)
+            if "coordinates_moved" in my_site:
+                prev_coordinates = {
+                    "lng": apiary_site_on_proposal.wkb_geometry.x,
+                    "lat": apiary_site_on_proposal.wkb_geometry.y,
+                }
+                geom_str = GEOSGeometry(
+                    "POINT("
+                    + str(my_site["coordinates_moved"]["lng"])
+                    + " "
+                    + str(my_site["coordinates_moved"]["lat"])
+                    + ")",
+                    srid=4326,
+                )
                 from disturbance.components.proposals.serializers_apiary import (
                     ApiarySiteOnProposalProcessedGeometrySaveSerializer,
                 )
-                serializer = ApiarySiteOnProposalProcessedGeometrySaveSerializer(apiary_site_on_proposal, data={'wkb_geometry_processed': geom_str})
+
+                serializer = ApiarySiteOnProposalProcessedGeometrySaveSerializer(
+                    apiary_site_on_proposal, data={"wkb_geometry_processed": geom_str}
+                )
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
                 # Log it
-                self.proposal.log_user_action(ProposalUserAction.APIARY_SITE_MOVED.format(my_site['id'], prev_coordinates, (my_site['coordinates_moved']['lng'], my_site['coordinates_moved']['lat'])), request)
+                self.proposal.log_user_action(
+                    ProposalUserAction.APIARY_SITE_MOVED.format(
+                        my_site["id"],
+                        prev_coordinates,
+                        (
+                            my_site["coordinates_moved"]["lng"],
+                            my_site["coordinates_moved"]["lat"],
+                        ),
+                    ),
+                    request,
+                )
 
             # Because this is final approval, copy the data from the proposal to the approval
             from disturbance.components.approvals.models import ApiarySiteOnApproval
+
             if apiary_site_on_proposal.site_status == SITE_STATUS_APPROVED:
                 # Create a relation between the approved apairy site and the approval
-                apiary_site_on_approval, asoa_created = ApiarySiteOnApproval.objects.get_or_create(apiary_site=a_site, approval=approval)
-                apiary_site_on_approval.wkb_geometry = apiary_site_on_proposal.wkb_geometry_processed
-                apiary_site_on_approval.site_category = apiary_site_on_proposal.site_category_processed
-                apiary_site_on_approval.licensed_site = apiary_site_on_proposal.licensed_site
+                apiary_site_on_approval, asoa_created = (
+                    ApiarySiteOnApproval.objects.get_or_create(
+                        apiary_site=a_site, approval=approval
+                    )
+                )
+                apiary_site_on_approval.wkb_geometry = (
+                    apiary_site_on_proposal.wkb_geometry_processed
+                )
+                apiary_site_on_approval.site_category = (
+                    apiary_site_on_proposal.site_category_processed
+                )
+                apiary_site_on_approval.licensed_site = (
+                    apiary_site_on_proposal.licensed_site
+                )
                 apiary_site_on_approval.batch_no = apiary_site_on_proposal.batch_no
-                apiary_site_on_approval.approval_cpc_date = apiary_site_on_proposal.approval_cpc_date
-                apiary_site_on_approval.approval_minister_date = apiary_site_on_proposal.approval_minister_date
+                apiary_site_on_approval.approval_cpc_date = (
+                    apiary_site_on_proposal.approval_cpc_date
+                )
+                apiary_site_on_approval.approval_minister_date = (
+                    apiary_site_on_proposal.approval_minister_date
+                )
                 apiary_site_on_approval.map_ref = apiary_site_on_proposal.map_ref
-                apiary_site_on_approval.forest_block = apiary_site_on_proposal.forest_block
+                apiary_site_on_approval.forest_block = (
+                    apiary_site_on_proposal.forest_block
+                )
                 apiary_site_on_approval.cog = apiary_site_on_proposal.cog
                 apiary_site_on_approval.roadtrack = apiary_site_on_proposal.roadtrack
                 apiary_site_on_approval.zone = apiary_site_on_proposal.zone
@@ -3850,19 +5266,22 @@ class ProposalApiary(RevisionedMixin):
                 apiary_site_on_approval.save()
             else:
                 try:
-                    qs = ApiarySiteOnApproval.objects.filter(apiary_site=a_site, approval=approval)
+                    qs = ApiarySiteOnApproval.objects.filter(
+                        apiary_site=a_site, approval=approval
+                    )
                     if qs:
                         apiary_site_on_approval = qs[0]
                         apiary_site_on_approval.delete()
                 except:
                     pass
 
+
 class SiteCategory(models.Model):
-    CATEGORY_SOUTH_WEST = 'south_west'
-    CATEGORY_REMOTE = 'remote'
+    CATEGORY_SOUTH_WEST = "south_west"
+    CATEGORY_REMOTE = "remote"
     CATEGORY_CHOICES = (
-        (CATEGORY_SOUTH_WEST, 'South West'),
-        (CATEGORY_REMOTE, 'Remote')
+        (CATEGORY_SOUTH_WEST, "South West"),
+        (CATEGORY_REMOTE, "Remote"),
     )
     # This model is used to distinguish the application gtfees' differences
     name = models.CharField(unique=True, max_length=50, choices=CATEGORY_CHOICES)
@@ -3875,13 +5294,21 @@ class SiteCategory(models.Model):
     def retrieve_fee_by_date_and_type(self, target_date, fee_type_name):
         fee_type_application = ApiarySiteFeeType.objects.get(name=fee_type_name)
         if not fee_type_application:
-            raise Exception("Please select 'new_application' and save it at the Apiary Site Fee Type admin page")
+            raise Exception(
+                "Please select 'new_application' and save it at the Apiary Site Fee Type admin page"
+            )
 
-        site_fee = ApiarySiteFee.objects.filter(
-                    Q(apiary_site_fee_type=fee_type_application) &
-                    Q(site_category=self) &
-                    Q(date_of_enforcement__lte=target_date)
-                    ).order_by('date_of_enforcement', ).last()
+        site_fee = (
+            ApiarySiteFee.objects.filter(
+                Q(apiary_site_fee_type=fee_type_application)
+                & Q(site_category=self)
+                & Q(date_of_enforcement__lte=target_date)
+            )
+            .order_by(
+                "date_of_enforcement",
+            )
+            .last()
+        )
 
         if site_fee:
             return site_fee.amount
@@ -3893,123 +5320,168 @@ class SiteCategory(models.Model):
         for item in SiteCategory.CATEGORY_CHOICES:
             if self.name == item[0]:
                 return item[1]
-        return '---'
+        return "---"
 
     @property
     def fee_application_per_site(self):
         for item in SiteCategory.CATEGORY_CHOICES:
             if item[0] == self.name:
-                fee_application = self.retrieve_current_fee_per_site_by_type(ApiarySiteFeeType.FEE_TYPE_APPLICATION)
+                fee_application = self.retrieve_current_fee_per_site_by_type(
+                    ApiarySiteFeeType.FEE_TYPE_APPLICATION
+                )
                 return fee_application
-        return '---'
+        return "---"
 
     @property
     def fee_renewal_per_site(self):
         for item in SiteCategory.CATEGORY_CHOICES:
             if item[0] == self.name:
-                fee_renewal = self.retrieve_current_fee_per_site_by_type(ApiarySiteFeeType.FEE_TYPE_RENEWAL)
+                fee_renewal = self.retrieve_current_fee_per_site_by_type(
+                    ApiarySiteFeeType.FEE_TYPE_RENEWAL
+                )
                 return fee_renewal
-        return '---'
+        return "---"
 
     @property
     def fee_transfer_per_site(self):
         for item in SiteCategory.CATEGORY_CHOICES:
             if item[0] == self.name:
-                fee_transfer = self.retrieve_current_fee_per_site_by_type(ApiarySiteFeeType.FEE_TYPE_TRANSFER)
+                fee_transfer = self.retrieve_current_fee_per_site_by_type(
+                    ApiarySiteFeeType.FEE_TYPE_TRANSFER
+                )
                 return fee_transfer
-        return '---'
+        return "---"
 
     def __str__(self):
         for item in SiteCategory.CATEGORY_CHOICES:
             if item[0] == self.name:
-                fee_application = self.retrieve_current_fee_per_site_by_type(ApiarySiteFeeType.FEE_TYPE_APPLICATION)
-                fee_renewal = self.retrieve_current_fee_per_site_by_type(ApiarySiteFeeType.FEE_TYPE_RENEWAL)
-                fee_transfer = self.retrieve_current_fee_per_site_by_type(ApiarySiteFeeType.FEE_TYPE_TRANSFER)
-                return '{} - new application: ${}, transfer: ${}, renewal: ${}'.format(item[1], fee_application, fee_transfer, fee_renewal)
-        return '---'
+                fee_application = self.retrieve_current_fee_per_site_by_type(
+                    ApiarySiteFeeType.FEE_TYPE_APPLICATION
+                )
+                fee_renewal = self.retrieve_current_fee_per_site_by_type(
+                    ApiarySiteFeeType.FEE_TYPE_RENEWAL
+                )
+                fee_transfer = self.retrieve_current_fee_per_site_by_type(
+                    ApiarySiteFeeType.FEE_TYPE_TRANSFER
+                )
+                return "{} - new application: ${}, transfer: ${}, renewal: ${}".format(
+                    item[1], fee_application, fee_transfer, fee_renewal
+                )
+        return "---"
 
     class Meta:
-        app_label = 'disturbance'
-        verbose_name = 'apiary site fee'
+        app_label = "disturbance"
+        verbose_name = "apiary site fee"
 
 
 class ApiarySiteFeeType(RevisionedMixin):
-    FEE_TYPE_APPLICATION = 'new_application'
-    FEE_TYPE_RENEWAL = 'renewal'
-    FEE_TYPE_TRANSFER = 'transfer'
+    FEE_TYPE_APPLICATION = "new_application"
+    FEE_TYPE_RENEWAL = "renewal"
+    FEE_TYPE_TRANSFER = "transfer"
     FEE_TYPE_CHOICES = (
-        (FEE_TYPE_APPLICATION, 'New Application'),
-        (FEE_TYPE_RENEWAL, 'Renewal'),
-        (FEE_TYPE_TRANSFER, 'Transfer'),
+        (FEE_TYPE_APPLICATION, "New Application"),
+        (FEE_TYPE_RENEWAL, "Renewal"),
+        (FEE_TYPE_TRANSFER, "Transfer"),
     )
-    name = models.CharField(unique=True, max_length=50, choices=FEE_TYPE_CHOICES,)
+    name = models.CharField(
+        unique=True,
+        max_length=50,
+        choices=FEE_TYPE_CHOICES,
+    )
     description = models.TextField(blank=True)
 
     def __str__(self):
         for item in ApiarySiteFeeType.FEE_TYPE_CHOICES:
             if item[0] == self.name:
-                return '{}'.format(item[1])
-        return '---'
+                return "{}".format(item[1])
+        return "---"
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
 
 class ApiarySiteFee(RevisionedMixin):
-    amount = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
+    amount = models.DecimalField(max_digits=8, decimal_places=2, default="0.00")
     date_of_enforcement = models.DateField(blank=True, null=True)
-    site_category = models.ForeignKey(SiteCategory, related_name='site_fees', on_delete=models.CASCADE)
-    apiary_site_fee_type = models.ForeignKey(ApiarySiteFeeType, null=True, blank=True, on_delete=models.CASCADE)
+    site_category = models.ForeignKey(
+        SiteCategory, related_name="site_fees", on_delete=models.CASCADE
+    )
+    apiary_site_fee_type = models.ForeignKey(
+        ApiarySiteFeeType, null=True, blank=True, on_delete=models.CASCADE
+    )
 
     class Meta:
-        app_label = 'disturbance'
-        ordering = ('date_of_enforcement', )  # oldest record first, latest record last
+        app_label = "disturbance"
+        ordering = ("date_of_enforcement",)  # oldest record first, latest record last
 
     def __str__(self):
-        return '${} ({}:{})'.format(self.amount, self.date_of_enforcement, self.site_category)
+        return "${} ({}:{})".format(
+            self.amount, self.date_of_enforcement, self.site_category
+        )
 
 
 class ApiaryAnnualRentalFee(RevisionedMixin):
     """
     This amount is applied from the date_from
     """
-    amount_south_west = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
-    amount_remote = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
+
+    amount_south_west = models.DecimalField(
+        max_digits=8, decimal_places=2, default="0.00"
+    )
+    amount_remote = models.DecimalField(max_digits=8, decimal_places=2, default="0.00")
     date_from = models.DateField(blank=True, null=True)
 
     class Meta:
-        app_label = 'disturbance'
-        ordering = ('date_from', )  # oldest record first, latest record last
-        verbose_name = 'Annual Site Fee'
+        app_label = "disturbance"
+        ordering = ("date_from",)  # oldest record first, latest record last
+        verbose_name = "Annual Site Fee"
 
     def __str__(self):
-        return 'Amount(SW): ${}, Amount(Remote): ${}, From: {}'.format(self.amount_south_west, self.amount_remote, self.date_from)
+        return "Amount(SW): ${}, Amount(Remote): ${}, From: {}".format(
+            self.amount_south_west, self.amount_remote, self.date_from
+        )
 
     @staticmethod
     def get_fees_by_period(start_date, end_date):
         fee_first = ApiaryAnnualRentalFee.objects.filter(date_from__lte=start_date)
-        fees_rest = ApiaryAnnualRentalFee.objects.filter(date_from__gt=start_date, date_from__lte=end_date).order_by('date_from')
+        fees_rest = ApiaryAnnualRentalFee.objects.filter(
+            date_from__gt=start_date, date_from__lte=end_date
+        ).order_by("date_from")
         if not fee_first:
-            raise ValidationError("No annual site fee amounts found.  Please configure at least one annual site fee amount at the admin page.")
+            raise ValidationError(
+                "No annual site fee amounts found.  Please configure at least one annual site fee amount at the admin page."
+            )
         else:
-            fee_first = fee_first.latest('date_from')
+            fee_first = fee_first.latest("date_from")
 
-        temp_end_date = end_date if not fees_rest else fees_rest[0].date_from - datetime.timedelta(days=1)
-        fees = [{
-            'amount_south_west_per_year': fee_first.amount_south_west,
-            'amount_remote_per_year': fee_first.amount_remote,
-            'date_start': start_date,
-            'date_end': temp_end_date,
-            'num_of_days': temp_end_date - (start_date - datetime.timedelta(days=1))
-        }]
+        temp_end_date = (
+            end_date
+            if not fees_rest
+            else fees_rest[0].date_from - datetime.timedelta(days=1)
+        )
+        fees = [
+            {
+                "amount_south_west_per_year": fee_first.amount_south_west,
+                "amount_remote_per_year": fee_first.amount_remote,
+                "date_start": start_date,
+                "date_end": temp_end_date,
+                "num_of_days": temp_end_date
+                - (start_date - datetime.timedelta(days=1)),
+            }
+        ]
         for idx, annual_rental_fee in enumerate(fees_rest):
-            temp_end_date = end_date if idx == len(fees_rest) - 1 else fees_rest[idx + 1].date_from - datetime.timedelta( days=1)
+            temp_end_date = (
+                end_date
+                if idx == len(fees_rest) - 1
+                else fees_rest[idx + 1].date_from - datetime.timedelta(days=1)
+            )
             fee = {
-                'amount_south_west_per_year': annual_rental_fee.amount_south_west,
-                'amount_remote_per_year': annual_rental_fee.amount_remote,
-                'date_start': annual_rental_fee.date_from,
-                'date_end': temp_end_date,
-                'num_of_days': temp_end_date - (annual_rental_fee.date_from - datetime.timedelta(days=1))
+                "amount_south_west_per_year": annual_rental_fee.amount_south_west,
+                "amount_remote_per_year": annual_rental_fee.amount_remote,
+                "date_start": annual_rental_fee.date_from,
+                "date_end": temp_end_date,
+                "num_of_days": temp_end_date
+                - (annual_rental_fee.date_from - datetime.timedelta(days=1)),
             }
             fees.append(fee)
 
@@ -4020,88 +5492,163 @@ class ApiaryAnnualRentalFeePeriodStartDate(RevisionedMixin):
     """
     Calculation of the annual site fee starts from this date
     """
-    NAME_PERIOD_START = 'period_start_date'
-    NAME_CHOICES = (
-        (NAME_PERIOD_START, 'Start date of the annual site fee'),
+
+    NAME_PERIOD_START = "period_start_date"
+    NAME_CHOICES = ((NAME_PERIOD_START, "Start date of the annual site fee"),)
+    name = models.CharField(
+        unique=True,
+        max_length=50,
+        choices=NAME_CHOICES,
     )
-    name = models.CharField(unique=True, max_length=50, choices=NAME_CHOICES, )
-    period_start_date = models.DateField(blank=True, null=True, help_text='Although year, month and date are entered, the system uses only the month and the date internally')
+    period_start_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text="Although year, month and date are entered, the system uses only the month and the date internally",
+    )
 
     def __str__(self):
         try:
-            return '{}: {} {}'.format(self.name, self.period_start_date.strftime('%B'), self.period_start_date.day)
+            return "{}: {} {}".format(
+                self.name,
+                self.period_start_date.strftime("%B"),
+                self.period_start_date.day,
+            )
         except:
-            return '{}'.format(self.name)
+            return "{}".format(self.name)
 
     class Meta:
-        app_label = 'disturbance'
-        ordering = ('period_start_date', )  # oldest record first, latest record last
-        verbose_name = 'Annual Site Fee Period Start Date'
+        app_label = "disturbance"
+        ordering = ("period_start_date",)  # oldest record first, latest record last
+        verbose_name = "Annual Site Fee Period Start Date"
 
 
 class ApiaryAnnualRentalFeeRunDate(RevisionedMixin):
     """
     This is the date to issue the annual site fee invoices
     """
-    NAME_CRON = 'date_to_run_cron_job'
-    NAME_CHOICES = (
-        (NAME_CRON, 'Date to Issue'),
+
+    NAME_CRON = "date_to_run_cron_job"
+    NAME_CHOICES = ((NAME_CRON, "Date to Issue"),)
+    name = models.CharField(
+        unique=True,
+        max_length=50,
+        choices=NAME_CHOICES,
     )
-    name = models.CharField(unique=True, max_length=50, choices=NAME_CHOICES, )
-    date_run_cron = models.DateField(blank=True, null=True, help_text='Although year, month and date are entered, the system uses only the month and the date internally')
-    enabled = models.BooleanField(default=False, verbose_name='Apply by cronjob', help_text='Sets whether the annual fee is applied to the sites by the cron job')
-    enabled_for_new_site = models.BooleanField(default=False, verbose_name='Apply when approved', help_text='Sets whether the annual fee is applied when an application is approved')
+    date_run_cron = models.DateField(
+        blank=True,
+        null=True,
+        help_text="Although year, month and date are entered, the system uses only the month and the date internally",
+    )
+    enabled = models.BooleanField(
+        default=False,
+        verbose_name="Apply by cronjob",
+        help_text="Sets whether the annual fee is applied to the sites by the cron job",
+    )
+    enabled_for_new_site = models.BooleanField(
+        default=False,
+        verbose_name="Apply when approved",
+        help_text="Sets whether the annual fee is applied when an application is approved",
+    )
 
     class Meta:
-        app_label = 'disturbance'
-        verbose_name = 'Annual Site Fee Issue Date'
+        app_label = "disturbance"
+        verbose_name = "Annual Site Fee Issue Date"
 
     def __str__(self):
         try:
-            return '{}: {} {}'.format(self.name, self.date_run_cron.strftime('%B'), self.date_run_cron.day)
+            return "{}: {} {}".format(
+                self.name, self.date_run_cron.strftime("%B"), self.date_run_cron.day
+            )
         except:
-            return '{}'.format(self.name)
+            return "{}".format(self.name)
 
 
 class ApiarySite(models.Model):
     id = models.IntegerField(primary_key=True, editable=False)
 
     site_guid = models.CharField(max_length=50, blank=True)
-    latest_proposal_link = models.ForeignKey('disturbance.ApiarySiteOnProposal', blank=True, null=True, on_delete=models.SET_NULL)
-    latest_approval_link = models.ForeignKey('disturbance.ApiarySiteOnApproval', blank=True, null=True, on_delete=models.SET_NULL)
+    latest_proposal_link = models.ForeignKey(
+        "disturbance.ApiarySiteOnProposal",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    latest_approval_link = models.ForeignKey(
+        "disturbance.ApiarySiteOnApproval",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
     # Store the proposal link intermediate object this apiary site transitioned from when got the 'vacant' status
-    proposal_link_for_vacant = models.ForeignKey('disturbance.ApiarySiteOnProposal', blank=True, null=True, related_name='vacant_apiary_site', on_delete=models.SET_NULL)
+    proposal_link_for_vacant = models.ForeignKey(
+        "disturbance.ApiarySiteOnProposal",
+        blank=True,
+        null=True,
+        related_name="vacant_apiary_site",
+        on_delete=models.SET_NULL,
+    )
     # Store the approval link intermediate object this apiary site transitioned from when got the 'vacant' status
-    approval_link_for_vacant = models.ForeignKey('disturbance.ApiarySiteOnApproval', blank=True, null=True, related_name='vacant_apiary_site', on_delete=models.SET_NULL)
+    approval_link_for_vacant = models.ForeignKey(
+        "disturbance.ApiarySiteOnApproval",
+        blank=True,
+        null=True,
+        related_name="vacant_apiary_site",
+        on_delete=models.SET_NULL,
+    )
     is_vacant = models.BooleanField(default=False)
-    exempt_from_radius_restriction = models.BooleanField(default=False) #does not require restricted radius validation on proposal
+    exempt_from_radius_restriction = models.BooleanField(
+        default=False
+    )  # does not require restricted radius validation on proposal
 
     def get_relevant_applicant_name(self):
-        relevant_name = ''
+        relevant_name = ""
 
         try:
             if not self.is_vacant:
-                if self.latest_approval_link and self.latest_approval_link.site_status in [SITE_STATUS_CURRENT, SITE_STATUS_SUSPENDED, SITE_STATUS_NOT_TO_BE_REISSUED,]:
-                    relevant_name = self.latest_approval_link.approval.relevant_applicant_name
-                elif self.latest_proposal_link and self.latest_proposal_link.site_status in [SITE_STATUS_PENDING, SITE_STATUS_DENIED,]:
+                if (
+                    self.latest_approval_link
+                    and self.latest_approval_link.site_status
+                    in [
+                        SITE_STATUS_CURRENT,
+                        SITE_STATUS_SUSPENDED,
+                        SITE_STATUS_NOT_TO_BE_REISSUED,
+                    ]
+                ):
+                    relevant_name = (
+                        self.latest_approval_link.approval.relevant_applicant_name
+                    )
+                elif (
+                    self.latest_proposal_link
+                    and self.latest_proposal_link.site_status
+                    in [
+                        SITE_STATUS_PENDING,
+                        SITE_STATUS_DENIED,
+                    ]
+                ):
                     relevant_name = self.latest_proposal_link.proposal_apiary.proposal.relevant_applicant_name
         except Exception as e:
-            logger.error('Exception raised when retrieving the relevant applicant name for the apiary site: {}. Error: {}'.format(self, e))
+            logger.error(
+                "Exception raised when retrieving the relevant applicant name for the apiary site: {}. Error: {}".format(
+                    self, e
+                )
+            )
 
         return relevant_name
 
     def __str__(self):
-        return '{}'.format(self.id,)
+        return "{}".format(
+            self.id,
+        )
 
     def save(self, *args, **kwargs):
         if not self.id:
-            max = ApiarySite.objects.aggregate(id_max=Max('id'))['id_max']
+            max = ApiarySite.objects.aggregate(id_max=Max("id"))["id_max"]
             self.id = int(max) + 1 if max is not None else 1
         super().save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):
         super(ApiarySite, self).delete(using, keep_parents)
-        print('ApiarySite: {}({}) has been deleted.'.format(self.id, self.is_vacant))
+        print("ApiarySite: {}({}) has been deleted.".format(self.id, self.is_vacant))
 
     @property
     def can_be_deleted_from_the_system(self):
@@ -4110,8 +5657,15 @@ class ApiarySite(models.Model):
         """
         can_be_deleted = False
 
-        if self.proposal_apiary_set.count() <= 1 and self.approval_set.count() == 0 and not self.is_vacant:
-            if not self.latest_proposal_link.application_fee_paid and self.latest_proposal_link.site_status == SITE_STATUS_DRAFT:
+        if (
+            self.proposal_apiary_set.count() <= 1
+            and self.approval_set.count() == 0
+            and not self.is_vacant
+        ):
+            if (
+                not self.latest_proposal_link.application_fee_paid
+                and self.latest_proposal_link.site_status == SITE_STATUS_DRAFT
+            ):
                 # application_fee_paid == False means that this apiary site has never been submitted
                 can_be_deleted = True
 
@@ -4120,6 +5674,7 @@ class ApiarySite(models.Model):
     def make_vacant(self, vacant, relation):
         self.is_vacant = vacant
         from disturbance.components.approvals.models import ApiarySiteOnApproval
+
         if isinstance(relation, ApiarySiteOnProposal):
             self.proposal_link_for_vacant = relation if vacant else None
             self.approval_link_for_vacant = None  # make sure either proposal_link_for_vacant or approval_link_for_vacant is True at most.
@@ -4130,66 +5685,106 @@ class ApiarySite(models.Model):
 
     def get_relation(self, proposal_apiary_or_approval):
         if isinstance(proposal_apiary_or_approval, ProposalApiary):
-            return ApiarySiteOnProposal.objects.get(apiary_site=self, proposal_apiary=proposal_apiary_or_approval)
+            return ApiarySiteOnProposal.objects.get(
+                apiary_site=self, proposal_apiary=proposal_apiary_or_approval
+            )
         else:
             from disturbance.components.approvals.models import ApiarySiteOnApproval
-            return ApiarySiteOnApproval.objects.get(apiary_site=self, approval=proposal_apiary_or_approval)
+
+            return ApiarySiteOnApproval.objects.get(
+                apiary_site=self, approval=proposal_apiary_or_approval
+            )
 
     def get_current_application_fee_per_site(self):
         current_fee = self.site_category.current_application_fee_per_site
         return current_fee
-    
-    #latest relevant coords
+
+    # latest relevant coords
     @property
     def coordinates(self):
         latest_link = None
         latest_link_date = None
 
-        if self.latest_proposal_link and self.latest_proposal_link.wkb_geometry_processed:
+        if (
+            self.latest_proposal_link
+            and self.latest_proposal_link.wkb_geometry_processed
+        ):
             latest_link_date = self.latest_proposal_link.created_at
             latest_link = self.latest_proposal_link.wkb_geometry_processed.coords
 
-        if self.latest_approval_link and self.latest_approval_link.wkb_geometry and (not latest_link_date or self.latest_approval_link.created_at >= latest_link_date):
+        if (
+            self.latest_approval_link
+            and self.latest_approval_link.wkb_geometry
+            and (
+                not latest_link_date
+                or self.latest_approval_link.created_at >= latest_link_date
+            )
+        ):
             latest_link_date = self.latest_approval_link.created_at
             latest_link = self.latest_approval_link.wkb_geometry.coords
 
-        if self.proposal_link_for_vacant and self.latest_proposal_link.wkb_geometry_processed and (not latest_link_date or self.proposal_link_for_vacant.created_at >= latest_link_date):
+        if (
+            self.proposal_link_for_vacant
+            and self.latest_proposal_link.wkb_geometry_processed
+            and (
+                not latest_link_date
+                or self.proposal_link_for_vacant.created_at >= latest_link_date
+            )
+        ):
             latest_link_date = self.proposal_link_for_vacant.created_at
             latest_link = self.proposal_link_for_vacant.wkb_geometry_processed.coords
 
-        if self.approval_link_for_vacant and self.latest_approval_link.wkb_geometry and (not latest_link_date or self.approval_link_for_vacant.created_at >= latest_link_date):
+        if (
+            self.approval_link_for_vacant
+            and self.latest_approval_link.wkb_geometry
+            and (
+                not latest_link_date
+                or self.approval_link_for_vacant.created_at >= latest_link_date
+            )
+        ):
             latest_link_date = self.approval_link_for_vacant.created_at
             latest_link = self.approval_link_for_vacant.wkb_geometry.coords
 
         return latest_link
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
 
 class ApiarySiteFeeRemainder(models.Model):
-    '''
+    """
     A record of this model represents e site is left
 
     You have to check the validity of the record by date_expiry and date_used fields
-    '''
+    """
+
     site_category = models.ForeignKey(SiteCategory, on_delete=models.CASCADE)
-    apiary_site_fee_type = models.ForeignKey(ApiarySiteFeeType, on_delete=models.CASCADE)
-    applicant = models.ForeignKey(Organisation, null=True, blank=True, on_delete=models.CASCADE)
-    proxy_applicant = models.ForeignKey(EmailUser, null=True, blank=True, on_delete=models.CASCADE)
+    apiary_site_fee_type = models.ForeignKey(
+        ApiarySiteFeeType, on_delete=models.CASCADE
+    )
+    applicant = models.ForeignKey(
+        Organisation, null=True, blank=True, on_delete=models.CASCADE
+    )
+    proxy_applicant = models.ForeignKey(
+        EmailUser, null=True, blank=True, on_delete=models.CASCADE
+    )
     datetime_created = models.DateTimeField(auto_now_add=True)
     date_expiry = models.DateField(null=True, blank=True)
     date_used = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return 'Remainder: {} - {} - {} - site(s)'.format(self.applicant, self.site_category, self.apiary_site_fee_type)
+        return "Remainder: {} - {} - {} - site(s)".format(
+            self.applicant, self.site_category, self.apiary_site_fee_type
+        )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
 
 class OnSiteInformation(SanitiseMixin):
-    apiary_site_on_approval = models.ForeignKey('ApiarySiteOnApproval', blank=True, null=True, on_delete=models.CASCADE)
+    apiary_site_on_approval = models.ForeignKey(
+        "ApiarySiteOnApproval", blank=True, null=True, on_delete=models.CASCADE
+    )
     period_from = models.DateField(null=True, blank=True)
     period_to = models.DateField(null=True, blank=True)
     hives_loc = models.TextField(blank=True)
@@ -4200,42 +5795,55 @@ class OnSiteInformation(SanitiseMixin):
     datetime_deleted = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return 'OnSiteInfo id: {}, date: {} to {}'.format(self.id, self.period_from, self.period_to)
+        return "OnSiteInfo id: {}, date: {} to {}".format(
+            self.id, self.period_from, self.period_to
+        )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
 
 class ProposalApiaryTemporaryUse(SanitiseMixin):
-    from_date = models.DateField('Period From Date', blank=True, null=True)
-    to_date = models.DateField('Period To Date', blank=True, null=True)
-    proposal = models.OneToOneField(Proposal, related_name='apiary_temporary_use', null=True, blank=True, on_delete=models.CASCADE)
+    from_date = models.DateField("Period From Date", blank=True, null=True)
+    to_date = models.DateField("Period To Date", blank=True, null=True)
+    proposal = models.OneToOneField(
+        Proposal,
+        related_name="apiary_temporary_use",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+    )
     temporary_occupier_name = models.CharField(max_length=255, blank=True, null=True)
     temporary_occupier_phone = models.CharField(max_length=50, blank=True, null=True)
     temporary_occupier_mobile = models.CharField(max_length=50, blank=True, null=True)
     temporary_occupier_email = models.EmailField(blank=True, null=True)
-    loaning_approval = models.ForeignKey('disturbance.Approval', blank=True, null=True, on_delete=models.CASCADE)
+    loaning_approval = models.ForeignKey(
+        "disturbance.Approval", blank=True, null=True, on_delete=models.CASCADE
+    )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
     def period_valid_for_temporary_use(self, period):
         detail = {}
         valid = True
 
         # Check if the period sits in the approval valid period
-        if period[0] < self.loaning_approval.start_date or self.loaning_approval.expiry_date < period[1]:
+        if (
+            period[0] < self.loaning_approval.start_date
+            or self.loaning_approval.expiry_date < period[1]
+        ):
             valid = False
             if not valid:
-                detail['period'] = {}
-                detail['period']['from_date'] = self.loaning_approval.start_date
-                detail['period']['to_date'] = self.loaning_approval.expiry_date
-                detail['reason'] = 'out_of_range_of_licence'
+                detail["period"] = {}
+                detail["period"]["from_date"] = self.loaning_approval.start_date
+                detail["period"]["to_date"] = self.loaning_approval.expiry_date
+                detail["reason"] = "out_of_range_of_licence"
                 return valid, detail
 
-        #TODO on cleanup: review (old comment) Check if the period submitted overlaps with the existing temprary use periods
-        #qs = TemporaryUseApiarySite.objects.filter(apiary_site=self, selected=True, proposal_apiary_temporary_use__proposal__processing_status=Proposal.PROCESSING_STATUS_APPROVED)
-        #for temp_site in qs:
+        # TODO on cleanup: review (old comment) Check if the period submitted overlaps with the existing temprary use periods
+        # qs = TemporaryUseApiarySite.objects.filter(apiary_site=self, selected=True, proposal_apiary_temporary_use__proposal__processing_status=Proposal.PROCESSING_STATUS_APPROVED)
+        # for temp_site in qs:
         #    valid = (period[0] <= period[1] < temp_site.proposal_apiary_temporary_use.from_date) or (temp_site.proposal_apiary_temporary_use.to_date < period[0] <= period[1])
         #    if not valid:
         #        detail['period'] = {}
@@ -4252,39 +5860,76 @@ class TemporaryUseApiarySite(models.Model):
     """
     Apiary sites under a proposal can be partially used as temporary site
     """
-    proposal_apiary_temporary_use = models.ForeignKey(ProposalApiaryTemporaryUse, blank=True, null=True, related_name='temporary_use_apiary_sites', on_delete=models.CASCADE)
-    apiary_site_on_approval = models.ForeignKey('ApiarySiteOnApproval', blank=True, null=True, on_delete=models.CASCADE)
+
+    proposal_apiary_temporary_use = models.ForeignKey(
+        ProposalApiaryTemporaryUse,
+        blank=True,
+        null=True,
+        related_name="temporary_use_apiary_sites",
+        on_delete=models.CASCADE,
+    )
+    apiary_site_on_approval = models.ForeignKey(
+        "ApiarySiteOnApproval", blank=True, null=True, on_delete=models.CASCADE
+    )
     selected = models.BooleanField(default=False)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
 
 class SiteTransferApiarySite(models.Model):
-    proposal_apiary = models.ForeignKey(ProposalApiary, blank=True, null=True, related_name='site_transfer_apiary_sites', on_delete=models.CASCADE)
-    apiary_site_on_approval = models.ForeignKey('disturbance.ApiarySiteOnApproval', blank=True, null=True, on_delete=models.CASCADE)
+    proposal_apiary = models.ForeignKey(
+        ProposalApiary,
+        blank=True,
+        null=True,
+        related_name="site_transfer_apiary_sites",
+        on_delete=models.CASCADE,
+    )
+    apiary_site_on_approval = models.ForeignKey(
+        "disturbance.ApiarySiteOnApproval",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
     internal_selected = models.BooleanField(default=False)
     customer_selected = models.BooleanField(default=False)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
 
-#TODO on cleanup: remove (old comment) remove if no longer required
+# TODO on cleanup: remove (old comment) remove if no longer required
 class ApiarySiteApproval(models.Model):
     """
     This is intermediate table between ApiarySite and Approval to hold an approved apiary site under a certain approval
     """
-    apiary_site = models.ForeignKey(ApiarySite, blank=True, null=True, related_name='apiary_site_approval_set', on_delete=models.CASCADE)
-    approval = models.ForeignKey('disturbance.Approval', blank=True, null=True, related_name='apiary_site_approval_set', on_delete=models.CASCADE)
+
+    apiary_site = models.ForeignKey(
+        ApiarySite,
+        blank=True,
+        null=True,
+        related_name="apiary_site_approval_set",
+        on_delete=models.CASCADE,
+    )
+    approval = models.ForeignKey(
+        "disturbance.Approval",
+        blank=True,
+        null=True,
+        related_name="apiary_site_approval_set",
+        on_delete=models.CASCADE,
+    )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
 
 class ProposalApiaryDocument(DefaultDocument):
-    proposal = models.ForeignKey('Proposal', related_name='apiary_documents', on_delete=models.CASCADE)
-    _file = models.FileField(upload_to=update_apiary_doc_filename, max_length=512, storage=private_storage)
+    proposal = models.ForeignKey(
+        "Proposal", related_name="apiary_documents", on_delete=models.CASCADE
+    )
+    _file = models.FileField(
+        upload_to=update_apiary_doc_filename, max_length=512, storage=private_storage
+    )
 
     def delete(self):
         if self.can_delete:
@@ -4292,147 +5937,193 @@ class ProposalApiaryDocument(DefaultDocument):
 
 
 class DeedPollDocument(Document):
-    DOC_TYPE_NAME = 'deed_poll_documents'
+    DOC_TYPE_NAME = "deed_poll_documents"
 
-    proposal = models.ForeignKey(ProposalApiary, related_name='deed_poll_documents', blank=True, null=True, on_delete=models.CASCADE)
-    base_proposal = models.ForeignKey(Proposal, related_name='deed_poll_documents', blank=True, null=True, on_delete=models.CASCADE)
+    proposal = models.ForeignKey(
+        ProposalApiary,
+        related_name="deed_poll_documents",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    base_proposal = models.ForeignKey(
+        Proposal,
+        related_name="deed_poll_documents",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
     _file = models.FileField(max_length=255, storage=private_storage)
     input_name = models.CharField(max_length=255, blank=True, null=True)
     # after initial submit prevent document from being deleted
     can_delete = models.BooleanField(default=True)
-    visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history
+    visible = models.BooleanField(
+        default=True
+    )  # to prevent deletion on file system, hidden and still be available in history
 
     def delete(self):
         if self.can_delete:
             return super(DeedPollDocument, self).delete()
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
 
 class PublicLiabilityInsuranceDocument(Document):
-    DOC_TYPE_NAME = 'public_liability_document'
+    DOC_TYPE_NAME = "public_liability_document"
 
-    proposal = models.ForeignKey(ProposalApiary, related_name='public_liability_insurance_documents', blank=True, null=True, on_delete=models.CASCADE)
+    proposal = models.ForeignKey(
+        ProposalApiary,
+        related_name="public_liability_insurance_documents",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
     _file = models.FileField(max_length=255, storage=private_storage)
     input_name = models.CharField(max_length=255, blank=True, null=True)
     can_delete = models.BooleanField(default=True)
     visible = models.BooleanField(default=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
 
 class TemporaryUsePublicLiabilityInsuranceDocument(Document):
-    DOC_TYPE_NAME = 'public_liability_document'
+    DOC_TYPE_NAME = "public_liability_document"
 
-    proposal = models.ForeignKey(ProposalApiaryTemporaryUse, related_name='public_liability_insurance_documents', blank=True, null=True, on_delete=models.CASCADE)
+    proposal = models.ForeignKey(
+        ProposalApiaryTemporaryUse,
+        related_name="public_liability_insurance_documents",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
     _file = models.FileField(max_length=255, storage=private_storage)
     input_name = models.CharField(max_length=255, blank=True, null=True)
     can_delete = models.BooleanField(default=True)
     visible = models.BooleanField(default=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
 
 class SupportingApplicationDocument(Document):
-    DOC_TYPE_NAME = 'supporting_application_document'
+    DOC_TYPE_NAME = "supporting_application_document"
 
-    proposal = models.ForeignKey(ProposalApiary, related_name='supporting_application_documents', blank=True, null=True, on_delete=models.CASCADE)
+    proposal = models.ForeignKey(
+        ProposalApiary,
+        related_name="supporting_application_documents",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
     _file = models.FileField(max_length=255, storage=private_storage)
     input_name = models.CharField(max_length=255, blank=True, null=True)
     can_delete = models.BooleanField(default=True)
     visible = models.BooleanField(default=True)
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
 
 class ApiaryChecklistQuestion(RevisionedMixin):
     ANSWER_TYPE_CHOICES = (
-        ('yes_no', 'Yes/No type'),
-        ('free_text','Free text type'),
+        ("yes_no", "Yes/No type"),
+        ("free_text", "Free text type"),
     )
     CHECKLIST_TYPE_CHOICES = (
-        ('apiary', 'Apiary'),
-        ('apiary_per_site', 'Apiary per site'),
-        ('site_transfer', 'Site Transfer'),
-        ('site_transfer_per_site', 'Site Transfer per site'),
+        ("apiary", "Apiary"),
+        ("apiary_per_site", "Apiary per site"),
+        ("site_transfer", "Site Transfer"),
+        ("site_transfer_per_site", "Site Transfer per site"),
     )
     CHECKLIST_ROLE_CHOICES = (
-        ('assessor', 'Assessor'),
-        ('applicant', 'Applicant'),
-        ('referrer', 'Referrer'),
+        ("assessor", "Assessor"),
+        ("applicant", "Applicant"),
+        ("referrer", "Referrer"),
     )
     text = models.TextField()
-    answer_type = models.CharField('Answer Type',
-                                   max_length=30,
-                                   choices=ANSWER_TYPE_CHOICES,
-                                   default=ANSWER_TYPE_CHOICES[0][0])
-    checklist_type = models.CharField('Checklist Type',
-                                   max_length=30,
-                                   choices=CHECKLIST_TYPE_CHOICES,
-                                   )
-    checklist_role = models.CharField('Checklist Role',
-                                   max_length=30,
-                                   choices=CHECKLIST_ROLE_CHOICES,
-                                   )
+    answer_type = models.CharField(
+        "Answer Type",
+        max_length=30,
+        choices=ANSWER_TYPE_CHOICES,
+        default=ANSWER_TYPE_CHOICES[0][0],
+    )
+    checklist_type = models.CharField(
+        "Checklist Type",
+        max_length=30,
+        choices=CHECKLIST_TYPE_CHOICES,
+    )
+    checklist_role = models.CharField(
+        "Checklist Role",
+        max_length=30,
+        choices=CHECKLIST_ROLE_CHOICES,
+    )
     order = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         return self.text
 
     class Meta:
-        app_label = 'disturbance'
-        ordering = ['order', 'id']
+        app_label = "disturbance"
+        ordering = ["order", "id"]
 
 
 class ApiaryChecklistAnswer(SanitiseMixin):
-    question=models.ForeignKey(ApiaryChecklistQuestion, related_name='answers', on_delete=models.CASCADE)
+    question = models.ForeignKey(
+        ApiaryChecklistQuestion, related_name="answers", on_delete=models.CASCADE
+    )
     answer = models.BooleanField(null=True, blank=True)
-    proposal = models.ForeignKey(ProposalApiary, related_name="apiary_checklist", on_delete=models.CASCADE)
-    apiary_referral = models.ForeignKey('ApiaryReferral', related_name="apiary_checklist_referral", blank=True, null=True, on_delete=models.CASCADE)
+    proposal = models.ForeignKey(
+        ProposalApiary, related_name="apiary_checklist", on_delete=models.CASCADE
+    )
+    apiary_referral = models.ForeignKey(
+        "ApiaryReferral",
+        related_name="apiary_checklist_referral",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
     text_answer = models.TextField(blank=True, null=True)
 
-    #TODO on cleanup (old comment) to delete
-    site=models.ForeignKey(ApiarySiteOnProposal, blank=True, null=True, on_delete=models.CASCADE)
-    apiary_site=models.ForeignKey(ApiarySite, blank=True, null=True, on_delete=models.CASCADE)
+    # TODO on cleanup (old comment) to delete
+    site = models.ForeignKey(
+        ApiarySiteOnProposal, blank=True, null=True, on_delete=models.CASCADE
+    )
+    apiary_site = models.ForeignKey(
+        ApiarySite, blank=True, null=True, on_delete=models.CASCADE
+    )
 
     def __str__(self):
         return self.question.text
 
     class Meta:
-        app_label = 'disturbance'
-        verbose_name = 'CheckList answer'
-        verbose_name_plural = 'CheckList answers'
+        app_label = "disturbance"
+        verbose_name = "CheckList answer"
+        verbose_name_plural = "CheckList answers"
 
 
 class ApiaryAssessorGroupMember(models.Model):
-
-    emailuser = models.ForeignKey(
-        EmailUser, 
-        null=False,
-        on_delete=models.CASCADE
-    )
+    emailuser = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
 
     apiaryassessorgroup = models.ForeignKey(
-        'disturbance.ApiaryAssessorGroup', 
-        null=False,
-        on_delete=models.CASCADE
+        "disturbance.ApiaryAssessorGroup", null=False, on_delete=models.CASCADE
     )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
         db_table = "disturbance_apiaryassessorgroup_members"
-        unique_together=('apiaryassessorgroup','emailuser')
+        unique_together = ("apiaryassessorgroup", "emailuser")
 
 
 class ApiaryAssessorGroup(models.Model):
-    members = models.ManyToManyField(EmailUser, through=ApiaryAssessorGroupMember,)
+    members = models.ManyToManyField(
+        EmailUser,
+        through=ApiaryAssessorGroupMember,
+    )
 
     def __str__(self):
-        return 'Apiary Assessors Group'
+        return "Apiary Assessors Group"
 
     @property
     def resolved_members(self):
@@ -4442,9 +6133,11 @@ class ApiaryAssessorGroup(models.Model):
         """
         member_ids = ApiaryAssessorGroupMember.objects.filter(
             apiaryassessorgroup=self
-        ).values_list('emailuser_id', flat=True)
+        ).values_list("emailuser_id", flat=True)
 
-        return EmailUser.objects.using('ledger_db').filter(Q(pk__in=list(member_ids))|Q(is_superuser=True))
+        return EmailUser.objects.using("ledger_db").filter(
+            Q(pk__in=list(member_ids)) | Q(is_superuser=True)
+        )
 
     @property
     def all_members(self):
@@ -4455,8 +6148,8 @@ class ApiaryAssessorGroup(models.Model):
         return self.resolved_members
 
     class Meta:
-        app_label = 'disturbance'
-        verbose_name_plural = 'Apiary Assessors Group'
+        app_label = "disturbance"
+        verbose_name_plural = "Apiary Assessors Group"
 
     @property
     def members_email(self):
@@ -4464,31 +6157,24 @@ class ApiaryAssessorGroup(models.Model):
 
 
 class ApiaryApproverGroupMember(models.Model):
-
-    emailuser = models.ForeignKey(
-        EmailUser, 
-        null=False,
-        on_delete=models.CASCADE
-    )
+    emailuser = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
 
     apiaryapprovergroup = models.ForeignKey(
-        'disturbance.ApiaryApproverGroup', 
-        null=False,
-        on_delete=models.CASCADE
+        "disturbance.ApiaryApproverGroup", null=False, on_delete=models.CASCADE
     )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
         db_table = "disturbance_apiaryapprovergroup_members"
-        unique_together=('apiaryapprovergroup','emailuser')
+        unique_together = ("apiaryapprovergroup", "emailuser")
 
 
 class ApiaryApproverGroup(models.Model):
     members = models.ManyToManyField(EmailUser, through=ApiaryApproverGroupMember)
 
     def __str__(self):
-        return 'Apiary Approvers Group'
-    
+        return "Apiary Approvers Group"
+
     @property
     def resolved_members(self):
         """
@@ -4511,8 +6197,8 @@ class ApiaryApproverGroup(models.Model):
         """
         member_ids = ApiaryApproverGroupMember.objects.filter(
             apiaryapprovergroup=self
-        ).values_list('emailuser_id', flat=True)
-        
+        ).values_list("emailuser_id", flat=True)
+
         return EmailUser.objects.filter(pk__in=list(member_ids))
 
     @property
@@ -4526,85 +6212,99 @@ class ApiaryApproverGroup(models.Model):
         return self.resolved_members
 
     class Meta:
-        app_label = 'disturbance'
-        verbose_name_plural = 'Apiary Approvers Group'
+        app_label = "disturbance"
+        verbose_name_plural = "Apiary Approvers Group"
 
     @property
     def members_email(self):
         return [i.email for i in self.resolved_members]
-    
+
 
 class ApiaryReferral(RevisionedMixin):
-
-    referral = models.OneToOneField(Referral, related_name='apiary_referral', null=True, on_delete=models.CASCADE)
-    referral_group = models.ForeignKey(ApiaryReferralGroup,null=True,blank=True,related_name='referral_groups', on_delete=models.CASCADE)
-    assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='apiary_referrals_assigned', on_delete=models.SET_NULL)
+    referral = models.OneToOneField(
+        Referral, related_name="apiary_referral", null=True, on_delete=models.CASCADE
+    )
+    referral_group = models.ForeignKey(
+        ApiaryReferralGroup,
+        null=True,
+        blank=True,
+        related_name="referral_groups",
+        on_delete=models.CASCADE,
+    )
+    assigned_officer = models.ForeignKey(
+        EmailUser,
+        blank=True,
+        null=True,
+        related_name="apiary_referrals_assigned",
+        on_delete=models.SET_NULL,
+    )
 
     class Meta:
-        app_label = 'disturbance'
+        app_label = "disturbance"
 
     def __str__(self):
-        return 'Apiary Application {} - Referral {}'.format(
-                self.referral.proposal.id,
-                self.referral.id
-                )
+        return "Apiary Application {} - Referral {}".format(
+            self.referral.proposal.id, self.referral.id
+        )
 
     def can_assign(self, user):
-        if self.referral.processing_status=='with_referral':
+        if self.referral.processing_status == "with_referral":
             if user.is_superuser:
                 return True
 
-            group =  ApiaryReferralGroup.objects.filter(id=self.referral_group.id)
+            group = ApiaryReferralGroup.objects.filter(id=self.referral_group.id)
             if group and group[0] in user.apiaryreferralgroup_set.all():
                 return True
         return False
 
     def can_process(self, user):
-        if self.referral.processing_status=='with_referral':
-            group =  ApiaryReferralGroup.objects.filter(id=self.referral_group.id)
+        if self.referral.processing_status == "with_referral":
+            group = ApiaryReferralGroup.objects.filter(id=self.referral_group.id)
             if group and group[0] in user.apiaryreferralgroup_set.all():
                 if not self.assigned_officer or self.assigned_officer == user:
                     return True
         return False
 
-    def recall(self,request):
+    def recall(self, request):
         with transaction.atomic():
             if not self.referral.proposal.can_assess(request.user):
                 raise exceptions.ProposalNotAuthorized()
-            self.referral.processing_status = 'recalled'
+            self.referral.processing_status = "recalled"
             self.referral.save()
 
             self.referral.proposal.log_user_action(
                 ProposalUserAction.APIARY_RECALL_REFERRAL.format(
-                    self.referral.id,
-                    self.referral.proposal.lodgement_number
-                    ),
-                request
-                )
+                    self.referral.id, self.referral.proposal.lodgement_number
+                ),
+                request,
+            )
 
-    def remind(self,request):
+    def remind(self, request):
         with transaction.atomic():
             if not self.referral.proposal.can_assess(request.user):
                 raise exceptions.ProposalNotAuthorized()
 
             self.referral.proposal.log_user_action(
                 ProposalUserAction.APIARY_ACTION_REMIND_REFERRAL.format(
-                self.referral.id,
-                self.referral.proposal.lodgement_number,'{}'.format(self.referral_group.name)
+                    self.referral.id,
+                    self.referral.proposal.lodgement_number,
+                    "{}".format(self.referral_group.name),
                 ),
-                request
-                )
+                request,
+            )
 
             # send email
             recipients = self.referral_group.members_list
-            send_apiary_referral_email_notification(self.referral,recipients,request,reminder=True)
+            send_apiary_referral_email_notification(
+                self.referral, recipients, request, reminder=True
+            )
 
-    def resend(self,request):
+    def resend(self, request):
         with transaction.atomic():
             if not self.referral.proposal.can_assess(request.user):
                 raise exceptions.ProposalNotAuthorized()
-            self.referral.processing_status = 'with_referral'
-            self.referral.proposal.processing_status = 'with_referral'
+            self.referral.processing_status = "with_referral"
+            self.referral.proposal.processing_status = "with_referral"
             self.referral.proposal.save()
             self.referral.save()
             self.sent_from = 1
@@ -4613,65 +6313,84 @@ class ApiaryReferral(RevisionedMixin):
             self.referral.proposal.log_user_action(
                 ProposalUserAction.APIARY_ACTION_RESEND_REFERRAL_TO.format(
                     self.referral.id,
-                    self.referral.proposal.lodgement_number,'{}'.format(self.referral_group.name)
-                    ),
-                request)
+                    self.referral.proposal.lodgement_number,
+                    "{}".format(self.referral_group.name),
+                ),
+                request,
+            )
 
             recipients = self.referral_group.members_list
-            send_apiary_referral_email_notification(self.referral,recipients,request)
+            send_apiary_referral_email_notification(self.referral, recipients, request)
 
-    def complete(self,request):
+    def complete(self, request):
         with transaction.atomic():
             try:
-                group =  ApiaryReferralGroup.objects.filter(id=self.referral_group.id)
-                user=request.user
+                group = ApiaryReferralGroup.objects.filter(id=self.referral_group.id)
+                user = request.user
                 if group and group[0] not in user.apiaryreferralgroup_set.all():
                     raise exceptions.ReferralNotAuthorized()
-                self.referral.processing_status = 'completed'
-                self.referral.referral_text = request.user.get_full_name() + ': ' + request.data.get('referral_comment')
+                self.referral.processing_status = "completed"
+                self.referral.referral_text = (
+                    request.user.get_full_name()
+                    + ": "
+                    + request.data.get("referral_comment")
+                )
                 self.referral.save()
 
                 self.referral.proposal.log_user_action(
-                        ProposalUserAction.APIARY_CONCLUDE_REFERRAL.format(
-                            request.user.get_full_name(),
-                            self.referral.id,
-                            self.referral.proposal.lodgement_number,
-                            '{}'.format(
-                                self.referral_group.name)
-                            ),
-                        request
-                        )
-                send_apiary_referral_complete_email_notification(self.referral, request, request.user)
+                    ProposalUserAction.APIARY_CONCLUDE_REFERRAL.format(
+                        request.user.get_full_name(),
+                        self.referral.id,
+                        self.referral.proposal.lodgement_number,
+                        "{}".format(self.referral_group.name),
+                    ),
+                    request,
+                )
+                send_apiary_referral_complete_email_notification(
+                    self.referral, request, request.user
+                )
             except:
                 raise
 
-    def assign_officer(self,request,officer):
+    def assign_officer(self, request, officer):
         with transaction.atomic():
             try:
                 if not self.can_assign(request.user):
-                    raise ValidationError('The selected person is not authorised to be assigned to referrals')
+                    raise ValidationError(
+                        "The selected person is not authorised to be assigned to referrals"
+                    )
                 elif request.user != self.assigned_officer:
                     self.assigned_officer = officer
                     self.save()
                     # Create a log entry for the proposal
-                    self.referral.proposal.log_user_action(ProposalUserAction.APIARY_REFERRAL_ASSIGN_TO_ASSESSOR.format(
-                        self.referral.id,self.referral.proposal.lodgement_number, '{}({})'.format(
-                            officer.get_full_name(), officer.email)
-                        ), request)
+                    self.referral.proposal.log_user_action(
+                        ProposalUserAction.APIARY_REFERRAL_ASSIGN_TO_ASSESSOR.format(
+                            self.referral.id,
+                            self.referral.proposal.lodgement_number,
+                            "{}({})".format(officer.get_full_name(), officer.email),
+                        ),
+                        request,
+                    )
             except:
                 raise
 
-    def unassign(self,request):
+    def unassign(self, request):
         with transaction.atomic():
             try:
                 if not self.can_assign(request.user):
-                    raise ValidationError('The selected person is not authorised to change referral assignments')
+                    raise ValidationError(
+                        "The selected person is not authorised to change referral assignments"
+                    )
                 elif self.assigned_officer:
                     self.assigned_officer = None
                     self.save()
                     # Create a log entry for the proposal
-                    self.referral.proposal.log_user_action(ProposalUserAction.APIARY_REFERRAL_UNASSIGN_ASSESSOR.format(
-                        self.referral.id,self.referral.proposal.lodgement_number), request)
+                    self.referral.proposal.log_user_action(
+                        ProposalUserAction.APIARY_REFERRAL_UNASSIGN_ASSESSOR.format(
+                            self.referral.id, self.referral.proposal.lodgement_number
+                        ),
+                        request,
+                    )
             except:
                 raise
 
@@ -4694,60 +6413,64 @@ class ApiaryReferral(RevisionedMixin):
 
     @property
     def can_be_processed(self):
-        return self.referral.processing_status == 'with_referral'
+        return self.referral.processing_status == "with_referral"
 
-    def can_assess_referral(self,user):
-       return self.referral.processing_status == 'with_referral'
+    def can_assess_referral(self, user):
+        return self.referral.processing_status == "with_referral"
 
     @property
     def allowed_assessors(self):
         group = self.referral_group
         return group.resolved_members if group else []
 
+
 # --------------------------------------------------------------------------------------
 # Apiary Models End
 # --------------------------------------------------------------------------------------
 
+
 # --------------------------------------------------------------------------------------
 # Generate JSON schema models start
 # --------------------------------------------------------------------------------------
-#TODO on-cleanup remove if no longer needed
+# TODO on-cleanup remove if no longer needed
 @python_2_unicode_compatible
 class QuestionOption(models.Model):
     label = models.CharField(max_length=100, unique=True)
     value = models.CharField(max_length=100)
 
     class Meta:
-        app_label = 'disturbance'
-        verbose_name = 'Schema Question Option'
+        app_label = "disturbance"
+        verbose_name = "Schema Question Option"
 
     def __str__(self):
-        return self.label 
+        return self.label
 
-#TODO on-cleanup remove if no longer needed
+
+# TODO on-cleanup remove if no longer needed
 from ckeditor.fields import RichTextField
 
 
 @python_2_unicode_compatible
 class MasterlistQuestion(models.Model):
-    ANSWER_TYPE_CHECKBOX = 'checkbox'
-    ANSWER_TYPE_RADIO = 'radiobuttons'
-    ANSWER_TYPE_SELECT = 'select'
-    ANSWER_TYPE_MULTI = 'multi-select'
+    ANSWER_TYPE_CHECKBOX = "checkbox"
+    ANSWER_TYPE_RADIO = "radiobuttons"
+    ANSWER_TYPE_SELECT = "select"
+    ANSWER_TYPE_MULTI = "multi-select"
 
-    ANSWER_TYPE_CHOICES=(('text', 'Text'),
-                         (ANSWER_TYPE_RADIO, 'Radio button'),
-                         (ANSWER_TYPE_CHECKBOX, 'Checkbox'),
-                         ('number','Number'),
-                         ('email','Email'),
-                         ('select', 'Select'),
-                         ('multi-select','Multi-select'),
-                         ('text_area','Text area'),
-                         ('label', 'Label'),
-                         ('declaration', 'Declaration'),
-                         ('file', 'File'),
-                         ('date', 'Date'),
-                        )
+    ANSWER_TYPE_CHOICES = (
+        ("text", "Text"),
+        (ANSWER_TYPE_RADIO, "Radio button"),
+        (ANSWER_TYPE_CHECKBOX, "Checkbox"),
+        ("number", "Number"),
+        ("email", "Email"),
+        ("select", "Select"),
+        ("multi-select", "Multi-select"),
+        ("text_area", "Text area"),
+        ("label", "Label"),
+        ("declaration", "Declaration"),
+        ("file", "File"),
+        ("date", "Date"),
+    )
     ANSWER_TYPE_OPTIONS = [
         ANSWER_TYPE_CHECKBOX,
         ANSWER_TYPE_RADIO,
@@ -4761,44 +6484,47 @@ class MasterlistQuestion(models.Model):
     name = models.CharField(max_length=100)
     question = models.TextField()
     option = models.ManyToManyField(QuestionOption, blank=True)
-    answer_type = models.CharField('Answer Type', max_length=40, choices=ANSWER_TYPE_CHOICES,
-                                        default=ANSWER_TYPE_CHOICES[0][0])
-    help_text_url=models.BooleanField(default=False)
-    help_text_assessor_url=models.BooleanField(default=False)
-    help_text=RichTextField(null=True, blank=True)
-    help_text_assessor=RichTextField(null=True, blank=True)
+    answer_type = models.CharField(
+        "Answer Type",
+        max_length=40,
+        choices=ANSWER_TYPE_CHOICES,
+        default=ANSWER_TYPE_CHOICES[0][0],
+    )
+    help_text_url = models.BooleanField(default=False)
+    help_text_assessor_url = models.BooleanField(default=False)
+    help_text = RichTextField(null=True, blank=True)
+    help_text_assessor = RichTextField(null=True, blank=True)
     property_cache = JSONField(null=True, blank=True, default=dict)
 
     class Meta:
-        app_label = 'disturbance'
-        verbose_name = 'Schema Masterlist Question'
+        app_label = "disturbance"
+        verbose_name = "Schema Masterlist Question"
 
     def __str__(self):
         return self.question
 
     def get_options(self):
-        '''
+        """
         Property field for Question Options.
-        '''
+        """
         option_list = []
         options = self.get_property_cache_options()
         for o in options:
-            qo = QuestionOption(label=o['label'], value=o['value'])
+            qo = QuestionOption(label=o["label"], value=o["value"])
             option_list.append(qo)
         return option_list
 
     def get_property_cache_options(self):
-        '''
+        """
         Getter for options on the property cache.
 
         NOTE: only used for presentation purposes.
 
         :return options_list of QuestionOption values.
-        '''
+        """
         options = []
         try:
-
-            options = self.property_cache['options']
+            options = self.property_cache["options"]
 
         except KeyError:
             pass
@@ -4806,22 +6532,23 @@ class MasterlistQuestion(models.Model):
         return options
 
     def set_property_cache_options(self, options):
-        '''
+        """
         Setter for options on the property cache.
 
         NOTE: only used for presentation purposes.
 
         :param  options is QuerySet of QuestionOption or List of option value
                 string.
-        '''
+        """
+
         class MasterlistOptionEncoder(json.JSONEncoder):
             def default(self, obj):
                 if isinstance(obj, list):
                     options = []
                     for o in obj:
                         option = {
-                            'label': o['label'],
-                            'value': o['value'],
+                            "label": o["label"],
+                            "value": o["value"],
                         }
                         options.append(option)
                     return options
@@ -4830,37 +6557,38 @@ class MasterlistQuestion(models.Model):
                 if isinstance(obj, (list)):
                     return self.default(obj)
                 else:
-                    return super(
-                        MasterlistOptionEncoder, self).encode_list(obj, iter)
+                    return super(MasterlistOptionEncoder, self).encode_list(obj, iter)
 
         if not isinstance(options, list) and self.id:
-            logger.warn('{0} - MasterlistQuestion: {1}'.format(
-                'set_property_cache_options() NOT LIST', self.id))
+            logger.warn(
+                "{0} - MasterlistQuestion: {1}".format(
+                    "set_property_cache_options() NOT LIST", self.id
+                )
+            )
             return
 
         if self.id:
             data = MasterlistOptionEncoder().encode_list(options)
-            self.property_cache['options'] = data
+            self.property_cache["options"] = data
 
     def get_headers(self):
-        '''
+        """
         Property field for Question Table Headers.
-        '''
+        """
         headers = self.get_property_cache_headers()
         return headers
 
     def get_property_cache_headers(self):
-        '''
+        """
         Getter for headers on the property cache.
 
         NOTE: only used for presentation purposes.
 
         :return headers_list of QuestionOption values.
-        '''
+        """
         headers = []
         try:
-
-            headers = self.property_cache['headers']
+            headers = self.property_cache["headers"]
 
         except KeyError:
             pass
@@ -4868,21 +6596,22 @@ class MasterlistQuestion(models.Model):
         return headers
 
     def set_property_cache_headers(self, headers):
-        '''
+        """
         Setter for options on the property cache.
 
         NOTE: only used for presentation purposes.
 
         :param  options is QuerySet of MasterlistQuestion or List of ids.
-        '''
+        """
+
         class TableHeaderEncoder(json.JSONEncoder):
             def default(self, obj):
                 if isinstance(obj, list):
                     headers = []
                     for h in obj:
                         header = {
-                            'label': h['label'],
-                            'value': h['value'],
+                            "label": h["label"],
+                            "value": h["value"],
                         }
                         headers.append(header)
                     return headers
@@ -4891,37 +6620,38 @@ class MasterlistQuestion(models.Model):
                 if isinstance(obj, (list)):
                     return self.default(obj)
                 else:
-                    return super(
-                        TableHeaderEncoder, self).encode_list(obj, iter)
+                    return super(TableHeaderEncoder, self).encode_list(obj, iter)
 
         if not isinstance(headers, list) and self.id:
-            logger.warn('{0} - MasterlistQuestion: {1}'.format(
-                'set_property_cache_headers() NOT LIST', self.id))
+            logger.warn(
+                "{0} - MasterlistQuestion: {1}".format(
+                    "set_property_cache_headers() NOT LIST", self.id
+                )
+            )
             return
 
         if self.id:
             data = TableHeaderEncoder().encode_list(headers)
-            self.property_cache['headers'] = data
+            self.property_cache["headers"] = data
 
     def get_expanders(self):
-        '''
+        """
         Property field for Question Table Expanders.
-        '''
+        """
         expanders = self.get_property_cache_expanders()
         return expanders
 
     def get_property_cache_expanders(self):
-        '''
+        """
         Getter for options on the property cache.
 
         NOTE: only used for presentation purposes.
 
         :return options_list of QuestionOption values.
-        '''
+        """
         expanders = []
         try:
-
-            expanders = self.property_cache['expanders']
+            expanders = self.property_cache["expanders"]
 
         except KeyError:
             pass
@@ -4929,22 +6659,23 @@ class MasterlistQuestion(models.Model):
         return expanders
 
     def set_property_cache_expanders(self, expanders):
-        '''
+        """
         Setter for options on the property cache.
 
         NOTE: only used for presentation purposes.
 
         :param  options is QuerySet of QuestionOption or List of option value
                 string.
-        '''
+        """
+
         class TableExpanderEncoder(json.JSONEncoder):
             def default(self, obj):
                 if isinstance(obj, list):
                     expanders = []
                     for e in obj:
                         expander = {
-                            'label': e['label'],
-                            'value': e['value'],
+                            "label": e["label"],
+                            "value": e["value"],
                         }
                         expanders.append(expander)
                     return expanders
@@ -4953,129 +6684,147 @@ class MasterlistQuestion(models.Model):
                 if isinstance(obj, (list)):
                     return self.default(obj)
                 else:
-                    return super(
-                        TableExpanderEncoder, self).encode_list(obj, iter)
+                    return super(TableExpanderEncoder, self).encode_list(obj, iter)
 
         if not isinstance(expanders, list) and self.id:
-            logger.warn('{0} - MasterlistQuestion: {1}'.format(
-                'set_property_cache_expanders() NOT LIST', self.id))
+            logger.warn(
+                "{0} - MasterlistQuestion: {1}".format(
+                    "set_property_cache_expanders() NOT LIST", self.id
+                )
+            )
             return
 
         if self.id:
             data = TableExpanderEncoder().encode_list(expanders)
-            self.property_cache['expanders'] = data
+            self.property_cache["expanders"] = data
 
-#TODO on-cleanup remove if no longer needed
+
+# TODO on-cleanup remove if no longer needed
 @python_2_unicode_compatible
 class ProposalTypeSection(models.Model):
     section_name = models.CharField(max_length=100)
     section_label = models.CharField(max_length=100)
     index = models.IntegerField(blank=True, default=0)
-    proposal_type=models.ForeignKey(ProposalType, related_name='sections', on_delete=models.PROTECT)   
+    proposal_type = models.ForeignKey(
+        ProposalType, related_name="sections", on_delete=models.PROTECT
+    )
 
     class Meta:
-        app_label = 'disturbance'
-        verbose_name = 'Schema Proposal Type Section'
+        app_label = "disturbance"
+        verbose_name = "Schema Proposal Type Section"
 
     def __str__(self):
-        return '{} - {}'.format(self.section_label, self.proposal_type)
+        return "{} - {}".format(self.section_label, self.proposal_type)
+
 
 def limit_sectionquestion_choices_another():
-   return {'id__in':MasterlistQuestion.objects.filter(option__isnull=False).distinct('option__label').all().values_list('id', flat=True)}
+    return {
+        "id__in": MasterlistQuestion.objects.filter(option__isnull=False)
+        .distinct("option__label")
+        .all()
+        .values_list("id", flat=True)
+    }
+
 
 from django.db import connection
 
 
 def limit_sectionquestion_choices_sql():
-    sql='''
+    sql = """
             select m.id from disturbance_masterlistquestion as m 
             INNER JOIN disturbance_masterlistquestion_option as p ON m.id = p.masterlistquestion_id 
             INNER JOIN disturbance_questionoption as o ON o.id = p.questionoption_id
             WHERE o.label IS NOT NULL
-    '''
+    """
 
     try:
         with connection.cursor() as cursor:
             cursor.execute(sql)
             row = set([item[0] for item in cursor.fetchall()])
-                                
+
         return dict(id__in=row)
     except:
         return {}
 
+
 @python_2_unicode_compatible
 class SectionQuestion(models.Model):
-    TAG_CHOICES=(('isCopiedToPermit', 'isCopiedToPermit'),
-                 ('isRequired', 'isRequired'),
-                 ('canBeEditedByAssessor', 'canBeEditedByAssessor'),
-                 ('isRepeatable', 'isRepeatable'),
-                )
-    section=models.ForeignKey(ProposalTypeSection, related_name='section_questions', on_delete=models.PROTECT)
-    question=models.ForeignKey(MasterlistQuestion, related_name='question_sections',on_delete=models.PROTECT)
+    TAG_CHOICES = (
+        ("isCopiedToPermit", "isCopiedToPermit"),
+        ("isRequired", "isRequired"),
+        ("canBeEditedByAssessor", "canBeEditedByAssessor"),
+        ("isRepeatable", "isRepeatable"),
+    )
+    section = models.ForeignKey(
+        ProposalTypeSection, related_name="section_questions", on_delete=models.PROTECT
+    )
+    question = models.ForeignKey(
+        MasterlistQuestion, related_name="question_sections", on_delete=models.PROTECT
+    )
     parent_question = ChainedForeignKey(
-        'disturbance.MasterlistQuestion',
-        chained_field='section',
-        chained_model_field='question_sections__section',
+        "disturbance.MasterlistQuestion",
+        chained_field="section",
+        chained_model_field="question_sections__section",
         show_all=False,
         null=True,
         blank=True,
-        related_name='children_question',
-        #limit_choices_to=Q(option__isnull=False)
+        related_name="children_question",
+        # limit_choices_to=Q(option__isnull=False)
         limit_choices_to=limit_sectionquestion_choices_sql,
-        on_delete=models.SET_NULL
+        on_delete=models.SET_NULL,
     )
 
     parent_answer = ChainedForeignKey(
-        'disturbance.QuestionOption',
-        chained_field='parent_question',
-        chained_model_field='masterlistquestion',
+        "disturbance.QuestionOption",
+        chained_field="parent_question",
+        chained_model_field="masterlistquestion",
         show_all=False,
         null=True,
         blank=True,
-        related_name='options',
+        related_name="options",
     )
 
-    tag= MultiSelectField(choices=TAG_CHOICES, max_length=400,max_choices=10, null=True, blank=True)
+    tag = MultiSelectField(
+        choices=TAG_CHOICES, max_length=400, max_choices=10, null=True, blank=True
+    )
     order = models.PositiveIntegerField(default=1)
     property_cache = JSONField(null=True, blank=True, default=dict)
 
     class Meta:
-        app_label = 'disturbance'
-        verbose_name='Schema Section Question'
+        app_label = "disturbance"
+        verbose_name = "Schema Section Question"
 
     def __str__(self):
-        return str(self.id)  
+        return str(self.id)
 
     def clean(self):
 
         if self.question and self.parent_question:
-            if self.question==self.parent_question:
-                raise ValidationError('Question cannot be linked to itself.')
+            if self.question == self.parent_question:
+                raise ValidationError("Question cannot be linked to itself.")
 
     @property
     def question_options(self):
-        #return self.question.option.all()
+        # return self.question.option.all()
         return self.question.get_options()
 
     def get_options(self):
-        '''
-        '''
+        """ """
         options = self.get_property_cache_options()
 
         return options
 
     def get_property_cache_options(self):
-        '''
+        """
         Getter for options on the property cache.
 
         NOTE: only used for presentation purposes.
 
         :return options_list of QuestionOption values.
-        '''
+        """
         options = []
         try:
-
-            options = self.property_cache['options']
+            options = self.property_cache["options"]
 
         except KeyError:
             pass
@@ -5083,14 +6832,15 @@ class SectionQuestion(models.Model):
         return options
 
     def set_property_cache_options(self, options):
-        '''
+        """
         Setter for options on the property cache.
 
         NOTE: only used for presentation purposes.
 
         :param  options is QuerySet of QuestionOption or List of option value
                 string.
-        '''
+        """
+
         class QuestionOptionEncoder(json.JSONEncoder):
             def default(self, obj):
                 if isinstance(obj, list):
@@ -5102,8 +6852,8 @@ class SectionQuestion(models.Model):
                         #     } for c in o['conditions']
                         # ]
                         option = {
-                            'label': o['label'],
-                            'value': o['value'],
+                            "label": o["label"],
+                            "value": o["value"],
                             #'conditions': o_conditions,
                         }
                         options.append(option)
@@ -5113,17 +6863,20 @@ class SectionQuestion(models.Model):
                 if isinstance(obj, (list)):
                     return self.default(obj)
                 else:
-                    return super(
-                        QuestionOptionEncoder, self).encode_list(obj, iter)
+                    return super(QuestionOptionEncoder, self).encode_list(obj, iter)
 
         if not isinstance(options, list) and self.id:
-            logger.warn('{0} - SectionQuestion: {1}'.format(
-                'set_property_cache_options() NOT LIST', self.id))
+            logger.warn(
+                "{0} - SectionQuestion: {1}".format(
+                    "set_property_cache_options() NOT LIST", self.id
+                )
+            )
             return
 
         if self.id:
             data = QuestionOptionEncoder().encode_list(options)
-            self.property_cache['options'] = data
+            self.property_cache["options"] = data
+
 
 # --------------------------------------------------------------------------------------
 # Generate JSON schema models End
@@ -5131,11 +6884,11 @@ class SectionQuestion(models.Model):
 
 import reversion
 
-reversion.register(Proposal, follow=['proposal_apiary'])
+reversion.register(Proposal, follow=["proposal_apiary"])
 reversion.register(ProposalType)
-reversion.register(ProposalRequirement)            # related_name=requirements
-reversion.register(ProposalStandardRequirement)    # related_name=proposal_requirements
-reversion.register(ProposalDocument)               # related_name=documents
+reversion.register(ProposalRequirement)  # related_name=requirements
+reversion.register(ProposalStandardRequirement)  # related_name=proposal_requirements
+reversion.register(ProposalDocument)  # related_name=documents
 reversion.register(ProposalLogEntry)
 reversion.register(ProposalUserAction)
 reversion.register(ComplianceRequest)
