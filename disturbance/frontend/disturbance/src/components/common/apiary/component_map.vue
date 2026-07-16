@@ -42,10 +42,10 @@
             </transition>
             <transition v-if="optionalLayers.length">
               <div
-                div
-                class="layer_options"
                 v-show="hover"
                 @mouseleave="hover = false"
+                class="layer_options overflow-y-auto"
+                style="height: 350px"
               >
                 <div
                   v-for="layer in optionalLayers"
@@ -59,9 +59,11 @@
                     @change="changeLayerVisibility(layer)"
                     class="form-check-input layer_option"
                   />
-                  <label :for="layer.ol_uid" class="form-check-label">{{
-                    layer.get("title")
-                  }}</label>
+                  <label
+                    :for="layer.ol_uid"
+                    class="form-check-label fw-normal"
+                    >{{ layer.get("title") }}</label
+                  >
                 </div>
               </div>
             </transition>
@@ -306,6 +308,17 @@ export default {
             vm.awe.list = vm.suggest_list;
             vm.awe.evaluate();
           },
+          error: function (xhr) {
+            vm.suggest_list = [];
+            vm.awe.list = [];
+            vm.awe.evaluate();
+
+            const detail =
+              (xhr.responseJSON &&
+                (xhr.responseJSON.detail || xhr.responseJSON.message)) ||
+              "Address search failed.";
+            console.error("Geocoding address search failed:", detail);
+          },
         });
       } else {
         let lat = searching_by_latlng[1];
@@ -475,25 +488,36 @@ export default {
     initMap: function () {
       let vm = this;
 
+      const streetLayer = env["kb_basemap_street_layer"] || "";
+      const satelliteLayer = env["kb_basemap_satellite_layer"] || "";
+      const streetNamespace =
+        streetLayer.indexOf(":") > -1 ? streetLayer.split(":")[0] : "";
+      const satelliteNamespace =
+        satelliteLayer.indexOf(":") > -1 ? satelliteLayer.split(":")[0] : "";
+
       let streetTileWms = new TileWMS({
-        url: "/kb-proxy/geoserver/wms",
+        url: streetNamespace
+          ? "/kb-proxy/geoserver/" + streetNamespace + "/wms"
+          : "/kb-proxy/geoserver/wms",
         params: {
           FORMAT: "image/png",
           VERSION: "1.1.1",
           tiled: true,
           STYLES: "",
-          LAYERS: env["kb_basemap_street_layer"],
+          LAYERS: streetLayer,
         },
       });
 
       let satelliteTileWms = new TileWMS({
-        url: "/kb-proxy/geoserver/wms",
+        url: satelliteNamespace
+          ? "/kb-proxy/geoserver/" + satelliteNamespace + "/wms"
+          : "/kb-proxy/geoserver/wms",
         params: {
           FORMAT: "image/png",
           VERSION: "1.1.1",
           tiled: true,
           STYLES: "",
-          LAYERS: env["kb_basemap_satellite_layer"],
+          LAYERS: satelliteLayer,
         },
       });
 
@@ -934,16 +958,13 @@ export default {
 }
 .basemap-button {
   position: absolute;
-  bottom: 25px;
-  right: 10px;
+  bottom: 20px;
+  right: 30px;
   z-index: 400;
-  -moz-box-shadow: 3px 3px 3px #777;
-  -webkit-box-shadow: 3px 3px 3px #777;
-  box-shadow: 3px 3px 3px #777;
   -moz-filter: brightness(1);
   -webkit-filter: brightness(1);
   filter: brightness(1);
-  border: 2px white solid;
+  border: 1px white solid;
 }
 .basemap-button:hover,
 .optional-layers-button:hover {
@@ -953,11 +974,8 @@ export default {
   filter: brightness(0.9);
 }
 .basemap-button:active {
-  bottom: 24px;
-  right: 9px;
-  -moz-box-shadow: 2px 2px 2px #555;
-  -webkit-box-shadow: 2px 2px 2px #555;
-  box-shadow: 2px 2px 2px #555;
+  bottom: 20px;
+  right: 30px;
   -moz-filter: brightness(0.8);
   -webkit-filter: brightness(0.8);
   filter: brightness(0.8);
@@ -965,7 +983,7 @@ export default {
 .optional-layers-wrapper {
   position: absolute;
   top: 70px;
-  left: 10px;
+  left: 21px;
 }
 .optional-layers-button {
   position: relative;
@@ -993,6 +1011,7 @@ export default {
         */
   padding: 0.5em;
   border: 3px solid rgba(5, 5, 5, 0.1);
+  margin-left: 38px;
 }
 .ol-popup {
   position: absolute;
