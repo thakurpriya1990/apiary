@@ -1629,12 +1629,17 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             request_data["staff"] = "{}".format(request.user.id)
             serializer = ProposalLogEntrySerializer(data=request_data)
             serializer.is_valid(raise_exception=True)
+
             comms = serializer.save()
+
             # Save the files
-            for f in request.FILES:
-                comms.documents.create(
-                    name=str(request.FILES[f]), _file=request.FILES[f]
-                )
+            for f in request.FILES.getlist("files"):
+                document = comms.documents.create()
+                document.check_file(f)
+                document.name = str(f)
+                document._file = f
+                document.save()
+
             return Response(serializer.data)
 
     # TODO:on-cleanup requirements endpoints should ideally be paginated but not necessary for now

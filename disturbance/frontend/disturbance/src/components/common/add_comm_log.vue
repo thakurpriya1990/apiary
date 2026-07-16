@@ -3,7 +3,7 @@
         <modal transition="modal fade" @ok="ok()" @cancel="cancel()" title="Communication log - Add entry" large>
             <div class="container-fluid">
                 <div class="row">
-                    <form class="form-horizontal" name="commsForm">
+                    <form class="form-horizontal" name="commsForm" @submit.prevent>
                         <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
                             <div class="mb-3">
@@ -81,7 +81,7 @@
                                                     <span>{{f.name}}</span>
                                                 </div>
                                                 <div class="col-sm-4">
-                                                    <button @click="removeFile(i)" class="btn btn-danger">Remove</button>
+                                                    <button type="button" @click.prevent="removeFile(i)" class="btn btn-danger">Remove</button>
                                                 </div>
                                             </div>
                                         </template>
@@ -160,6 +160,9 @@ export default {
     methods:{
         ok:function () {
             let vm =this;
+            if (vm.addingComms) {
+                return;
+            }
             if($(vm.form).valid()){
                 vm.errors = false;
                 vm.sendData();
@@ -181,7 +184,7 @@ export default {
                 _file = input.files[0];
             }
             file_obj.file = _file;
-            file_obj.name = _file.name;
+            file_obj.name = _file ? _file.name : '';
         },
         removeFile(index){
             let length = this.files.length;
@@ -232,7 +235,6 @@ export default {
             comms.append('type',this.log_type);
             comms.append('subject',this.subject);
             comms.append('text',this.text);
-            comms.append('files',this.files);
             for (let i = 0; i < vm.files.length; i++) {
                 comms.append('files', vm.files[i].file);
             }
