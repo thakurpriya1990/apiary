@@ -39,13 +39,17 @@ class GeocodingAddressSearchView(views.APIView):
 
         if search_term and request.user.is_authenticated:
             access_token = settings.GEOCODING_ADDRESS_SEARCH_TOKEN
+            if not access_token or access_token == 'ACCESS_TOKEN_NOT_FOUND':
+                return Response({'detail': 'Geocoding token is not configured.'}, status=503)
+
             search_url = "https://api.mapbox.com/geocoding/v5/mapbox.places/{}.json/?access_token={}&country={}&limit={}&bbox={}&types={}&proximity={}".format(
                 search_term,access_token,country,limit,bbox,types,proximity
             )
             try:
-                r = requests.get(search_url)
-                return Response(r.json())
-            except:
-                return Response()
+                r = requests.get(search_url, timeout=15)
+                response_json = r.json()
+                return Response(response_json, status=r.status_code)
+            except requests.RequestException:
+                return Response({'detail': 'Geocoding service request failed.'}, status=502)
         else:
             return Response()
