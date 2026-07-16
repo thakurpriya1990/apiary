@@ -23,8 +23,9 @@
                   <div class="col-sm-3">
                     <label class="control-label pull-left" for="Name">To</label>
                   </div>
-                  <div class="col-sm-4">
+                  <div class="col">
                     <input
+                      ref="to"
                       type="text"
                       class="form-control"
                       name="to"
@@ -41,7 +42,7 @@
                       >From</label
                     >
                   </div>
-                  <div class="col-sm-4">
+                  <div class="col">
                     <textarea
                       class="form-control"
                       name="from"
@@ -59,7 +60,7 @@
                       >Type</label
                     >
                   </div>
-                  <div class="col-sm-4">
+                  <div class="col">
                     <select
                       class="form-select"
                       name="type"
@@ -81,12 +82,11 @@
                       >Subject/Description</label
                     >
                   </div>
-                  <div class="col-sm-9">
+                  <div class="col">
                     <textarea
                       class="form-control"
                       name="subject"
                       maxlength="200"
-                      style="width: 70%"
                       v-model="subject"
                       required
                     ></textarea>
@@ -100,11 +100,10 @@
                       >Text</label
                     >
                   </div>
-                  <div class="col-sm-9">
+                  <div class="col">
                     <textarea
                       name="text"
                       class="form-control"
-                      style="width: 70%"
                       v-model="text"
                       required
                     ></textarea>
@@ -232,6 +231,15 @@ export default {
       ],
       fileIdCounter: 1,
     };
+  },
+  watch: {
+    isModalOpen: function (newVal, oldVal) {
+        this.$nextTick(function () {
+          if (this.isModalOpen) {
+            this.$refs.to.focus();
+          }
+        });
+    },
   },
   computed: {
     showError: function () {
