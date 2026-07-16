@@ -330,7 +330,7 @@ urlpatterns = [
     re_path(
         r"^email-exports/$", views.EmailExportsView.as_view(), name="email-exports"
     ),
-] + ledger_patterns  # + media_serv_patterns
+] + ledger_patterns
 
 if not are_migrations_running():
     DefaultDataManager()
