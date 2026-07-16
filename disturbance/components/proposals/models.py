@@ -800,26 +800,26 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     @property
     def get_history(self):
         """Return the prev proposal versions"""
-        l = []
+        history_list = []
         p = copy.deepcopy(self)
         while p.previous_application:
-            l.append(
+            history_list.append(
                 dict(
                     id=p.previous_application.id,
                     modified=p.previous_application.modified_date,
                 )
             )
             p = p.previous_application
-        return l
+        return history_list
 
     def _get_history(self):
         """Return the prev proposal versions"""
-        l = []
+        history_list = []
         p = copy.deepcopy(self)
         while p.previous_application:
-            l.append([p.id, p.previous_application.id])
+            history_list.append([p.id, p.previous_application.id])
             p = p.previous_application
-        return l
+        return history_list
 
     @property
     def is_assigned(self):
@@ -1420,7 +1420,6 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         for difference in differences.items():
             if "values_changed" in difference:
                 for key, value in difference[1].items():
-                    key_suffix = key.split("'")[-1]
                     section = key.split("'")[-2]
                     # Add the old value document to the list as an remove
                     old_value_dict = value["old_value"]
@@ -1538,12 +1537,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             "with_assessor_requirements",
         ]:
             return (
-                (self.assigned_officer == user or self.assigned_officer == None)
+                (self.assigned_officer == user or self.assigned_officer is None)
                 and user in self.allowed_assessors
             ) or user.is_superuser
         elif self.processing_status == "with_approver":
             return (
-                (self.assigned_approver == user or self.assigned_approver == None)
+                (self.assigned_approver == user or self.assigned_approver is None)
                 and user in self.allowed_approvers
             ) or user.is_superuser
         else:
@@ -2649,14 +2648,14 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         processing_status="due",
                     )
                     if cs:
-                        if r.is_deleted == True:
+                        if r.is_deleted:
                             for c in cs:
                                 c.processing_status = "discarded"
                                 c.customer_status = "discarded"
                                 c.reminder_sent = True
                                 c.post_reminder_sent = True
                                 c.save()
-                        if r.is_deleted == False:
+                        if not r.is_deleted:
                             for c in cs:
                                 c.proposal = self
                                 c.approval = approval
@@ -3905,7 +3904,7 @@ def clone_apiary_proposal_with_status_reset(original_proposal):
             for question in ApiaryChecklistQuestion.objects.filter(
                 checklist_type="apiary", checklist_role="applicant"
             ):
-                new_answer = ApiaryChecklistAnswer.objects.create(
+                ApiaryChecklistAnswer.objects.create(
                     proposal=proposal.proposal_apiary, question=question
                 )
 
@@ -4405,7 +4404,7 @@ class ProposalApiary(RevisionedMixin):
                             for question in ApiaryChecklistQuestion.objects.filter(
                                 checklist_type="apiary", checklist_role="referrer"
                             ):
-                                new_answer = ApiaryChecklistAnswer.objects.create(
+                                ApiaryChecklistAnswer.objects.create(
                                     proposal=self,
                                     apiary_referral=apiary_referral,
                                     question=question,
@@ -4416,7 +4415,7 @@ class ProposalApiary(RevisionedMixin):
                                 checklist_role="referrer",
                             ):
                                 for site in self.get_relations():
-                                    new_answer = ApiaryChecklistAnswer.objects.create(
+                                    ApiaryChecklistAnswer.objects.create(
                                         proposal=self,
                                         apiary_referral=apiary_referral,
                                         question=question,
@@ -4428,7 +4427,7 @@ class ProposalApiary(RevisionedMixin):
                                 checklist_type="site_transfer",
                                 checklist_role="referrer",
                             ):
-                                new_answer = ApiaryChecklistAnswer.objects.create(
+                                ApiaryChecklistAnswer.objects.create(
                                     proposal=self,
                                     apiary_referral=apiary_referral,
                                     question=question,
@@ -4439,7 +4438,7 @@ class ProposalApiary(RevisionedMixin):
                                 checklist_role="referrer",
                             ):
                                 for site in self.get_relations():
-                                    new_answer = ApiaryChecklistAnswer.objects.create(
+                                    ApiaryChecklistAnswer.objects.create(
                                         proposal=self,
                                         apiary_referral=apiary_referral,
                                         question=question,

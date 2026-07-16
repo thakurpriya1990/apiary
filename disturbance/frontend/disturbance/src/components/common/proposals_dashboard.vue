@@ -598,7 +598,7 @@ export default {
       if (!vm.select2Applied) {
         $(vm.$refs.filterRegion)
           .select2({
-            theme: "bootstrap",
+            theme: "bootstrap-5",
             allowClear: true,
             placeholder: "Select Region",
             multiple: true,

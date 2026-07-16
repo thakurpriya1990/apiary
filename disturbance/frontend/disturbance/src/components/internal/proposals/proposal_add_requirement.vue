@@ -472,7 +472,7 @@ export default {
       $(vm.$refs.standard_req)
         .select2({
           dropdownParent: $(vm.$refs.standard_req).parent(),
-          theme: "bootstrap",
+          theme: "bootstrap-5",
           allowClear: true,
           minimumInputLength: 2,
           placeholder: "Select Requirement",

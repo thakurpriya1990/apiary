@@ -6,7 +6,6 @@
 </template>
 
 <script>
-import { v4 as uuid } from 'uuid';
 import {
     api_endpoints,
     helpers,

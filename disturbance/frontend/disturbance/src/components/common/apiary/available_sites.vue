@@ -208,7 +208,6 @@ import MeasureStyles, {
 } from "@/components/common/apiary/measure.js";
 import Cluster from "ol/source/Cluster";
 import "select2/dist/css/select2.min.css";
-import "select2-bootstrap-theme/dist/select2-bootstrap.min.css";
 import Awesomplete from "awesomplete";
 import { api_endpoints } from "@/utils/hooks";
 import $ from "jquery";
@@ -687,7 +686,7 @@ export default {
       if (!vm.select2Applied) {
         $(vm.$refs.filterStatus)
           .select2({
-            theme: "bootstrap",
+            theme: "bootstrap-5",
             allowClear: false,
             placeholder: "Select Status",
             multiple: true,
@@ -705,7 +704,7 @@ export default {
 
         $(vm.$refs.filterAvailability)
           .select2({
-            theme: "bootstrap",
+            theme: "bootstrap-5",
             allowClear: false,
             placeholder: "Select Availabilities",
             multiple: true,
@@ -1405,7 +1404,7 @@ export default {
       }
       return approval_link;
     },
-    get_actions: function (feature, contactLicenceHolder) {
+    get_actions: function (feature) {
       let action_list = [];
 
       let a_status = getStatusForColour(
