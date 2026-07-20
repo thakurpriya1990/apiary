@@ -1,33 +1,36 @@
 import logging
 
 from ledger_api_client.ledger_models import Invoice
-from disturbance.components.proposals.models import (
-                                    ProposalType,
-                                    Proposal,
-                                    ProposalUserAction,
-                                    ProposalLogEntry,
-                                    Referral,
-                                    ProposalRequirement,
-                                    ProposalStandardRequirement,
-                                    AmendmentRequest,
-                                    AmendmentRequestDocument,
-                                    QuestionOption,
-                                    SectionQuestion,
-                                    ProposalTypeSection,
-                                    MasterlistQuestion,
-                                )
-from disturbance.components.organisations.models import (
-                                Organisation
-                            )
-from disturbance.components.main.serializers import CommunicationLogEntrySerializer
 from rest_framework import serializers
 
-from disturbance.components.proposals.serializers_apiary import ProposalApiarySerializer, \
-    ProposalApiaryTemporaryUseSerializer
-from disturbance.components.proposals.serializers_base import BaseProposalSerializer, ProposalReferralSerializer, \
-    ProposalDeclinedDetailsSerializer, EmailUserSerializer
-
 from disturbance import settings
+from disturbance.components.main.serializers import CommunicationLogEntrySerializer
+from disturbance.components.organisations.models import Organisation
+from disturbance.components.proposals.models import (
+    AmendmentRequest,
+    AmendmentRequestDocument,
+    MasterlistQuestion,
+    Proposal,
+    ProposalLogEntry,
+    ProposalRequirement,
+    ProposalStandardRequirement,
+    ProposalType,
+    ProposalTypeSection,
+    ProposalUserAction,
+    QuestionOption,
+    Referral,
+    SectionQuestion,
+)
+from disturbance.components.proposals.serializers_apiary import (
+    ProposalApiarySerializer,
+    ProposalApiaryTemporaryUseSerializer,
+)
+from disturbance.components.proposals.serializers_base import (
+    BaseProposalSerializer,
+    EmailUserSerializer,
+    ProposalDeclinedDetailsSerializer,
+    ProposalReferralSerializer,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -363,7 +366,9 @@ class SaveProposalRegionSerializer(BaseProposalSerializer):
 
 
 class ApplicantSerializer(serializers.ModelSerializer):
-    from disturbance.components.organisations.serializers import OrganisationAddressSerializer
+    from disturbance.components.organisations.serializers import (
+        OrganisationAddressSerializer,
+    )
     address = OrganisationAddressSerializer()
     class Meta:
         model = Organisation
@@ -651,7 +656,8 @@ class DTReferralSerializer(serializers.ModelSerializer):
 
 
 class ProposalRequirementSerializer(serializers.ModelSerializer):
-    due_date = serializers.DateField(input_formats=['%d/%m/%Y'],required=False,allow_null=True)
+    due_date = serializers.DateField(format='%Y-%m-%d', 
+        input_formats=['%d/%m/%Y', '%Y-%m-%d'], required=False, allow_null=True)
     apiary_renewal = serializers.SerializerMethodField()
     class Meta:
         model = ProposalRequirement

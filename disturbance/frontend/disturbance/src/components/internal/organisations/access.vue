@@ -109,7 +109,7 @@
 </div>
 </template>
 <script>
-import $ from 'jquery'
+
 import CommsLogs from '@common-utils/comms_logs.vue'
 import FormSection from "@/components/forms/section_toggle.vue";
 import {

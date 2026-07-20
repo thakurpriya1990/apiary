@@ -1,376 +1,484 @@
 <template>
-<div class="container" id="internalSearch">
-    <!--TODO on-cleanup - Exclude until fixed or remove if not needed -->
-    <!--<div class="row">
-        <div class="col-sm-12">
-            <FormSection :form-collapse="false" label="Search Organisations">
+  <div class="container" id="internalSearch">
+    <div class="row">
+      <div class="col-sm-12">
+        <FormSection
+          :form-collapse="false"
+          label="Search Organisations"
+          Index="search-organisation"
+        >
+          <div class="row">
+            <form name="searchOrganisationForm">
+              <div class="mb-3">
                 <div class="row">
-                    <form name="searchOrganisationForm">
-                      <div class="mb-3">
-                        <label class="col-form-label" for="Organisation">Search Organisation</label>
-                        <div class="row">
-                          <div class="col-md-8">
-                            <select v-if="organisations == null" class="form-select" name="organisation">
-                                <option value="">Loading...</option>
-                            </select>
-                            <select v-else ref="searchOrg" class="form-select" name="organisation">
-                                <option value="">Select Organisation</option>
-                                <option v-for="o in organisations" :value="o.id" :key="o.id">{{ o.name }}</option>
-                            </select>
-                          </div>
-                          <div class="col-md-4">
-                            <router-link v-if="selected_organisation !== ''" :to="{name:'internal-org-detail',params:{'org_id':parseInt(selected_organisation)}}" class="btn btn-primary">View Details</router-link>
-                            <span v-else class="btn btn-primary disabled" style="pointer-events: none; opacity: 0.6;">View Details</span>
-                          </div>
-                        </div>
-                    </div>
-                    </form>
-                </div>
-            </FormSection>
-        </div>
-    </div>-->
-    <div class="row">
-        <div class="col-sm-12">
-            <FormSection :form-collapse="false" label="Search Keywords">
-              <div class="row">
-                <div class="col-lg-12">
-                    <div class="mb-3">
-                      <label for="" class="col-form-label col-lg-12">Filter</label>
-                      <div class="form-check form-check-inline col-md-3">
-                          <input  class="form-check-input" ref="searchProposal" id="searchProposal" name="searchProposal" type="checkbox" v-model="searchProposal" /> 
-                          <label class="form-check-label" for="searchProposal">Proposal</label>
-                          
-                      </div> 
-                      <div class="form-check form-check-inline col-md-3">
-                          <input  class="form-check-input" ref="searchApproval" id="searchApproval" name="searchApproval" type="checkbox" v-model="searchApproval" /> 
-                          <label class="form-check-label" for="searchApproval">Approval</label>
-                      </div> 
-                      <div class="form-check form-check-inline col-md-3">
-                          <input  class="form-check-input" ref="searchCompliance" id="searchCompliance" name="searchCompliance" type="checkbox" v-model="searchCompliance" /> 
-                          <label class="form-check-label" for="searchCompliance">Compliance with requirements</label>
-                      </div> 
-                      <label for="" class="col-form-label col-lg-12">Keyword</label>                              
-                        <div class="row">
-                          <div class="col-md-8">
-                            <input type="search"  class="form-control input-sm" name="details" placeholder="" v-model="keyWord" style="width:100%"/>
-                          </div> 
-                          <div class="col-md-3">
-                            <input type="button" @click.prevent="add" class="btn btn-primary" value="Add"/>
-                          </div>     
-                        </div>                                                                               
-                    </div>
-                </div>
-              </div>
-
-              <div class="row mb-3">
-                <div class="col-lg-12">
-                    <ul class="list-inline" style="display: inline; width: auto;">                          
-                        <li class="list-inline-item" v-for="(item,i) in searchKeywords" :key="i">
-                          <button @click.prevent="" class="btn btn-light" style="margin-top:5px; margin-bottom: 5px">{{item}}</button><a href="" @click.prevent="removeKeyword(i)"><span class="bi bi-x "></span></a>
-                        </li>
-                    </ul>
-                </div>
-              </div>
-
-              <div class="row mb-2">
-                <div class="col-lg-12">
-                  <button  v-if="searching" type="button" class="btn btn-primary btn-margin" style="margin-bottom: 5px" value="Search" disabled>
-                    Search<i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                  <input v-else type="button" @click.prevent="search" class="btn btn-primary btn-margin" style="margin-bottom: 5px" value="Search"/>
-                  <input type="reset" @click.prevent="reset" class="btn btn-primary" style="margin-bottom: 5px" value="Clear"/>
-                </div> 
-              </div>
-
-
-              <div class="row">
-                <div class="col-lg-12">
-                    <datatable ref="proposal_datatable" :id="datatable_id" :dtOptions="proposal_options"  :dtHeaders="proposal_headers"/>
-                </div>
-              </div>
-            </FormSection>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-12">
-            <FormSection :form-collapse="false" label="Search Reference Number">
-              <div class="row mb-1">
-                  <label for="" class="col-form-label col-lg-12">Keyword</label>  
-                  <div class="row">
-                    <div class="col-md-8">
-                        <input type="search"  class="form-control input-sm" name="referenceWord" placeholder="" v-model="referenceWord" />
-                    </div> 
-                    <div class="col-md-3">
-                      <input type="button" @click.prevent="search_reference" class="btn btn-primary" style="margin-bottom: 5px" value="Search"/>
+                  <div class="col-md-8">
+                    <div class="input-group">
+                      <div class="flex-grow-1">
+                        <select
+                          ref="searchOrg"
+                          class="form-select"
+                          name="organisation"
+                        ></select>
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
-                  </div>
+                </div>
               </div>
-            </FormSection>
-        </div>
+            </form>
+          </div>
+        </FormSection>
+      </div>
     </div>
-</div>
+    <div class="row">
+      <div class="col-sm-12">
+        <FormSection
+          :form-collapse="false"
+          label="Search Keywords"
+          Index="search-keywords"
+        >
+          <div class="row">
+            <div class="col-lg-12">
+              <div class="mb-3">
+                <label for="" class="col-form-label col-lg-12 fs-5"
+                  >Filter</label
+                >
+                <div class="form-check col-md-3">
+                  <input
+                    class="form-check-input"
+                    ref="searchProposal"
+                    id="searchProposal"
+                    name="searchProposal"
+                    type="checkbox"
+                    v-model="searchProposal"
+                  />
+                  <label class="form-check-label fw-normal" for="searchProposal"
+                    >Proposal</label
+                  >
+                </div>
+                <div class="form-check col-md-3">
+                  <input
+                    class="form-check-input"
+                    ref="searchApproval"
+                    id="searchApproval"
+                    name="searchApproval"
+                    type="checkbox"
+                    v-model="searchApproval"
+                  />
+                  <label class="form-check-label fw-normal" for="searchApproval"
+                    >Approval</label
+                  >
+                </div>
+                <div class="form-check form-check-inline col-md-3">
+                  <input
+                    class="form-check-input"
+                    ref="searchCompliance"
+                    id="searchCompliance"
+                    name="searchCompliance"
+                    type="checkbox"
+                    v-model="searchCompliance"
+                  />
+                  <label
+                    class="form-check-label fw-normal"
+                    for="searchCompliance"
+                    >Compliance with requirements</label
+                  >
+                </div>
+                <label for="" class="col-form-label col-lg-12 fs-5"
+                  >Keyword(s)</label
+                >
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="input-group">
+                      <input
+                        ref="keyWord"
+                        type="search"
+                        class="form-control"
+                        name="details"
+                        placeholder=""
+                        v-model="keyWord"
+                      />
+                      <button
+                        type="button"
+                        @click.prevent="add"
+                        class="btn btn-primary"
+                      >
+                        <i class="bi bi-plus-lg me-2"></i>Add Keyword
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div>
+                      <button
+                        v-if="searching"
+                        type="button"
+                        class="btn btn-primary btn-margin me-3"
+                        value="Search"
+                        disabled
+                      >
+                        <i class="bi bi-search me-2"></i>Search<i
+                          class="fa fa-circle-o-notch fa-spin fa-fw"
+                        ></i>
+                      </button>
+                      <button
+                        v-else
+                        type="button"
+                        @click.prevent="search"
+                        class="btn btn-primary btn-margin me-3"
+                        value="Search"
+                      >
+                        <i class="bi bi-search me-2"></i>Search
+                      </button>
+                      <button
+                        type="reset"
+                        @click.prevent="reset"
+                        class="btn btn-primary"
+                        value="Clear"
+                      >
+                        <i class="bi bi-x me-2"></i>Clear All Keywords
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-lg-12">
+              <ul class="list-inline">
+                <li
+                  class="list-inline-item"
+                  v-for="(item, i) in searchKeywords"
+                  :key="i"
+                >
+                  <button @click.prevent="" class="btn btn-light border">
+                    {{ item
+                    }}<a href="" @click.prevent="removeKeyword(i)"
+                      ><span class="bi bi-x ps-2"></span
+                    ></a>
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="row mb-2"></div>
+
+          <div class="row">
+            <div class="col-lg-12">
+              <datatable
+                ref="proposal_datatable"
+                class="border rounded p-2"
+                :id="datatable_id"
+                :dtOptions="proposal_options"
+                :dtHeaders="proposal_headers"
+              />
+            </div>
+          </div>
+        </FormSection>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+        <FormSection
+          :form-collapse="false"
+          label="Search Reference Number"
+          Index="search-reference"
+        >
+          <div class="row mb-1">
+            <div class="row">
+              <div class="col-md-4">
+                <div class="input-group">
+                  <input
+                    ref="referenceWord"
+                    type="search"
+                    class="form-control input-sm"
+                    name="referenceWord"
+                    placeholder="reference number"
+                    v-model="referenceWord"
+                    required
+                    @input="resetError"
+                  />
+                  <input
+                    type="button"
+                    @click.prevent="search_reference($refs.referenceWord)"
+                    class="btn btn-primary"
+                    value="Search"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="mt-3">
+              <alert v-if="showError" type="danger"
+                ><strong>{{ errorString }}</strong></alert
+              >
+            </div>
+          </div>
+        </FormSection>
+      </div>
+    </div>
+  </div>
 </template>
 <script>
-import { v4 as uuid } from 'uuid';
-import datatable from '@/utils/vue/datatable.vue'
-import FormSection from '@/components/forms/section_toggle.vue';
-import alert from '@vue-utils/alert.vue'
-import {
-  api_endpoints,
-  constants
-}
-from '@/utils/hooks'
-import $ from 'jquery';
+import { v4 as uuid } from "uuid";
+import datatable from "@/utils/vue/datatable.vue";
+import FormSection from "@/components/forms/section_toggle.vue";
+import alert from "@vue-utils/alert.vue";
+import { api_endpoints, constants } from "@/utils/hooks";
+import utils from "@/components/internal/utils";
 
+import $ from "jquery";
 export default {
-  name: 'SearchComponent',
-  props: {
-    
-  },
+  name: "SearchComponent",
+  props: {},
   data() {
     let vm = this;
     return {
-      rBody: 'rBody' + uuid(),
-      oBody: 'oBody' + uuid(),
-      kBody: 'kBody' + uuid(),
+      rBody: "rBody" + uuid(),
+      oBody: "oBody" + uuid(),
+      kBody: "kBody" + uuid(),
       loading: [],
-      filtered_url: api_endpoints.filtered_users + '?search=',
+      filtered_url: api_endpoints.filtered_users + "?search=",
       searchKeywords: [],
       searchProposal: true,
       searchApproval: false,
       searchCompliance: false,
-      referenceWord: '',
+      referenceWord: "",
       keyWord: null,
-      selected_organisation:'',
+      selected_organisation: "",
       organisations: null,
-      searching:false,
+      searching: false,
       results: [],
       errors: false,
-      errorString: '',
-      datatable_id: 'proposal-datatable-'+uuid(),
-      proposal_headers:["Number","Type","Proponent","Text found","Action"],
-      proposal_options:{
-          language: {
-              processing: constants.DATATABLE_PROCESSING_HTML,
+      errorString: "",
+      datatable_id: "proposal-datatable-" + uuid(),
+      proposal_headers: ["Number", "Type", "Proponent", "Text found", "Action"],
+      proposal_options: {
+        language: {
+          processing: constants.DATATABLE_PROCESSING_HTML,
+        },
+        responsive: true,
+        data: vm.results,
+        columns: [
+          { data: "number", defaultContent: "" },
+          { data: "type", defaultContent: "" },
+          { data: "applicant", defaultContent: "" },
+          {
+            //data: "text.value"
+            data: "text",
+            mRender: function (data) {
+              if (data.value) {
+                return data.value;
+              } else {
+                return data;
+              }
+            },
+            defaultContent: "",
           },
-          responsive: true,
-          data: vm.results,
-          columns: [
-              {data: "number",defaultContent: '',},
-              {data:"type",defaultContent: '',},
-              {data: "applicant",defaultContent: '',},
-              {//data: "text.value"
-                data: "text",
-                mRender: function (data) {
-                  if(data.value){
-                    return data.value;
-                  }
-                  else
-                  {
-                    return data;
-                  }
-                },
-                defaultContent: '',
-              },
-              {
-                data: "id",
-                  mRender:function (data,type,full) {
-                        let links = '';
-                        if(full.type == 'Proposal'){
-                          links +=  `<a href='/internal/proposal/${full.id}'>View</a><br/>`;
-                        }
-                        if(full.type == 'Compliance'){
-                          links +=  `<a href='/internal/compliance/${full.id}'>View</a><br/>`;
-                        }
-                        if(full.type == 'Approval'){
-                          links +=  `<a href='/internal/approval/${full.id}'>View</a><br/>`;
-                        }
-                        return links;
-                  },
-                  defaultContent: '',
+          {
+            data: "id",
+            mRender: function (data, type, full) {
+              let links = "";
+              if (full.type == "Proposal") {
+                links += `<a href='/internal/proposal/${full.id}'>View</a><br/>`;
               }
-          ],
-          processing: true
-      }
-    }
-    
+              if (full.type == "Compliance") {
+                links += `<a href='/internal/compliance/${full.id}'>View</a><br/>`;
+              }
+              if (full.type == "Approval") {
+                links += `<a href='/internal/approval/${full.id}'>View</a><br/>`;
+              }
+              return links;
+            },
+            defaultContent: "",
+          },
+        ],
+        processing: true,
+      },
+    };
   },
-    components: {
-        datatable,
-        alert,
-        FormSection,
+  components: {
+    datatable,
+    alert,
+    FormSection,
+  },
+  computed: {
+    showError: function () {
+      var vm = this;
+      return vm.errors;
     },
-    //beforeRouteEnter:function(to,from,next){
-        /* TODO on-cleanup - fix this or completely replace, takes near 30 seconds to load!
-        utils.fetchOrganisations().then((response)=>{
-            next(vm => {
-                vm.organisations = response;
-            });
-        },
-        (error) =>{
-            console.log(error);
+  },
+  methods: {
+    resetError: function () {
+      let vm = this;
+      vm.errors = false;
+      vm.errorString = "";
+    },
+    addListeners: function () {
+      let vm = this;
+      // Initialise select2 for region
+      $(vm.$refs.searchOrg)
+        .select2({
+          theme: "bootstrap-5",
+          width: "100%",
+          allowClear: true,
+          placeholder: "Start Typing to Search for an Organisation",
+        })
+        .on("select2:select", function (e) {
+          var selected = $(e.currentTarget);
+          vm.selected_organisation = selected.val();
+        })
+        .on("select2:unselect", function (e) {
+          var selected = $(e.currentTarget);
+          vm.selected_organisation = selected.val();
         });
-        */
-    //},
-    computed: {
-        showError: function() {
-            var vm = this;
-            return vm.errors;
+    },
+
+    viewUserDetails: function () {
+      let vm = this;
+      let form = document.forms.searchUserForm;
+      var user_selected = form.elements["User-selected"];
+      if (user_selected != undefined || user_selected != null) {
+        var user_id = user_selected.value;
+        vm.$router.push({
+          name: "internal-user-detail",
+          params: { user_id: user_id },
+        });
+      } else {
+        swal
+          .fire({
+            title: "User not selected",
+            html: "Please select the user to view the details",
+            icon: "error",
+            customClass: {
+              confirmButton: "btn btn-primary",
+            },
+          })
+          .then(() => {});
+        return;
+      }
+    },
+
+    add: function () {
+      let vm = this;
+      if (
+        vm.keyWord != null &&
+        vm.keyWord.trim() != "" &&
+        !vm.searchKeywords.includes(vm.keyWord)
+      ) {
+        vm.searchKeywords.push(vm.keyWord);
+        vm.keyWord = null;
+        this.$refs.keyWord.focus();
+      }
+    },
+    removeKeyword: function (index) {
+      let vm = this;
+      if (index > -1) {
+        vm.searchKeywords.splice(index, 1);
+      }
+      this.$refs.keyWord.focus();
+    },
+    reset: function () {
+      let vm = this;
+      if (vm.searchKeywords != null) {
+        vm.searchKeywords = [];
+      }
+      vm.keyWord = null;
+      vm.results = [];
+      this.$refs.keyWord.focus();
+      vm.$refs.proposal_datatable.vmDataTable.clear();
+      vm.$refs.proposal_datatable.vmDataTable.draw();
+    },
+
+    search: function () {
+      let vm = this;
+      if (this.searchKeywords.length > 0) {
+        vm.searching = true;
+        fetch("/api/search_keywords.json", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            searchKeywords: vm.searchKeywords,
+            searchProposal: vm.searchProposal,
+            searchApproval: vm.searchApproval,
+            searchCompliance: vm.searchCompliance,
+            is_internal: true,
+          }),
+        })
+          .then(async (res) => {
+            if (!res.ok) {
+              throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+            vm.results = await res.json();
+            vm.$refs.proposal_datatable.vmDataTable.clear();
+            vm.$refs.proposal_datatable.vmDataTable.rows.add(vm.results);
+            vm.$refs.proposal_datatable.vmDataTable.draw();
+            vm.searching = false;
+          })
+          .catch((err) => {
+            console.log(err);
+            vm.searching = false;
+          });
+      }
+    },
+
+    search_reference: async function (inputEl) {
+      let vm = this;
+
+      vm.errors = false;
+      vm.errorString = "";
+
+      if (!vm.referenceWord) {
+        inputEl?.focus();
+        return;
+      }
+
+      if (vm.referenceWord) {
+        try {
+          const res = await fetch("/api/search_reference.json", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              reference_number: vm.referenceWord,
+            }),
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            throw new Error(data);
+          }
+
+          vm.errors = false;
+          vm.errorString = "";
+          vm.$router.push({
+            path: "/internal/" + data.type + "/" + data.id,
+          });
+        } catch (error) {
+          console.log(error);
+          vm.errors = true;
+          vm.errorString = error;
         }
+      }
     },
-    methods: {
-        addListeners: function(){
-            let vm = this;
-            // Initialise select2 for region
-            $(vm.$refs.searchOrg).select2({
-                "theme": "bootstrap",
-                allowClear: true,
-                placeholder:"Select Organisation"
-            }).
-            on("select2:select",function (e) {
-                var selected = $(e.currentTarget);
-                vm.selected_organisation = selected.val();
-            }).
-            on("select2:unselect",function (e) {
-                var selected = $(e.currentTarget);
-                vm.selected_organisation = selected.val();
-            });
-        },
-
-        viewUserDetails: function(){
-          let vm=this;
-          let form=document.forms.searchUserForm
-          var user_selected=form.elements['User-selected']
-          if(user_selected!=undefined || user_selected!=null){
-            var user_id= user_selected.value;
-            vm.$router.push({
-              name:"internal-user-detail",
-              params:{user_id:user_id}
-            });
-          }
-          else{
-            swal.fire({
-                title: 'User not selected',
-                html: 'Please select the user to view the details',
-                icon: 'error',
-                customClass: {
-                  confirmButton: 'btn btn-primary',
-                },
-            }).then(() => {
-                
-            });
-            return;
-          }
-        },
-
-        add: function() {
-          let vm = this;
-          if(vm.keyWord != null)
-          {
-            vm.searchKeywords.push(vm.keyWord);
-          }
-        },
-        removeKeyword: function(index) {
-          let vm = this;
-          if(index >-1)
-          {
-            vm.searchKeywords.splice(index,1);
-          }
-        },
-        reset: function() {
-          let vm = this;
-          if(vm.keyWord != null)
-          {
-            vm.searchKeywords = [];
-          }
-          /*vm.searchProposal = false;
-          vm.searchApproval = false;
-          vm.searchCompliance = false; */
-          vm.keyWord = null; 
-          vm.results = [];
-          vm.$refs.proposal_datatable.vmDataTable.clear()
-          vm.$refs.proposal_datatable.vmDataTable.draw();      
-        },
-
-        search: function() {
-          let vm = this;
-          if(this.searchKeywords.length > 0)
-          {
-            vm.searching=true;
-            fetch('/api/search_keywords.json',{
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                searchKeywords: vm.searchKeywords,
-                searchProposal: vm.searchProposal,
-                searchApproval: vm.searchApproval,
-                searchCompliance: vm.searchCompliance,
-                is_internal: true,
-              })
-            }).then(async (res) => {
-              if (!res.ok) {
-                  throw new Error(`HTTP error! Status: ${res.status}`);
-              }
-              vm.results = await res.json();
-              vm.$refs.proposal_datatable.vmDataTable.clear()
-              vm.$refs.proposal_datatable.vmDataTable.rows.add(vm.results);
-              vm.$refs.proposal_datatable.vmDataTable.draw();
-              vm.searching=false;
-            }).catch(err => {
-              console.log(err);
-              vm.searching=false;
-            });
-          }
-        },
-   
-
-    search_reference: function() {
-          let vm = this;
-          if(vm.referenceWord)
-          {
-            fetch('/api/search_reference.json',{
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                reference_number: vm.referenceWord,
-              })
-            }).then(async (res) => {
-              if (!res.ok) {
-                  throw new Error(`HTTP error! Status: ${res.status}`);
-              }
-              const responseBody = await res.json();
-              console.log(responseBody);
-              vm.errors = false;
-              vm.errorString = '';
-              vm.$router.push({ path: '/internal/'+responseBody.type+'/'+responseBody.id });
-            }).catch(error => {
-              console.log(error);
-              vm.errors = true;
-              vm.errorString = error;
-            });
-          }
-
-        },
-    },
-    mounted: function () {
-        let vm = this;
-        vm.proposal_options.data = vm.results;
-        vm.$refs.proposal_datatable.vmDataTable.draw();
-        $( 'a[data-bs-toggle="collapse"]' ).on( 'click', function () {
-            var chev = $( this ).children()[ 0 ];
-            window.setTimeout( function () {
-                $( chev ).toggleClass( "fa-chevron-down fa-chevron-up" );
-            }, 100 );
-        } );
-        this.$nextTick(() => {
-            vm.addListeners();
-        });
-    },
-}
+  },
+  mounted: function () {
+    let vm = this;
+    vm.proposal_options.data = vm.results;
+    vm.$refs.proposal_datatable.vmDataTable.draw();
+    $('a[data-bs-toggle="collapse"]').on("click", function () {
+      var chev = $(this).children()[0];
+      window.setTimeout(function () {
+        $(chev).toggleClass("fa-chevron-down fa-chevron-up");
+      }, 100);
+    });
+    this.$nextTick(() => {
+      vm.addListeners();
+    });
+  },
+};
 </script>
