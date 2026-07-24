@@ -110,7 +110,7 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             request,
         )
 
-        if ret == None:
+        if ret is None:
             # user has already been to this organisation - don't add again
             data = {"valid": ret}
             return Response({"valid": "User already exists"})
