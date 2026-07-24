@@ -1,6 +1,3 @@
-import traceback
-
-from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
@@ -11,7 +8,6 @@ from rest_framework.response import Response
 
 from disturbance.components.main.utils import (
     get_template_group,
-    handle_validation_error,
 )
 from disturbance.components.organisations.models import (
     ApiaryOrganisationAccessGroup,
@@ -277,7 +273,7 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         )
         instance.reinstate_user(user_obj, request)
         serializer = self.get_serializer(instance)
-        return Response(serializer.data
+        return Response(serializer.data)
 
     @action(
         detail=True,
@@ -346,14 +342,14 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         with transaction.atomic():
             instance = self.get_object()
             request_data = request.data.copy()
-            request_data["organisation"] = "{}".format(instance.id)
-            request_data["staff"] = "{}".format(request.user.id)
+            request_data["organisation"] = f"{instance.id}"
+            request_data["staff"] = f"{request.user.id}"
             serializer = OrganisationLogEntrySerializer(data=request_data)
             serializer.is_valid(raise_exception=True)
             comms = serializer.save()
             # Save the files
             for f in request.FILES:
-                document = comms.documents.create(
+                comms.documents.create(
                     name=str(request.FILES[f]), _file=request.FILES[f]
                 )
 
@@ -374,7 +370,6 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = OrganisationCheckExistSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data)
-
 
 
 class OrganisationRequestsViewSet(
@@ -405,7 +400,6 @@ class OrganisationRequestsViewSet(
         serializer = OrganisationRequestDTSerializer(qs, many=True)
         return Response(serializer.data)
 
-
     @action(
         detail=False,
         methods=[
@@ -414,12 +408,9 @@ class OrganisationRequestsViewSet(
         permission_classes=[InternalOrganisationPermission],
     )
     def user_list(self, request, *args, **kwargs):
-        qs = self.get_queryset().filter(
-            requester=request.user, status="with_assessor"
-        )
+        qs = self.get_queryset().filter(requester=request.user, status="with_assessor")
         serializer = OrganisationRequestDTSerializer(qs, many=True)
         return Response(serializer.data)
-
 
     @action(
         detail=False,
@@ -428,12 +419,9 @@ class OrganisationRequestsViewSet(
         ],
     )
     def get_pending_requests(self, request, *args, **kwargs):
-        qs = self.get_queryset().filter(
-            requester=request.user, status="with_assessor"
-        )
+        qs = self.get_queryset().filter(requester=request.user, status="with_assessor")
         serializer = OrganisationRequestDTSerializer(qs, many=True)
         return Response(serializer.data)
-
 
     @action(
         detail=False,
@@ -448,7 +436,6 @@ class OrganisationRequestsViewSet(
         serializer = OrganisationRequestDTSerializer(qs, many=True)
         return Response(serializer.data)
 
-
     @action(
         detail=True,
         methods=[
@@ -461,7 +448,6 @@ class OrganisationRequestsViewSet(
         instance.assign_to(request.user, request)
         serializer = OrganisationRequestSerializer(instance)
         return Response(serializer.data)
-
 
     @action(
         detail=True,
@@ -476,7 +462,6 @@ class OrganisationRequestsViewSet(
         serializer = OrganisationRequestSerializer(instance)
         return Response(serializer.data)
 
-
     @action(
         detail=True,
         methods=[
@@ -489,7 +474,6 @@ class OrganisationRequestsViewSet(
         instance.accept(request)
         serializer = OrganisationRequestSerializer(instance)
         return Response(serializer.data)
-
 
     # TODO on-cleanup - is this used? remove if not
     @action(
@@ -505,7 +489,6 @@ class OrganisationRequestsViewSet(
         serializer = OrganisationRequestSerializer(instance)
         return Response(serializer.data)
 
-
     @action(
         detail=True,
         methods=[
@@ -519,7 +502,6 @@ class OrganisationRequestsViewSet(
         instance.decline(reason, request)
         serializer = OrganisationRequestSerializer(instance)
         return Response(serializer.data)
-
 
     @action(
         detail=True,
@@ -544,7 +526,6 @@ class OrganisationRequestsViewSet(
         serializer = OrganisationRequestSerializer(instance)
         return Response(serializer.data)
 
-
     @action(
         detail=True,
         methods=[
@@ -557,7 +538,6 @@ class OrganisationRequestsViewSet(
         qs = instance.action_logs.all()
         serializer = OrganisationRequestActionSerializer(qs, many=True)
         return Response(serializer.data)
-
 
     @action(
         detail=True,
@@ -572,7 +552,6 @@ class OrganisationRequestsViewSet(
         serializer = OrganisationRequestCommsSerializer(qs, many=True)
         return Response(serializer.data)
 
-
     @action(
         detail=True,
         methods=[
@@ -585,14 +564,14 @@ class OrganisationRequestsViewSet(
         with transaction.atomic():
             instance = self.get_object()
             request_data = request.data.copy()
-            request_data["request"] = "{}".format(instance.id)
-            request_data["staff"] = "{}".format(request.user.id)
+            request_data["request"] = f"{instance.id}"
+            request_data["staff"] = f"{request.user.id}"
             serializer = OrganisationRequestCommsSerializer(data=request_data)
             serializer.is_valid(raise_exception=True)
             comms = serializer.save()
             # Save the files
             for f in request.FILES:
-                document = comms.documents.create(
+                comms.documents.create(
                     name=str(request.FILES[f]), _file=request.FILES[f]
                 )
 
@@ -618,16 +597,13 @@ class OrganisationRequestsViewSet(
             instance.template_group = template_group
             instance.save()
             instance.log_user_action(
-                OrganisationRequestUserAction.ACTION_LODGE_REQUEST.format(
-                    instance.id
-                ),
+                OrganisationRequestUserAction.ACTION_LODGE_REQUEST.format(instance.id),
                 request,
             )
             instance.send_organisation_request_email_notification(
                 request, template_group
             )
         return Response(serializer.data)
-
 
 
 class OrganisationAccessGroupMembers(views.APIView):
@@ -693,7 +669,7 @@ class OrganisationContactViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMi
             raise serializers.ValidationError(
                 "Cannot delete the last Organisation Admin"
             )
-        return super(OrganisationContactViewSet, self).destroy(request, *args, **kwargs)
+        return super().destroy(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
