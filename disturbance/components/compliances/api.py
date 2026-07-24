@@ -252,180 +252,90 @@ class ComplianceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     @action(detail=True,methods=['GET',], permission_classes=[InternalCompliancePermission])
     def assign_request_user(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            instance.assign_to(request.user,request)
-            serializer = ComplianceSerializer(instance, context={'request': request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        instance.assign_to(request.user,request)
+        serializer = ComplianceSerializer(instance, context={'request': request})
+        return Response(serializer.data)
 
     @action(detail=True,methods=['POST',])
     def delete_document(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            doc=request.data.get('document')
-            instance.delete_document(request, doc)
-            serializer = ComplianceSerializer(instance, context={'request': request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            handle_validation_error(e)
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        doc=request.data.get('document')
+        instance.delete_document(request, doc)
+        serializer = ComplianceSerializer(instance, context={'request': request})
+        return Response(serializer.data)
 
     @action(detail=True,methods=['POST',], permission_classes=[InternalCompliancePermission])
     def assign_to(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user_id = request.data.get('user_id',None)
+        user = None
+        if not user_id:
+            raise serializers.ValidationError('A user id is required')
         try:
-            instance = self.get_object()
-            user_id = request.data.get('user_id',None)
-            user = None
-            if not user_id:
-                raise serializers.ValidationError('A user id is required')
-            try:
-                user = EmailUser.objects.get(id=user_id)
-            except EmailUser.DoesNotExist:
-                raise serializers.ValidationError('A user with the id passed in does not exist')
-            instance.assign_to(user,request)
-            serializer = ComplianceSerializer(instance, context={'request': request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+            user = EmailUser.objects.get(id=user_id)
+        except EmailUser.DoesNotExist:
+            raise serializers.ValidationError('A user with the id passed in does not exist')
+        instance.assign_to(user,request)
+        serializer = ComplianceSerializer(instance, context={'request': request})
+        return Response(serializer.data)
 
     @action(detail=True,methods=['GET',], permission_classes=[InternalCompliancePermission])
     def unassign(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            instance.unassign(request)
-            serializer = (instance)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        instance.unassign(request)
+        serializer = (instance)
+        return Response(serializer.data)
 
     @action(detail=True,methods=['GET',], permission_classes=[InternalCompliancePermission])
     def accept(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            instance.accept(request)
-            serializer = ComplianceSerializer(instance, context={'request': request})
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        instance.accept(request)
+        serializer = ComplianceSerializer(instance, context={'request': request})
+        return Response(serializer.data)
 
     @action(detail=True,methods=['GET',])
     def amendment_request(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            qs = instance.amendment_requests
-            qs = qs.filter(status = 'requested')
-            serializer = CompAmendmentRequestDisplaySerializer(qs,many=True)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        qs = instance.amendment_requests
+        qs = qs.filter(status = 'requested')
+        serializer = CompAmendmentRequestDisplaySerializer(qs,many=True)
+        return Response(serializer.data)
 
     @action(detail=True,methods=['GET',], permission_classes=[InternalCompliancePermission])
     def action_log(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            qs = instance.action_logs.all()
-            serializer = ComplianceActionSerializer(qs,many=True)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        qs = instance.action_logs.all()
+        serializer = ComplianceActionSerializer(qs,many=True)
+        return Response(serializer.data)
 
     @action(detail=True,methods=['GET',], permission_classes=[InternalCompliancePermission])
     def comms_log(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            qs = instance.comms_logs.all()
-            serializer = ComplianceCommsSerializer(qs,many=True)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+        instance = self.get_object()
+        qs = instance.comms_logs.all()
+        serializer = ComplianceCommsSerializer(qs,many=True)
+        return Response(serializer.data)
 
     @action(detail=True,methods=['POST',], permission_classes=[InternalCompliancePermission])
     @renderer_classes((JSONRenderer,))
     def add_comms_log(self, request, *args, **kwargs):
-        try:
-            with transaction.atomic():
-                instance = self.get_object()
-                request_data = request.data.copy()
-                request_data['compliance'] = u'{}'.format(instance.id)
-                request_data['staff'] = u'{}'.format(request.user.id)
-                serializer = ComplianceCommsSerializer(data=request_data)
-                serializer.is_valid(raise_exception=True)
-                comms = serializer.save()
-                # Save the files
-                for f in request.FILES:
-                    document = comms.documents.create(
-                        name = str(request.FILES[f]),
-                        _file = request.FILES[f]
-                    )
-                # End Save Documents
+        with transaction.atomic():
+            instance = self.get_object()
+            request_data = request.data.copy()
+            request_data['compliance'] = u'{}'.format(instance.id)
+            request_data['staff'] = u'{}'.format(request.user.id)
+            serializer = ComplianceCommsSerializer(data=request_data)
+            serializer.is_valid(raise_exception=True)
+            comms = serializer.save()
+            # Save the files
+            for f in request.FILES:
+                document = comms.documents.create(
+                    name = str(request.FILES[f]),
+                    _file = request.FILES[f]
+                )
+            # End Save Documents
 
-                return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+            return Response(serializer.data)
 
 
 class ComplianceAmendmentRequestViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
