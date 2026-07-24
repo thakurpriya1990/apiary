@@ -65,9 +65,7 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def contacts(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.update_contacts(request)
-        serializer = OrganisationContactSerializer(
-            instance.contacts.exclude(user_status="pending"), many=True
-        )
+        serializer = OrganisationContactSerializer(instance.contacts.exclude(user_status="pending"), many=True)
         return Response(serializer.data)
 
     @action(
@@ -131,9 +129,7 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         serializer = OrgUserAcceptSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user_obj = EmailUser.objects.get(
-            email=serializer.validated_data["email"].lower()
-        )
+        user_obj = EmailUser.objects.get(email=serializer.validated_data["email"].lower())
         instance.accept_user(user_obj, request)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -148,9 +144,7 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         serializer = OrgUserAcceptSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user_obj = EmailUser.objects.get(
-            email=serializer.validated_data["email"].lower()
-        )
+        user_obj = EmailUser.objects.get(email=serializer.validated_data["email"].lower())
         instance.accept_declined_user(user_obj, request)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -165,9 +159,7 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         serializer = OrgUserAcceptSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user_obj = EmailUser.objects.get(
-            email=serializer.validated_data["email"].lower()
-        )
+        user_obj = EmailUser.objects.get(email=serializer.validated_data["email"].lower())
         instance.decline_user(user_obj, request)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -183,9 +175,7 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         serializer = OrgUserAcceptSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user_obj = EmailUser.objects.get(
-            email=serializer.validated_data["email"].lower()
-        )
+        user_obj = EmailUser.objects.get(email=serializer.validated_data["email"].lower())
         instance.unlink_user(user_obj, request)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -200,9 +190,7 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         serializer = OrgUserAcceptSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user_obj = EmailUser.objects.get(
-            email=serializer.validated_data["email"].lower()
-        )
+        user_obj = EmailUser.objects.get(email=serializer.validated_data["email"].lower())
         instance.make_admin_user(user_obj, request)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -217,9 +205,7 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         serializer = OrgUserAcceptSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user_obj = EmailUser.objects.get(
-            email=serializer.validated_data["email"].lower()
-        )
+        user_obj = EmailUser.objects.get(email=serializer.validated_data["email"].lower())
         instance.make_user(user_obj, request)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -234,9 +220,7 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         serializer = OrgUserAcceptSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user_obj = EmailUser.objects.get(
-            email=serializer.validated_data["email"].lower()
-        )
+        user_obj = EmailUser.objects.get(email=serializer.validated_data["email"].lower())
         instance.make_consultant(user_obj, request)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -251,9 +235,7 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         serializer = OrgUserAcceptSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user_obj = EmailUser.objects.get(
-            email=serializer.validated_data["email"].lower()
-        )
+        user_obj = EmailUser.objects.get(email=serializer.validated_data["email"].lower())
         instance.suspend_user(user_obj, request)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -268,9 +250,7 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         serializer = OrgUserAcceptSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user_obj = EmailUser.objects.get(
-            email=serializer.validated_data["email"].lower()
-        )
+        user_obj = EmailUser.objects.get(email=serializer.validated_data["email"].lower())
         instance.reinstate_user(user_obj, request)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -285,9 +265,7 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         serializer = OrgUserAcceptSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user_obj = EmailUser.objects.get(
-            email=serializer.validated_data["email"].lower()
-        )
+        user_obj = EmailUser.objects.get(email=serializer.validated_data["email"].lower())
         instance.relink_user(user_obj, request)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -349,9 +327,7 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             comms = serializer.save()
             # Save the files
             for f in request.FILES:
-                comms.documents.create(
-                    name=str(request.FILES[f]), _file=request.FILES[f]
-                )
+                comms.documents.create(name=str(request.FILES[f]), _file=request.FILES[f])
 
             return Response(serializer.data)
 
@@ -372,9 +348,7 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         return Response(serializer.data)
 
 
-class OrganisationRequestsViewSet(
-    viewsets.ReadOnlyModelViewSet, mixins.RetrieveModelMixin
-):
+class OrganisationRequestsViewSet(viewsets.ReadOnlyModelViewSet, mixins.RetrieveModelMixin):
     queryset = OrganisationRequest.objects.all()
     serializer_class = OrganisationRequestSerializer
 
@@ -430,9 +404,7 @@ class OrganisationRequestsViewSet(
         ],
     )
     def get_amendment_requested_requests(self, request, *args, **kwargs):
-        qs = self.get_queryset().filter(
-            requester=request.user, status="amendment_requested"
-        )
+        qs = self.get_queryset().filter(requester=request.user, status="amendment_requested")
         serializer = OrganisationRequestDTSerializer(qs, many=True)
         return Response(serializer.data)
 
@@ -519,9 +491,7 @@ class OrganisationRequestsViewSet(
         try:
             user = EmailUser.objects.get(id=user_id)
         except EmailUser.DoesNotExist:
-            raise serializers.ValidationError(
-                "A user with the id passed in does not exist"
-            )
+            raise serializers.ValidationError("A user with the id passed in does not exist")
         instance.assign_to(user, request)
         serializer = OrganisationRequestSerializer(instance)
         return Response(serializer.data)
@@ -571,9 +541,7 @@ class OrganisationRequestsViewSet(
             comms = serializer.save()
             # Save the files
             for f in request.FILES:
-                comms.documents.create(
-                    name=str(request.FILES[f]), _file=request.FILES[f]
-                )
+                comms.documents.create(name=str(request.FILES[f]), _file=request.FILES[f])
 
             # End Save Documents
 
@@ -600,9 +568,7 @@ class OrganisationRequestsViewSet(
                 OrganisationRequestUserAction.ACTION_LODGE_REQUEST.format(instance.id),
                 request,
             )
-            instance.send_organisation_request_email_notification(
-                request, template_group
-            )
+            instance.send_organisation_request_email_notification(request, template_group)
         return Response(serializer.data)
 
 
@@ -619,9 +585,7 @@ class OrganisationAccessGroupMembers(views.APIView):
             for m in group.all_members:
                 members.append({"name": m.get_full_name(), "id": m.id})
         else:
-            for m in EmailUser.objects.filter(
-                is_superuser=True, is_staff=True, is_active=True
-            ):
+            for m in EmailUser.objects.filter(is_superuser=True, is_staff=True, is_active=True):
                 members.append({"name": m.get_full_name(), "id": m.id})
         return Response(members)
 
@@ -639,9 +603,7 @@ class ApiaryOrganisationAccessGroupMembers(views.APIView):
             for m in group.all_members:
                 members.append({"name": m.get_full_name(), "id": m.id})
         else:
-            for m in EmailUser.objects.filter(
-                is_superuser=True, is_staff=True, is_active=True
-            ):
+            for m in EmailUser.objects.filter(is_superuser=True, is_staff=True, is_active=True):
                 members.append({"name": m.get_full_name(), "id": m.id})
         return Response(members)
 
@@ -661,14 +623,10 @@ class OrganisationContactViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMi
 
     def destroy(self, request, *args, **kwargs):
         """delete an Organisation contact"""
-        num_admins = (
-            self.get_object().organisation.contacts.filter(is_admin=True).count()
-        )
+        num_admins = self.get_object().organisation.contacts.filter(is_admin=True).count()
         org_contact = self.get_object().organisation.contacts.get(id=kwargs["pk"])
         if num_admins == 1 and org_contact.is_admin:
-            raise serializers.ValidationError(
-                "Cannot delete the last Organisation Admin"
-            )
+            raise serializers.ValidationError("Cannot delete the last Organisation Admin")
         return super().destroy(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
@@ -690,10 +648,19 @@ class MyOrganisationsViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if is_internal(self.request):
-            return Organisation.objects.all()
+            qs = Organisation.objects.all()
         elif user.is_authenticated:
-            return user.disturbance_organisations.all()
-        return Organisation.objects.none()
+            qs = user.disturbance_organisations.all()
+        else:
+            return Organisation.objects.none()
+
+        search_term = self.request.query_params.get("search", "").strip()
+        if search_term:
+            qs = qs.filter(
+                Q(property_cache__name__icontains=search_term) | Q(property_cache__abn__icontains=search_term)
+            )
+
+        return qs.order_by("property_cache__name", "id")
 
 
 class GetOrganisationId(views.APIView):
@@ -708,9 +675,7 @@ class GetOrganisationId(views.APIView):
         if is_internal(self.request):
             organisation_qs = Organisation.objects.filter(organisation_id=org_id)
         elif user.is_authenticated:
-            organisation_qs = user.disturbance_organisations.filter(
-                organisation_id=org_id
-            )
+            organisation_qs = user.disturbance_organisations.filter(organisation_id=org_id)
 
         if organisation_qs.exists():
             return Response({"id": organisation_qs.last().id})
