@@ -18,7 +18,9 @@
                           ref="searchOrg"
                           class="form-select"
                           name="organisation"
-                        ></select>
+                        >
+                          <option></option>
+                        </select>
                       </div>
                     </div>
                   </div>
@@ -225,7 +227,6 @@ import datatable from "@/utils/vue/datatable.vue";
 import FormSection from "@/components/forms/section_toggle.vue";
 import alert from "@vue-utils/alert.vue";
 import { api_endpoints, constants } from "@/utils/hooks";
-import utils from "@/components/internal/utils";
 
 import $ from "jquery";
 export default {
@@ -316,6 +317,10 @@ export default {
     },
     addListeners: function () {
       let vm = this;
+      if ($(vm.$refs.searchOrg).data("select2")) {
+        $(vm.$refs.searchOrg).select2("destroy");
+      }
+
       // Initialise select2 for region
       $(vm.$refs.searchOrg)
         .select2({
@@ -323,14 +328,52 @@ export default {
           width: "100%",
           allowClear: true,
           placeholder: "Start Typing to Search for an Organisation",
+          minimumInputLength: 1,
+          ajax: {
+            url: "/api/my_organisations/",
+            dataType: "json",
+            delay: 250,
+            data: function (params) {
+              return {
+                search: params.term || "",
+                page: params.page || 1,
+              };
+            },
+            processResults: function (data, params) {
+              params.page = params.page || 1;
+              const organisations = Array.isArray(data.results)
+                ? data.results.filter((item) => item && item.id)
+                : [];
+
+              return {
+                results: organisations.map((organisation) => {
+                  const name = organisation.name || "Unknown organisation";
+                  return {
+                    id: String(organisation.id),
+                    text: organisation.abn
+                      ? `${name} (${organisation.abn})`
+                      : name,
+                  };
+                }),
+                pagination: {
+                  more: Boolean(data.next),
+                },
+              };
+            },
+            cache: true,
+          },
         })
         .on("select2:select", function (e) {
-          var selected = $(e.currentTarget);
-          vm.selected_organisation = selected.val();
+          vm.selected_organisation = e.params?.data?.id || "";
+          if (vm.selected_organisation) {
+            window.location.assign(
+              `/ledger-ui/organisation/${vm.selected_organisation}/`,
+            );
+          }
         })
         .on("select2:unselect", function (e) {
           var selected = $(e.currentTarget);
-          vm.selected_organisation = selected.val();
+          vm.selected_organisation = selected.val() || "";
         });
     },
 
