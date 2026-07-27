@@ -6,6 +6,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "lint": "eslint -c eslint.config.mjs .",
     "dev": "vite",
     "build": "vite build"
   },
