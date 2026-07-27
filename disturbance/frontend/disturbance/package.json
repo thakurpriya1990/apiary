@@ -1,8 +1,8 @@
 {
-  "name": "disturbance",
+  "name": "Apiary",
   "version": "1.0.0",
   "description": "A Vue.js project",
-  "author": "Brian Ndwiga <ndwigabrian@gmail.com>",
+  "author": "OIM Applications Team <oimapplicationsteam@dbca.wa.gov.au>",
   "private": true,
   "type": "module",
   "scripts": {
@@ -58,8 +58,8 @@
     "vue-eslint-parser": "^10.2.0"
   },
   "engines": {
-    "node": ">= 4.0.0",
-    "npm": ">= 3.0.0"
+    "node": ">= 24.18.0",
+    "npm": ">= 11.16.0"
   },
   "browserslist": [
     "> 1%",
