@@ -515,13 +515,16 @@ class ApprovalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             request_data["staff"] = f"{request.user.id}"
             serializer = ApprovalLogEntrySerializer(data=request_data)
             serializer.is_valid(raise_exception=True)
+
             comms = serializer.save()
+
             # Save the files
-            for f in request.FILES:
-                document = comms.documents.create(
-                    name=str(request.FILES[f]), _file=request.FILES[f]
-                )
-            # End Save Documents
+            for f in request.FILES.getlist("files"):
+                document = comms.documents.create()
+                document.check_file(f)
+                document.name = str(f)
+                document._file = f
+                document.save()
 
             return Response(serializer.data)
 

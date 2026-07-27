@@ -324,10 +324,16 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             request_data["staff"] = f"{request.user.id}"
             serializer = OrganisationLogEntrySerializer(data=request_data)
             serializer.is_valid(raise_exception=True)
+
             comms = serializer.save()
+
             # Save the files
-            for f in request.FILES:
-                comms.documents.create(name=str(request.FILES[f]), _file=request.FILES[f])
+            for f in request.FILES.getlist("files"):
+                document = comms.documents.create()
+                document.check_file(f)
+                document.name = str(f)
+                document._file = f
+                document.save()
 
             return Response(serializer.data)
 
@@ -538,10 +544,16 @@ class OrganisationRequestsViewSet(viewsets.ReadOnlyModelViewSet, mixins.Retrieve
             request_data["staff"] = f"{request.user.id}"
             serializer = OrganisationRequestCommsSerializer(data=request_data)
             serializer.is_valid(raise_exception=True)
+
             comms = serializer.save()
+
             # Save the files
-            for f in request.FILES:
-                comms.documents.create(name=str(request.FILES[f]), _file=request.FILES[f])
+            for f in request.FILES.getlist("files"):
+                document = comms.documents.create()
+                document.check_file(f)
+                document.name = str(f)
+                document._file = f
+                document.save()
 
             # End Save Documents
 
