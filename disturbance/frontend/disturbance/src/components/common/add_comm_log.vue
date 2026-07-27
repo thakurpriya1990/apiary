@@ -233,12 +233,12 @@ export default {
     };
   },
   watch: {
-    isModalOpen: function (newVal, oldVal) {
-        this.$nextTick(function () {
-          if (this.isModalOpen) {
-            this.$refs.to.focus();
-          }
-        });
+    isModalOpen: function (l) {
+      this.$nextTick(function () {
+        if (this.isModalOpen) {
+          this.$refs.to.focus();
+        }
+      });
     },
   },
   computed: {

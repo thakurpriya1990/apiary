@@ -435,7 +435,7 @@ export default {
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
-                    }).then((result) => {
+                    }).then(() => {
                         vm.$router.go(0);
                     });
                 }

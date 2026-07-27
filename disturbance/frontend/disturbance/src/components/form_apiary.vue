@@ -422,7 +422,6 @@
             },
             addEventListeners: function () {
                 let vm = this;
-                let searchPattern = /^[0-9]{4}/
                 let expiry_date_passed = vm.proposal.proposal_apiary.public_liability_insurance_expiry_date;
                 if (expiry_date_passed) {
                     $('#expiry_date_input_element').val(expiry_date_passed);
