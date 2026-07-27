@@ -40,10 +40,10 @@
 {% endblock custom_js %}
 
 {% block menu_items_left_brand %}
+{% is_internal as is_internal_login %}
   <div class="navbar-nav">
     <div class="nav-item">
-      <!-- <a class="nav-link{% if request.path == '/' %} active{% endif %}" href="/external/"><img src="/static/img/pwl_icon.png" />Home</a> -->
-      <a class="nav-link{% if request.path == '/' %} active{% endif %}" href="{% url 'home' %}"><img src="{% static 'disturbance/img/dpaw_small.png' %}">{% if is_internal_login %}{% if TEMPLATE_GROUP == 'apiary' %}Applications{% else %}Proposals{% endif %}{% else %}Home {% endif %}</a>
+      <a class="nav-link{% if request.path == '/' %} active{% endif %}" href="{% url 'home' %}"><img src="{% static 'disturbance/img/dpaw_small.png' %}" class="me-2">{% if is_internal_login %}Applications{% else %}Home {% endif %}</a>
     </div>
   </div>
 {% endblock menu_items_left_brand%}
@@ -87,19 +87,4 @@
   {% application_version as application_version %}
   {% support_email as support_email %}
   {% dept_support_phone as dept_support_phone %}
-  {% comment %} <footer class="footer fixed-bottom mt-3">
-    <div class="container-fluid border-top py-2 bg-light text-secondary">
-      <div class="row">
-        <div class="col">
-          <small class="float-start">Version:{% application_version %}</small>
-        </div>
-        <div class="col">
-          <small>Support: <a href="mailto:{% support_email %}">{% support_email %}</a> | <a href="tel:{% dept_support_phone %}">{% dept_support_phone %}</a></small>
-        </div>
-        <div class="col">
-          <small class="float-end">&copy; {% dept_name %}</small>
-        </div>
-      </div>
-    </div>
-  </footer> {% endcomment %}
 {% endblock footer %}
