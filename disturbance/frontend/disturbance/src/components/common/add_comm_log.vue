@@ -233,7 +233,7 @@ export default {
     };
   },
   watch: {
-    isModalOpen: function (l) {
+    isModalOpen: function () {
       this.$nextTick(function () {
         if (this.isModalOpen) {
           this.$refs.to.focus();
