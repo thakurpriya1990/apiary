@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import logging
 import os
 import uuid
@@ -25,9 +23,7 @@ from disturbance.components.main.utils import (
 )
 
 logger = logging.getLogger(__name__)
-private_storage = FileSystemStorage(
-    location=settings.BASE_DIR + "/private-media/", base_url="/private-media/"
-)
+private_storage = FileSystemStorage(location=settings.BASE_DIR + "/private-media/", base_url="/private-media/")
 
 
 class SanitiseMixin(models.Model):
@@ -39,14 +35,12 @@ class SanitiseMixin(models.Model):
         from disturbance.components.main.utils import sanitise_fields
 
         # sanitise
-        exclude = kwargs.pop(
-            "exclude_sanitise", []
-        )  # fields that should not be subject to full tag removal
+        exclude = kwargs.pop("exclude_sanitise", [])  # fields that should not be subject to full tag removal
         error_on_change = kwargs.pop(
             "error_on_sanitise", []
         )  # fields that should not be modified through tag removal (and should throw and error if they are)
         self = sanitise_fields(self, exclude, error_on_change)
-        super(SanitiseMixin, self).save(**kwargs)
+        super().save(**kwargs)
 
     class Meta:
         abstract = True
@@ -61,14 +55,14 @@ class RevisionedMixin(SanitiseMixin):
         from reversion import revisions
 
         if kwargs.pop("no_revision", False):
-            super(RevisionedMixin, self).save(**kwargs)
+            super().save(**kwargs)
         else:
             with revisions.create_revision():
                 if "version_user" in kwargs:
                     revisions.set_user(kwargs.pop("version_user", None))
                 if "version_comment" in kwargs:
                     revisions.set_comment(kwargs.pop("version_comment", ""))
-                super(RevisionedMixin, self).save(**kwargs)
+                super().save(**kwargs)
 
     @property
     def created_date(self):
@@ -92,12 +86,7 @@ class SanitiseFileMixin(SanitiseMixin, DirtyFieldsMixin):
     """
 
     def auto_generate_file_name(self, extension):
-        return "{}_{}_{}.{}".format(
-            self._meta.model_name,
-            uuid.uuid4(),
-            int(datetime.now().timestamp() * 100000),
-            extension,
-        )
+        return f"{self._meta.model_name}_{uuid.uuid4()}_{int(datetime.now().timestamp() * 100000)}.{extension}"
 
     def save(self, **kwargs):
         from disturbance.components.main.utils import check_file
@@ -145,7 +134,7 @@ class SanitiseFileMixin(SanitiseMixin, DirtyFieldsMixin):
 
         # if file content does not exist, it does not need to be sanitised
         if not file_content_exists:
-            super(SanitiseFileMixin, self).save(**kwargs)
+            super().save(**kwargs)
             return
 
         if path_to_file and file_content and storage:
@@ -154,24 +143,18 @@ class SanitiseFileMixin(SanitiseMixin, DirtyFieldsMixin):
 
             # check file size
             if file_content.size > settings.FILE_SIZE_LIMIT_BYTES:
-                raise ValidationError(
-                    "File size too large: Max {}MB".format(
-                        settings.FILE_SIZE_LIMIT_BYTES / 1000000
-                    )
-                )
+                raise ValidationError(f"File size too large: Max {settings.FILE_SIZE_LIMIT_BYTES / 1000000}MB")
 
             # auto-gen file name
             _, extension = os.path.splitext(str(file_content))
-            generated_file_name = self.auto_generate_file_name(
-                extension.replace(".", "")
-            )
+            generated_file_name = self.auto_generate_file_name(extension.replace(".", ""))
             read = file_content.read()
             if bool(read):
                 setattr(
                     self,
                     file_field,
                     storage.save(
-                        "{}/{}".format(path_to_file, generated_file_name),
+                        f"{path_to_file}/{generated_file_name}",
                         ContentFile(read),
                     ),
                 )
@@ -181,17 +164,12 @@ class SanitiseFileMixin(SanitiseMixin, DirtyFieldsMixin):
                     self._meta.model_name,
                     str(file_content),
                 )
-                raise ValidationError(
-                    "The uploaded file is empty. Please select a valid file."
-                )
-        elif (
-            file_field in self.get_dirty_fields()
-            and self.get_dirty_fields()[file_field]
-        ):
+                raise ValidationError("The uploaded file is empty. Please select a valid file.")
+        elif file_field in self.get_dirty_fields() and self.get_dirty_fields()[file_field]:
             raise ValidationError("Cannot change file")
 
         # proceed with general sanitisation and save
-        super(SanitiseFileMixin, self).save(**kwargs)
+        super().save(**kwargs)
 
     class Meta:
         abstract = True
@@ -219,10 +197,7 @@ class FileExtensionWhitelist(models.Model):
             map(
                 lambda m: (m, m),
                 filter(
-                    lambda m: (
-                        Document
-                        in apps.get_app_config("disturbance").models[m].__bases__
-                    ),
+                    lambda m: Document in apps.get_app_config("disturbance").models[m].__bases__,
                     apps.get_app_config("disturbance").models,
                 ),
             )
@@ -231,32 +206,6 @@ class FileExtensionWhitelist(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         cache.delete(settings.CACHE_KEY_FILE_EXTENSION_WHITELIST)
-
-
-class Document(SanitiseFileMixin):
-    name = models.CharField(
-        max_length=255, blank=True, verbose_name="name", help_text=""
-    )
-    description = models.TextField(blank=True, verbose_name="description", help_text="")
-    uploaded_date = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        app_label = "disturbance"
-        abstract = True
-
-    @property
-    def path(self):
-        if self._file:
-            return self._file.path
-        else:
-            return ""
-
-    @property
-    def filename(self):
-        return os.path.basename(self.path)
-
-    def __str__(self):
-        return self.name or self.filename
 
 
 class MapLayer(SanitiseMixin):
@@ -272,7 +221,7 @@ class MapLayer(SanitiseMixin):
         verbose_name = "apiary map layer"
 
     def __str__(self):
-        return "{0}, {1}".format(self.display_name, self.layer_name)
+        return f"{self.display_name}, {self.layer_name}"
 
     @property
     def column_names(self):
@@ -284,7 +233,7 @@ class MapLayer(SanitiseMixin):
     def save(self, *args, **kwargs):
         cache.delete("utils_cache.get_proxy_cache()")
         self.full_clean()
-        super(MapLayer, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 class MapColumn(SanitiseMixin):
@@ -304,7 +253,7 @@ class MapColumn(SanitiseMixin):
         verbose_name = "apiary map column"
 
     def __str__(self):
-        return "{0}, {1}".format(self.map_layer, self.name)
+        return f"{self.map_layer}, {self.name}"
 
 
 @python_2_unicode_compatible
@@ -328,9 +277,7 @@ class ArchivedDistrictManager(models.Manager):
 
 @python_2_unicode_compatible
 class District(SanitiseMixin):
-    region = models.ForeignKey(
-        Region, related_name="districts", on_delete=models.CASCADE
-    )
+    region = models.ForeignKey(Region, related_name="districts", on_delete=models.CASCADE)
     name = models.CharField(max_length=200, unique=True)
     code = models.CharField(max_length=3)
     archive_date = models.DateField(null=True, blank=True)
@@ -444,9 +391,7 @@ class ApplicationType(models.Model):
     application_fee = models.DecimalField(max_digits=6, decimal_places=2)
     oracle_code_application = models.CharField(max_length=50)
     is_gst_exempt = models.BooleanField(default=True)
-    domain_used = models.CharField(
-        max_length=40, choices=DOMAIN_USED_CHOICES, default=DOMAIN_USED_CHOICES[0][0]
-    )
+    domain_used = models.CharField(max_length=40, choices=DOMAIN_USED_CHOICES, default=DOMAIN_USED_CHOICES[0][0])
     searchable = models.BooleanField(default=True)
 
     class Meta:
@@ -468,9 +413,7 @@ class ActivityMatrix(models.Model):
     )
     description = models.CharField(max_length=256, blank=True, null=True)
     schema = JSONField()
-    replaced_by = models.ForeignKey(
-        "self", on_delete=models.PROTECT, blank=True, null=True
-    )
+    replaced_by = models.ForeignKey("self", on_delete=models.PROTECT, blank=True, null=True)
     version = models.SmallIntegerField(default=1, blank=False, null=False)
     ordered = models.BooleanField("Activities Ordered Alphabetically", default=False)
 
@@ -480,37 +423,31 @@ class ActivityMatrix(models.Model):
         verbose_name_plural = "Approval matrix"
 
     def __str__(self):
-        return "{} - v{}".format(self.name, self.version)
+        return f"{self.name} - v{self.version}"
 
 
 @python_2_unicode_compatible
 class Tenure(SanitiseMixin):
     name = models.CharField(max_length=255, unique=True)
     order = models.PositiveSmallIntegerField(default=0)
-    application_type = models.ForeignKey(
-        ApplicationType, related_name="tenure_app_types", on_delete=models.CASCADE
-    )
+    application_type = models.ForeignKey(ApplicationType, related_name="tenure_app_types", on_delete=models.CASCADE)
 
     class Meta:
         ordering = ["order", "name"]
         app_label = "disturbance"
 
     def __str__(self):
-        return "{}: {}".format(self.name, self.application_type)
+        return f"{self.name}: {self.application_type}"
 
 
 @python_2_unicode_compatible
 class UserAction(SanitiseMixin):
-    who = models.ForeignKey(
-        EmailUser, null=False, blank=False, on_delete=models.CASCADE
-    )
+    who = models.ForeignKey(EmailUser, null=False, blank=False, on_delete=models.CASCADE)
     when = models.DateTimeField(null=False, blank=False, auto_now_add=True)
     what = models.TextField(blank=False)
 
     def __str__(self):
-        return "{what} ({who} at {when})".format(
-            what=self.what, who=self.who, when=self.when
-        )
+        return f"{self.what} ({self.who} at {self.when})"
 
     class Meta:
         abstract = True
@@ -533,17 +470,11 @@ class CommunicationsLogEntry(SanitiseMixin):
 
     type = models.CharField(max_length=20, choices=TYPE_CHOICES, default=DEFAULT_TYPE)
     reference = models.CharField(max_length=100, blank=True)
-    subject = models.CharField(
-        max_length=200, blank=True, verbose_name="Subject / Description"
-    )
+    subject = models.CharField(max_length=200, blank=True, verbose_name="Subject / Description")
     text = models.TextField(blank=True)
 
-    customer = models.ForeignKey(
-        EmailUser, null=True, related_name="+", on_delete=models.CASCADE
-    )
-    staff = models.ForeignKey(
-        EmailUser, null=True, related_name="+", on_delete=models.CASCADE
-    )
+    customer = models.ForeignKey(EmailUser, null=True, related_name="+", on_delete=models.CASCADE)
+    staff = models.ForeignKey(EmailUser, null=True, related_name="+", on_delete=models.CASCADE)
 
     created = models.DateTimeField(auto_now_add=True, null=False, blank=False)
 
@@ -553,9 +484,7 @@ class CommunicationsLogEntry(SanitiseMixin):
 
 @python_2_unicode_compatible
 class LedgerDocument(SanitiseFileMixin):
-    name = models.CharField(
-        max_length=255, blank=True, verbose_name="name", help_text=""
-    )
+    name = models.CharField(max_length=255, blank=True, verbose_name="name", help_text="")
     description = models.TextField(blank=True, verbose_name="description", help_text="")
     uploaded_date = models.DateTimeField(auto_now_add=True)
 
@@ -571,15 +500,16 @@ class LedgerDocument(SanitiseFileMixin):
     def __str__(self):
         return self.name or self.filename
 
+    def check_file(self, file):
+        return check_file(file, self._meta.model_name)
+
     class Meta:
         app_label = "disturbance"
 
 
 @python_2_unicode_compatible
 class Document(SanitiseFileMixin):
-    name = models.CharField(
-        max_length=255, blank=True, verbose_name="name", help_text=""
-    )
+    name = models.CharField(max_length=255, blank=True, verbose_name="name", help_text="")
     description = models.TextField(blank=True, verbose_name="description", help_text="")
     uploaded_date = models.DateTimeField(auto_now_add=True)
 
@@ -617,9 +547,7 @@ class SystemMaintenance(SanitiseMixin):
     def duration(self):
         """Duration of system maintenance (in mins)"""
         return (
-            int((self.end_date - self.start_date).total_seconds() / 60.0)
-            if self.end_date and self.start_date
-            else ""
+            int((self.end_date - self.start_date).total_seconds() / 60.0) if self.end_date and self.start_date else ""
         )
         # return (datetime.now(tz=tz) - self.start_date).total_seconds()/60.
 
@@ -630,8 +558,8 @@ class SystemMaintenance(SanitiseMixin):
         verbose_name_plural = "System maintenance"
 
     def __str__(self):
-        return "System Maintenance: {} ({}) - starting {}, ending {}".format(
-            self.name, self.description, self.start_date, self.end_date
+        return (
+            f"System Maintenance: {self.name} ({self.description}) - starting {self.start_date}, ending {self.end_date}"
         )
 
 
@@ -669,24 +597,16 @@ class ApiaryGlobalSettings(models.Model):
             "https://parks.dpaw.wa.gov.au/sites/default/files/downloads/know/DBCA%20apiary%20deed%20poll.pdf",
         ),
     )
-    key = models.CharField(
-        max_length=255, choices=keys, blank=False, null=False, unique=True
-    )
+    key = models.CharField(max_length=255, choices=keys, blank=False, null=False, unique=True)
     value = models.CharField(max_length=255)
-    _file = models.FileField(
-        max_length=255, upload_to="apiary_licence_template", null=True, blank=True
-    )
+    _file = models.FileField(max_length=255, upload_to="apiary_licence_template", null=True, blank=True)
 
     class Meta:
         app_label = "disturbance"
         verbose_name_plural = "Apiary Global Settings"
 
-    def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
-        super(ApiaryGlobalSettings, self).save(
-            force_insert, force_update, using, update_fields
-        )
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        super().save(force_insert, force_update, using, update_fields)
 
         if self._file:
             # When regions/districts file has been updated, update polygons for it.
@@ -705,9 +625,7 @@ class GlobalSettings(models.Model):
 
     keys = ((KEY_ASSESSMENT_REMINDER_DAYS, "Assessment reminder days"),)
     default_values = ()
-    key = models.CharField(
-        max_length=255, choices=keys, blank=False, null=False, unique=True
-    )
+    key = models.CharField(max_length=255, choices=keys, blank=False, null=False, unique=True)
     value = models.CharField(max_length=255)
 
     class Meta:
