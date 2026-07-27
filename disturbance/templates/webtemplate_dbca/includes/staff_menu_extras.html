@@ -5,5 +5,4 @@
 
 {% if is_apiary_admin_user or request.user.is_superuser %}
 <li><a class="dropdown-item" href="{% url 'mgt-commands' %}">Management Commands</a></li>
-<li><a class="dropdown-item" href="{{ LEDGER_UI_URL }}/ledger/account-management/">Account Management</a></li>
 {% endif %}
