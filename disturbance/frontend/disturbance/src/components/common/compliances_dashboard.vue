@@ -51,7 +51,6 @@ import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue'
 import {
     api_endpoints,
-    helpers,
     constants
 }from '@/utils/hooks'
 import $ from 'jquery';

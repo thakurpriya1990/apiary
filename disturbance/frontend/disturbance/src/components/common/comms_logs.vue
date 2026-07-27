@@ -71,7 +71,6 @@ export default {
         },
     },
     data() {
-        let vm = this;
         return {
             uuid: uuid(),
             dateFormat: 'DD/MM/YYYY HH:mm:ss',

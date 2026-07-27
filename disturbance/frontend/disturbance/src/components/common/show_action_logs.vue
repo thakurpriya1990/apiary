@@ -12,7 +12,7 @@
 import modal from '@vue-utils/bootstrap-modal.vue'
 import datatable from "@vue-utils/datatable.vue";
 import {
-    constants, helpers
+    constants
 } from '@/utils/hooks'
 import { v4 as uuid } from 'uuid';
 export default {
