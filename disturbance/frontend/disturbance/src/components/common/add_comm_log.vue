@@ -347,6 +347,7 @@ export default {
             vm.errorString = await helpers.apiVueResourceError(response);
           } else {
             vm.close();
+            vm.$emit("added");
           }
           vm.addingComms = false;
         })
