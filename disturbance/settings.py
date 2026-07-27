@@ -24,9 +24,7 @@ MEDIA_APIARY_DIR = env("MEDIA_APIARY_DIR", "apiary")
 SPATIAL_DATA_DIR = env("SPATIAL_DATA_DIR", "spatial_data")
 ANNUAL_RENTAL_FEE_GST_EXEMPT = True
 FILE_UPLOAD_MAX_MEMORY_SIZE = env("FILE_UPLOAD_MAX_MEMORY_SIZE", 15728640)
-APIARY_MIGRATED_LICENCES_APPROVER = env(
-    "APIARY_MIGRATED_LICENCES_APPROVER", "jacinta.overman@dbca.wa.gov.au"
-)
+APIARY_MIGRATED_LICENCES_APPROVER = env("APIARY_MIGRATED_LICENCES_APPROVER", "jacinta.overman@dbca.wa.gov.au")
 SHOW_API_ROOT = env("SHOW_API_ROOT", False)
 SSO_SETTING_URL = env("SSO_SETTING_URL", "")
 PRIVACY_POLICY_URL = env("PRIVACY_POLICY_URL", "")
@@ -77,27 +75,13 @@ MIDDLEWARE_CLASSES += [
 ]
 
 TEMPLATES[0]["DIRS"].append(os.path.join(BASE_DIR, "disturbance", "templates"))
-TEMPLATES[0]["DIRS"].append(
-    os.path.join(BASE_DIR, "disturbance", "components", "ap_payments", "templates")
-)
-TEMPLATES[0]["DIRS"].append(
-    os.path.join(BASE_DIR, "disturbance", "components", "approvals", "templates")
-)
-TEMPLATES[0]["DIRS"].append(
-    os.path.join(BASE_DIR, "disturbance", "components", "compliances", "templates")
-)
-TEMPLATES[0]["DIRS"].append(
-    os.path.join(BASE_DIR, "disturbance", "components", "emails", "templates")
-)
-TEMPLATES[0]["DIRS"].append(
-    os.path.join(BASE_DIR, "disturbance", "components", "organisations", "templates")
-)
-TEMPLATES[0]["DIRS"].append(
-    os.path.join(BASE_DIR, "disturbance", "components", "proposals", "templates")
-)
-TEMPLATES[0]["OPTIONS"]["context_processors"].append(
-    "disturbance.context_processors.apiary_url"
-)
+TEMPLATES[0]["DIRS"].append(os.path.join(BASE_DIR, "disturbance", "components", "ap_payments", "templates"))
+TEMPLATES[0]["DIRS"].append(os.path.join(BASE_DIR, "disturbance", "components", "approvals", "templates"))
+TEMPLATES[0]["DIRS"].append(os.path.join(BASE_DIR, "disturbance", "components", "compliances", "templates"))
+TEMPLATES[0]["DIRS"].append(os.path.join(BASE_DIR, "disturbance", "components", "emails", "templates"))
+TEMPLATES[0]["DIRS"].append(os.path.join(BASE_DIR, "disturbance", "components", "organisations", "templates"))
+TEMPLATES[0]["DIRS"].append(os.path.join(BASE_DIR, "disturbance", "components", "proposals", "templates"))
+TEMPLATES[0]["OPTIONS"]["context_processors"].append("disturbance.context_processors.apiary_url")
 
 if "css_url" in BOOTSTRAP3:
     del BOOTSTRAP3["css_url"]
@@ -117,9 +101,7 @@ NUMBER_OF_QUEUE_JOBS = 5
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles_ds")
 STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, "disturbance", "static")))
-STATICFILES_DIRS.append(
-    os.path.join(os.path.join(BASE_DIR, "disturbance", "static", "disturbance_vue"))
-)
+STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, "disturbance", "static", "disturbance_vue")))
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None
 STATIC_URL = "/static/"
 
@@ -129,17 +111,13 @@ APIARY_SYSTEM_NAME = env("APIARY_SYSTEM_NAME", "Apiary System")
 SYSTEM_NAME_SHORT = env("SYSTEM_NAME_SHORT", "Apiary")
 SITE_PREFIX = env("SITE_PREFIX")
 SITE_DOMAIN = env("SITE_DOMAIN")
-SUPPORT_EMAIL = env(
-    "SUPPORT_EMAIL", SYSTEM_NAME_SHORT.lower() + "@" + SITE_DOMAIN
-).lower()
+SUPPORT_EMAIL = env("SUPPORT_EMAIL", SYSTEM_NAME_SHORT.lower() + "@" + SITE_DOMAIN).lower()
 APIARY_SUPPORT_EMAIL = env("APIARY_SUPPORT_EMAIL", SUPPORT_EMAIL).lower()
 DEP_URL = env("DEP_URL", "www." + SITE_DOMAIN)
 DEP_PHONE = env("DEP_PHONE", "(08) 9219 9000")
 DEP_PHONE_SUPPORT = env("DEP_PHONE_SUPPORT", "(08) 9219 9000")
 DEP_FAX = env("DEP_FAX", "(08) 9423 8242")
-DEP_POSTAL = env(
-    "DEP_POSTAL", "Locked Bag 104, Bentley Delivery Centre, Western Australia 6983"
-)
+DEP_POSTAL = env("DEP_POSTAL", "Locked Bag 104, Bentley Delivery Centre, Western Australia 6983")
 DEP_NAME = env("DEP_NAME", "Department of Biodiversity, Conservation and Attractions")
 DEP_NAME_SHORT = env("DEP_NAME_SHORT", "DBCA")
 SITE_URL = env("SITE_URL", "https://" + ".".join([SITE_PREFIX, SITE_DOMAIN]).strip("."))
@@ -148,18 +126,14 @@ EMAIL_FROM = env("EMAIL_FROM", "no-reply@" + SITE_DOMAIN).lower()
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "no-reply@" + SITE_DOMAIN).lower()
 APIARY_ADMIN_GROUP = "Apiary Admin"
 APIARY_PAYMENTS_OFFICERS_GROUP = "Apiary Payments Officers"
-APPROVED_APIARY_EXTERNAL_USERS_GROUP = env(
-    "APPROVED_APIARY_EXTERNAL_USERS_GROUP", "Apiary Approved External Users"
-)
+APPROVED_APIARY_EXTERNAL_USERS_GROUP = env("APPROVED_APIARY_EXTERNAL_USERS_GROUP", "Apiary Approved External Users")
 CRON_EMAIL = env("CRON_EMAIL", "cron@" + SITE_DOMAIN).lower()
 TENURE_SECTION = env("TENURE_SECTION", None)
 ASSESSMENT_REMINDER_DAYS = env("ASSESSMENT_REMINDER_DAYS", 15)
 OSCAR_BASKET_COOKIE_OPEN = "das_basket"
 PAYMENT_SYSTEM_ID = env("PAYMENT_SYSTEM_ID", "S517")
 PS_PAYMENT_SYSTEM_ID = PAYMENT_SYSTEM_ID
-PAYMENT_SYSTEM_PREFIX = env(
-    "PAYMENT_SYSTEM_PREFIX", PAYMENT_SYSTEM_ID.replace("S", "0")
-)  # '0517'
+PAYMENT_SYSTEM_PREFIX = env("PAYMENT_SYSTEM_PREFIX", PAYMENT_SYSTEM_ID.replace("S", "0"))  # '0517'
 os.environ["LEDGER_PRODUCT_CUSTOM_FIELDS"] = (
     "('ledger_description','quantity','price_incl_tax','price_excl_tax','oracle_code')"
 )
@@ -187,9 +161,7 @@ CKEDITOR_CONFIGS = {
 BUILD_TAG = env(
     "BUILD_TAG", hashlib.md5(os.urandom(32)).hexdigest()
 )  # URL of the Dev app.js served by webpack & express
-GEOCODING_ADDRESS_SEARCH_TOKEN = env(
-    "GEOCODING_ADDRESS_SEARCH_TOKEN", "ACCESS_TOKEN_NOT_FOUND"
-)
+GEOCODING_ADDRESS_SEARCH_TOKEN = env("GEOCODING_ADDRESS_SEARCH_TOKEN", "ACCESS_TOKEN_NOT_FOUND")
 RESTRICTED_RADIUS = 3000  # unit: [m]
 DBCA_ABN = "38 052 249 024"
 if env("CONSOLE_EMAIL_BACKEND", False):
@@ -202,7 +174,9 @@ SITE_STATUS_DENIED = "denied"
 SITE_STATUS_CURRENT = "current"
 SITE_STATUS_NOT_TO_BE_REISSUED = "not_to_be_reissued"
 SITE_STATUS_SUSPENDED = "suspended"
-SITE_STATUS_TRANSFERRED = "transferred"  # This status 'transferred' is assigned to the old relationship (ApiarySiteOnApproval object)
+SITE_STATUS_TRANSFERRED = (
+    "transferred"  # This status 'transferred' is assigned to the old relationship (ApiarySiteOnApproval object)
+)
 SITE_STATUS_VACANT = "vacant"
 SITE_STATUS_DISCARDED = "discarded"
 BASE_EMAIL_TEXT = "disturbance/emails/base_email.txt"
@@ -235,6 +209,9 @@ LOGGING["handlers"]["console"]["formatter"] = "verbose2"
 LOGGING["handlers"]["console"]["level"] = "DEBUG"
 LOGGING["handlers"]["file"]["formatter"] = "verbose2"
 LOGGING["handlers"]["file"]["level"] = "INFO"
+
+LOGGING["loggers"]["asyncio"] = {"level": "INFO", "propagate": False}
+
 
 TEMPLATE_TITLE = "Apiary System"
 TEMPLATE_HEADER_LOGO = "/static/disturbance/img/logo-park-stay-trunc.gif"
@@ -272,9 +249,7 @@ LEDGER_UI_ACCOUNTS_MANAGEMENT = [
     {"postal_same_as_residential": {"options": {"view": True, "edit": True}}},
     {"address_details": {"options": {"billing_address": {"show": False}}}},
 ]
-LEDGER_UI_SYSTEM_ACCOUNTS_MANAGEMENT["address_details"]["options"]["billing_address"][
-    "show"
-] = False
+LEDGER_UI_SYSTEM_ACCOUNTS_MANAGEMENT["address_details"]["options"]["billing_address"]["show"] = False
 LEDGER_UI_ORGANISATION_MANAGEMENT = [
     {"organisation_name": {"options": {"view": True, "edit": True}}},
     {"organisation_abn": {"options": {"view": True, "edit": True}}},
@@ -293,16 +268,12 @@ RUNNING_DEVSERVER = len(sys.argv) > 1 and sys.argv[1] == "runserver"
 # so you can use the vite dev server with hot module reloading
 DJANGO_VITE_DEV_MODE = RUNNING_DEVSERVER and EMAIL_INSTANCE == "DEV" and DEBUG is True
 
-STATIC_URL_PREFIX = (
-    "/static/disturbance_vue/" if DJANGO_VITE_DEV_MODE else "disturbance_vue/"
-)
+STATIC_URL_PREFIX = "/static/disturbance_vue/" if DJANGO_VITE_DEV_MODE else "disturbance_vue/"
 
 DJANGO_VITE = {
     "default": {
         "dev_mode": DJANGO_VITE_DEV_MODE,
-        "manifest_path": os.path.join(
-            BASE_DIR, "disturbance", "static", "disturbance_vue", "manifest.json"
-        ),
+        "manifest_path": os.path.join(BASE_DIR, "disturbance", "static", "disturbance_vue", "manifest.json"),
         "dev_server_host": "localhost",  # Default host for vite (can change if needed)
         "dev_server_port": 5173,  # Default port for vite (can change if needed)
         "static_url_prefix": STATIC_URL_PREFIX,
@@ -322,12 +293,8 @@ LEDGER_PASS = env("LEDGER_PASS", "")
 KB_USER = env("KB_USER", LEDGER_USER)
 KB_PASSWORD = env("KB_PASSWORD", LEDGER_PASS)
 KB_SERVER_URL = env("KB_SERVER_URL", "https://kb.dbca.wa.gov.au/")
-KB_BASEMAP_STREET_LAYER = env(
-    "KB_BASEMAP_STREET_LAYER", "kaartdijin-boodja-public:mapbox-streets-public"
-)
-KB_BASEMAP_SATELLITE_LAYER = env(
-    "KB_BASEMAP_SATELLITE_LAYER", "kaartdijin-boodja-public:mapbox-satellite-public"
-)
+KB_BASEMAP_STREET_LAYER = env("KB_BASEMAP_STREET_LAYER", "kaartdijin-boodja-public:mapbox-streets-public")
+KB_BASEMAP_SATELLITE_LAYER = env("KB_BASEMAP_SATELLITE_LAYER", "kaartdijin-boodja-public:mapbox-satellite-public")
 
 CSRF_TRUSTED_ORIGINS_STRING = decouple.config("CSRF_TRUSTED_ORIGINS", default="[]")
 CSRF_TRUSTED_ORIGINS = json.loads(str(CSRF_TRUSTED_ORIGINS_STRING))
