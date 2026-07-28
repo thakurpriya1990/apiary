@@ -1,193 +1,229 @@
 <template lang="html">
-    <div id="internal-compliance-amend">
-        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" title="Amendment Request" large>
-            <div class="container-fluid">
-                <div class="row">
-                    <form class="form-horizontal" name="amendForm">
-                        <alert v-if="showError" type="danger"><strong>{{errorString}}</strong></alert>
-                        <div class="col-sm-12">
-                            <div class="row">
-                                <div class="offset-sm-2 col-sm-8">
-                                    <div class="mb-3">
-                                        <label class="form-label float-start"  for="Name">Reason</label>
-                                        <select class="form-select" name="reason" ref="reason" v-model="amendment.reason">
-                                            <option v-for="r in reason_choices" :value="r.key" :key="r.key">{{r.value}}</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="offset-sm-2 col-sm-8">
-                                    <div class="mb-3">
-                                        <label class="form-label float-start"  for="Name">Details</label>
-                                        <textarea class="form-control" name="name" v-model="amendment.text"></textarea>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
+  <div id="internal-compliance-amend">
+    <modal
+      transition="modal fade"
+      @ok="ok()"
+      @cancel="cancel()"
+      title="Amendment Request"
+      large
+    >
+      <div class="container-fluid">
+        <div class="row">
+          <form class="form-horizontal" name="amendForm">
+            <alert v-if="showError" type="danger"
+              ><strong>{{ errorString }}</strong></alert
+            >
+            <div class="col-sm-12">
+              <div class="row">
+                <div class="offset-sm-2 col-sm-8">
+                  <div class="mb-3">
+                    <label class="form-label float-start" for="Name"
+                      >Reason</label
+                    >
+                    <select
+                      class="form-select"
+                      name="reason"
+                      ref="reason"
+                      v-model="amendment.reason"
+                    >
+                      <option
+                        v-for="r in reason_choices"
+                        :value="r.key"
+                        :key="r.key"
+                      >
+                        {{ r.value }}
+                      </option>
+                    </select>
+                  </div>
                 </div>
+              </div>
+              <div class="row">
+                <div class="offset-sm-2 col-sm-8">
+                  <div class="mb-3">
+                    <label class="form-label float-start" for="Name"
+                      >Details</label
+                    >
+                    <textarea
+                      class="form-control"
+                      name="name"
+                      v-model="amendment.text"
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
             </div>
-        </modal>
-    </div>
+          </form>
+        </div>
+      </div>
+    </modal>
+  </div>
 </template>
 
 <script>
-import modal from '@vue-utils/bootstrap-modal.vue'
-import alert from '@vue-utils/alert.vue'
-import $ from 'jquery';
+import modal from "@vue-utils/bootstrap-modal.vue";
+import alert from "@vue-utils/alert.vue";
+import $ from "jquery";
 // import {helpers, api_endpoints} from "@/utils/hooks.js"
 export default {
-    name:'compliance-amendment-request',
-    components:{
-        modal,
-        alert
+  name: "compliance-amendment-request",
+  components: {
+    modal,
+    alert,
+  },
+  props: {
+    compliance_id: {
+      type: Number,
     },
-    props:{
-            compliance_id:{
-                type:Number,
-            },
+  },
+  data: function () {
+    let vm = this;
+    return {
+      isModalOpen: false,
+      form: null,
+      amendment: {
+        reason: "",
+        amendingcompliance: false,
+        compliance: vm.compliance_id,
+      },
+      reason_choices: {},
+      errors: false,
+      errorString: "",
+      validation_form: null,
+    };
+  },
+  computed: {
+    showError: function () {
+      var vm = this;
+      return vm.errors;
     },
-    data:function () {
-        let vm = this;
-        return {
-            isModalOpen:false,
-            form:null,
-            amendment: {
-                reason:'',
-                amendingcompliance: false,
-                compliance: vm.compliance_id
-            },
-            reason_choices: {},
-            errors: false,
-            errorString: '',
-            validation_form: null,
-        }
+  },
+  methods: {
+    ok: function () {
+      let vm = this;
+      if ($(vm.form).valid()) {
+        vm.errors = false;
+        vm.sendData();
+      } else {
+        vm.errorString = "Missing required fields.";
+        vm.errors = true;
+      }
     },
-    computed: {
-        showError: function() {
-            var vm = this;
-            return vm.errors;
-        }
+    cancel: function () {
+      let vm = this;
+      vm.close();
     },
-    methods:{
+    close: function () {
+      this.isModalOpen = false;
+      this.amendment = {
+        reason: "",
+        compliance: this.compliance_id,
+      };
+      this.errors = false;
+      $(this.$refs.reason).val(null).trigger("change");
+      $(".has-error").removeClass("has-error");
 
-        ok:function () {
-            let vm =this;
-            if($(vm.form).valid()){
-                vm.errors = false;
-                vm.sendData();
-            } else {
-                vm.errorString = "Missing required fields.";
-                vm.errors = true;
-            }
-        },
-        cancel:function () {
-            let vm = this;
-            vm.close();
-        },
-        close:function () {
-            this.isModalOpen = false;
-            this.amendment = {
-                reason: '',
-                compliance: this.compliance_id
-            };
-            this.errors = false;
-            $(this.$refs.reason).val(null).trigger('change');
-            $('.has-error').removeClass('has-error');
-
-            this.validation_form.resetForm();
-        },
-        fetchAmendmentChoices: function(){
-            let vm = this;
-            fetch('/api/compliance_amendment_reason_choices.json')
-            .then(async (response) => {
-                if (!response.ok) { return response.json().then(err => { throw err }); }
-                vm.reason_choices = await response.json();
-            }).catch((error) => {
-                console.log(error);
+      this.validation_form.resetForm();
+    },
+    fetchAmendmentChoices: function () {
+      let vm = this;
+      fetch("/api/compliance_amendment_reason_choices.json")
+        .then(async (response) => {
+          if (!response.ok) {
+            return response.json().then((err) => {
+              throw err;
             });
-        },
-        sendData:function(){
-            let vm = this;
-            vm.errors = false;
-            //console.log(vm.amendment);
-            let amendment = JSON.parse(JSON.stringify(vm.amendment));
-            fetch('/api/compliance_amendment_request.json',{
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(amendment)
-            }).then(async (response)=>{
-                //vm.$parent.loading.splice('processing contact',1);
-                if (!response.ok) {
-                    throw new Error(`Compliance Amendment Request Failed: ${response.status}`);
-                }
-                const res = await response.json();
-                swal.fire({
-                    title:'Sent',
-                    text:'An email has been sent to the proponent with the request to amend this compliance',
-                    icon:'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                vm.amendingcompliance = true;
-                console.log(res)
-                vm.close();
-                //vm.$emit('refreshFromResponse',response);
-
-                vm.$router.push({ path: '/internal' }); //Navigate to dashboard after creating Amendment request
-
-            }).catch((error)=>{
-                console.log(error);
-                vm.errors = true;
-                // vm.errorString = helpers.apiVueResourceError(error);
-                vm.errorString = error.message || 'An error occurred while requesting compliance amendment';
-                vm.amendingcompliance = true;
-            });
-        },
-        addFormValidations: function() {
-            let vm = this;
-            vm.validation_form = $(vm.form).validate({
-                rules: {
-                    reason: "required"
-                },
-            });
-       },
-       eventListerners:function () {
-            let vm = this;
-
-            // Intialise select2
-            $(vm.$refs.reason).select2({
-                "theme": "bootstrap",
-                allowClear: true,
-                placeholder:"Select Reason",
-                dropdownParent: $(vm.$refs.reason).parent(),
-            }).
-            on("select2:select",function (e) {
-                var selected = $(e.currentTarget);
-                vm.amendment.reason = selected.val();
-            }).
-            on("select2:unselect",function (e) {
-                var selected = $(e.currentTarget);
-                vm.amendment.reason = selected.val();
-            });
-       }
-   },
-   mounted:function () {
-       let vm =this;
-       vm.form = document.forms.amendForm;
-       vm.fetchAmendmentChoices();
-       vm.addFormValidations();
-       this.$nextTick(()=>{
-            vm.eventListerners();
+          }
+          vm.reason_choices = await response.json();
+        })
+        .catch((error) => {
+          console.log(error);
         });
+    },
+    sendData: function () {
+      let vm = this;
+      vm.errors = false;
+      //console.log(vm.amendment);
+      let amendment = JSON.parse(JSON.stringify(vm.amendment));
+      fetch("/api/compliance_amendment_request.json", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(amendment),
+      })
+        .then(async (response) => {
+          //vm.$parent.loading.splice('processing contact',1);
+          if (!response.ok) {
+            throw new Error(
+              `Compliance Amendment Request Failed: ${response.status}`,
+            );
+          }
+          const res = await response.json();
+          swal.fire({
+            title: "Sent",
+            text: "An email has been sent to the proponent with the request to amend this compliance",
+            icon: "success",
+            customClass: {
+              confirmButton: "btn btn-primary",
+            },
+          });
+          vm.amendingcompliance = true;
+          console.log(res);
+          vm.close();
+          //vm.$emit('refreshFromResponse',response);
+
+          vm.$router.push({ path: "/internal" }); //Navigate to dashboard after creating Amendment request
+        })
+        .catch((error) => {
+          console.log(error);
+          vm.errors = true;
+          // vm.errorString = helpers.apiVueResourceError(error);
+          vm.errorString =
+            error.message ||
+            "An error occurred while requesting compliance amendment";
+          vm.amendingcompliance = true;
+        });
+    },
+    addFormValidations: function () {
+      let vm = this;
+      vm.validation_form = $(vm.form).validate({
+        rules: {
+          reason: "required",
+        },
+      });
+    },
+    eventListerners: function () {
+      let vm = this;
+
+      // Intialise select2
+      $(vm.$refs.reason)
+        .select2({
+          theme: "bootstrap-5",
+          allowClear: true,
+          placeholder: "Select Reason",
+          dropdownParent: $(vm.$refs.reason).parent(),
+        })
+        .on("select2:select", function (e) {
+          var selected = $(e.currentTarget);
+          vm.amendment.reason = selected.val();
+        })
+        .on("select2:unselect", function (e) {
+          var selected = $(e.currentTarget);
+          vm.amendment.reason = selected.val();
+        });
+    },
+  },
+  mounted: function () {
+    let vm = this;
+    vm.form = document.forms.amendForm;
+    vm.fetchAmendmentChoices();
+    vm.addFormValidations();
+    this.$nextTick(() => {
+      vm.eventListerners();
+    });
     //console.log(validate);
-   }
-}
+  },
+};
 </script>
 
-<style lang="css">
-</style>
+<style lang="css"></style>
