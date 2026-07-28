@@ -76,14 +76,20 @@ class Organisation(models.Model):
 
     @property
     def organisation(self):
+        # Cache the ledger organisation data for the lifetime of this model
+        # instance to avoid repeated remote calls during serialization.
+        if hasattr(self, "_cached_organisation_data"):
+            return self._cached_organisation_data
+
         try:
-            data = get_organisation(self.organisation_id)['data']
+            data = get_organisation(self.organisation_id).get("data")
             if not data:
                 logger.warning(
-                    "Ledger API returned empty data for organisation_id=%s. "
-                    "The organisation may not exist in the ledger database.",
+                    "Ledger API returned empty data for organisation_id=%s. The organisation may not exist in the ledger database.",
                     self.organisation_id,
                 )
+            # store on instance to prevent duplicate calls during a request
+            self._cached_organisation_data = data
             return data
         except Exception as e:
             logger.error(
