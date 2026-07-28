@@ -1113,24 +1113,36 @@ def get_local_date(date_string):
 
 
 def save_checklist_answers(checklist_role, checklist_answers=None):
-    if checklist_answers and checklist_role == 'referrer':
+    """Save checklist answers using bulk operations to avoid N+1 DB queries."""
+    if not checklist_answers:
+        return
+
+    if checklist_role == 'referrer':
+        # Flatten all referral answers into a single list keyed by id
+        flat = {}
         for referral_answers in checklist_answers:
-            for ref_answer in referral_answers.get('referral_data'):
-                r_ans = ApiaryChecklistAnswer.objects.get(id=ref_answer['id'])
-                if ref_answer.get('question', {}).get('answer_type') == 'free_text':
-                    r_ans.text_answer = ref_answer['text_answer']
-                elif ref_answer.get('question', {}).get('answer_type') == 'yes_no':
-                    r_ans.answer = ref_answer['answer']
-                r_ans.save()
-    #elif checklist_answers and checklist_role == 'assessor':
+            for ref_answer in referral_answers.get('referral_data', []):
+                flat[ref_answer['id']] = ref_answer
     else:
-        for new_answer in checklist_answers:
-            ans = ApiaryChecklistAnswer.objects.get(id=new_answer['id'])
-            if new_answer.get('question', {}).get('answer_type') == 'free_text':
-                ans.text_answer = new_answer['text_answer']
-            elif new_answer.get('question', {}).get('answer_type') == 'yes_no':
-                ans.answer = new_answer['answer']
-            ans.save()
+        flat = {a['id']: a for a in checklist_answers}
+
+    if not flat:
+        return
+
+    # Single SELECT for all affected rows
+    instances = ApiaryChecklistAnswer.objects.select_related('question').filter(id__in=flat.keys())
+    to_update = []
+    for ans in instances:
+        data = flat[ans.id]
+        answer_type = data.get('question', {}).get('answer_type') or getattr(ans.question, 'answer_type', None)
+        if answer_type == 'free_text':
+            ans.text_answer = data.get('text_answer')
+        elif answer_type == 'yes_no':
+            ans.answer = data.get('answer')
+        to_update.append(ans)
+
+    if to_update:
+        ApiaryChecklistAnswer.objects.bulk_update(to_update, ['text_answer', 'answer'])
 
 
 def update_proposal_apiary_temporary_use(temp_use_obj, temp_use_data, action):
