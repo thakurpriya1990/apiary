@@ -2,6 +2,12 @@
 
 {% load static %}
 {% load django_vite %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link type="text/css" href="{% static 'disturbance/css/base.css' %}" rel="stylesheet">
+{% endblock %}
+
 {% block myorganisation_nav %}
 
 <button class="nav-link managed-organisation-nav" id="nav-manage-organisation-tab" data-bs-toggle="tab" data-bs-target="#nav-manage-organisation" type="button" role="tab" aria-controls="nav-manage-organisation" aria-selected="false">Manage Organisation</button>
