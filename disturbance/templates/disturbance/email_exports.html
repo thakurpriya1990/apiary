@@ -1,16 +1,6 @@
 {% extends 'disturbance/base.html' %}
 
 {% block content %}
-    <style>
-        .debug-box {
-            margin: 0 0 0 3em;
-            background: lightgray;
-            padding: 0.5em;
-        }
-        .row {
-            margin: 0 0 1em 0;
-        }
-    </style>
     <div class="container">
         <div class="card card-default">
             <div class="card-header h4 fw-bold p-4">
@@ -19,7 +9,8 @@
                 </h3>
             </div>
             <div class="card-body collapse show">
-                <div class="row form-group">
+                <div class="container">
+                <div class="mb-3">
                     <div class="col-sm-12">
                     {% if message %}
                     <div class="alert alert-success">{{message}}</div>
@@ -28,7 +19,7 @@
                     {% endif %}
                     </div>
                 </div>
-                <div class="row form-group">
+                <div class="row mb-3">
                     <label class="col-sm-3 control-label">Format</label>
                     <div class="col-sm-6">
                         <select id="format_select" name="format" class="form-select">
@@ -37,13 +28,13 @@
                         </select>
                     </div>
                 </div>
-                <div class="row form-group">
+                <div class="row mb-3">
                     <label class="col-sm-3 control-label"># Records for Report</label>
                     <div class="col-sm-6">
                         <input id="num_records" name="num_records" type="number" value=100000 max=500000 min=1 class="form-control">
                     </div>
                 </div>
-                <div class="row form-group">
+                <div class="row mb-3">
                     <label class="col-sm-3 control-label">Report Type</label>
                     <div class="col-sm-6">
                         <select id="report_select" onchange="selectReport()" class="form-select">
@@ -54,6 +45,7 @@
                             <option value="site_report">Sites</option>
                         </select>
                     </div>
+                </div>
                 </div>
             </div>
         </div>
