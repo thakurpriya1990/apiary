@@ -15,7 +15,7 @@
                 id="filter_search_row"
               >
                 <div v-show="select2Applied">
-                  <div class="row" id="filters_parent">
+                  <div class="row mb-3" id="filters_parent">
                     <div class="col-sm-1">
                       <label class="form-label">Status</label>
                     </div>
