@@ -55,7 +55,7 @@ WSGI_APPLICATION = "disturbance.wsgi.application"
 
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": (
-        "rest_framework.renderers.JSONRenderer",
+        "disturbance.renderers.ORJSONRenderer",
         "rest_framework_datatables.renderers.DatatablesRenderer",
     ),
     "EXCEPTION_HANDLER": "disturbance.exceptions.custom_exception_handler",
@@ -73,6 +73,9 @@ MIDDLEWARE_CLASSES += [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "disturbance.middleware.PaymentSessionMiddleware",
 ]
+
+# add the gzip middleware as the first entry in the list of middleware classes
+MIDDLEWARE_CLASSES.insert(0, "django.middleware.gzip.GZipMiddleware")
 
 TEMPLATES[0]["DIRS"].append(os.path.join(BASE_DIR, "disturbance", "templates"))
 TEMPLATES[0]["DIRS"].append(os.path.join(BASE_DIR, "disturbance", "components", "ap_payments", "templates"))
