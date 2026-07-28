@@ -849,41 +849,54 @@ class ProposalApiarySerializer(serializers.ModelSerializer):
                 obj.apiary_checklist.filter(question__checklist_role='assessor').filter(question__checklist_type='apiary').order_by('question__order'),
                 many=True).data
 
+    def _load_apiary_checklist_cache(self, obj):
+        # Load and cache all related ApiaryChecklistAnswer instances for this
+        # ProposalApiary to avoid issuing many DB queries during serialization.
+        if not hasattr(self, "_apiary_checklist_cache"):
+            try:
+                qs = obj.apiary_checklist.select_related("question", "apiary_site", "apiary_referral").all()
+                # Evaluate queryset and store as list for in-memory filtering
+                self._apiary_checklist_cache = list(qs)
+            except Exception:
+                self._apiary_checklist_cache = []
+        return self._apiary_checklist_cache
+
     def get_assessor_checklist_answers_per_site(self, obj):
-        return ApiaryChecklistAnswerSerializer(
-                obj.apiary_checklist.filter(question__checklist_role='assessor').filter(question__checklist_type='apiary_per_site').order_by('question__order'),
-                #obj.apiary_checklist.filter(question__checklist_role='assessor').order_by('question__order'),
-                many=True).data
+        answers = [a for a in self._load_apiary_checklist_cache(obj)
+                   if a.question.checklist_role == 'assessor' and a.question.checklist_type == 'apiary_per_site']
+        # sort by question.order then id to preserve previous ordering
+        answers.sort(key=lambda a: (getattr(a.question, 'order', 0), getattr(a, 'id', 0)))
+        return ApiaryChecklistAnswerSerializer(answers, many=True).data
 
     def get_referrer_checklist_answers(self, obj):
         referral_list = []
+        checklist = self._load_apiary_checklist_cache(obj)
         for referral in obj.proposal.referrals.all():
-            qs = ApiaryChecklistAnswerSerializer(
-                obj.apiary_checklist.filter(apiary_referral_id=referral.apiary_referral.id).filter(question__checklist_type='apiary').order_by('question__order'),
-                many=True).data
+            answers = [a for a in checklist if a.apiary_referral_id == getattr(referral.apiary_referral, 'id', None) and a.question.checklist_type == 'apiary']
+            answers.sort(key=lambda a: (getattr(a.question, 'order', 0), getattr(a, 'id', 0)))
+            qs = ApiaryChecklistAnswerSerializer(answers, many=True).data
             referral_list.append({
-                "referral_id": referral.id, 
-                "apiary_referral_id": referral.apiary_referral.id, 
+                "referral_id": referral.id,
+                "apiary_referral_id": referral.apiary_referral.id,
                 "referral_data": qs,
                 "referrer_group_name": referral.apiary_referral.referral_group.name,
-                })
+            })
         return referral_list
 
     def get_referrer_checklist_answers_per_site(self, obj):
         referral_list = []
+        checklist = self._load_apiary_checklist_cache(obj)
         for referral in obj.proposal.referrals.all():
             for site in obj.apiary_sites.all():
-                #import ipdb; ipdb.set_trace()
-                qs = ApiaryChecklistAnswerSerializer(
-                    #obj.apiary_checklist.filter(apiary_referral_id=referral.apiary_referral.id).order_by('question__order'),
-                    obj.apiary_checklist.filter(apiary_referral_id=referral.apiary_referral.id).filter(question__checklist_type='apiary_per_site').filter(apiary_site=site).order_by('question__order'),
-                    many=True).data
+                answers = [a for a in checklist if a.apiary_referral_id == getattr(referral.apiary_referral, 'id', None) and a.question.checklist_type == 'apiary_per_site' and getattr(a.apiary_site, 'id', None) == getattr(site, 'id', None)]
+                answers.sort(key=lambda a: (getattr(a.question, 'order', 0), getattr(a, 'id', 0)))
+                qs = ApiaryChecklistAnswerSerializer(answers, many=True).data
                 referral_list.append({
-                    "referral_id": referral.id, 
-                    "apiary_referral_id": referral.apiary_referral.id, 
+                    "referral_id": referral.id,
+                    "apiary_referral_id": referral.apiary_referral.id,
                     "referral_data": qs,
                     "referrer_group_name": referral.apiary_referral.referral_group.name,
-                    })
+                })
         return referral_list
 
     def get_site_transfer_assessor_checklist_answers(self, obj):
@@ -892,10 +905,10 @@ class ProposalApiarySerializer(serializers.ModelSerializer):
                 many=True).data
 
     def get_site_transfer_assessor_checklist_answers_per_site(self, obj):
-        return ApiaryChecklistAnswerSerializer(
-                obj.apiary_checklist.filter(question__checklist_role='assessor').filter(question__checklist_type='site_transfer_per_site').order_by('question__order'),
-                #obj.apiary_checklist.filter(question__checklist_role='assessor').order_by('question__order'),
-                many=True).data
+        answers = [a for a in self._load_apiary_checklist_cache(obj)
+                   if a.question.checklist_role == 'assessor' and a.question.checklist_type == 'site_transfer_per_site']
+        answers.sort(key=lambda a: (getattr(a.question, 'order', 0), getattr(a, 'id', 0)))
+        return ApiaryChecklistAnswerSerializer(answers, many=True).data
 
     def get_site_transfer_referrer_checklist_answers(self, obj):
         referral_list = []
@@ -913,18 +926,18 @@ class ProposalApiarySerializer(serializers.ModelSerializer):
 
     def get_site_transfer_referrer_checklist_answers_per_site(self, obj):
         referral_list = []
+        checklist = self._load_apiary_checklist_cache(obj)
         for referral in obj.proposal.referrals.all():
             for site in obj.get_relations():
-                qs = ApiaryChecklistAnswerSerializer(
-                    #obj.apiary_checklist.filter(apiary_referral_id=referral.apiary_referral.id).order_by('question__order'),
-                    obj.apiary_checklist.filter(apiary_referral_id=referral.apiary_referral.id).filter(question__checklist_type='site_transfer_per_site').filter(apiary_site=site.apiary_site).order_by('question__order'),
-                    many=True).data
+                answers = [a for a in checklist if a.apiary_referral_id == getattr(referral.apiary_referral, 'id', None) and a.question.checklist_type == 'site_transfer_per_site' and getattr(a.apiary_site, 'id', None) == getattr(site.apiary_site, 'id', None)]
+                answers.sort(key=lambda a: (getattr(a.question, 'order', 0), getattr(a, 'id', 0)))
+                qs = ApiaryChecklistAnswerSerializer(answers, many=True).data
                 referral_list.append({
-                    "referral_id": referral.id, 
-                    "apiary_referral_id": referral.apiary_referral.id, 
+                    "referral_id": referral.id,
+                    "apiary_referral_id": referral.apiary_referral.id,
                     "referral_data": qs,
                     "referrer_group_name": referral.apiary_referral.referral_group.name,
-                    })
+                })
         return referral_list
 
 
@@ -1406,13 +1419,10 @@ class ApiaryInternalProposalSerializer(BaseProposalSerializer):
         return obj.apiary_group_application_type
 
     def get_applicant_checklist(self, obj):
-        checklist = []
-        if hasattr(obj, 'proposal_apiary'):
-            if obj.proposal_apiary and obj.proposal_apiary.apiary_checklist.all():
-                for answer in obj.proposal_apiary.apiary_checklist.all().order_by('question__order'):
-                    serialized_answer = ApiaryChecklistAnswerSerializer(answer)
-                    checklist.append(serialized_answer.data)
-        return checklist
+        if not hasattr(obj, 'proposal_apiary') or not obj.proposal_apiary:
+            return []
+        qs = obj.proposal_apiary.apiary_checklist.select_related('question').order_by('question__order')
+        return ApiaryChecklistAnswerSerializer(qs, many=True).data
 
     def get_applicant_address(self, obj):
         if obj.relevant_applicant_address:
