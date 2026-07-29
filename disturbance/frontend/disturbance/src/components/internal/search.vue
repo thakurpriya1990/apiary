@@ -11,7 +11,7 @@
             <form name="searchOrganisationForm">
               <div class="mb-3">
                 <div class="row">
-                  <div class="col-md-8">
+                  <div class="col-md-5">
                     <div class="input-group">
                       <div class="flex-grow-1">
                         <select
@@ -42,9 +42,9 @@
             <div class="col-lg-12">
               <div class="mb-3">
                 <label for="" class="col-form-label col-lg-12 fs-5"
-                  >Filter</label
+                  >Records Types to Search</label
                 >
-                <div class="form-check col-md-3">
+                <div class="form-check col">
                   <input
                     class="form-check-input"
                     ref="searchProposal"
@@ -54,10 +54,13 @@
                     v-model="searchProposal"
                   />
                   <label class="form-check-label fw-normal" for="searchProposal"
-                    >Proposal</label
+                    >Application</label
                   >
+                  <div v-if="searchProposal" class="mb-2 text-muted">
+                    Searches the proposed issuance approval of the application
+                  </div>
                 </div>
-                <div class="form-check col-md-3">
+                <div class="form-check col">
                   <input
                     class="form-check-input"
                     ref="searchApproval"
@@ -67,10 +70,14 @@
                     v-model="searchApproval"
                   />
                   <label class="form-check-label fw-normal" for="searchApproval"
-                    >Approval</label
+                    >License</label
                   >
+                  <div v-if="searchApproval" class="mb-2 text-muted">
+                    Searches the surrender details, suspension details and
+                    cancellation details of the license
+                  </div>
                 </div>
-                <div class="form-check form-check-inline col-md-3">
+                <div class="form-check col">
                   <input
                     class="form-check-input"
                     ref="searchCompliance"
@@ -84,6 +91,10 @@
                     for="searchCompliance"
                     >Compliance with requirements</label
                   >
+                  <div v-if="searchCompliance" class="mb-2 text-muted">
+                    Searches the main details and requirement text of the
+                    compliance
+                  </div>
                 </div>
                 <label for="" class="col-form-label col-lg-12 fs-5"
                   >Keyword(s)</label
@@ -98,6 +109,7 @@
                         name="details"
                         placeholder=""
                         v-model="keyWord"
+                        @keyup.enter="add"
                       />
                       <button
                         type="button"
@@ -127,6 +139,9 @@
                         @click.prevent="search"
                         class="btn btn-primary btn-margin me-3"
                         value="Search"
+                        :disabled="
+                          !searchKeywords || searchKeywords.length === 0
+                        "
                       >
                         <i class="bi bi-search me-2"></i>Search
                       </button>
@@ -135,6 +150,9 @@
                         @click.prevent="reset"
                         class="btn btn-primary"
                         value="Clear"
+                        :disabled="
+                          !searchKeywords || searchKeywords.length === 0
+                        "
                       >
                         <i class="bi bi-x me-2"></i>Clear All Keywords
                       </button>
@@ -145,7 +163,7 @@
             </div>
           </div>
 
-          <div class="row mb-3">
+          <div class="row mb-1">
             <div class="col-lg-12">
               <ul class="list-inline">
                 <li
@@ -163,8 +181,6 @@
               </ul>
             </div>
           </div>
-
-          <div class="row mb-2"></div>
 
           <div class="row">
             <div class="col-lg-12">
