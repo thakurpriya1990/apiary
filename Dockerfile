@@ -115,6 +115,7 @@ COPY --from=builder --chown=oim:oim /app/disturbance /app/disturbance
 COPY --from=builder --chown=oim:oim /app/gunicorn.ini.py /app/gunicorn.ini.py
 COPY --from=builder --chown=oim:oim /app/manage.py /app/manage.py
 COPY --from=builder --chown=oim:oim /app/.env /app/.env
+COPY --from=builder --chown=oim:oim python-cron /app/python-cron
 
 # Cleanup
 USER root
