@@ -200,7 +200,7 @@
 
                 payload.approval_id = this.approval_id
 
-                let res = '';
+                let res;
                 try {
                     if (this.on_site_information.id) {
                         // Update existing on-site-information

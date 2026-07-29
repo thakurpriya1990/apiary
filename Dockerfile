@@ -89,6 +89,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     SECRET_KEY="ThisisNotRealKey" \
     SITE_PREFIX='das-apiary' \
     SITE_DOMAIN='dbca.wa.gov.au' \
+    ENABLE_SRI_CHECK=True \    
     CONTAINER_IMAGE_TAG=${IMAGE_TAG} \
     CONTAINER_IMAGE_NAME=${IMAGE_NAME}
 
@@ -115,6 +116,9 @@ COPY --from=builder --chown=oim:oim /app/disturbance /app/disturbance
 COPY --from=builder --chown=oim:oim /app/gunicorn.ini.py /app/gunicorn.ini.py
 COPY --from=builder --chown=oim:oim /app/manage.py /app/manage.py
 COPY --from=builder --chown=oim:oim /app/.env /app/.env
+COPY --from=builder --chown=oim:oim python-cron /app/python-cron
+COPY --from=builder --chown=oim:oim /app/sri-manifest.json /app/sri-manifest.json
+COPY --from=builder --chown=oim:oim /app/sri-files /app/sri-files
 
 # Cleanup
 USER root

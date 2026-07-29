@@ -71,7 +71,7 @@ export default {
         : null
       : null;
 
-    var help_text = null;
+    var help_text;
 
     if (c && c.help_text && c.help_text.indexOf("site_url:/") >= 0) {
       help_text = c.help_text.replace("site_url:/", site_url);
@@ -82,7 +82,7 @@ export default {
       help_text = c.help_text;
     }
 
-    var help_text_assessor = null;
+    var help_text_assessor;
 
     if (
       c &&
@@ -97,7 +97,7 @@ export default {
       help_text_assessor = c.help_text_assessor;
     }
 
-    var help_text_url = null;
+    var help_text_url;
 
     // repeat for help_text_url
     if (c && c.help_text_url && c.help_text_url.indexOf("site_url:/") >= 0) {
@@ -109,7 +109,7 @@ export default {
       help_text_url = c.help_text_url;
     }
 
-    var help_text_assessor_url = null;
+    var help_text_assessor_url;
 
     if (
       c &&
@@ -567,8 +567,8 @@ export default {
   ) {
     var box_visibility = this.status_data.assessorStatus.assessor_box_view;
     var boxes = [];
-    var name = null;
-    var assessor_visibility = null;
+    var name;
+    var assessor_visibility;
     if (!this.status_data.can_user_edit) {
       if (assessor_data) {
         var _dt = assessor_data.find((at) => at.name == c.name);

@@ -3550,8 +3550,6 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
     if searchCompliance:
         from disturbance.components.compliances.models import Compliance
 
-        logger.debug("1")
-
         # Build standard text string database filters across fields and relations
         compliance_query = Q()
         for word in searchWords:
@@ -3563,14 +3561,11 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
         compliance_list = Compliance.objects.filter(proposal__in=apiary_proposals).filter(compliance_query)
 
         for c in compliance_list:
-            logger.debug("boo")
 
             # Safely navigate the nested proposal relation to extract the applicant's name
             applicant_name = ""
             if c.proposal and c.proposal.applicant:
                 applicant_name = c.proposal.applicant.name
-
-            logger.debug("boo goo")
 
             # Check field 1: Main Text Field (Plain Text String)
             if c.text and any(word.lower() in c.text.lower() for word in searchWords):

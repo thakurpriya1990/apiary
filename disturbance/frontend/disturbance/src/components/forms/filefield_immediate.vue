@@ -111,7 +111,7 @@ export default {
             return helpers.getCookie('csrftoken')
         },
         document_action_url: function() {
-            let url = ''
+            let url
             if (this.documentActionUrl == 'temporary_document') {
                 if (!this.temporary_document_collection_id) {
                     url = api_endpoints.temporary_document

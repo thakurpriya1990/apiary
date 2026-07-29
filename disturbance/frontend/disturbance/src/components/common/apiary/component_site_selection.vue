@@ -249,7 +249,7 @@
                                 let status_for_colour = getStatusForColour(apiary_site, false)
                                 let fillColour = SiteColours[status_for_colour].fill
                                 let strokeColour = SiteColours[status_for_colour].stroke
-                                let sub_str = ''
+                                let sub_str
 
                                 if (status_for_colour === 'denied'){
                                     sub_str = '<svg height="20" width="20">' +
@@ -407,7 +407,7 @@
 
                                 if (vm.show_action_available_unavailable){
                                     // Mark as Available/Unavailable
-                                    let display_text = ''
+                                    let display_text
                                     if (vm.is_external && ['current',].includes(apiary_site.properties.status.toLowerCase())){
                                         if (apiary_site.properties.available){
                                             display_text = 'Mark as unavailable';

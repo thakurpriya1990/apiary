@@ -1,11 +1,21 @@
 {% extends "ledgerui/accounts_base_b5.html" %}
 {% load static %}
+{% load users %}
 {% load django_vite %}
 
 {% block extra_css %}
     {{ block.super }}
     <link type="text/css" href="{% static 'disturbance/css/base.css' %}" rel="stylesheet">
 {% endblock %}
+
+{% block menu_items_left_brand %}
+  {% is_internal as is_internal_login %}
+  <div class="navbar-nav">
+    <div class="nav-item">
+      <a class="nav-link{% if request.path == '/' %} active{% endif %}" href="{% url 'home' %}"><img src="{% static 'disturbance/img/dpaw_small.png' %}" class="me-2">{% if is_internal_login %}Applications{% else %}Home {% endif %}</a>
+    </div>
+  </div>
+{% endblock menu_items_left_brand %}
 
 {% block accounts_message_top %}
 <style>

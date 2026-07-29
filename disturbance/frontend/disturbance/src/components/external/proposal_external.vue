@@ -1,586 +1,723 @@
 <template lang="html">
-    <div class="container" >
-        <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
-            <div v-if="!proposal_readonly">
-              <div v-if="hasAmendmentRequest" class="row" style="color:red;">
-                <div class="col-lg-12 float-end">
-                    <FormSection :formCollapse="false" :label="amendmentRequestText" Index="amendment_request">
-                        <div v-for="a in amendment_request" :key="a.id">
-                          <p>Reason: {{a.reason}}</p>
-                          <p v-if="a.amendment_request_documents">Documents: </p><p v-for="d in a.amendment_request_documents" :key="d.id"><a :href="d._file" target="_blank" class="form-label float-start">{{d.name   }}</a><br></p>
-                          <p>Details: </p> <p v-for="t in splitText(a.text)" :key="t.text">{{t}}</p>
-                        </div>
-                    </FormSection>
+  <div class="container">
+    <form
+      :action="proposal_form_url"
+      method="post"
+      name="new_proposal"
+      enctype="multipart/form-data"
+    >
+      <div v-if="!proposal_readonly">
+        <div v-if="hasAmendmentRequest" class="row" style="color: red">
+          <div class="col-lg-12 float-end">
+            <FormSection
+              :formCollapse="false"
+              :label="amendmentRequestText"
+              Index="amendment_request"
+            >
+              <div v-for="a in amendment_request" :key="a.id">
+                <p>Reason: {{ a.reason }}</p>
+                <p v-if="a.amendment_request_documents">Documents:</p>
+                <p v-for="d in a.amendment_request_documents" :key="d.id">
+                  <a
+                    :href="d._file"
+                    target="_blank"
+                    class="form-label float-start"
+                    >{{ d.name }}</a
+                  ><br />
+                </p>
+                <p>Details:</p>
+                <p v-for="t in splitText(a.text)" :key="t.text">{{ t }}</p>
+              </div>
+            </FormSection>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="error"
+        v-if="missing_fields.length > 0"
+        style="margin: 10px; padding: 5px; color: red; border: 1px solid red"
+      >
+        <b>Please answer the following mandatory question(s):</b>
+        <ul>
+          <li v-for="error in missing_fields" :key="error.id">
+            {{ error.label }}
+          </li>
+        </ul>
+      </div>
+
+      <template v-if="proposal && proposal.application_type == 'Apiary'">
+        <ProposalApiary
+          v-if="proposal"
+          :proposal="proposal"
+          id="proposalStart"
+          :showSections="sectionShow"
+          ref="proposal_apiary"
+          :is_external="true"
+          @total_fee_south_west="update_total_fee_south_west"
+          @total_fee_remote="update_total_fee_remote"
+          @total_fee_south_west_renewal="update_total_fee_south_west_renewal"
+          @total_fee_remote_renewal="update_total_fee_remote_renewal"
+          @num_of_sites_remain_south_west="
+            update_num_of_sites_remain_south_west
+          "
+          @num_of_sites_remain_remote="update_num_of_sites_remain_remote"
+          @num_of_sites_remain_south_west_renewal="
+            update_num_of_sites_remain_south_west_renewal
+          "
+          @num_of_sites_remain_remote_renewal="
+            update_num_of_sites_remain_remote_renewal
+          "
+          @num_of_sites_south_west_to_add_as_remainder="
+            update_num_of_sites_south_west_to_add_as_remainder
+          "
+          @num_of_sites_remote_to_add_as_remainder="
+            update_num_of_sites_remote_to_add_as_remainder
+          "
+          @num_of_sites_south_west_renewal_to_add_as_remainder="
+            update_num_of_sites_south_west_renewal_to_add_as_remainder
+          "
+          @num_of_sites_remote_renewal_to_add_as_remainder="
+            update_num_of_sites_remote_renewal_to_add_as_remainder
+          "
+          @expiry_date_changed="expiry_date_changed"
+          @total_num_of_sites_on_map_unpaid="
+            total_num_of_sites_on_map_unpaid_changed
+          "
+          @total_num_of_sites_on_map="total_num_of_sites_on_map_changed"
+          @fee_remote_renewal="update_fee_remote_renewal"
+          @fee_south_west_renewal="update_fee_south_west_renewal"
+          class="row"
+        />
+      </template>
+      <template
+        v-else-if="proposal && proposal.application_type == 'Site Transfer'"
+      >
+        <ApiarySiteTransfer
+          v-if="proposal"
+          :proposal="proposal"
+          id="proposalStart"
+          :showSections="sectionShow"
+          ref="apiary_site_transfer"
+          :is_external="true"
+          @button_text="button_text"
+          @site_transfer_application_fee="setSiteTransferApplicationFee"
+          @selectedLicenceHolderChanged="selectedLicenceHolderChanged"
+        />
+      </template>
+
+      <template v-if="proposal && proposal.apiary_group_application_type">
+        <div>
+          <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
+          <input
+            type="hidden"
+            name="schema"
+            :value="JSON.stringify(proposal)"
+          />
+          <input type="hidden" name="proposal_id" :value="1" />
+
+          <div
+            v-if="proposal && !proposal.readonly"
+            class="proposal-footer-bar mt-4"
+          >
+            <div>
+              <div
+                class="d-flex align-items-center justify-content-between gap-3 flex-wrap"
+              >
+                <!-- Site / fee info -->
+                <div class="d-flex align-items-center gap-4">
+                  <template
+                    v-if="is_proposal_type_new || is_proposal_type_renewal"
+                  >
+                    <div class="proposal-footer-info">
+                      <div class="proposal-footer-label">New sites</div>
+                      <div class="proposal-footer-value">
+                        {{ num_of_sites_south_west_remain_after_payment }}
+                      </div>
+                      <div class="proposal-footer-value">
+                        {{ num_of_sites_remote_remain_after_payment }}
+                      </div>
+                    </div>
+                  </template>
+                  <template
+                    v-if="
+                      is_proposal_type_renewal && show_renewal_price_section
+                    "
+                  >
+                    <div class="proposal-footer-divider"></div>
+                    <div class="proposal-footer-info">
+                      <div class="proposal-footer-label">Renew sites</div>
+                      <div
+                        v-if="fee_south_west_renewal > 0"
+                        class="proposal-footer-value"
+                      >
+                        {{
+                          num_of_sites_south_west_renewal_remain_after_payment
+                        }}
+                      </div>
+                      <div
+                        v-if="fee_remote_renewal > 0"
+                        class="proposal-footer-value"
+                      >
+                        {{ num_of_sites_remote_renewal_remain_after_payment }}
+                      </div>
+                    </div>
+                  </template>
+                  <div
+                    class="proposal-footer-divider"
+                    v-if="is_proposal_type_new || is_proposal_type_renewal"
+                  ></div>
+                  <div class="proposal-footer-info">
+                    <div class="proposal-footer-label">Application fee</div>
+                    <div class="proposal-footer-fee">
+                      <span v-if="is_proposal_type_transfer"
+                        >${{ siteTransferApplicationFee }}</span
+                      >
+                      <span v-else>${{ sum_of_total_fees }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="d-flex align-items-center gap-2">
+                  <span v-if="!isSubmitting">
+                    <button
+                      type="button"
+                      @click.prevent="save_exit"
+                      class="btn btn-primary"
+                    >
+                      Save and Exit
+                    </button>
+                    <button
+                      type="button"
+                      @click.prevent="save(true)"
+                      class="btn btn-primary ms-2"
+                    >
+                      Save and Continue
+                    </button>
+                    <span v-if="!isSaving">
+                      <button
+                        v-if="proposal_type_name === 'transfer'"
+                        type="button"
+                        @click.prevent="submit"
+                        class="btn btn-primary ms-2"
+                        :disabled="pay_button_disabled"
+                      >
+                        Pay and Submit
+                      </button>
+                      <button
+                        v-else
+                        type="button"
+                        @click.prevent="submit"
+                        class="btn btn-primary ms-2"
+                        :disabled="!total_num_of_sites_on_map > 0"
+                      >
+                        {{ submit_button_text }}
+                      </button>
+                    </span>
+                  </span>
+                  <span v-else-if="isSubmitting">
+                    <button disabled class="btn btn-primary">
+                      <i class="fa fa-spin fa-spinner"></i>&nbsp;Submitting
+                    </button>
+                  </span>
+                  <input
+                    id="save_and_continue_btn"
+                    type="hidden"
+                    @click.prevent="save(false)"
+                    class="btn btn-primary"
+                    value="Save Without Confirmation"
+                  />
                 </div>
               </div>
             </div>
-
-            <div id="error" v-if="missing_fields.length > 0" style="margin: 10px; padding: 5px; color: red; border:1px solid red;">
-                <b>Please answer the following mandatory question(s):</b>
-                <ul>
-                    <li v-for="error in missing_fields" :key="error.id">
-                        {{ error.label }}
-                    </li>
-                </ul>
-            </div>
-
-            <template v-if="proposal && proposal.application_type=='Apiary'">
-                <ProposalApiary
-                    v-if="proposal"
-                    :proposal="proposal"
-                    id="proposalStart"
-                    :showSections="sectionShow"
-                    ref="proposal_apiary"
-                    :is_external="true"
-                    @total_fee_south_west="update_total_fee_south_west"
-                    @total_fee_remote="update_total_fee_remote"
-                    @total_fee_south_west_renewal="update_total_fee_south_west_renewal"
-                    @total_fee_remote_renewal="update_total_fee_remote_renewal"
-                    @num_of_sites_remain_south_west="update_num_of_sites_remain_south_west"
-                    @num_of_sites_remain_remote="update_num_of_sites_remain_remote"
-                    @num_of_sites_remain_south_west_renewal="update_num_of_sites_remain_south_west_renewal"
-                    @num_of_sites_remain_remote_renewal="update_num_of_sites_remain_remote_renewal"
-                    @num_of_sites_south_west_to_add_as_remainder="update_num_of_sites_south_west_to_add_as_remainder"
-                    @num_of_sites_remote_to_add_as_remainder="update_num_of_sites_remote_to_add_as_remainder"
-                    @num_of_sites_south_west_renewal_to_add_as_remainder="update_num_of_sites_south_west_renewal_to_add_as_remainder"
-                    @num_of_sites_remote_renewal_to_add_as_remainder="update_num_of_sites_remote_renewal_to_add_as_remainder"
-                    @expiry_date_changed="expiry_date_changed"
-                    @total_num_of_sites_on_map_unpaid="total_num_of_sites_on_map_unpaid_changed"
-                    @total_num_of_sites_on_map="total_num_of_sites_on_map_changed"
-                    @fee_remote_renewal="update_fee_remote_renewal"
-                    @fee_south_west_renewal="update_fee_south_west_renewal"
-                    class="row"
-                />
-            </template>
-            <template v-else-if="proposal && proposal.application_type=='Site Transfer'">
-                <ApiarySiteTransfer
-                    v-if="proposal"
-                    :proposal="proposal"
-                    id="proposalStart"
-                    :showSections="sectionShow"
-                    ref="apiary_site_transfer"
-                    :is_external="true"
-                    @button_text="button_text"
-                    @site_transfer_application_fee="setSiteTransferApplicationFee"
-                    @selectedLicenceHolderChanged="selectedLicenceHolderChanged"
-                />
-            </template>
-
-            <template v-if="proposal && proposal.apiary_group_application_type">
-                <div>
-                    <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
-                    <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
-                    <input type='hidden' name="proposal_id" :value="1" />
-
-                        <div v-if="proposal && !proposal.readonly" class="proposal-footer-bar mt-4">
-                            <div>
-                                <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
-
-                                    <!-- Site / fee info -->
-                                    <div class="d-flex align-items-center gap-4">
-                                        <template v-if="is_proposal_type_new || is_proposal_type_renewal">
-                                            <div class="proposal-footer-info">
-                                                <div class="proposal-footer-label">New sites</div>
-                                                <div class="proposal-footer-value">{{ num_of_sites_south_west_remain_after_payment }}</div>
-                                                <div class="proposal-footer-value">{{ num_of_sites_remote_remain_after_payment }}</div>
-                                            </div>
-                                        </template>
-                                        <template v-if="is_proposal_type_renewal && show_renewal_price_section">
-                                            <div class="proposal-footer-divider"></div>
-                                            <div class="proposal-footer-info">
-                                                <div class="proposal-footer-label">Renew sites</div>
-                                                <div v-if="fee_south_west_renewal > 0" class="proposal-footer-value">{{ num_of_sites_south_west_renewal_remain_after_payment }}</div>
-                                                <div v-if="fee_remote_renewal > 0" class="proposal-footer-value">{{ num_of_sites_remote_renewal_remain_after_payment }}</div>
-                                            </div>
-                                        </template>
-                                        <div class="proposal-footer-divider" v-if="is_proposal_type_new || is_proposal_type_renewal"></div>
-                                        <div class="proposal-footer-info">
-                                            <div class="proposal-footer-label">Application fee</div>
-                                            <div class="proposal-footer-fee">
-                                                <span v-if="is_proposal_type_transfer">${{ siteTransferApplicationFee }}</span>
-                                                <span v-else>${{ sum_of_total_fees }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Action buttons -->
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span v-if="!isSubmitting">
-                                            <button type="button" @click.prevent="save_exit" class="btn btn-primary">Save and Exit</button>
-                                            <button type="button" @click.prevent="save(true)" class="btn btn-primary ms-2">Save and Continue</button>
-                                            <span v-if="!isSaving">
-                                                <button
-                                                    v-if="proposal_type_name==='transfer'"
-                                                    type="button"
-                                                    @click.prevent="submit"
-                                                    class="btn btn-primary ms-2"
-                                                    :disabled="pay_button_disabled"
-                                                >Pay and Submit</button>
-                                                <button
-                                                    v-else
-                                                    type="button"
-                                                    @click.prevent="submit"
-                                                    class="btn btn-primary ms-2"
-                                                    :disabled="!total_num_of_sites_on_map > 0"
-                                                >{{ submit_button_text }}</button>
-                                            </span>
-                                        </span>
-                                        <span v-else-if="isSubmitting">
-                                            <button disabled class="btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Submitting</button>
-                                        </span>
-                                        <input id="save_and_continue_btn" type="hidden" @click.prevent="save(false)" class="btn btn-primary" value="Save Without Confirmation"/>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-                </div>
-            </template>
-        </form>
-        <div v-if="isSubmitting" id="overlay">
+          </div>
         </div>
-    </div>
+      </template>
+    </form>
+    <div v-if="isSubmitting" id="overlay"></div>
+  </div>
 </template>
 <script>
-
-import ProposalApiary from '../form_apiary.vue'
-import ApiarySiteTransfer from '../form_apiary_site_transfer.vue'
-import {
-  api_endpoints,
-  helpers
-}
-from '@/utils/hooks'
-import FormSection from "@/components/forms/section_toggle.vue"
-import $ from 'jquery';
+import ProposalApiary from "../form_apiary.vue";
+import ApiarySiteTransfer from "../form_apiary_site_transfer.vue";
+import { api_endpoints, helpers } from "@/utils/hooks";
+import FormSection from "@/components/forms/section_toggle.vue";
+import $ from "jquery";
 
 export default {
-    data: function() {
-        return {
-            "proposal": null,
-            "loading": [],
-            form: null,
-            amendment_request: [],
-            proposal_readonly: true,
-            hasAmendmentRequest: false,
-            submitting: false,
-            submittingProposal: false,
-            isSaving: false,
-            newText: "",
-            pBody: 'pBody',
-            missing_fields: [],
-            sectionShow: true,
-            submit_button_text: 'Submit',
-            selectedHolder: null,
+  data: function () {
+    return {
+      proposal: null,
+      loading: [],
+      form: null,
+      amendment_request: [],
+      proposal_readonly: true,
+      hasAmendmentRequest: false,
+      submitting: false,
+      submittingProposal: false,
+      isSaving: false,
+      newText: "",
+      pBody: "pBody",
+      missing_fields: [],
+      sectionShow: true,
+      submit_button_text: "Submit",
+      selectedHolder: null,
 
-            // Fee
-            total_fee_south_west: 0,
-            total_fee_remote: 0,
-            total_fee_south_west_renewal: 0,
-            total_fee_remote_renewal: 0,
-            fee_remote_renewal: 0,  // Used for toggling the 'renewal price section'
-            fee_south_west_renewal: 0,  // Used for toggling the 'renewal price section'
-            num_of_sites_remain_south_west: 0,
-            num_of_sites_remain_remote: 0,
-            num_of_sites_remain_south_west_renewal: 0,
-            num_of_sites_remain_remote_renewal: 0,
-            num_of_sites_south_west_to_add_as_remainder: 0,
-            num_of_sites_remote_to_add_as_remainder: 0,
-            num_of_sites_south_west_renewal_to_add_as_remainder: 0,
-            num_of_sites_remote_renewal_to_add_as_remainder: 0,
-            siteTransferApplicationFee: "0.00",
-            total_num_of_sites_on_map_unpaid: 0,
-            total_num_of_sites_on_map: 0,
+      // Fee
+      total_fee_south_west: 0,
+      total_fee_remote: 0,
+      total_fee_south_west_renewal: 0,
+      total_fee_remote_renewal: 0,
+      fee_remote_renewal: 0, // Used for toggling the 'renewal price section'
+      fee_south_west_renewal: 0, // Used for toggling the 'renewal price section'
+      num_of_sites_remain_south_west: 0,
+      num_of_sites_remain_remote: 0,
+      num_of_sites_remain_south_west_renewal: 0,
+      num_of_sites_remain_remote_renewal: 0,
+      num_of_sites_south_west_to_add_as_remainder: 0,
+      num_of_sites_remote_to_add_as_remainder: 0,
+      num_of_sites_south_west_renewal_to_add_as_remainder: 0,
+      num_of_sites_remote_renewal_to_add_as_remainder: 0,
+      siteTransferApplicationFee: "0.00",
+      total_num_of_sites_on_map_unpaid: 0,
+      total_num_of_sites_on_map: 0,
+    };
+  },
+  components: {
+    ProposalApiary,
+    ApiarySiteTransfer,
+    FormSection,
+  },
+  computed: {
+    amendmentRequestText: function () {
+      return "An amendment has been requested for this application";
+    },
+    show_renewal_price_section: function () {
+      if (this.fee_remote_renewal + this.fee_south_west_renewal > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    },
+    num_of_sites_south_west_remain_after_payment: function () {
+      let total =
+        this.num_of_sites_remain_south_west +
+        this.num_of_sites_south_west_to_add_as_remainder;
+      if (this.num_of_sites_south_west_to_add_as_remainder <= 0) {
+        return "Previously paid sites (south west): " + total;
+      } else {
+        return "Paid sites (south west) after payment: " + total;
+      }
+    },
+    num_of_sites_remote_remain_after_payment: function () {
+      let total =
+        this.num_of_sites_remain_remote +
+        this.num_of_sites_remote_to_add_as_remainder;
+      if (this.num_of_sites_remote_to_add_as_remainder <= 0) {
+        return "Previously paid sites (remote): " + total;
+      } else {
+        return "Paid sites (remote) after payment: " + total;
+      }
+    },
+    num_of_sites_south_west_renewal_remain_after_payment: function () {
+      let total =
+        this.num_of_sites_remain_south_west_renewal +
+        this.num_of_sites_south_west_renewal_to_add_as_remainder;
+      if (this.num_of_sites_south_west_renewal_to_add_as_remainder <= 0) {
+        return "Previously paid sites (south west): " + total;
+      } else {
+        return "Paid sites (south west) after payment: " + total;
+      }
+    },
+    num_of_sites_remote_renewal_remain_after_payment: function () {
+      let total =
+        this.num_of_sites_remain_remote_renewal +
+        this.num_of_sites_remote_renewal_to_add_as_remainder;
+      if (this.num_of_sites_remote_renewal_to_add_as_remainder <= 0) {
+        return "Previously paid sites (remote): " + total;
+      } else {
+        return "Paid sites (remote) after payment: " + total;
+      }
+    },
+    isLoading: function () {
+      return this.loading.length > 0;
+    },
+    isSubmitting: function () {
+      return this.submittingProposal;
+    },
+    csrf_token: function () {
+      return helpers.getCookie("csrftoken");
+    },
+    application_fee_url: function () {
+      return this.proposal ? `/application_fee/${this.proposal.id}/` : "";
+    },
+    proposal_form_url: function () {
+      return this.proposal
+        ? `/api/proposal/${this.proposal.id}/draft.json`
+        : "";
+    },
+    proposal_submit_url: function () {
+      return this.proposal
+        ? `/api/proposal/${this.proposal.id}/submit.json`
+        : "";
+    },
+    remove_apiary_site_url: function () {
+      return this.proposal
+        ? `/api/proposal/${this.proposal.id}/remove_apiary_site.json`
+        : "";
+    },
+    sum_of_total_fees: function () {
+      let sum =
+        this.total_fee_south_west +
+        this.total_fee_remote +
+        this.total_fee_south_west_renewal +
+        this.total_fee_remote_renewal;
+      return sum;
+    },
+    is_proposal_type_new: function () {
+      if (this.proposal_type_name === "new") {
+        return true;
+      }
+      return false;
+    },
+    is_proposal_type_renewal: function () {
+      if (this.proposal_type_name === "renewal") {
+        return true;
+      }
+      return false;
+    },
+    is_proposal_type_transfer: function () {
+      if (this.proposal_type_name === "transfer") {
+        return true;
+      }
+      return false;
+    },
+    proposal_type_name: function () {
+      if (this.proposal.application_type === "Apiary") {
+        if (this.proposal.proposal_type.toLowerCase() === "renewal") {
+          return "renewal";
+        } else {
+          return "new";
         }
+      } else if (this.proposal.application_type === "Site Transfer") {
+        return "transfer";
+      } else {
+        return "---";
+      }
     },
-    components: {
-        ProposalApiary,
-        ApiarySiteTransfer,
-        FormSection,
+    pay_button_disabled: function () {
+      if (this.selectedHolder && this.siteTransferApplicationFee > 0) {
+        return false;
+      }
+      return true;
     },
-    computed: {
-        amendmentRequestText: function() {
-            return 'An amendment has been requested for this application';
-        },
-        show_renewal_price_section: function(){
-            if (this.fee_remote_renewal + this.fee_south_west_renewal > 0){
-                return true
-            } else {
-                return false
-            }
-        },
-        num_of_sites_south_west_remain_after_payment: function() {
-            let total = this.num_of_sites_remain_south_west + this.num_of_sites_south_west_to_add_as_remainder
-            if (this.num_of_sites_south_west_to_add_as_remainder <= 0){
-                return 'Previously paid sites (south west): ' + total
-            } else {
-                return 'Paid sites (south west) after payment: ' + total
-            }
-        },
-        num_of_sites_remote_remain_after_payment: function() {
-            let total = this.num_of_sites_remain_remote + this.num_of_sites_remote_to_add_as_remainder
-            if (this.num_of_sites_remote_to_add_as_remainder <= 0){
-                return 'Previously paid sites (remote): ' + total
-            } else {
-                return 'Paid sites (remote) after payment: ' + total
-            }
-        },
-        num_of_sites_south_west_renewal_remain_after_payment: function() {
-            let total = this.num_of_sites_remain_south_west_renewal + this.num_of_sites_south_west_renewal_to_add_as_remainder
-            if (this.num_of_sites_south_west_renewal_to_add_as_remainder <= 0){
-                return 'Previously paid sites (south west): ' + total
-            } else {
-                return 'Paid sites (south west) after payment: ' + total
-            }
-        },
-        num_of_sites_remote_renewal_remain_after_payment: function() {
-            let total = this.num_of_sites_remain_remote_renewal + this.num_of_sites_remote_renewal_to_add_as_remainder
-            if (this.num_of_sites_remote_renewal_to_add_as_remainder <= 0){
-                return 'Previously paid sites (remote): ' + total
-            } else {
-                return 'Paid sites (remote) after payment: ' + total
-            }
-        },
-        isLoading: function() {
-          return this.loading.length > 0
-        },
-        isSubmitting: function() {
-          return this.submittingProposal;
-        },
-        csrf_token: function() {
-          return helpers.getCookie('csrftoken')
-        },
-        application_fee_url: function() {
-          return (this.proposal) ? `/application_fee/${this.proposal.id}/` : '';
-        },
-        proposal_form_url: function() {
-          return (this.proposal) ? `/api/proposal/${this.proposal.id}/draft.json` : '';
-        },
-        proposal_submit_url: function() {
-          return (this.proposal) ? `/api/proposal/${this.proposal.id}/submit.json` : '';
-        },
-        remove_apiary_site_url: function() {
-          return (this.proposal) ? `/api/proposal/${this.proposal.id}/remove_apiary_site.json` : '';
-        },
-        sum_of_total_fees: function(){
-            let sum = this.total_fee_south_west + this.total_fee_remote + this.total_fee_south_west_renewal + this.total_fee_remote_renewal
-            return sum
-        },
-        is_proposal_type_new: function(){
-            if (this.proposal_type_name === 'new'){
-                return true
-            }
-            return false
-        },
-        is_proposal_type_renewal: function(){
-            if (this.proposal_type_name === 'renewal'){
-                return true
-            }
-            return false
-        },
-        is_proposal_type_transfer: function(){
-            if (this.proposal_type_name === 'transfer'){
-                return true
-            }
-            return false
-        },
-        proposal_type_name: function() {
-            if (this.proposal.application_type === 'Apiary'){
-                if (this.proposal.proposal_type.toLowerCase() === 'renewal'){
-                    return 'renewal'
-                } else {
-                    return 'new'
-                }
-            } else if (this.proposal.application_type === 'Site Transfer'){
-                return 'transfer'
-            } else {
-                return '---'
-            }
-        },
-        pay_button_disabled: function(){
-            if (this.selectedHolder && this.siteTransferApplicationFee > 0){
-                return false
-            }
-            return true
+  },
+  watch: {
+    sum_of_total_fees: function () {
+      console.log("in sum_of_total_fees in watch");
+      if (this.sum_of_total_fees > 0) {
+        this.submit_button_text = "Pay and Submit";
+      } else {
+        this.submit_button_text = "Submit";
+      }
+    },
+  },
+  methods: {
+    update_fee_remote_renewal: function (value) {
+      this.fee_remote_renewal = value;
+    },
+    update_fee_south_west_renewal: function (value) {
+      this.fee_south_west_renewal = value;
+    },
+    selectedLicenceHolderChanged: function (selectedHolder) {
+      this.selectedHolder = selectedHolder;
+    },
+    total_num_of_sites_on_map_unpaid_changed: function (value) {
+      this.total_num_of_sites_on_map_unpaid = value;
+    },
+    total_num_of_sites_on_map_changed: function (value) {
+      this.total_num_of_sites_on_map = value;
+    },
+    expiry_date_changed: function (value) {
+      this.proposal.proposal_apiary.public_liability_insurance_expiry_date =
+        value;
+    },
+    setSiteTransferApplicationFee: function (fee) {
+      this.siteTransferApplicationFee = fee;
+    },
+    update_num_of_sites_south_west_to_add_as_remainder: function (value) {
+      this.num_of_sites_south_west_to_add_as_remainder = value;
+    },
+    update_num_of_sites_remote_to_add_as_remainder: function (value) {
+      this.num_of_sites_remote_to_add_as_remainder = value;
+    },
+    update_num_of_sites_south_west_renewal_to_add_as_remainder: function (
+      value,
+    ) {
+      this.num_of_sites_south_west_renewal_to_add_as_remainder = value;
+    },
+    update_num_of_sites_remote_renewal_to_add_as_remainder: function (value) {
+      this.num_of_sites_remote_renewal_to_add_as_remainder = value;
+    },
+    update_num_of_sites_remain_south_west: function (value) {
+      this.num_of_sites_remain_south_west = value;
+    },
+    update_num_of_sites_remain_remote: function (value) {
+      this.num_of_sites_remain_remote = value;
+    },
+    update_num_of_sites_remain_south_west_renewal: function (value) {
+      this.num_of_sites_remain_south_west_renewal = value;
+    },
+    update_num_of_sites_remain_remote_renewal: function (value) {
+      this.num_of_sites_remain_remote_renewal = value;
+    },
+    update_total_fee_south_west: function (total_fee) {
+      console.log("in update_total_fee_south_west: " + total_fee);
+      this.total_fee_south_west = total_fee;
+    },
+    update_total_fee_remote: function (total_fee) {
+      console.log("in update_total_fee_remote: " + total_fee);
+      this.total_fee_remote = total_fee;
+    },
+    update_total_fee_south_west_renewal: function (total_fee) {
+      console.log("in update_total_fee_south_west_renewal: " + total_fee);
+      this.total_fee_south_west_renewal = total_fee;
+    },
+    update_total_fee_remote_renewal: function (total_fee) {
+      console.log("in update_total_fee_remote_renewal: " + total_fee);
+      this.total_fee_remote_renewal = total_fee;
+    },
+    button_text: function (button_text) {
+      console.log("button text updated: " + button_text);
+      this.submit_button_text = button_text;
+    },
+    attach_apiary_sites_data: function (formData) {
+      try {
+        // Append apiary_sites edited data
+        if (
+          this.proposal &&
+          this.proposal.proposal_apiary &&
+          this.$refs.proposal_apiary
+        ) {
+          let allFeatures =
+            this.$refs.proposal_apiary.$refs.apiary_site_locations.getFeatures();
+          let json_features = JSON.stringify(allFeatures);
+          formData.append("all_the_features", json_features);
         }
+        return formData;
+      } catch (err) {
+        console.log(err);
+        return formData;
+      }
     },
-    watch: {
-        sum_of_total_fees: function(){
-            console.log('in sum_of_total_fees in watch')
-            if (this.sum_of_total_fees > 0){
-                this.submit_button_text = 'Pay and Submit'
-            } else {
-                this.submit_button_text = 'Submit'
-            }
-        },
+    save: async function (confirmation_required) {
+      console.log("in save");
+      this.isSaving = true;
+      await this.$nextTick();
+
+      let vm = this;
+      vm.form = document.forms.new_proposal;
+
+      let formData = new FormData(vm.form);
+      // Add apiary_sites data if needed
+      formData = this.attach_apiary_sites_data(formData);
+
+      if (
+        this.$refs.apiary_site_transfer &&
+        this.$refs.apiary_site_transfer.apiary_sites_local
+      ) {
+        formData.append(
+          "apiary_sites_local",
+          JSON.stringify(this.$refs.apiary_site_transfer.apiary_sites_local),
+        );
+      }
+      if (
+        this.$refs.apiary_site_transfer &&
+        this.$refs.apiary_site_transfer.selectedLicenceHolder
+      ) {
+        formData.append(
+          "selected_licence_holder",
+          JSON.stringify(this.$refs.apiary_site_transfer.selectedLicenceHolder),
+        );
+      }
+      if (
+        this.$refs.apiary_site_transfer &&
+        this.$refs.apiary_site_transfer.transfereeEmail
+      ) {
+        let transfereeEmail = this.$refs.apiary_site_transfer.transfereeEmail;
+        formData.append("transferee_email_text", transfereeEmail);
+      }
+
+      console.log("http.post: " + vm.proposal_form_url);
+      fetch(vm.proposal_form_url, {
+        method: "POST",
+        body: formData,
+      })
+        .then(async (response) => {
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw { body: errorData };
+          }
+
+          if (confirmation_required) {
+            swal
+              .fire({
+                title: "Saved",
+                text: "Your application has been saved. The page will be refreshed.",
+                icon: "success",
+                customClass: {
+                  confirmButton: "btn btn-primary",
+                },
+              })
+              .then(() => {
+                vm.$router.go(0);
+              });
+          }
+
+          vm.isSaving = false;
+        })
+        .catch((err) => {
+          console.log("err");
+          console.log(err);
+
+          if (
+            err.body?.type &&
+            err.body.type[0] === "site_no_longer_available"
+          ) {
+            vm.display_site_no_longer_available_modal(err);
+          } else {
+            helpers.processError(err);
+          }
+        });
     },
-    methods: {
-        update_fee_remote_renewal: function(value){
-            this.fee_remote_renewal = value
-        },
-        update_fee_south_west_renewal: function(value){
-            this.fee_south_west_renewal = value
-        },
-        selectedLicenceHolderChanged: function(selectedHolder){
-            this.selectedHolder = selectedHolder
-        },
-        total_num_of_sites_on_map_unpaid_changed: function(value){
-            this.total_num_of_sites_on_map_unpaid = value
-        },
-        total_num_of_sites_on_map_changed: function(value){
-            this.total_num_of_sites_on_map = value
-        },
-        expiry_date_changed: function(value){
-            this.proposal.proposal_apiary.public_liability_insurance_expiry_date = value;
-        },
-        setSiteTransferApplicationFee: function(fee) {
-            this.siteTransferApplicationFee = fee;
-        },
-        update_num_of_sites_south_west_to_add_as_remainder: function(value){
-            this.num_of_sites_south_west_to_add_as_remainder = value
-        },
-        update_num_of_sites_remote_to_add_as_remainder: function(value){
-            this.num_of_sites_remote_to_add_as_remainder = value
-        },
-        update_num_of_sites_south_west_renewal_to_add_as_remainder: function(value){
-            this.num_of_sites_south_west_renewal_to_add_as_remainder = value
-        },
-        update_num_of_sites_remote_renewal_to_add_as_remainder: function(value){
-            this.num_of_sites_remote_renewal_to_add_as_remainder = value
-        },
-        update_num_of_sites_remain_south_west: function(value){
-            this.num_of_sites_remain_south_west = value
-        },
-        update_num_of_sites_remain_remote: function(value){
-            this.num_of_sites_remain_remote = value
-        },
-        update_num_of_sites_remain_south_west_renewal: function(value){
-            this.num_of_sites_remain_south_west_renewal = value
-        },
-        update_num_of_sites_remain_remote_renewal: function(value){
-            this.num_of_sites_remain_remote_renewal = value
-        },
-        update_total_fee_south_west: function(total_fee){
-            console.log('in update_total_fee_south_west: ' + total_fee)
-            this.total_fee_south_west = total_fee
-        },
-        update_total_fee_remote: function(total_fee){
-            console.log('in update_total_fee_remote: ' + total_fee)
-            this.total_fee_remote = total_fee
-        },
-        update_total_fee_south_west_renewal: function(total_fee){
-            console.log('in update_total_fee_south_west_renewal: ' + total_fee)
-            this.total_fee_south_west_renewal = total_fee
-        },
-        update_total_fee_remote_renewal: function(total_fee){
-            console.log('in update_total_fee_remote_renewal: ' + total_fee)
-            this.total_fee_remote_renewal = total_fee
-        },
-        button_text: function(button_text){
-            console.log('button text updated: ' + button_text)
-            this.submit_button_text = button_text
-        },
-        attach_apiary_sites_data: function(formData){
+    save_exit: async function () {
+      let vm = this;
+      this.isSaving = true;
+      vm.form = document.forms.new_proposal;
+      this.submitting = true;
+      await this.save(true);
+
+      // redirect back to dashboard
+      vm.$router.push({
+        name: "external-proposals-dash",
+      });
+      this.isSaving = false;
+    },
+    sectionHide: function () {
+      let vm = this;
+      vm.sectionShow = !vm.sectionShow;
+      //console.log(vm.sectionShow);
+    },
+    setdata: function (readonly) {
+      this.proposal_readonly = readonly;
+    },
+    setAmendmentData: function (amendment_request) {
+      this.amendment_request = amendment_request;
+      if (amendment_request.length > 0) this.hasAmendmentRequest = true;
+    },
+    splitText: function (aText) {
+      let newText = aText.split("\n");
+      return newText;
+    },
+    leaving: function (e) {
+      let vm = this;
+      var dialogText = "You have some unsaved changes.";
+      if (!vm.proposal_readonly && !vm.submitting) {
+        e.returnValue = dialogText;
+        return dialogText;
+      } else {
+        return null;
+      }
+    },
+    highlight_missing_fields: function () {
+      let vm = this;
+      for (var missing_field of vm.missing_fields) {
+        $("#" + missing_field.id).css("color", "red");
+      }
+    },
+    validate: function () {
+      let vm = this;
+
+      // reset default colour
+      for (var field of vm.missing_fields) {
+        $("#" + field.id).css("color", "#515151");
+      }
+      vm.missing_fields = [];
+
+      // get all required fields, that are not hidden in the DOM
+      //var hidden_fields = $('input[type=text]:hidden, textarea:hidden, input[type=checkbox]:hidden, input[type=radio]:hidden, input[type=file]:hidden');
+      //hidden_fields.prop('required', null);
+      //var required_fields = $('select:required').not(':hidden');
+      var required_fields = $(
+        "input[type=text]:required, textarea:required, input[type=checkbox]:required, input[type=radio]:required, input[type=file]:required, select:required",
+      ).not(":hidden");
+
+      // loop through all (non-hidden) required fields, and check data has been entered
+      required_fields.each(function () {
+        //console.log('type: ' + this.type + ' ' + this.name)
+        var id = "id_" + this.name;
+        if (this.type == "radio") {
+          //if (this.type == 'radio' && !$("input[name="+this.name+"]").is(':checked')) {
+          if (!$("input[name=" + this.name + "]").is(":checked")) {
+            var text = $("#" + id).text();
+            console.log("radio not checked: " + this.type + " " + text);
+            vm.missing_fields.push({ id: id, label: text });
+          }
+        }
+
+        if (this.type == "checkbox") {
+          var chk_id = "id_" + this.className;
+          var chk_text;
+          if ($("[class=" + this.className + "]:checked").length == 0) {
             try {
-                // Append apiary_sites edited data
-                if (this.proposal && this.proposal.proposal_apiary && this.$refs.proposal_apiary){
-                    let allFeatures = this.$refs.proposal_apiary.$refs.apiary_site_locations.getFeatures()
-                    let json_features = JSON.stringify(allFeatures)
-                    formData.append('all_the_features', json_features)
-                }
-                return formData
-            } catch (err) {
-                console.log(err)
-                return formData
+              chk_text = $("#" + chk_id).text();
+            } catch (error) {
+              console.log(error);
+              chk_text = $("#" + chk_id).textContent;
             }
-        },
-        save: async function(confirmation_required) {
-            console.log('in save');
-            this.isSaving = true;
-            await this.$nextTick();
+            console.log("checkbox not checked: " + this.type + " " + chk_text);
+            vm.missing_fields.push({ id: chk_id, label: chk_text });
+          }
+        }
 
-            let vm = this;
-            vm.form=document.forms.new_proposal;
+        if (this.type == "select-one") {
+          if ($(this).val() == "") {
+            var sel_text = $("#" + id).text(); // this is the (question) label
+            var sel_id = "id_" + $(this).prop("name"); // the label id
+            console.log("selector not selected: " + this.type + " " + sel_text);
+            vm.missing_fields.push({ id: sel_id, label: sel_text });
+          }
+        }
 
-            let formData = new FormData(vm.form);
-            // Add apiary_sites data if needed
-            formData = this.attach_apiary_sites_data(formData)
+        if (this.type == "file") {
+          var num_files = $("#" + id).attr("num_files");
+          if (num_files == "0") {
+            var file_text = $("#" + id).text();
+            console.log("file not uploaded: " + this.type + " " + this.name);
+            vm.missing_fields.push({ id: id, label: file_text });
+          }
+        }
 
-            if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.apiary_sites_local) {
-                formData.append('apiary_sites_local', JSON.stringify(this.$refs.apiary_site_transfer.apiary_sites_local));
-            }
-            if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.selectedLicenceHolder){
-                formData.append('selected_licence_holder', JSON.stringify(this.$refs.apiary_site_transfer.selectedLicenceHolder));
-            }
-            if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.transfereeEmail){
-                let transfereeEmail = this.$refs.apiary_site_transfer.transfereeEmail
-                formData.append('transferee_email_text', transfereeEmail);
-            }
+        if (this.type == "text") {
+          if (this.value == "") {
+            var txt_text = $("#" + id).text();
+            console.log("text not provided: " + this.type + " " + this.name);
+            vm.missing_fields.push({ id: id, label: txt_text });
+          }
+        }
 
-            console.log('http.post: ' + vm.proposal_form_url)
-            fetch(vm.proposal_form_url, {
-                method: 'POST',
-                body: formData,
-            })
-            .then(async response => {
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw { body: errorData };
-                }
+        if (this.type == "textarea") {
+          if (this.value == "") {
+            var txtarea_text = $("#" + id).text();
+            console.log(
+              "textarea not provided: " + this.type + " " + this.name,
+            );
+            vm.missing_fields.push({ id: id, label: txtarea_text });
+          }
+        }
 
-                if (confirmation_required) {
-                    swal.fire({
-                        title: 'Saved',
-                        text: 'Your application has been saved. The page will be refreshed.',
-                        icon: 'success',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    }).then(() => {
-                        vm.$router.go(0);
-                    });
-                }
-
-                vm.isSaving = false;
-                
-            })
-            .catch(err => {
-                console.log('err');
-                console.log(err);
-
-                if (err.body?.type && err.body.type[0] === 'site_no_longer_available') {
-                    vm.display_site_no_longer_available_modal(err);
-                } else {
-                    helpers.processError(err);
-                }
-            });
-        },
-        save_exit: async function() {
-            let vm = this;
-            this.isSaving = true;
-            vm.form=document.forms.new_proposal;
-            this.submitting = true;
-            await this.save(true);
-
-            // redirect back to dashboard
-            vm.$router.push({
-                name: 'external-proposals-dash'
-            });
-            this.isSaving = false;
-        },
-        sectionHide: function() {
-            let vm = this;
-            vm.sectionShow=!vm.sectionShow
-            //console.log(vm.sectionShow);
-        },
-        setdata: function(readonly){
-            this.proposal_readonly = readonly;
-        },
-        setAmendmentData: function(amendment_request){
-            this.amendment_request = amendment_request;
-            if (amendment_request.length > 0)
-                this.hasAmendmentRequest = true;
-        },
-        splitText: function(aText){
-            let newText = '';
-            newText = aText.split("\n");
-            return newText;
-        },
-        leaving: function(e) {
-            let vm = this;
-            var dialogText = 'You have some unsaved changes.';
-            if (!vm.proposal_readonly && !vm.submitting){
-                e.returnValue = dialogText;
-                return dialogText;
-            }
-            else{
-                return null;
-            }
-        },
-        highlight_missing_fields: function(){
-            let vm = this;
-            for (var missing_field of vm.missing_fields) {
-                $("#" + missing_field.id).css("color", 'red');
-            }
-        },
-        validate: function(){
-            let vm = this;
-
-            // reset default colour
-            for (var field of vm.missing_fields) {
-                $("#" + field.id).css("color", '#515151');
-            }
-            vm.missing_fields = [];
-
-            // get all required fields, that are not hidden in the DOM
-            //var hidden_fields = $('input[type=text]:hidden, textarea:hidden, input[type=checkbox]:hidden, input[type=radio]:hidden, input[type=file]:hidden');
-            //hidden_fields.prop('required', null);
-            //var required_fields = $('select:required').not(':hidden');
-            var required_fields = $('input[type=text]:required, textarea:required, input[type=checkbox]:required, input[type=radio]:required, input[type=file]:required, select:required').not(':hidden');
-
-            // loop through all (non-hidden) required fields, and check data has been entered
-            required_fields.each(function() {
-                //console.log('type: ' + this.type + ' ' + this.name)
-                var id = 'id_' + this.name
-                if (this.type == 'radio') {
-                    //if (this.type == 'radio' && !$("input[name="+this.name+"]").is(':checked')) {
-                    if (!$("input[name="+this.name+"]").is(':checked')) {
-                        var text = $('#'+id).text()
-                        console.log('radio not checked: ' + this.type + ' ' + text)
-                        vm.missing_fields.push({id: id, label: text});
-                    }
-                }
-
-                if (this.type == 'checkbox') {
-                    var chk_id  = 'id_' + this.className
-                     var chk_text = ''
-                    if ($("[class="+this.className+"]:checked").length == 0) {
-                        try { 
-                            chk_text  = $('#'+chk_id ).text() 
-                        } 
-                        catch(error) { 
-                            console.log(error);
-                            chk_text  = $('#'+chk_id ).textContent 
-                        }
-                        console.log('checkbox not checked: ' + this.type + ' ' + chk_text )
-                        vm.missing_fields.push({id: chk_id , label: chk_text });
-                    }
-                }
-
-                if (this.type == 'select-one') {
-                    if ($(this).val() == '') {
-                        var sel_text = $('#'+id).text()  // this is the (question) label
-                        var sel_id = 'id_' + $(this).prop('name'); // the label id
-                        console.log('selector not selected: ' + this.type + ' ' + sel_text)
-                        vm.missing_fields.push({id: sel_id, label: sel_text});
-                    }
-                }
-
-                if (this.type == 'file') {
-                    var num_files = $('#'+id).attr('num_files')
-                    if (num_files == "0") {
-                        var file_text = $('#'+id).text()
-                        console.log('file not uploaded: ' + this.type + ' ' + this.name)
-                        vm.missing_fields.push({id: id, label: file_text});
-                    }
-                }
-
-                if (this.type == 'text') {
-                    if (this.value == '') {
-                        var txt_text = $('#'+id).text()
-                        console.log('text not provided: ' + this.type + ' ' + this.name)
-                        vm.missing_fields.push({id: id, label: txt_text});
-                    }
-                }
-
-                if (this.type == 'textarea') {
-                    if (this.value == '') {
-                        var txtarea_text = $('#'+id).text()
-                        console.log('textarea not provided: ' + this.type + ' ' + this.name)
-                        vm.missing_fields.push({id: id, label: txtarea_text});
-                    }
-                }
-
-                /*
+        /*
                 if (this.type == 'select') {
                     if (this.value == '') {
                         var text = $('#'+id).text()
@@ -597,11 +734,11 @@ export default {
                     }
                 }
                 */
-            });
+      });
 
-            return vm.missing_fields.length
+      return vm.missing_fields.length;
 
-            /*
+      /*
             if (emptyFields === 0) {
                 $('#form').submit();
             } else {
@@ -609,428 +746,520 @@ export default {
                 return false;
             }
             */
-        },
+    },
 
-        check_org_details_complete: function(org) {
-            let blank_fields = []
+    check_org_details_complete: function (org) {
+      let blank_fields = [];
 
-            // Org Details
-            if (org) {
-                if (!org.name) { blank_fields.push('org name') }
-                if (!org.abn) { blank_fields.push('org abn') }
-                if (!org.email) { blank_fields.push('org email') }
+      // Org Details
+      if (org) {
+        if (!org.name) {
+          blank_fields.push("org name");
+        }
+        if (!org.abn) {
+          blank_fields.push("org abn");
+        }
+        if (!org.email) {
+          blank_fields.push("org email");
+        }
 
-                // Address Details
-                if (!org.address.line1) { blank_fields.push('street') }
-                if (!org.address.locality) { blank_fields.push('town/suburb') }
-                if (!org.address.state) { blank_fields.push('state') }
-                if (!org.address.postcode) { blank_fields.push('postcode') }
-                if (!org.address.country) { blank_fields.push('country') }
-            }
+        // Address Details
+        if (!org.address.line1) {
+          blank_fields.push("street");
+        }
+        if (!org.address.locality) {
+          blank_fields.push("town/suburb");
+        }
+        if (!org.address.state) {
+          blank_fields.push("state");
+        }
+        if (!org.address.postcode) {
+          blank_fields.push("postcode");
+        }
+        if (!org.address.country) {
+          blank_fields.push("country");
+        }
+      }
 
-            return blank_fields;
-        },
-        can_submit: function() {
-            let vm=this;
-            let blank_fields = []
+      return blank_fields;
+    },
+    can_submit: function () {
+      let vm = this;
+      let blank_fields = [];
 
-             if(vm.proposal.application_type == 'Apiary'){
-                let org = vm.$refs.proposal_apiary.$refs.mu_details.org
-                if( vm.$refs.proposal_apiary.getUnansweredChecklistQuestions ){
-                    blank_fields.push(' You have unanswered checklist questions');
-                }
-                if(vm.$refs.proposal_apiary.$refs.deed_poll_component.$refs.deed_poll_documents.documents.length==0){
-                    blank_fields.push(' Deed poll document is missing')
-                }
-                if(vm.$refs.proposal_apiary.$refs.public_liability_insurance_documents.documents.length==0){
-                    blank_fields.push(' Public liability insurance document is missing')
-                }
-                if (!this.proposal.proposal_apiary.public_liability_insurance_expiry_date) {
-                    blank_fields.push(' Public liability expiry date is missing')
-                }
+      if (vm.proposal.application_type == "Apiary") {
+        let org = vm.$refs.proposal_apiary.$refs.mu_details.org;
+        if (vm.$refs.proposal_apiary.getUnansweredChecklistQuestions) {
+          blank_fields.push(" You have unanswered checklist questions");
+        }
+        if (
+          vm.$refs.proposal_apiary.$refs.deed_poll_component.$refs
+            .deed_poll_documents.documents.length == 0
+        ) {
+          blank_fields.push(" Deed poll document is missing");
+        }
+        if (
+          vm.$refs.proposal_apiary.$refs.public_liability_insurance_documents
+            .documents.length == 0
+        ) {
+          blank_fields.push(" Public liability insurance document is missing");
+        }
+        if (
+          !this.proposal.proposal_apiary.public_liability_insurance_expiry_date
+        ) {
+          blank_fields.push(" Public liability expiry date is missing");
+        }
 
-                let blank_org_fields = vm.check_org_details_complete(org)
-                if(blank_org_fields.length>0){
-                    blank_fields.push(' Organisation details missing: [' + blank_org_fields.join(", ") + ']')
-                }
-             }
-             if(vm.proposal.application_type == 'Site Transfer'){
-                if( vm.$refs.apiary_site_transfer.getUnansweredChecklistQuestions ){
-                    blank_fields.push(' You have unanswered checklist questions');
-                }
+        let blank_org_fields = vm.check_org_details_complete(org);
+        if (blank_org_fields.length > 0) {
+          blank_fields.push(
+            " Organisation details missing: [" +
+              blank_org_fields.join(", ") +
+              "]",
+          );
+        }
+      }
+      if (vm.proposal.application_type == "Site Transfer") {
+        if (vm.$refs.apiary_site_transfer.getUnansweredChecklistQuestions) {
+          blank_fields.push(" You have unanswered checklist questions");
+        }
 
-                if(vm.$refs.apiary_site_transfer.$refs.deed_poll_component.$refs.deed_poll_documents.documents.length==0){
-                    blank_fields.push(' Deed poll document is missing')
-                }
-                 /*
+        if (
+          vm.$refs.apiary_site_transfer.$refs.deed_poll_component.$refs
+            .deed_poll_documents.documents.length == 0
+        ) {
+          blank_fields.push(" Deed poll document is missing");
+        }
+        /*
                 if(!vm.$refs.apiary_site_transfer.selectedLicence){
                     blank_fields.push(' Transferee licence cannot be blank')
                 }
                 */
-                if (!(this.$refs.apiary_site_transfer.num_of_sites_selected > 0)){
-                    blank_fields.push(' You must select at least one site to transfer')
+        if (!(this.$refs.apiary_site_transfer.num_of_sites_selected > 0)) {
+          blank_fields.push(" You must select at least one site to transfer");
+        }
+      }
+      if (vm.proposal.application_type == "Disturbance") {
+        if (vm.proposal && vm.proposal.region && vm.proposal.district) {
+          let districts = vm.$refs.proposal_apply.districts;
+          let district_exists = false;
+          if (districts) {
+            district_exists = [
+              ...districts.filter(
+                (district) => district.value == vm.proposal.district,
+              ),
+            ];
+          }
+          if (!district_exists || district_exists.length < 1) {
+            vm.proposal.district = null;
+            blank_fields.push(" You must select at least one District");
+          }
+        }
+      }
+
+      if (blank_fields.length == 0) {
+        return true;
+      } else {
+        return blank_fields;
+      }
+    },
+
+    highlight_deficient_fields: function (deficient_fields) {
+      for (var deficient_field of deficient_fields) {
+        $("#" + "id_" + deficient_field).css("color", "red");
+      }
+    },
+
+    deficientFields() {
+      let vm = this;
+      //console.log("I am here");
+      let deficient_fields = [];
+      $(".deficiency").each((i, d) => {
+        if ($(d).val() != "") {
+          var name = $(d)[0].name;
+          var tmp = name.replace("-comment-field", "");
+          deficient_fields.push(tmp);
+          //console.log('data', $("#"+"id_" + tmp))
+        }
+      });
+      //console.log('deficient fields', deficient_fields);
+      vm.highlight_deficient_fields(deficient_fields);
+    },
+    submit: function () {
+      console.log("in submit");
+
+      let vm = this;
+      vm.form = document.forms.new_proposal;
+      let formData = new FormData(vm.form);
+      // Add apiary_sites data if needed
+      formData = this.attach_apiary_sites_data(formData);
+
+      let missing_data = vm.can_submit();
+      if (missing_data != true) {
+        swal.fire({
+          title: "Please fix following errors before submitting",
+          text: missing_data,
+          icon: "error",
+          customClass: {
+            confirmButton: "btn btn-primary",
+          },
+        });
+        //vm.paySubmitting=false;
+        return false;
+      }
+
+      var num_missing_fields = vm.validate();
+      if (num_missing_fields > 0) {
+        vm.highlight_missing_fields();
+        var top = ($("#error").offset() || { top: NaN }).top;
+        $("html, body").animate(
+          {
+            scrollTop: top,
+          },
+          1,
+        );
+        return false;
+      }
+
+      // remove the confirm prompt when navigating away from window (on button 'Submit' click)
+      vm.submitting = true;
+
+      let swalTitle = "Submit Application";
+      let swalText = "Are you sure you want to submit this application?";
+      swal
+        .fire({
+          title: swalTitle,
+          text: swalText,
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "Submit",
+          customClass: {
+            confirmButton: "btn btn-primary",
+            cancelButton: "btn btn-secondary",
+          },
+        })
+        .then(
+          async (swalresult) => {
+            if (swalresult.isConfirmed) {
+              console.log("in then()");
+              vm.submittingProposal = true;
+              // Only Apiary has an application fee
+              //if (!vm.proposal.fee_paid && ['Apiary', 'Site Transfer'].includes(vm.proposal.application_type)) {
+              if (
+                ["Apiary", "Site Transfer"].includes(
+                  vm.proposal.application_type,
+                )
+              ) {
+                //if (this.submit_button_text === 'Pay and submit' && ['Apiary', 'Site Transfer'].includes(vm.proposal.application_type)) {
+                console.log("--- save and pay ---");
+                vm.save_and_redirect();
+              } else {
+                /* just save and submit - no payment required (probably application was pushed back by assessor for amendment */
+                try {
+                  console.log("http.post(submit)");
+                  console.log(
+                    "http.post: " +
+                      helpers.add_endpoint_json(
+                        api_endpoints.proposals,
+                        vm.proposal.id + "/submit",
+                      ),
+                  );
+
+                  const response = await fetch(
+                    helpers.add_endpoint_json(
+                      api_endpoints.proposals,
+                      vm.proposal.id + "/submit",
+                    ),
+                    {
+                      method: "POST",
+                      body: formData,
+                    },
+                  );
+                  if (!response.ok) {
+                    let errorString =
+                      await helpers.apiVueResourceError(response);
+                    throw errorString;
+                  }
+                  const resBody = await response.json();
+                  vm.proposal = resBody;
+                  vm.$router.push({
+                    name: "submit_proposal",
+                    state: { proposal: JSON.stringify(vm.proposal) },
+                  });
+                } catch (err) {
+                  let errorString =
+                    typeof err === "string"
+                      ? err
+                      : (err && err.message) || "Network error";
+
+                  swal.fire({
+                    title: "Submit Error",
+                    text: String(errorString),
+                    icon: "error",
+                    customClass: {
+                      confirmButton: "btn btn-primary",
+                    },
+                  });
                 }
-             }
-             if(vm.proposal.application_type == 'Disturbance'){
-                if(vm.proposal && vm.proposal.region && vm.proposal.district){
-                    let districts=vm.$refs.proposal_apply.districts
-                    let district_exists=false;
-                    if(districts){
-                        district_exists = [...districts.filter(district => district.value == vm.proposal.district)]
-                    }
-                    if(!district_exists || district_exists.length<1){
-                        vm.proposal.district=null;
-                        blank_fields.push(' You must select at least one District')
-                    }
-                }
-             }
-
-            if(blank_fields.length==0){
-                return true;
+              }
             }
-            else {
-                return blank_fields;
-            }
-        },
+          },
+          (error) => {
+            console.log(error);
+            vm.paySubmitting = false;
+          },
+        );
+      vm.submittingProposal = false;
+    },
+    // Apiary submission
+    save_and_redirect: async function () {
+      console.log("in save_and_redirect");
+      this.isSaving = true;
+      let vm = this;
+      vm.form = document.forms.new_proposal;
+      let formData = new FormData(vm.form);
+      // Add apiary_sites data if needed
+      if (this.proposal.application_type === "Apiary") {
+        formData = this.attach_apiary_sites_data(formData);
+      }
+      if (
+        this.$refs.apiary_site_transfer &&
+        this.$refs.apiary_site_transfer.apiary_sites_local
+      ) {
+        //console.log(this.$refs.apiary_site_transfer.site_transfer_apiary_sites)
+        formData.append(
+          "apiary_sites_local",
+          JSON.stringify(this.$refs.apiary_site_transfer.apiary_sites_local),
+        );
+      }
+      if (
+        this.$refs.apiary_site_transfer &&
+        this.$refs.apiary_site_transfer.selectedLicenceHolder
+      ) {
+        //let selectedLicenceHolder = this.$refs.apiary_site_transfer.selectedLicenceHolder
+        formData.append(
+          "selected_licence_holder",
+          JSON.stringify(this.$refs.apiary_site_transfer.selectedLicenceHolder),
+        );
+      }
+      if (
+        this.$refs.apiary_site_transfer &&
+        this.$refs.apiary_site_transfer.transfereeEmail
+      ) {
+        let transfereeEmail = this.$refs.apiary_site_transfer.transfereeEmail;
+        formData.append("transferee_email_text", transfereeEmail);
+      }
+      fetch(vm.proposal_submit_url, {
+        method: "POST",
+        body: formData,
+      })
+        .then(async (response) => {
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw { body: errorData };
+          }
 
-        highlight_deficient_fields: function(deficient_fields){
-            for (var deficient_field of deficient_fields) {
-                $("#" + "id_"+deficient_field).css("color", 'red');
-            }
-        },
+          // After successful save, redirect to Django's ApplicationFeeView
+          vm.post_and_redirect(vm.application_fee_url, {
+            csrfmiddlewaretoken: vm.csrf_token,
+          });
+        })
+        .catch((err) => {
+          if (
+            err.body?.type &&
+            err.body.type[0] === "site_no_longer_available"
+          ) {
+            console.log("1");
+            vm.display_site_no_longer_available_modal(err);
+          } else {
+            console.log("2");
+            helpers.processError(err);
+            vm.submittingProposal = false;
+          }
+        });
 
-        deficientFields(){
-            let vm=this;
-            //console.log("I am here");
-            let deficient_fields=[]
-            $('.deficiency').each((i,d) => {
-                if($(d).val() != ''){
-                    var name=$(d)[0].name
-                    var tmp=name.replace("-comment-field","")
-                    deficient_fields.push(tmp);
-                    //console.log('data', $("#"+"id_" + tmp))
-                }
-            });
-            //console.log('deficient fields', deficient_fields);
-            vm.highlight_deficient_fields(deficient_fields);
-        },
-        submit: function(){
-            console.log('in submit');
+      this.isSaving = false;
+    },
+    display_site_no_longer_available_modal: function (err) {
+      let vm = this;
+      let apiary_site_id = err.body.apiary_site_id[0];
 
-            let vm = this;
-            vm.form=document.forms.new_proposal;
-            let formData = new FormData(vm.form);
-            // Add apiary_sites data if needed
-            formData = this.attach_apiary_sites_data(formData)
-
-            let missing_data = vm.can_submit();
-            if(missing_data!=true){
-               swal.fire({
-                title: "Please fix following errors before submitting",
-                text: missing_data,
-                icon:'error',
-                customClass: {
-                    confirmButton: 'btn btn-primary',
-                },
-              })
-            //vm.paySubmitting=false;
-            return false;
-            }
-
-            var num_missing_fields = vm.validate()
-            if (num_missing_fields > 0) {
-                vm.highlight_missing_fields()
-                var top = ($('#error').offset() || { "top": NaN }).top;
-                $('html, body').animate({
-                    scrollTop: top
-                }, 1);
-                return false;
-            }
-
-            // remove the confirm prompt when navigating away from window (on button 'Submit' click)
-            vm.submitting = true;
-
-            let swalTitle = "Submit Application";
-            let swalText = "Are you sure you want to submit this application?";
-            swal.fire({
-                title: swalTitle,
-                text: swalText,
-                icon: "question",
-                showCancelButton: true,
-                confirmButtonText: 'Submit',
-                customClass: {
-                    confirmButton: 'btn btn-primary',
-                    cancelButton: 'btn btn-secondary',
-                },
-            }).then(async (swalresult) => {
-                if (swalresult.isConfirmed) {
-                    console.log('in then()');
-                    vm.submittingProposal = true;
-                    // Only Apiary has an application fee
-                    //if (!vm.proposal.fee_paid && ['Apiary', 'Site Transfer'].includes(vm.proposal.application_type)) {
-                    if (['Apiary', 'Site Transfer'].includes(vm.proposal.application_type)) {
-                        //if (this.submit_button_text === 'Pay and submit' && ['Apiary', 'Site Transfer'].includes(vm.proposal.application_type)) {
-                        console.log('--- save and pay ---')
-                        vm.save_and_redirect();
-                    } else {
-                        /* just save and submit - no payment required (probably application was pushed back by assessor for amendment */
-                        try {
-                            console.log('http.post(submit)')
-                            console.log('http.post: ' + helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'))
-
-                            const response = await fetch(
-                                helpers.add_endpoint_json(api_endpoints.proposals, vm.proposal.id + '/submit'),
-                                {
-                                    method: 'POST',
-                                    body: formData,
-                                }
-                            );
-                            if (!response.ok) {
-                                let errorString = await helpers.apiVueResourceError(response);
-                                throw errorString;
-                            }
-                            const resBody = await response.json();
-                            vm.proposal = resBody;
-                            vm.$router.push({
-                                name: 'submit_proposal',
-                                state:
-                                    { proposal: JSON.stringify(vm.proposal) }
-                            });
-                        } catch (err) {
-                            
-                            let errorString = typeof err === 'string' ? err : (err && err.message) || 'Network error';
-
-                            swal.fire({
-                                title: 'Submit Error',
-                                text: String(errorString),
-                                icon: 'error',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
-                                },
-                            })
-                        }
-                    }
-                }
-            },(error) => {
-                console.log(error);
-                vm.paySubmitting=false;
-            });
-            vm.submittingProposal= false;
-        },
-        // Apiary submission
-        save_and_redirect: async function() {
-            console.log('in save_and_redirect');
-            this.isSaving = true;
-            let vm = this;
-            vm.form=document.forms.new_proposal;
-            let formData = new FormData(vm.form);
-            // Add apiary_sites data if needed
-            if (this.proposal.application_type === 'Apiary') {
-                formData = this.attach_apiary_sites_data(formData);
-            }
-            if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.apiary_sites_local) {
-                //console.log(this.$refs.apiary_site_transfer.site_transfer_apiary_sites)
-                formData.append('apiary_sites_local', JSON.stringify(this.$refs.apiary_site_transfer.apiary_sites_local));
-            }
-            if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.selectedLicenceHolder){
-                //let selectedLicenceHolder = this.$refs.apiary_site_transfer.selectedLicenceHolder
-                formData.append('selected_licence_holder', JSON.stringify(this.$refs.apiary_site_transfer.selectedLicenceHolder));
-            }
-            if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.transfereeEmail){
-                let transfereeEmail = this.$refs.apiary_site_transfer.transfereeEmail
-                formData.append('transferee_email_text', transfereeEmail);
-            }
-            fetch(vm.proposal_submit_url, {
-                method: 'POST',
-                body: formData,
+      swal
+        .fire({
+          title: "Vacant site no longer available",
+          text: err.body.message[0],
+          icon: "warning",
+          confirmButtonText: "Remove the site from the application",
+          allowOutsideClick: false,
+          customClass: {
+            confirmButton: "btn btn-primary",
+          },
+        })
+        .then(function (swalresult) {
+          if (swalresult.isConfirmed) {
+            console.log("confirmed");
+            vm.$refs.proposal_apiary.remove_apiary_site(apiary_site_id);
+            console.log("confirmed2");
+            // vm.save(false)
+            fetch(vm.remove_apiary_site_url, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ apiary_site_id: apiary_site_id }),
             })
-            .then(async response => {
+              .then(async (response) => {
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw { body: errorData };
+                  const errorData = await response.json();
+                  throw errorData;
                 }
-
-                // After successful save, redirect to Django's ApplicationFeeView
-                vm.post_and_redirect(vm.application_fee_url, {
-                    csrfmiddlewaretoken: vm.csrf_token
-                });
-            })
-            .catch(err => {
-                if (err.body?.type && err.body.type[0] === 'site_no_longer_available') {
-                    console.log('1');
-                    vm.display_site_no_longer_available_modal(err);
-                } else {
-                    console.log('2');
-                    helpers.processError(err);
-                    vm.submittingProposal = false;
-                }
-            });
-
-            this.isSaving = false;
-        },
-        display_site_no_longer_available_modal: function(err){
-            let vm = this
-            let apiary_site_id = err.body.apiary_site_id[0]
-
-            swal.fire({
-                title: "Vacant site no longer available",
-                text: err.body.message[0],
-                icon: "warning",
-                confirmButtonText: 'Remove the site from the application',
-                allowOutsideClick: false,
-                customClass: {
-                    confirmButton: 'btn btn-primary',
-                },
-            }).then(function(swalresult){
-                if (swalresult.isConfirmed){
-                    console.log('confirmed')
-                    vm.$refs.proposal_apiary.remove_apiary_site(apiary_site_id)
-                    console.log('confirmed2')
-                    // vm.save(false)
-                    fetch(vm.remove_apiary_site_url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ apiary_site_id: apiary_site_id }),
-                    })
-                    .then(async response => {
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            throw errorData;
-                        }
-                        const res = await response.json();
-                        console.log('res');
-                        console.log(res);
-                    })
-                    .catch(err => {
-                        console.log('err');
-                        console.log(err);
-                    });
-
-                }
-            });
-        },
-        post_and_redirect: function(url, postData) {
-            console.log('in post_and_redirect')
-            console.log('url: ' + url)
-            /* http.post and ajax do not allow redirect from Django View (post method),
+                const res = await response.json();
+                console.log("res");
+                console.log(res);
+              })
+              .catch((err) => {
+                console.log("err");
+                console.log(err);
+              });
+          }
+        });
+    },
+    post_and_redirect: function (url, postData) {
+      console.log("in post_and_redirect");
+      console.log("url: " + url);
+      /* http.post and ajax do not allow redirect from Django View (post method),
                this function allows redirect by mimicking a form submit.
 
                usage:  vm.post_and_redirect(vm.application_fee_url, {'csrfmiddlewaretoken' : vm.csrf_token});
             */
-            var postFormStr = "<form method='POST' action='" + url + "'>";
+      var postFormStr = "<form method='POST' action='" + url + "'>";
 
-            for (var key in postData) {
-                if (Object.prototype.hasOwnProperty.call(postData, key)) {
-                    postFormStr += "<input type='hidden' name='" + key + "' value='" + postData[key] + "'>";
-                }
-            }
-            postFormStr += "</form>";
-            var formElement = $(postFormStr);
-            $('body').append(formElement);
-            $(formElement).submit();
-        },
+      for (var key in postData) {
+        if (Object.prototype.hasOwnProperty.call(postData, key)) {
+          postFormStr +=
+            "<input type='hidden' name='" +
+            key +
+            "' value='" +
+            postData[key] +
+            "'>";
+        }
+      }
+      postFormStr += "</form>";
+      var formElement = $(postFormStr);
+      $("body").append(formElement);
+      $(formElement).submit();
     },
-    mounted: function() {
-        console.log('in mounted')
-        let vm = this;
-        vm.form = document.forms.new_proposal;
-    },
-    updated: function(){
-        let vm=this;
-        this.$nextTick(() => {
-            if(vm.hasAmendmentRequest){
-                vm.deficientFields();
-            }
-        });
-    },
-    created: function() {
-        console.log('in created')
-        console.log('proposal_id: ' + this.$route.params.proposal_id)
-        let proposal_id = this.$route.params.proposal_id
+  },
+  mounted: function () {
+    console.log("in mounted");
+    let vm = this;
+    vm.form = document.forms.new_proposal;
+  },
+  updated: function () {
+    let vm = this;
+    this.$nextTick(() => {
+      if (vm.hasAmendmentRequest) {
+        vm.deficientFields();
+      }
+    });
+  },
+  created: function () {
+    console.log("in created");
+    console.log("proposal_id: " + this.$route.params.proposal_id);
+    let proposal_id = this.$route.params.proposal_id;
 
-        let vm = this;
-        vm.loading.push('Loading Proposal')
-        fetch(`/api/proposal/${ proposal_id }.json`).then(
-        async (res) => {
+    let vm = this;
+    vm.loading.push("Loading Proposal");
+    fetch(`/api/proposal/${proposal_id}.json`)
+      .then(async (res) => {
+        if (!res.ok) {
+          return await res.json().then((err) => {
+            throw err;
+          });
+        }
+        vm.proposal = await res.json();
+        vm.loading.splice("Loading Proposal", 1);
+        vm.setdata(vm.proposal.readonly);
+
+        fetch(
+          helpers.add_endpoint_json(
+            api_endpoints.proposals,
+            proposal_id + "/amendment_request",
+          ),
+        )
+          .then(async (res) => {
             if (!res.ok) {
-                return await res.json().then(err => { throw err });
+              return await res.json().then((err) => {
+                throw err;
+              });
             }
-            vm.proposal = await res.json();
-            vm.loading.splice('Loading Proposal', 1);
-            vm.setdata(vm.proposal.readonly);
-
-            fetch(helpers.add_endpoint_json(api_endpoints.proposals, proposal_id + '/amendment_request')).then(
-                async (res) => {
-                    if (!res.ok) {
-                        return await res.json().then(err => { throw err });
-                    }
-                    let data = await res.json()
-                    vm.setAmendmentData(data);
-                }).catch(err => {
-                    console.log(err);
-                    vm.loading.splice('Loading Proposal', 1);
-                });
-        }).catch(err => {
+            let data = await res.json();
+            vm.setAmendmentData(data);
+          })
+          .catch((err) => {
             console.log(err);
-        });
-    },
-}
+            vm.loading.splice("Loading Proposal", 1);
+          });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  },
+};
 </script>
 
 <style lang="css">
 .proposal-footer-bar {
-    background-color: #f8f9fa;
-    border-top: 2px solid #dee2e6;
-    border-radius: 0 0 4px 4px;
-    padding: 12px 16px;
+  background-color: #f8f9fa;
+  border-top: 2px solid #dee2e6;
+  border-radius: 0 0 4px 4px;
+  padding: 12px 16px;
 }
 .proposal-footer-info {
-    text-align: center;
+  text-align: center;
 }
 .proposal-footer-label {
-    font-weight: 600;
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #6c757d;
-    margin-bottom: 2px;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6c757d;
+  margin-bottom: 2px;
 }
 .proposal-footer-value {
-    font-size: 0.9rem;
-    color: #333;
+  font-size: 0.9rem;
+  color: #333;
 }
 .proposal-footer-fee {
-    font-weight: 700;
-    font-size: 1.3rem;
-    color: #212529;
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: #212529;
 }
 .proposal-footer-divider {
-    width: 1px;
-    height: 40px;
-    background-color: #dee2e6;
-    flex-shrink: 0;
+  width: 1px;
+  height: 40px;
+  background-color: #dee2e6;
+  flex-shrink: 0;
 }
 /* keep legacy classes in case used elsewhere */
 .payment-description-total-fee {
-    font-weight: bold;
-    font-size: 1.3em;
+  font-weight: bold;
+  font-size: 1.3em;
 }
 .payment-description-title {
-    font-weight: bold;
+  font-weight: bold;
 }
 .no-padding {
-    padding: 0 !important;
+  padding: 0 !important;
 }
 #overlay {
-    width: 100%;
-    height: 100%;
-    position: fixed;
-    left: 0px;
-    top: 0px;
-    background-color:#000;
-    opacity: .25;
-    z-index: 2000;
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  background-color: #000;
+  opacity: 0.25;
+  z-index: 2000;
 }
 </style>

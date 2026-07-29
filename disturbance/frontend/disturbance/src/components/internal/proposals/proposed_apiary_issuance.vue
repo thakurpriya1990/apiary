@@ -695,7 +695,7 @@ export default {
         },
         addFormValidations: function() {
             let vm = this;
-            let rulesVar = {}
+            let rulesVar;
             if (this.siteTransferApplication) {
                 rulesVar = {
                     approval_details:"required",

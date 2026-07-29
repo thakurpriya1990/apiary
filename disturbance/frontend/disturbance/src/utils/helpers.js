@@ -73,7 +73,7 @@ export default {
       .replace(/>/g, "&gt;");
   },
   apiError: function (resp) {
-    var error_str = "";
+    var error_str;
     if (resp.status === 400) {
       try {
         let obj = JSON.parse(resp.responseText);
@@ -102,7 +102,7 @@ export default {
     }
 
     let error_str = "";
-    let text = null;
+    let text;
 
     if (resp.status === 400) {
       if (Array.isArray(body)) {
