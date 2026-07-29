@@ -3922,21 +3922,21 @@ def searchKeyWords(
     from disturbance.utils import search, search_approval, search_compliance
 
     qs = []
-    if is_internal:
-        proposal_list = Proposal.objects.filter(
-            application_type__name__in=["Apiary", "Site Transfer", "Temporary Use"]
-        ).exclude(
-            processing_status__in=[
-                Proposal.PROCESSING_STATUS_DISCARDED,
-                Proposal.PROCESSING_STATUS_DRAFT,
-            ]
-        )
-        approval_list = (
-            Approval.objects.all()
-            .order_by("lodgement_number", "-issue_date")
-            .distinct("lodgement_number")
-        )
-        compliance_list = Compliance.objects.all()
+    
+    proposal_list = Proposal.objects.filter(
+        application_type__name__in=["Apiary", "Site Transfer", "Temporary Use"]
+    ).exclude(
+        processing_status__in=[
+            Proposal.PROCESSING_STATUS_DISCARDED,
+            Proposal.PROCESSING_STATUS_DRAFT,
+        ]
+    )
+    approval_list = (
+        Approval.objects.all()
+        .order_by("lodgement_number", "-issue_date")
+        .distinct("lodgement_number")
+    )
+    compliance_list = Compliance.objects.all()
 
     if searchWords:
         search_words_regex = "(?:"
