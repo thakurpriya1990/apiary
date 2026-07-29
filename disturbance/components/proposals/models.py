@@ -3495,8 +3495,8 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
             approval_query |= Q(cancellation_details__icontains=word)
 
         approval_list = (
-            # Approval.objects.filter(current_proposal__in=apiary_proposals)
-            Approval.objects.order_by("lodgement_number", "-issue_date")
+            Approval.objects.filter(current_proposal__in=apiary_proposals)
+            .order_by("lodgement_number", "-issue_date")
             .distinct("lodgement_number")
             .filter(approval_query)
         )
