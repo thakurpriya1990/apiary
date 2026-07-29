@@ -2572,7 +2572,6 @@ class AmendmentRequestReasonChoicesView(views.APIView):
         return Response(choices_list)
 
 
-# TODO on-cleanup - improve or remove if not needed for apiary
 class SearchKeywordsView(views.APIView):
     renderer_classes = [
         JSONRenderer,
