@@ -46,6 +46,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
+    "@eslint/js": "^10.0.1",
     "@types/jquery": "^3.5.33",
     "@types/select2": "^4.0.63",
     "@vue/compiler-sfc": "^3.5.22",
