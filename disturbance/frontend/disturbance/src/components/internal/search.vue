@@ -130,7 +130,7 @@
                         disabled
                       >
                         <i class="bi bi-search me-2"></i>Search<i
-                          class="fa fa-circle-o-notch fa-spin fa-fw"
+                          class="fa fa-circle-o-notch fa-spin fa-fw ms-2"
                         ></i>
                       </button>
                       <button
@@ -323,6 +323,18 @@ export default {
     showError: function () {
       var vm = this;
       return vm.errors;
+    },
+  },
+  watch: {
+    searchKeywords: {
+      handler: function () {
+        let vm = this;
+        vm.$nextTick(() => {
+          vm.$refs.proposal_datatable.vmDataTable.clear();
+          vm.$refs.proposal_datatable.vmDataTable.draw();
+        });
+      },
+      deep: true,
     },
   },
   methods: {
