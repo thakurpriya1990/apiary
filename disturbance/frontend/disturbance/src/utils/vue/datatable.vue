@@ -162,8 +162,17 @@ export default {
 </script>
 
 <style lang="css">
+/* Give the focus glow on the search input room above the overflow container */
+#DataTable {
+  padding-top: 4px;
+}
+
 div.dt-processing div {
   display: none;
+}
+
+.text-primary {
+  color: #226fbb !important;
 }
 
 td > a {
