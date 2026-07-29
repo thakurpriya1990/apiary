@@ -11,14 +11,16 @@
             <form name="searchOrganisationForm">
               <div class="mb-3">
                 <div class="row">
-                  <div class="col-md-8">
+                  <div class="col-md-5">
                     <div class="input-group">
                       <div class="flex-grow-1">
                         <select
                           ref="searchOrg"
                           class="form-select"
                           name="organisation"
-                        ></select>
+                        >
+                          <option></option>
+                        </select>
                       </div>
                     </div>
                   </div>
@@ -40,9 +42,9 @@
             <div class="col-lg-12">
               <div class="mb-3">
                 <label for="" class="col-form-label col-lg-12 fs-5"
-                  >Filter</label
+                  >Records Types to Search</label
                 >
-                <div class="form-check col-md-3">
+                <div class="form-check col">
                   <input
                     class="form-check-input"
                     ref="searchProposal"
@@ -52,10 +54,13 @@
                     v-model="searchProposal"
                   />
                   <label class="form-check-label fw-normal" for="searchProposal"
-                    >Proposal</label
+                    >Application</label
                   >
+                  <div v-if="searchProposal" class="mb-2 text-muted">
+                    Searches the proposed issuance approval of the application
+                  </div>
                 </div>
-                <div class="form-check col-md-3">
+                <div class="form-check col">
                   <input
                     class="form-check-input"
                     ref="searchApproval"
@@ -65,10 +70,14 @@
                     v-model="searchApproval"
                   />
                   <label class="form-check-label fw-normal" for="searchApproval"
-                    >Approval</label
+                    >License</label
                   >
+                  <div v-if="searchApproval" class="mb-2 text-muted">
+                    Searches the surrender details, suspension details and
+                    cancellation details of the license
+                  </div>
                 </div>
-                <div class="form-check form-check-inline col-md-3">
+                <div class="form-check col">
                   <input
                     class="form-check-input"
                     ref="searchCompliance"
@@ -82,6 +91,10 @@
                     for="searchCompliance"
                     >Compliance with requirements</label
                   >
+                  <div v-if="searchCompliance" class="mb-2 text-muted">
+                    Searches the main details and requirement text of the
+                    compliance
+                  </div>
                 </div>
                 <label for="" class="col-form-label col-lg-12 fs-5"
                   >Keyword(s)</label
@@ -96,6 +109,7 @@
                         name="details"
                         placeholder=""
                         v-model="keyWord"
+                        @keyup.enter="add"
                       />
                       <button
                         type="button"
@@ -116,7 +130,7 @@
                         disabled
                       >
                         <i class="bi bi-search me-2"></i>Search<i
-                          class="fa fa-circle-o-notch fa-spin fa-fw"
+                          class="fa fa-circle-o-notch fa-spin fa-fw ms-2"
                         ></i>
                       </button>
                       <button
@@ -125,6 +139,9 @@
                         @click.prevent="search"
                         class="btn btn-primary btn-margin me-3"
                         value="Search"
+                        :disabled="
+                          !searchKeywords || searchKeywords.length === 0
+                        "
                       >
                         <i class="bi bi-search me-2"></i>Search
                       </button>
@@ -133,6 +150,9 @@
                         @click.prevent="reset"
                         class="btn btn-primary"
                         value="Clear"
+                        :disabled="
+                          !searchKeywords || searchKeywords.length === 0
+                        "
                       >
                         <i class="bi bi-x me-2"></i>Clear All Keywords
                       </button>
@@ -143,7 +163,7 @@
             </div>
           </div>
 
-          <div class="row mb-3">
+          <div class="row mb-1">
             <div class="col-lg-12">
               <ul class="list-inline">
                 <li
@@ -161,8 +181,6 @@
               </ul>
             </div>
           </div>
-
-          <div class="row mb-2"></div>
 
           <div class="row">
             <div class="col-lg-12">
@@ -225,7 +243,6 @@ import datatable from "@/utils/vue/datatable.vue";
 import FormSection from "@/components/forms/section_toggle.vue";
 import alert from "@vue-utils/alert.vue";
 import { api_endpoints, constants } from "@/utils/hooks";
-import utils from "@/components/internal/utils";
 
 import $ from "jquery";
 export default {
@@ -308,6 +325,18 @@ export default {
       return vm.errors;
     },
   },
+  watch: {
+    searchKeywords: {
+      handler: function () {
+        let vm = this;
+        vm.$nextTick(() => {
+          vm.$refs.proposal_datatable.vmDataTable.clear();
+          vm.$refs.proposal_datatable.vmDataTable.draw();
+        });
+      },
+      deep: true,
+    },
+  },
   methods: {
     resetError: function () {
       let vm = this;
@@ -316,6 +345,10 @@ export default {
     },
     addListeners: function () {
       let vm = this;
+      if ($(vm.$refs.searchOrg).data("select2")) {
+        $(vm.$refs.searchOrg).select2("destroy");
+      }
+
       // Initialise select2 for region
       $(vm.$refs.searchOrg)
         .select2({
@@ -323,14 +356,52 @@ export default {
           width: "100%",
           allowClear: true,
           placeholder: "Start Typing to Search for an Organisation",
+          minimumInputLength: 1,
+          ajax: {
+            url: "/api/my_organisations/",
+            dataType: "json",
+            delay: 250,
+            data: function (params) {
+              return {
+                search: params.term || "",
+                page: params.page || 1,
+              };
+            },
+            processResults: function (data, params) {
+              params.page = params.page || 1;
+              const organisations = Array.isArray(data.results)
+                ? data.results.filter((item) => item && item.id)
+                : [];
+
+              return {
+                results: organisations.map((organisation) => {
+                  const name = organisation.name || "Unknown organisation";
+                  return {
+                    id: String(organisation.id),
+                    text: organisation.abn
+                      ? `${name} (${organisation.abn})`
+                      : name,
+                  };
+                }),
+                pagination: {
+                  more: Boolean(data.next),
+                },
+              };
+            },
+            cache: true,
+          },
         })
         .on("select2:select", function (e) {
-          var selected = $(e.currentTarget);
-          vm.selected_organisation = selected.val();
+          vm.selected_organisation = e.params?.data?.id || "";
+          if (vm.selected_organisation) {
+            window.location.assign(
+              `/ledger-ui/organisation/${vm.selected_organisation}/`,
+            );
+          }
         })
         .on("select2:unselect", function (e) {
           var selected = $(e.currentTarget);
-          vm.selected_organisation = selected.val();
+          vm.selected_organisation = selected.val() || "";
         });
     },
 

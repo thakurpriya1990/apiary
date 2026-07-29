@@ -233,12 +233,12 @@ export default {
     };
   },
   watch: {
-    isModalOpen: function (newVal, oldVal) {
-        this.$nextTick(function () {
-          if (this.isModalOpen) {
-            this.$refs.to.focus();
-          }
-        });
+    isModalOpen: function () {
+      this.$nextTick(function () {
+        if (this.isModalOpen) {
+          this.$refs.to.focus();
+        }
+      });
     },
   },
   computed: {
@@ -347,6 +347,7 @@ export default {
             vm.errorString = await helpers.apiVueResourceError(response);
           } else {
             vm.close();
+            vm.$emit("added");
           }
           vm.addingComms = false;
         })

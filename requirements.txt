@@ -52,3 +52,4 @@ setuptools~=80.9.0
 git+https://github.com/dbca-wa/appmonitor_client.git#egg=appmonitor_client
 git+https://github.com/dbca-wa/wagov_utils.git#egg=wagov_utils
 xlsxwriter~=3.2.2
+orjson~=3.11

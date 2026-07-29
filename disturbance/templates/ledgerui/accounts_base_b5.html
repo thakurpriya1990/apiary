@@ -2,6 +2,11 @@
 {% load static %}
 {% load django_vite %}
 
+{% block extra_css %}
+    {{ block.super }}
+    <link type="text/css" href="{% static 'disturbance/css/base.css' %}" rel="stylesheet">
+{% endblock %}
+
 {% block accounts_message_top %}
 <style>
 .privacy-notice-toggle.collapsed .privacy-notice-chevron { transform: rotate(180deg); }

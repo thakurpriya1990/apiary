@@ -1,461 +1,629 @@
 <template>
-<div class="container" id="internalOrgAccess">
+  <div class="container" id="internalOrgAccess">
     <div class="row">
-        <h3>Organisation Access Request {{ access.id }}</h3>
-        <div class="col-md-3">
-            <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url" :disable_add_entry="false"/>
-            <div class="mb-3">
-                <div class="card card-default">
-                    <div class="card-header">
-                       Submission 
-                    </div>
-                    <div class="card-body py-2">
-                        <strong>Submitted by</strong><br/>
-                        {{ access.requester.full_name }}
-                    </div>
-                    <div class="card-body border-top py-2">
-                        <strong>Lodged on</strong><br/>
-                        {{ formatDate(access.lodgement_date) }}
-                    </div>
-                </div>
+      <h3>Organisation Access Request {{ access.id }}</h3>
+      <div class="col-md-3">
+        <CommsLogs
+          :comms_url="comms_url"
+          :logs_url="logs_url"
+          :comms_add_url="comms_add_url"
+          :disable_add_entry="false"
+        />
+        <div class="mb-3">
+          <div class="card card-default">
+            <div class="card-header">Submission</div>
+            <div class="card-body py-2">
+              <strong>Submitted by</strong><br />
+              {{ access.requester.full_name }}
             </div>
-            <div class="mb-3">
-                <div class="card card-default sticky-top">
-                    <div class="card-header">
-                        Workflow 
-                    </div>
-                    <div class="card-body py-2">
-                        <strong>Status</strong><br/>
-                        {{ access.status }}
-                    </div>
-                    <div class="card-body border-top">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <strong>Currently assigned to</strong><br/>
-                                <div class="mb-3">
-                                    <select v-show="isLoading" class="form-select">
-                                        <option value="">Loading...</option>
-                                    </select>
-                                    <select @change="assignTo" :disabled="isFinalised || !check_assessor()" v-if="!isLoading" class="form-select" v-model="access.assigned_officer">
-                                        <option value="null">Unassigned</option>
-                                        <option v-for="member in members" :value="member.id" :key="member.id">{{member.name}}</option>
-                                    </select>
-                                    <a v-if="!isFinalised && check_assessor()" @click.prevent="assignMyself()" class="actionBtn float-end">Assign to me</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body border-top" v-if="!isFinalised && check_assessor()">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="row mb-2">
-                                    <strong>Action</strong><br/>
-                                </div>
-                                <div class="col-sm-12">
-                                    <button style="width: 90%" class="btn btn-primary btn-margin" @click.prevent="acceptRequest()">Accept</button><br/>
-                                </div>
-                                <div class="col-sm-12">
-                                    <button style="width: 90%" class="btn btn-primary top-buffer-s" @click.prevent="declineRequest()">Decline</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="card-body border-top py-2">
+              <strong>Lodged on</strong><br />
+              {{ formatDate(access.lodgement_date) }}
             </div>
+          </div>
         </div>
-        <div class="col-md-9">
-            <FormSection :formCollapse="false" label="Organisation Access Request" Index="org_access_req">
-                <form class="form-horizontal" name="access_form">
-                    <div class="row mb-3">
-                        <label for="" class="col-sm-3 col-form-label">Organisation</label>
-                        <div class="col-sm-6">
-                            <input type="text" disabled class="form-control" name="name" placeholder="" v-model="access.name">
-                        </div>
-                    </div>   
-                    <div class="row mb-3">
-                        <label for="" class="col-sm-3 col-form-label">ABN</label>
-                        <div class="col-sm-6">
-                            <input type="text" disabled class="form-control" name="abn" placeholder="" v-model="access.abn">
-                        </div>
-                    </div>   
-                    <div class="row mb-3">
-                        <label for="" class="col-sm-3 col-form-label">Letter</label>
-                        <div class="col-sm-6">
-                            <a target="_blank" :href="access.identification"><i class="fa fa-file-pdf-o"></i>&nbsp;Letter</a>
-                        </div>
-                    </div>   
-                    <div class="row mb-3" style="margin-top:50px;">
-                        <label for="" class="col-sm-3 col-form-label">Phone</label>
-                        <div class="col-sm-6">
-                            <input type="text" disabled class="form-control" name="phone" placeholder="" v-model="access.requester.phone_number">
-                        </div>
-                    </div>   
-                    <div class="row mb-3">
-                        <label for="" class="col-sm-3 col-form-label">Mobile</label>
-                        <div class="col-sm-6">
-                            <input type="text" disabled class="form-control" name="mobile" placeholder="" v-model="access.requester.mobile_number">
-                        </div>
-                    </div>   
-                    <div class="row mb-3">
-                        <label for="" class="col-sm-3 col-form-label">Email</label>
-                        <div class="col-sm-6">
-                            <input type="text" disabled class="form-control" name="email" placeholder="" v-model="access.requester.email">
-                        </div>
-                    </div>   
-                </form>
-            </FormSection>
+        <div class="mb-3">
+          <div class="card card-default sticky-top">
+            <div class="card-header">Workflow</div>
+            <div class="card-body py-2">
+              <strong>Status</strong><br />
+              {{ access.status }}
+            </div>
+            <div class="card-body border-top">
+              <div class="row">
+                <div class="col-sm-12">
+                  <strong>Currently assigned to</strong><br />
+                  <div class="mb-3">
+                    <select v-show="isLoading" class="form-select">
+                      <option value="">Loading...</option>
+                    </select>
+                    <select
+                      @change="assignTo"
+                      :disabled="isFinalised || !check_assessor()"
+                      v-if="!isLoading"
+                      class="form-select"
+                      v-model="access.assigned_officer"
+                    >
+                      <option value="null">Unassigned</option>
+                      <option
+                        v-for="member in members"
+                        :value="member.id"
+                        :key="member.id"
+                      >
+                        {{ member.name }}
+                      </option>
+                    </select>
+                    <a
+                      v-if="!isFinalised && check_assessor()"
+                      @click.prevent="assignMyself()"
+                      class="actionBtn float-end"
+                      >Assign to me</a
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-body border-top" v-if="showActions">
+              <div class="row">
+                <div class="col-sm-12">
+                  <div class="row mb-2"><strong>Action</strong><br /></div>
+                  <div class="col-sm-12">
+                    <button
+                      style="width: 90%"
+                      class="btn btn-primary btn-margin"
+                      @click.prevent="acceptRequest()"
+                    >
+                      Accept</button
+                    ><br />
+                  </div>
+                  <div class="col-sm-12">
+                    <button
+                      style="width: 90%"
+                      class="btn btn-primary top-buffer-s"
+                      @click.prevent="declineRequest()"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
+      <div class="col-md-9">
+        <FormSection
+          :formCollapse="false"
+          label="Organisation Access Request"
+          Index="org_access_req"
+        >
+          <form class="form-horizontal" name="access_form">
+            <div class="row mb-3">
+              <label for="" class="col-sm-3 col-form-label">Organisation</label>
+              <div class="col-sm-6">
+                <input
+                  type="text"
+                  disabled
+                  class="form-control"
+                  name="name"
+                  placeholder=""
+                  v-model="access.name"
+                />
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label for="" class="col-sm-3 col-form-label">ABN</label>
+              <div class="col-sm-6">
+                <input
+                  type="text"
+                  disabled
+                  class="form-control"
+                  name="abn"
+                  placeholder=""
+                  v-model="access.abn"
+                />
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label for="" class="col-sm-3 col-form-label">Letter</label>
+              <div class="col-sm-6">
+                <a target="_blank" :href="access.identification"
+                  ><i class="fa fa-file-pdf-o"></i>&nbsp;Letter</a
+                >
+              </div>
+            </div>
+            <div class="row mb-3" style="margin-top: 50px">
+              <label for="" class="col-sm-3 col-form-label">Phone</label>
+              <div class="col-sm-6">
+                <input
+                  type="text"
+                  disabled
+                  class="form-control"
+                  name="phone"
+                  placeholder=""
+                  v-model="access.requester.phone_number"
+                />
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label for="" class="col-sm-3 col-form-label">Mobile</label>
+              <div class="col-sm-6">
+                <input
+                  type="text"
+                  disabled
+                  class="form-control"
+                  name="mobile"
+                  placeholder=""
+                  v-model="access.requester.mobile_number"
+                />
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label for="" class="col-sm-3 col-form-label">Email</label>
+              <div class="col-sm-6">
+                <input
+                  type="text"
+                  disabled
+                  class="form-control"
+                  name="email"
+                  placeholder=""
+                  v-model="access.requester.email"
+                />
+              </div>
+            </div>
+          </form>
+        </FormSection>
+      </div>
     </div>
-</div>
+  </div>
 </template>
 <script>
-
-import CommsLogs from '@common-utils/comms_logs.vue'
+import CommsLogs from "@common-utils/comms_logs.vue";
 import FormSection from "@/components/forms/section_toggle.vue";
-import {
-  api_endpoints,
-  helpers,
-  constants
-}
-from '@/utils/hooks'
+import { api_endpoints, helpers, constants } from "@/utils/hooks";
 export default {
-  name: 'OrganisationAccess',
+  name: "OrganisationAccess",
   data() {
     let vm = this;
     return {
-        loading: [],
-        profile:{},
-        access: {
-            requester: {}
+      loading: [],
+      profile: {},
+      access: {
+        requester: {},
+      },
+      DATE_TIME_FORMAT: "DD/MM/YYYY HH:mm:ss",
+      members: [],
+      // Filters
+      logs_url: helpers.add_endpoint_json(
+        api_endpoints.organisation_requests,
+        vm.$route.params.access_id + "/action_log",
+      ),
+      comms_url: helpers.add_endpoint_json(
+        api_endpoints.organisation_requests,
+        vm.$route.params.access_id + "/comms_log",
+      ),
+      comms_add_url: helpers.add_endpoint_json(
+        api_endpoints.organisation_requests,
+        vm.$route.params.access_id + "/add_comms_log",
+      ),
+      actionDtOptions: {
+        language: {
+          processing: constants.DATATABLE_PROCESSING_HTML,
         },
-        DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-        members: [],
-        // Filters
-        logs_url: helpers.add_endpoint_json(api_endpoints.organisation_requests,vm.$route.params.access_id+'/action_log'),
-        comms_url: helpers.add_endpoint_json(api_endpoints.organisation_requests,vm.$route.params.access_id+'/comms_log'),
-        comms_add_url: helpers.add_endpoint_json(api_endpoints.organisation_requests,vm.$route.params.access_id+'/add_comms_log'),
-        actionDtOptions:{
-            language: {
-                processing: constants.DATATABLE_PROCESSING_HTML,
-            },
-            responsive: true,
-            deferRender: true, 
-            autowidth: true,
-            order: [[2, 'desc']],
-             dom:
-                "<'row'<'col-sm-5'l><'col-sm-6'f>>" +
-                "<'row'<'col-sm-12'tr>>" +
-                "<'row'<'col-sm-5'i><'col-sm-7'p>>",
-            processing:true,
-            ajax: {
-                "url": helpers.add_endpoint_json(api_endpoints.organisation_requests,vm.$route.params.access_id+'/action_log'),
-                "dataSrc": '',
-            },
-            columns:[
-                {
-                    data:"who",
-                },
-                {
-                    data:"what",
-                },
-                {
-                    data:"when",
-                    mRender:function(data){
-                        return moment(data).format(vm.DATE_TIME_FORMAT)
-                    }
-                },
-            ]
+        responsive: true,
+        deferRender: true,
+        autowidth: true,
+        order: [[2, "desc"]],
+        dom:
+          "<'row'<'col-sm-5'l><'col-sm-6'f>>" +
+          "<'row'<'col-sm-12'tr>>" +
+          "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+        processing: true,
+        ajax: {
+          url: helpers.add_endpoint_json(
+            api_endpoints.organisation_requests,
+            vm.$route.params.access_id + "/action_log",
+          ),
+          dataSrc: "",
         },
-        dtHeaders:["Who","What","When"],
-        actionsTable : null,
-        commsDtOptions:{
-            language: {
-                processing: constants.DATATABLE_PROCESSING_HTML,
+        columns: [
+          {
+            data: "who",
+          },
+          {
+            data: "what",
+          },
+          {
+            data: "when",
+            mRender: function (data) {
+              return moment(data).format(vm.DATE_TIME_FORMAT);
             },
-            responsive: true,
-            deferRender: true, 
-            autowidth: true,
-            order: [[0, 'desc']],
-            processing:true,
-            dom:
-                "<'row'<'col-sm-5'l><'col-sm-6'f>>" +
-                "<'row'<'col-sm-12'tr>>" +
-                "<'row'<'col-sm-5'i><'col-sm-7'p>>",
-            ajax: {
-                "url": helpers.add_endpoint_json(api_endpoints.organisation_requests,vm.$route.params.access_id+'/comms_log'),
-                "dataSrc": '',
+          },
+        ],
+      },
+      dtHeaders: ["Who", "What", "When"],
+      actionsTable: null,
+      commsDtOptions: {
+        language: {
+          processing: constants.DATATABLE_PROCESSING_HTML,
+        },
+        responsive: true,
+        deferRender: true,
+        autowidth: true,
+        order: [[0, "desc"]],
+        processing: true,
+        dom:
+          "<'row'<'col-sm-5'l><'col-sm-6'f>>" +
+          "<'row'<'col-sm-12'tr>>" +
+          "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+        ajax: {
+          url: helpers.add_endpoint_json(
+            api_endpoints.organisation_requests,
+            vm.$route.params.access_id + "/comms_log",
+          ),
+          dataSrc: "",
+        },
+        columns: [
+          {
+            title: "Date",
+            data: "created",
+            render: function (date) {
+              return moment(date).format(vm.DATE_TIME_FORMAT);
             },
-            columns:[
-                {
-                    title: 'Date',
-                    data: 'created',
-                    render: function (date) {
-                        return moment(date).format(vm.DATE_TIME_FORMAT);
-                    }
-                },
-                {
-                    title: 'Type',
-                    data: 'type'
-                },
-                {
-                    title: 'Reference',
-                    data: 'reference'
-                },
-                {
-                    title: 'To',
-                    data: 'to',
-                    render: vm.commaToNewline
-                },
-                {
-                    title: 'CC',
-                    data: 'cc',
-                    render: vm.commaToNewline
-                },
-                {
-                    title: 'From',
-                    data: 'fromm',
-                    render: vm.commaToNewline
-                },
-                {
-                    title: 'Subject/Desc.',
-                    data: 'subject'
-                },
-                {
-                    title: 'Text',
-                    data: 'text',
-                    'render': function (value) {
-                        var ellipsis = '...',
-                            truncated = _.truncate(value, {
-                                length: 100,
-                                omission: ellipsis,
-                                separator: ' '
-                            }),
-                            result = '<span>' + truncated + '</span>',
-                            popTemplate = _.template('<a href="#" ' +
-                                'role="button" ' +
-                                'data-bs-toggle="popover" ' +
-                                'data-trigger="click" ' +
-                                'data-bs-placement="top auto"' +
-                                'data-html="true" ' +
-                                'data-content="<%= text %>" ' +
-                                '>more</a>');
-                        if (_.endsWith(truncated, ellipsis)) {
-                            result += popTemplate({
-                                text: value
-                            });
-                        }
+          },
+          {
+            title: "Type",
+            data: "type",
+          },
+          {
+            title: "Reference",
+            data: "reference",
+          },
+          {
+            title: "To",
+            data: "to",
+            render: vm.commaToNewline,
+          },
+          {
+            title: "CC",
+            data: "cc",
+            render: vm.commaToNewline,
+          },
+          {
+            title: "From",
+            data: "fromm",
+            render: vm.commaToNewline,
+          },
+          {
+            title: "Subject/Desc.",
+            data: "subject",
+          },
+          {
+            title: "Text",
+            data: "text",
+            render: function (value) {
+              var ellipsis = "...",
+                truncated = _.truncate(value, {
+                  length: 100,
+                  omission: ellipsis,
+                  separator: " ",
+                }),
+                result = "<span>" + truncated + "</span>",
+                popTemplate = _.template(
+                  '<a href="#" ' +
+                    'role="button" ' +
+                    'data-bs-toggle="popover" ' +
+                    'data-trigger="click" ' +
+                    'data-bs-placement="top auto"' +
+                    'data-html="true" ' +
+                    'data-content="<%= text %>" ' +
+                    ">more</a>",
+                );
+              if (_.endsWith(truncated, ellipsis)) {
+                result += popTemplate({
+                  text: value,
+                });
+              }
 
-                        return result;
-                    },
-                },
-                {
-                    title: 'Documents',
-                    data: 'documents',
-                    'render': function (values) {
-                        var result = '';
-                        _.forEach(values, function (value) {
-                            // We expect an array [docName, url]
-                            // if it's a string it is the url
-                            var docName = '',
-                                url = '';
-                            if (_.isArray(value) && value.length > 1){
-                                docName = value[0];
-                                url = value[1];
-                            }
-                            if (typeof s === 'string'){
-                                url = value;
-                                // display the first  chars of the filename
-                                docName = _.last(value.split('/'));
-                                docName = _.truncate(docName, {
-                                    length: 18,
-                                    omission: '...',
-                                    separator: ' '
-                                });
-                            }
-                            result += '<a href="' + url + '" target="_blank"><p>' + docName+ '</p></a><br>';
-                        });
-                        return result;
-                    }
+              return result;
+            },
+          },
+          {
+            title: "Documents",
+            data: "documents",
+            render: function (values) {
+              var result = "";
+              _.forEach(values, function (value) {
+                // We expect an array [docName, url]
+                // if it's a string it is the url
+                var docName = "",
+                  url = "";
+                if (_.isArray(value) && value.length > 1) {
+                  docName = value[0];
+                  url = value[1];
                 }
-            ]
-        },
-        commsTable : null,
-    }
+                if (typeof s === "string") {
+                  url = value;
+                  // display the first  chars of the filename
+                  docName = _.last(value.split("/"));
+                  docName = _.truncate(docName, {
+                    length: 18,
+                    omission: "...",
+                    separator: " ",
+                  });
+                }
+                result +=
+                  '<a href="' +
+                  url +
+                  '" target="_blank"><p>' +
+                  docName +
+                  "</p></a><br>";
+              });
+              return result;
+            },
+          },
+        ],
+      },
+      commsTable: null,
+    };
   },
-  beforeRouteEnter: function(to, from, next){
-    fetch(helpers.add_endpoint_json(api_endpoints.organisation_requests,to.params.access_id)).then(async (response) => {
-        if (!response.ok) { return response.json().then(err => { throw err }); }
+  beforeRouteEnter: function (to, from, next) {
+    fetch(
+      helpers.add_endpoint_json(
+        api_endpoints.organisation_requests,
+        to.params.access_id,
+      ),
+    )
+      .then(async (response) => {
+        if (!response.ok) {
+          return response.json().then((err) => {
+            throw err;
+          });
+        }
         let data = await response.json();
-        next(vm => {
-            vm.access = data;
-        })
-    }).catch((error) => {
+        next((vm) => {
+          vm.access = data;
+        });
+      })
+      .catch((error) => {
         console.log(error);
-    })
+      });
   },
   components: {
     CommsLogs,
-    FormSection
+    FormSection,
   },
   computed: {
     isLoading: function () {
       return this.loading.length > 0;
     },
-    isFinalised: function(){
-        return this.access.status == 'With Assesor' || this.access.status == 'Approved' || this.access.status == 'Declined' ;
+    showActions: function () {
+      return (
+        !this.isFinalised &&
+        this.check_assessor() &&
+        this.access.assigned_officer == this.profile.id
+      );
+    },
+    isFinalised: function () {
+      return (
+        this.access.status == "With Assesor" ||
+        this.access.status == "Approved" ||
+        this.access.status == "Declined"
+      );
     },
   },
   methods: {
-    formatDate: function(data){
-        return moment(data).format('DD/MM/YYYY HH:mm:ss');
+    formatDate: function (data) {
+      return moment(data).format("DD/MM/YYYY HH:mm:ss");
     },
-    commaToNewline(s){
-        return s.replace(/[,;]/g, '\n');
+    commaToNewline(s) {
+      return s.replace(/[,;]/g, "\n");
     },
-    fetchAccessGroupMembers: async function(){
-        this.loading.push('Loading Access Group Members');
-        let url = api_endpoints.apiary_organisation_access_group_members;
-        const response = await fetch(url)
-        if (!response.ok) { return response.json().then(err => { throw err }); }
-        this.members = await response.json();
-        this.loading.splice('Loading Access Group Members',1);
+    fetchAccessGroupMembers: async function () {
+      this.loading.push("Loading Access Group Members");
+      let url = api_endpoints.apiary_organisation_access_group_members;
+      const response = await fetch(url);
+      if (!response.ok) {
+        return response.json().then((err) => {
+          throw err;
+        });
+      }
+      this.members = await response.json();
+      this.loading.splice("Loading Access Group Members", 1);
     },
-    assignMyself: function(){
-        let vm = this;
-        fetch(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/assign_request_user')))
+    assignMyself: function () {
+      let vm = this;
+      fetch(
+        helpers.add_endpoint_json(
+          api_endpoints.organisation_requests,
+          vm.access.id + "/assign_request_user",
+        ),
+      )
         .then(async (response) => {
-            if (!response.ok) { return response.json().then(err => { throw err }); }
+          if (!response.ok) {
+            return response.json().then((err) => {
+              throw err;
+            });
+          }
+          console.log(response);
+          vm.access = await response.json();
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    assignTo: function () {
+      let vm = this;
+      if (vm.access.assigned_officer != "null") {
+        let data = { user_id: vm.access.assigned_officer };
+        fetch(
+          helpers.add_endpoint_json(
+            api_endpoints.organisation_requests,
+            vm.access.id + "/assign_to",
+          ),
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          },
+        )
+          .then(async (response) => {
+            const data = await response.json();
+            if (!response.ok) {
+              throw new Error(`Assign To Failed: ${response.status}`);
+            }
             console.log(response);
-            vm.access = await response.json();;
-        }).catch((error) => {
+            vm.access = data;
+          })
+          .catch((error) => {
             console.log(error);
-        });
+          });
+        console.log("there");
+      } else {
+        fetch(
+          helpers.add_endpoint_json(
+            api_endpoints.organisation_requests,
+            vm.access.id + "/unassign",
+          ),
+        )
+          .then(async (response) => {
+            if (!response.ok) {
+              return response.json().then((err) => {
+                throw err;
+              });
+            }
+            console.log(response);
+            vm.access = await response.json();
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
     },
-    assignTo: function(){
-        let vm = this;
-        if ( vm.access.assigned_officer != 'null'){
-            let data = {'user_id': vm.access.assigned_officer};
-            fetch(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/assign_to')),{
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            }).then(async (response) => {
-                const data = await response.json();            
-                if (!response.ok) {
-                    throw new Error(`Assign To Failed: ${response.status}`);
-                }
-                console.log(response);
-                vm.access = data;
-            }).catch((error) => {
-                console.log(error);
-            });
-            console.log('there');
-        }
-        else{
-            fetch(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/unassign')))
-            .then(async (response) => {
-                if (!response.ok) { return response.json().then(err => { throw err }); }
-                console.log(response);
-                vm.access = await response.json();
-            }).catch((error) => {
-                console.log(error);
-            });
-        }
-    },
-    acceptRequest: function() {
-        let vm = this;
-        swal.fire({
-            title: "Accept Organisation Request",
-            text: "Are you sure you want to accept this organisation request?",
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonText: 'Accept',
-            customClass: {
-                confirmButton: 'btn btn-primary',
-                cancelButton: 'btn btn-secondary',
-            },
-        }).then((swalResult) => {
+    acceptRequest: function () {
+      let vm = this;
+      swal
+        .fire({
+          title: "Accept Organisation Request",
+          text: "Are you sure you want to accept this organisation request?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "Accept",
+          customClass: {
+            confirmButton: "btn btn-primary",
+            cancelButton: "btn btn-secondary",
+          },
+        })
+        .then(
+          (swalResult) => {
             if (swalResult.isConfirmed) {
-                fetch(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/accept')))
+              fetch(
+                helpers.add_endpoint_json(
+                  api_endpoints.organisation_requests,
+                  vm.access.id + "/accept",
+                ),
+              )
                 .then(async (response) => {
-                    if (!response.ok) { return response.json().then(err => { throw err }); }
-                    console.log(response);
-                    vm.access = await response.json();
-                }).catch((error) => {
-                    console.log(error);
+                  if (!response.ok) {
+                    return response.json().then((err) => {
+                      throw err;
+                    });
+                  }
+                  console.log(response);
+                  vm.access = await response.json();
+                })
+                .catch((error) => {
+                  console.log(error);
                 });
             }
-        },(error) => {
-            console.log("Swal error"+error);
-        });
-
+          },
+          (error) => {
+            console.log("Swal error" + error);
+          },
+        );
     },
 
-    declineRequest: function() {
-        let vm = this;
-        swal.fire({
-            title: "Decline Organisation Request",
-            text: "Are you sure you want to decline this organisation request?",
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonText: 'Decline',
-            customClass: {
-                confirmButton: 'btn btn-primary',
-                cancelButton: 'btn btn-secondary',
-            },
-        }).then((swalResult) => {
-            if (swalResult.isConfirmed){
-                fetch(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.access.id+'/decline')))
+    declineRequest: function () {
+      let vm = this;
+      swal
+        .fire({
+          title: "Decline Organisation Request",
+          text: "Are you sure you want to decline this organisation request?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "Decline",
+          customClass: {
+            confirmButton: "btn btn-primary",
+            cancelButton: "btn btn-secondary",
+          },
+        })
+        .then(
+          (swalResult) => {
+            if (swalResult.isConfirmed) {
+              fetch(
+                helpers.add_endpoint_json(
+                  api_endpoints.organisation_requests,
+                  vm.access.id + "/decline",
+                ),
+              )
                 .then(async (response) => {
-                    if (!response.ok) { return response.json().then(err => { throw err }); }
-                    console.log(response);
-                    vm.access = await response.json();
-                }).catch((error) => {
-                    console.log(error);
+                  if (!response.ok) {
+                    return response.json().then((err) => {
+                      throw err;
+                    });
+                  }
+                  console.log(response);
+                  vm.access = await response.json();
+                })
+                .catch((error) => {
+                  console.log(error);
                 });
             }
-        },(error) => {
-            console.log("Swal error "+error);
+          },
+          (error) => {
+            console.log("Swal error " + error);
+          },
+        );
+    },
+
+    fetchProfile: async function () {
+      const response = await fetch(api_endpoints.profile);
+      if (!response.ok) {
+        return response.json().then((err) => {
+          throw err;
         });
+      }
+      this.profile = await response.json();
     },
 
-    fetchProfile: async function(){
-        const response = await fetch(api_endpoints.profile);
-        if (!response.ok) { return response.json().then(err => { throw err }); }
-        this.profile = await response.json(); 
-    },
+    check_assessor: function () {
+      let vm = this;
 
-    check_assessor: function(){
-        let vm = this;
-        
-        var assessor = vm.members.filter(function(elem){
-            return(elem.name==vm.profile.full_name);
-        });
-        console.log(vm.members)
-        console.log(assessor)
-                if (assessor.length > 0)
-                    return true;
-                else
-                    return false;
-     },
+      var assessor = vm.members.filter(function (elem) {
+        return elem.name == vm.profile.full_name;
+      });
+      console.log(vm.members);
+      console.log(assessor);
+      if (assessor.length > 0) return true;
+      else return false;
     },
-    created: async function() {
-        await this.fetchAccessGroupMembers();
-        await this.fetchProfile();
-    },
-
-}
+  },
+  created: async function () {
+    await this.fetchAccessGroupMembers();
+    await this.fetchProfile();
+  },
+};
 </script>
 <style scoped>
 .top-buffer-s {
-    margin-top: 10px;
+  margin-top: 10px;
 }
 .actionBtn {
-    cursor: pointer;
+  cursor: pointer;
 }
 .hidePopover {
-    display: none;
+  display: none;
 }
 </style>

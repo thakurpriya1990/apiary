@@ -9,7 +9,8 @@
     >
       <div class="container-fluid">
         <datatable
-          id="commsLogId"
+          ref="datatable"
+          :id="commsLogId"
           :dtOptions="commsDtOptions"
           :dtHeaders="commsDTHeaders"
         ></datatable>
@@ -141,6 +142,22 @@ export default {
   methods: {
     close: function () {
       this.isModalOpen = false;
+    },
+    reload: function () {
+      // Reload datatable ajax data if possible
+      try {
+        const dtComp = this.$refs.datatable;
+        if (dtComp && dtComp.vmDataTable) {
+          const table = dtComp.vmDataTable;
+          if (table.ajax && typeof table.ajax.reload === "function") {
+            table.ajax.reload();
+          } else if (typeof table.draw === "function") {
+            table.draw(false);
+          }
+        }
+      } catch (e) {
+        console.error("Error reloading comms datatable", e);
+      }
     },
   },
 };

@@ -169,7 +169,7 @@ export default {
                     });
                 }
             },
-            dtHeaders:["Request Number","Organisation","Applicant","Role","Status","Lodged on","Assigned To","Action"],
+            dtHeaders:["Req. #","Organisation","Applicant","Role","Status","Lodged on","Assigned To","Action"],
         }
     },
     watch: {
