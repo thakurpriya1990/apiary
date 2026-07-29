@@ -296,7 +296,7 @@ export default {
   methods: {
     submit: function() {
         let vm = this;
-        let text = '';
+        let text;
         if (this.behalf_of === 'individual' && this.profile && this.profile.full_name) {
             text = "Are you sure you want to create " + this.alertText() + " proposal on behalf of "+ this.profile.full_name +" ?"
         } else {

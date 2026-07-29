@@ -1164,9 +1164,7 @@ export default {
       );
 
       all_fields.each(function () {
-        var ele = null;
-        //check the fields which has assessor boxes.
-        ele = $("[name=" + this.name + "-Assessor]");
+        var ele = $("[name=" + this.name + "-Assessor]");
         if (ele.length > 0) {
           var visiblity = $("[name=" + this.name + "-Assessor]").is(":visible");
           if (!visiblity) {
@@ -1431,7 +1429,7 @@ export default {
     },
     assignTo: function () {
       let vm = this;
-      let unassign = true;
+      let unassign;
       let data = {};
       if (vm.processing_status == "With Approver") {
         unassign =

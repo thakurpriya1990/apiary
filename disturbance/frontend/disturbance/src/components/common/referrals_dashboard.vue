@@ -178,7 +178,7 @@ export default {
           {
             data: "proposal",
             mRender: function (data, type, full) {
-              let tick = "";
+              let tick;
               if (full.can_be_processed) {
                 // tick = "<span class='fa-stack'><i class='fa fa-circle fa-stack-1x' style='color:yellow'></i><i class='fa fa-exclamation fa-stack-1x' style=''></i></span>";
                 tick =

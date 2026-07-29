@@ -68,10 +68,10 @@ export default SiteColours
 export let existingSiteRadius = 5
 export let drawingSiteRadius = 7
 export function getStatusForColour(feature_or_apiary_site, vacant_suppress_discard = true, display_at_time_of_submitted = false){
-    let my_status = ''
-    let is_vacant = false
-    let is_vacant_when_submitted = false
-    let making_payment = false
+    let my_status
+    let is_vacant
+    let is_vacant_when_submitted
+    let making_payment
 
     if (Object.prototype.hasOwnProperty.call(feature_or_apiary_site, 'ol_uid')) {
         // feature_or_apiary_site is Feature object
