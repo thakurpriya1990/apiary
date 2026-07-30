@@ -59,9 +59,8 @@ RUN python3 -m venv $VIRTUAL_ENV && \
     $VIRTUAL_ENV/bin/pip install --no-cache-dir -r requirements.txt
 
 # Copy project files
-COPY --chown=oim:oim gunicorn.ini.py manage.py ./
+COPY --chown=oim:oim gunicorn.ini.py manage.py python-cron ./
 COPY --chown=oim:oim .git ./.git
-COPY --chown=oim:oim python-cron python-cron
 COPY --chown=oim:oim disturbance ./disturbance
 
 # Build frontend
