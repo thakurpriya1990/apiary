@@ -146,9 +146,7 @@ VERSION_NO = "1.0.1"
 
 BASE_URL = env("BASE_URL")
 
-CRON_CLASSES = [
-    "appmonitor_client.cron.CronJobAppMonitorClient",
-]
+CRON_CLASSES = ["appmonitor_client.cron.CronJobAppMonitorClient", "disturbance.cron.CronJobProcessReportQueue"]
 
 CKEDITOR_CONFIGS = {
     "default": {
