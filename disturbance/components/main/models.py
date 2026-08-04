@@ -128,8 +128,12 @@ class SanitiseFileMixin(SanitiseMixin, DirtyFieldsMixin):
         if path_to_file and file_content and storage:
             try:
                 _ = getattr(file_content, "size")
+            except AttributeError:
+                file_content_exists = False
             except Exception as e:
-                logger.debug("File content size inaccessible: %s", e)
+                logger.exception(
+                    "Error reading file size for model=%s file=%s: %s", self._meta.model_name, str(file_content), e
+                )
                 file_content_exists = False
 
         # if file content does not exist, it does not need to be sanitised
