@@ -14,28 +14,26 @@
                 style="margin-bottom: 5px"
                 id="filter_search_row"
               >
-                <div v-show="select2Applied">
-                  <div class="row mb-3" id="filters_parent">
-                    <div class="col-sm-1">
-                      <label class="form-label">Status</label>
-                    </div>
+                <div
+                  v-show="select2Applied"
+                  class="bg-light border rounded p-3 shadow-sm mb-3"
+                  id="filters_container"
+                >
+                  <div class="row" id="filters_parent">
+                    <label class="col-sm-auto col-form-label">Status</label>
                     <div class="col-sm-3">
                       <select class="form-select" ref="filterStatus"></select>
                     </div>
-                    <div class="col-sm-1">
-                      <label class="form-label">Availability</label>
-                    </div>
+                    <label class="col-sm-auto col-form-label"
+                      >Availability</label
+                    >
                     <div class="col-sm-3">
                       <select
                         class="form-select"
                         ref="filterAvailability"
                       ></select>
                     </div>
-                    <div class="col-sm-1">
-                      <label :for="search_text" class="form-label"
-                        >Search</label
-                      >
-                    </div>
+                    <label class="col-sm-auto col-form-label">Search</label>
                     <div class="col-sm-3">
                       <input
                         v-model="search_text"
