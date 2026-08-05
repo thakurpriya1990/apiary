@@ -263,6 +263,9 @@ export default {
       filterStatuses: [],
       select2Obj: null,
 
+      all_sites_ajax_obj: null,
+      all_sites_loading: false,
+
       show_hide_instructions: [
         // This array is used as instructions when showing/hiding the apiary sites on the map
         // ApiarySite
@@ -468,21 +471,7 @@ export default {
       }
     },
     loading_sites: function () {
-      let vm = this;
-      for (let site_status of vm.show_hide_instructions) {
-        if (site_status.options) {
-          for (let option of site_status.options) {
-            if (option.show && option.loading_sites) {
-              return true;
-            }
-          }
-        } else {
-          if (site_status.show && site_status.loading_sites) {
-            return true;
-          }
-        }
-      }
-      return false;
+      return this.all_sites_loading;
     },
   },
   methods: {
@@ -725,20 +714,9 @@ export default {
     },
     clearAjaxObjects: function () {
       let vm = this;
-      for (let site_status of vm.show_hide_instructions) {
-        if (site_status.options) {
-          for (let option of site_status.options) {
-            if (option.ajax_obj != null) {
-              option.ajax_obj.abort();
-              option.ajax_obj = null;
-            }
-          }
-        } else {
-          if (site_status.ajax_obj != null) {
-            site_status.ajax_obj.abort();
-            site_status.ajax_obj = null;
-          }
-        }
+      if (vm.all_sites_ajax_obj != null) {
+        vm.all_sites_ajax_obj.abort();
+        vm.all_sites_ajax_obj = null;
       }
     },
     addApiarySitesToMap: function (apiary_sites_geojson) {
@@ -1697,113 +1675,46 @@ export default {
       }
     },
     showHideApiarySites: async function () {
-      /////
-      // This function shows/hides the apiary sites according to the show_hide_instructions object.
-      /////
       let vm = this;
-
-      // let temp = vm.show_hide_instructions
-
       vm.clearApiarySitesFromMap();
       vm.clearAjaxObjects();
 
+      let statuses = [];
+      let availabilities = [];
       for (let site_status of vm.show_hide_instructions) {
+        if (!site_status.show) continue;
         if (site_status.options) {
-          // Options (sub categories) exist, which means this site_status is 'current' (for current implementation)
+          statuses.push(site_status.id);
           for (let option of site_status.options) {
-            if (site_status.show && option.show) {
-              option.loading_sites = true;
-              option.ajax_obj = $.ajax(
-                "/api/apiary_site/" +
-                  option.api +
-                  "/?search_text=" +
-                  vm.search_text,
-                {
-                  dataType: "json",
-                  success: function (re) {
-                    vm.addApiarySitesToMap(re);
-                    option.loading_sites = false;
-                  },
-                  error: function () {
-                    // error callback
-                    option.loading_sites = false;
-                  },
-                },
-              );
-            } else {
-              // Hide all the apiary_site
-              for (let feature_and_row of option.features_and_rows) {
-                // Remove the apiary_site from the map.  There are no functions to show/hide a feature unlike the layer.
-                if (
-                  feature_and_row &&
-                  vm.apiarySitesQuerySource.hasFeature(feature_and_row.feature)
-                ) {
-                  try {
-                    // Remove the apiary site from the map by using the cache
-                    vm.apiarySitesQuerySource.removeFeature(
-                      feature_and_row.feature,
-                    );
-
-                    // Remove the apiary site from the table by using the cache
-                    //vm.removeApiarySiteFromTable(feature_and_row.row_jquery)
-                    //rows_jquery.push(feature_and_row.row_jquery)
-                  } catch (err) {
-                    console.log(err);
-                  }
-                }
-              }
-            }
+            if (option.show) availabilities.push(option.id);
           }
         } else {
-          // No sub options
-          if (site_status.show) {
-            // Show all the apiary sites in this site_status
-            // Data have not been loaded yet
-            // Fetch data from the server
-            // Add the features to the map
-            // Add the features to the table
-            // Store data in the data storage
-
-            site_status.loading_sites = true;
-            site_status.ajax_obj = $.ajax(
-              "/api/apiary_site/" +
-                site_status.api +
-                "/?search_text=" +
-                vm.search_text,
-              {
-                dataType: "json",
-                success: function (re) {
-                  vm.addApiarySitesToMap(re);
-                  site_status.loading_sites = false;
-                },
-                error: function (jqXhr, textStatus, errorMessage) {
-                  // error callback
-                  console.log(errorMessage);
-                  site_status.loading_sites = false;
-                },
-              },
-            );
-          } else {
-            // Hide all the apiary_sites in this site_status
-            for (let feature_and_row of site_status.features_and_rows) {
-              // Remove the apiary_site from the map.  There are no functions to show/hide a feature unlike the layer.
-              if (
-                feature_and_row &&
-                vm.apiarySitesQuerySource.hasFeature(feature_and_row.feature)
-              ) {
-                try {
-                  // Remove the apiary site from the map by using the cache
-                  vm.apiarySitesQuerySource.removeFeature(
-                    feature_and_row.feature,
-                  );
-                } catch (err) {
-                  console.log(err);
-                }
-              }
-            }
-          }
+          statuses.push(site_status.id);
         }
-      } // END: loop for show_hide_instructions
+      }
+
+      if (statuses.length === 0) return;
+
+      vm.all_sites_loading = true;
+      vm.all_sites_ajax_obj = $.ajax(
+        "/api/apiary_site/list_apiary_sites/?" +
+          $.param({
+            statuses: statuses.join(","),
+            availabilities: availabilities.join(","),
+            search_text: vm.search_text,
+          }),
+        {
+          dataType: "json",
+          success: function (re) {
+            vm.addApiarySitesToMap(re);
+            vm.all_sites_loading = false;
+          },
+          error: function (jqXhr, textStatus, errorMessage) {
+            console.log(errorMessage);
+            vm.all_sites_loading = false;
+          },
+        },
+      );
     }, // END: showHideApiarySites()
   },
   mounted: function () {

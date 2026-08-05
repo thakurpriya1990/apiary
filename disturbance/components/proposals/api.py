@@ -38,6 +38,7 @@ from disturbance.components.main.decorators import basic_exception_handler, time
 from disturbance.components.main.models import ApplicationType
 from disturbance.components.main.process_document import process_generic_document
 from disturbance.components.main.utils import (
+    get_qs_all_apiary_sites,
     get_qs_approval,
     get_qs_current_site,
     get_qs_denied_site,
@@ -158,9 +159,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
         total_count = queryset.count()
 
         try:
-            super_queryset = super(ProposalFilterBackend, self).filter_queryset(
-                request, queryset, view
-            )
+            super_queryset = super().filter_queryset(request, queryset, view)
         except Exception as e:
             print(e)
 
@@ -170,9 +169,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             email_user_ids = list(
                 EmailUser.objects.annotate(
                     full_name=Concat("first_name", Value(" "), "last_name"),
-                    legal_full_name=Concat(
-                        "legal_first_name", Value(" "), "legal_last_name"
-                    ),
+                    legal_full_name=Concat("legal_first_name", Value(" "), "legal_last_name"),
                 )
                 .filter(
                     Q(email__icontains=search_text)
@@ -186,9 +183,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
                 .values_list("id", flat=True)
             )
 
-            organisation_ids = list(
-                Organisation.objects.filter(property_cache__name__icontains=search_text)
-            )
+            organisation_ids = list(Organisation.objects.filter(property_cache__name__icontains=search_text))
 
             search_text_app_ids = Proposal.objects.values("id").filter(
                 Q(proxy_applicant_id__in=email_user_ids)
@@ -197,16 +192,12 @@ class ProposalFilterBackend(DatatablesFilterBackend):
                 | Q(applicant_id__in=organisation_ids)
             )
 
-            queryset = (
-                queryset.filter(id__in=search_text_app_ids).distinct() | super_queryset
-            )
+            queryset = queryset.filter(id__in=search_text_app_ids).distinct() | super_queryset
 
         application_type = request.GET.get("application_type")
         if application_type and not application_type.lower() == "all":
             if queryset.model is Referral or queryset.model is Compliance:
-                queryset = queryset.filter(
-                    proposal__application_type__name=application_type
-                )
+                queryset = queryset.filter(proposal__application_type__name=application_type)
             else:
                 queryset = queryset.filter(application_type__name=application_type)
         proposal_activity = request.GET.get("proposal_activity")
@@ -239,14 +230,10 @@ class ProposalFilterBackend(DatatablesFilterBackend):
                 queryset = queryset.filter(due_date__lte=date_to)
 
             if request.GET.get("processing_status"):
-                queryset = queryset.filter(
-                    processing_status__icontains=request.GET.get("processing_status")
-                )
+                queryset = queryset.filter(processing_status__icontains=request.GET.get("processing_status"))
 
             if request.GET.get("customer_status"):
-                queryset = queryset.filter(
-                    customer_status__icontains=request.GET.get("customer_status")
-                )
+                queryset = queryset.filter(customer_status__icontains=request.GET.get("customer_status"))
 
         elif queryset.model is Referral:
             if date_from:
@@ -281,9 +268,7 @@ class ProposalPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         elif user.is_authenticated:
             user_orgs = [org.id for org in user.disturbance_organisations.all()]
             qs = Proposal.objects.exclude(processing_status="hidden").filter(
-                Q(applicant_id__in=user_orgs)
-                | Q(submitter=user)
-                | Q(proxy_applicant=user)
+                Q(applicant_id__in=user_orgs) | Q(submitter=user) | Q(proxy_applicant=user)
             )
             return qs
         return Proposal.objects.none()
@@ -339,17 +324,13 @@ class ProposalPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         template_group = get_template_group(request)
         if template_group == "apiary":
             qs = (
-                Referral.objects.filter(
-                    apiary_referral__referral_group__members=request.user
-                )
+                Referral.objects.filter(apiary_referral__referral_group__members=request.user)
                 if is_internal(self.request)
                 else Referral.objects.none()
             )
         else:
             qs = (
-                Referral.objects.filter(referral=request.user)
-                if is_internal(self.request)
-                else Referral.objects.none()
+                Referral.objects.filter(referral=request.user) if is_internal(self.request) else Referral.objects.none()
             )
 
         qs = self.filter_queryset(qs)
@@ -411,17 +392,11 @@ class OnSiteInformationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
         if is_internal(self.request):
             return OnSiteInformation.objects.filter(datetime_deleted=None)
         elif user.is_authenticated:
-            user_orgs = [
-                org.id for org in self.request.user.disturbance_organisations.all()
-            ]
+            user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
             qs = OnSiteInformation.objects.filter(datetime_deleted=None).filter(
                 Q(apiary_site_on_approval__approval__applicant_id__in=user_orgs)
-                | Q(
-                    apiary_site_on_approval__approval__current_proposal__submitter_id=user.id
-                )
-                | Q(
-                    apiary_site_on_approval__approval__current_proposal__proxy_applicant_id=user.id
-                )
+                | Q(apiary_site_on_approval__approval__current_proposal__submitter_id=user.id)
+                | Q(apiary_site_on_approval__approval__current_proposal__proxy_applicant_id=user.id)
             )
             return qs
         return OnSiteInformation.objects.none()
@@ -440,7 +415,7 @@ class OnSiteInformationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
             data_dict[property_name] = None
         else:
             # There is a 'property_name' in the data received
-            m = re.match("^(\d{2}).(\d{2}).(\d{4})$", data_dict[property_name])
+            m = re.match(r"^(\d{2}).(\d{2}).(\d{4})$", data_dict[property_name])
             if m:
                 year = m.group(3)
                 if int(m.group(2)) > 12:
@@ -462,9 +437,7 @@ class OnSiteInformationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
             instance = self.get_object()
 
             now = datetime.now(pytz.timezone(TIME_ZONE))
-            serializer = OnSiteInformationSerializer(
-                instance, {"datetime_deleted": now}, partial=True
-            )
+            serializer = OnSiteInformationSerializer(instance, {"datetime_deleted": now}, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
@@ -482,31 +455,22 @@ class OnSiteInformationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
         if is_internal(self.request):
             approval_queryset = Approval.objects.filter(id=approval_id)
             apiary_site = (
-                ApiarySite.objects.filter(id=apiary_site_id)
-                .filter(approval_set__in=approval_queryset)
-                .first()
+                ApiarySite.objects.filter(id=apiary_site_id).filter(approval_set__in=approval_queryset).first()
             )
             approval = approval_queryset.first()
         else:
-            user_orgs = [
-                org.id for org in self.request.user.disturbance_organisations.all()
-            ]
+            user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
             approval_queryset = Approval.objects.filter(id=approval_id).filter(
-                Q(applicant_id__in=user_orgs)
-                | Q(proxy_applicant_id=self.request.user.id)
+                Q(applicant_id__in=user_orgs) | Q(proxy_applicant_id=self.request.user.id)
             )
             apiary_site = (
-                ApiarySite.objects.filter(id=apiary_site_id)
-                .filter(approval_set__in=approval_queryset)
-                .first()
+                ApiarySite.objects.filter(id=apiary_site_id).filter(approval_set__in=approval_queryset).first()
             )
             approval = approval_queryset.first()
 
         if not apiary_site:
             if is_internal(self.request):
-                raise serializers.ValidationError(
-                    "Apiary Site does not exist on Approval."
-                )
+                raise serializers.ValidationError("Apiary Site does not exist on Approval.")
             else:
                 raise serializers.ValidationError(
                     "User not authorised to add site information to specified Apiary Site."
@@ -516,13 +480,9 @@ class OnSiteInformationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
             if is_internal(self.request):
                 raise serializers.ValidationError("Approval does not exist.")
             else:
-                raise serializers.ValidationError(
-                    "User not authorised to add site information to specified Approval."
-                )
+                raise serializers.ValidationError("User not authorised to add site information to specified Approval.")
 
-        apiary_site_on_approval = ApiarySiteOnApproval.objects.get(
-            apiary_site=apiary_site, approval=approval
-        )
+        apiary_site_on_approval = ApiarySiteOnApproval.objects.get(apiary_site=apiary_site, approval=approval)
         request_data["apiary_site_on_approval_id"] = apiary_site_on_approval.id
 
         self.sanitize_date(request_data, "period_from")
@@ -534,20 +494,20 @@ class OnSiteInformationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
     def update(self, request, *args, **kwargs):
         with transaction.atomic():
             instance = self.get_object()
-            logger.info("Updating OnSiteInformation: [{}]".format(instance))
+            logger.info(f"Updating OnSiteInformation: [{instance}]")
 
             request_data = self._construct_data(request)
 
             serializer = OnSiteInformationSerializer(instance, data=request_data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            logger.info("OnSiteInformation updated: [{}]".format(serializer.data))
+            logger.info(f"OnSiteInformation updated: [{serializer.data}]")
 
         sender = request.user
         try:
             send_on_site_notification_email(request_data, sender, update=True)
         except Exception as e:
-            logger.error("Failed to send an email: {}".format(e))
+            logger.error(f"Failed to send an email: {e}")
 
         return Response(serializer.data)
 
@@ -560,13 +520,13 @@ class OnSiteInformationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
             serializer = OnSiteInformationSerializer(data=request_data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            logger.info("OnSiteInformation created: [{}]".format(serializer.data))
+            logger.info(f"OnSiteInformation created: [{serializer.data}]")
 
         sender = request.user
         try:
             send_on_site_notification_email(request_data, sender)
         except Exception as e:
-            logger.error("Failed to send an email: {}".format(e))
+            logger.error(f"Failed to send an email: {e}")
 
         return Response(serializer.data)
 
@@ -579,16 +539,11 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if is_internal(self.request):
             return ApiarySite.objects.all()
         elif self.request.user.is_authenticated:
-            user_orgs = [
-                org.id for org in self.request.user.disturbance_organisations.all()
-            ]
+            user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
             approval_queryset = Approval.objects.filter(
-                Q(applicant_id__in=user_orgs)
-                | Q(proxy_applicant_id=self.request.user.id)
+                Q(applicant_id__in=user_orgs) | Q(proxy_applicant_id=self.request.user.id)
             ).exclude(status="hidden")
-            apiary_sites = ApiarySite.objects.filter(
-                approval_set__in=approval_queryset
-            ).distinct()
+            apiary_sites = ApiarySite.objects.filter(approval_set__in=approval_queryset).distinct()
             return apiary_sites
         else:
             return ApiarySite.objects.none()
@@ -603,7 +558,7 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def relevant_applicant_name(self, request, pk=None):
         try:
             apiary_site = ApiarySite.objects.get(pk=pk)
-            logger.info("apiary_site: [{}]".format(apiary_site))
+            logger.info(f"apiary_site: [{apiary_site}]")
         except ApiarySite.DoesNotExist:
             raise NotFound(detail="No ApiarySite matches the given query.", code=404)
 
@@ -622,11 +577,7 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def contact_licence_holder(self, request, pk=None):
         try:
             apiary_site = ApiarySite.objects.get(pk=pk)
-            logger.info(
-                "Contacting licence holder for apiary site:[{}] for the user: [{}]...".format(
-                    apiary_site, request.user
-                )
-            )
+            logger.info(f"Contacting licence holder for apiary site:[{apiary_site}] for the user: [{request.user}]...")
         except ApiarySite.DoesNotExist:
             raise NotFound(detail="No ApiarySite matches the given query.", code=404)
 
@@ -634,18 +585,13 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         if comments:
             sender = request.user
-            email_data = send_contact_licence_holder_email(
-                apiary_site.latest_approval_link, comments, sender
-            )
+            email_data = send_contact_licence_holder_email(apiary_site.latest_approval_link, comments, sender)
 
-            email_data["approval"] = "{}".format(
-                apiary_site.latest_approval_link.approval.id
-            )
+            email_data["approval"] = f"{apiary_site.latest_approval_link.approval.id}"
             email_data["fromm"] = sender.email if sender else None
             email_data["to"] = (
                 apiary_site.latest_approval_link.approval.relevant_applicant_email
-                if apiary_site.latest_approval_link
-                and apiary_site.latest_approval_link.approval
+                if apiary_site.latest_approval_link and apiary_site.latest_approval_link.approval
                 else None
             )
 
@@ -694,9 +640,7 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         except Exception as e:
             raise serializers.ValidationError("Invalid Request" + str(e))
         instance.save()
-        data = annotate_apiary_site_on_approval_geometry(
-            ApiarySiteOnApproval.objects.filter(id=instance.id)
-        )
+        data = annotate_apiary_site_on_approval_geometry(ApiarySiteOnApproval.objects.filter(id=instance.id))
         return Response(data[0] if len(data) > 0 else {})
 
     @action(
@@ -708,17 +652,9 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     @basic_exception_handler
     def list_apiary_sites_vacant(self, request):
         search_text = request.query_params.get("search_text", "")
-        qs_vacant_site_proposal, qs_vacant_site_approval = get_qs_vacant_site(
-            search_text
-        )
-        vacant_site_proposal = (
-            annotate_apiary_site_on_proposal_vacant_draft_minimal_geometry(
-                qs_vacant_site_proposal
-            )
-        )
-        vacant_site_approval = annotate_apiary_site_on_approval_min_geometry(
-            qs_vacant_site_approval
-        )
+        qs_vacant_site_proposal, qs_vacant_site_approval = get_qs_vacant_site(search_text)
+        vacant_site_proposal = annotate_apiary_site_on_proposal_vacant_draft_minimal_geometry(qs_vacant_site_proposal)
+        vacant_site_approval = annotate_apiary_site_on_approval_min_geometry(qs_vacant_site_approval)
         data = {
             "type": "FeatureCollection",
             "features": list(vacant_site_proposal) + list(vacant_site_approval),
@@ -823,6 +759,76 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         data = {"type": "FeatureCollection", "features": list(sites)}
         return Response(data)
 
+    @staticmethod
+    def _format_approval_site_feature(site):
+        geom = site["wkb_geometry"]
+        lng, lat = geom.x, geom.y
+        return {
+            "id": site["apiary_site__id"],
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [lng, lat]},
+            "properties": {
+                "stable_coords": {"lng": lng, "lat": lat},
+                "site_guid": site["apiary_site__site_guid"],
+                "is_vacant": site["apiary_site__is_vacant"],
+                "site_category": site["site_category__name"],
+                "status": site["site_status"],
+                "available": site["available"],
+                "approval_id": site["approval__id"],
+                "lodgement_number": site["approval__lodgement_number"],
+            },
+        }
+
+    @action(
+        detail=False,
+        methods=["GET"],
+    )
+    @basic_exception_handler
+    def list_apiary_sites(self, request):
+        statuses_param = request.query_params.get("statuses", "")
+        availabilities_param = request.query_params.get("availabilities", "")
+        search_text = request.query_params.get("search_text", "")
+
+        status_filter = [s for s in statuses_param.split(",") if s]
+        availability_filter = [a for a in availabilities_param.split(",") if a]
+        search_int = int(search_text) if search_text and search_text.isdigit() else ""
+
+        show_all = not status_filter
+        features = []
+
+        if show_all or "vacant" in status_filter:
+            qs_p, qs_a = get_qs_vacant_site(search_int or search_text)
+            features += list(annotate_apiary_site_on_proposal_vacant_draft_minimal_geometry(qs_p))
+            features += list(annotate_apiary_site_on_approval_min_geometry(qs_a))
+
+        if show_all or "pending" in status_filter:
+            features += list(
+                annotate_apiary_site_on_proposal_minimal_geometry(get_qs_pending_site(search_int or search_text))
+            )
+
+        if show_all or "denied" in status_filter:
+            features += list(
+                annotate_apiary_site_on_proposal_minimal_geometry(get_qs_denied_site(search_int or search_text))
+            )
+
+        # Approval-based sites fetched in one combined DB query
+        if show_all or any(s in status_filter for s in ("current", "suspended", "not_to_be_reissued")):
+            grouped = get_qs_all_apiary_sites(search_int or search_text)
+            show_available = not availability_filter or "available" in availability_filter
+            show_unavailable = not availability_filter or "unavailable" in availability_filter
+            for status_key, sites in grouped.items():
+                if not (show_all or status_key in status_filter):
+                    continue
+                for site in sites:
+                    if status_key == SITE_STATUS_CURRENT:
+                        if site["available"] and not show_available:
+                            continue
+                        if not site["available"] and not show_unavailable:
+                            continue
+                    features.append(self._format_approval_site_feature(site))
+
+        return Response({"type": "FeatureCollection", "features": features})
+
     @action(
         detail=False,
         methods=[
@@ -833,11 +839,7 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     @timeit
     def list_existing_proposal_vacant_draft(self, request):
         qs_vacant_site_proposal, _ = get_qs_vacant_site()
-        vacant_site_proposal = (
-            annotate_apiary_site_on_proposal_vacant_draft_minimal_geometry(
-                qs_vacant_site_proposal
-            )
-        )
+        vacant_site_proposal = annotate_apiary_site_on_proposal_vacant_draft_minimal_geometry(qs_vacant_site_proposal)
         data = {"type": "FeatureCollection", "features": list(vacant_site_proposal)}
         return Response(data)
 
@@ -851,14 +853,8 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     @timeit
     def list_existing_proposal_vacant_processed(self, request):
         qs_vacant_site_proposal, _ = get_qs_vacant_site()
-        qs_vacant_site_proposal = qs_vacant_site_proposal.filter(
-            wkb_geometry_processed__isnull=False
-        )
-        vacant_site_proposal = (
-            annotate_apiary_site_on_proposal_processed_minimal_geometry(
-                qs_vacant_site_proposal
-            )
-        )
+        qs_vacant_site_proposal = qs_vacant_site_proposal.filter(wkb_geometry_processed__isnull=False)
+        vacant_site_proposal = annotate_apiary_site_on_proposal_processed_minimal_geometry(qs_vacant_site_proposal)
         data = {"type": "FeatureCollection", "features": list(vacant_site_proposal)}
         return Response(data)
 
@@ -872,9 +868,7 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     @timeit
     def list_existing_approval_vacant(self, request):
         _, qs_vacant_site_approval = get_qs_vacant_site()
-        vacant_site_approval = annotate_apiary_site_on_approval_min_geometry(
-            qs_vacant_site_approval
-        )
+        vacant_site_approval = annotate_apiary_site_on_approval_min_geometry(qs_vacant_site_approval)
         data = {"type": "FeatureCollection", "features": list(vacant_site_approval)}
         return Response(data)
 
@@ -891,9 +885,7 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         search_text = request.query_params.get("search_text", "")
         proposal = Proposal.objects.get(id=proposal_id) if proposal_id else None
         qs_on_proposal_draft = get_qs_proposal("draft", proposal, search_text)
-        on_proposal_draft = annotate_apiary_site_on_proposal_minimal_geometry(
-            qs_on_proposal_draft
-        )
+        on_proposal_draft = annotate_apiary_site_on_proposal_minimal_geometry(qs_on_proposal_draft)
         data = {"type": "FeatureCollection", "features": list(on_proposal_draft)}
         return Response(data)
 
@@ -909,11 +901,7 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         proposal_id = request.query_params.get("proposal_id", None)
         proposal = Proposal.objects.get(id=proposal_id) if proposal_id else None
         qs_on_proposal_processed = get_qs_proposal("processed", proposal)
-        on_proposal_processed = (
-            annotate_apiary_site_on_proposal_processed_minimal_geometry(
-                qs_on_proposal_processed
-            )
-        )
+        on_proposal_processed = annotate_apiary_site_on_proposal_processed_minimal_geometry(qs_on_proposal_processed)
         data = {"type": "FeatureCollection", "features": list(on_proposal_processed)}
         return Response(data)
 
@@ -933,42 +921,26 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         return Response(data)
 
     def _available_sites_qs(self):
-        q_include = Q(
-            id__in=(ApiarySite.objects.all().values("latest_approval_link__id"))
-        )
+        q_include = Q(id__in=(ApiarySite.objects.all().values("latest_approval_link__id")))
         q_include &= Q(site_status=SITE_STATUS_CURRENT)
         q_include &= Q(available=True)
-        qs_on_approval = ApiarySiteOnApproval.objects.filter(q_include).distinct(
-            "apiary_site"
-        )
+        qs_on_approval = ApiarySiteOnApproval.objects.filter(q_include).distinct("apiary_site")
         return qs_on_approval
 
     def _not_to_be_reissued_sites_qs(self):
         q_include_approval = Q(
-            id__in=(
-                ApiarySite.objects.all()
-                .exclude(is_vacant=True)
-                .values("latest_approval_link__id")
-            )
+            id__in=(ApiarySite.objects.all().exclude(is_vacant=True).values("latest_approval_link__id"))
         )
         q_include_approval &= Q(site_status=SITE_STATUS_NOT_TO_BE_REISSUED)
-        qs_on_approval = ApiarySiteOnApproval.objects.filter(
-            q_include_approval
-        ).distinct("apiary_site")
+        qs_on_approval = ApiarySiteOnApproval.objects.filter(q_include_approval).distinct("apiary_site")
         return qs_on_approval
 
     def _denied_sites_qs(self):
         q_include_proposal = Q(
-            id__in=(
-                ApiarySite.objects.all()
-                .exclude(is_vacant=True)
-                .values("latest_proposal_link__id")
-            )
+            id__in=(ApiarySite.objects.all().exclude(is_vacant=True).values("latest_proposal_link__id"))
         )
         q_include_proposal &= Q(site_status=SITE_STATUS_DENIED)
-        qs_on_proposal = ApiarySiteOnProposal.objects.filter(
-            q_include_proposal
-        ).distinct("apiary_site")
+        qs_on_proposal = ApiarySiteOnProposal.objects.filter(q_include_proposal).distinct("apiary_site")
         return qs_on_proposal
 
     @action(
@@ -996,9 +968,7 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         qs_on_proposal = self._denied_sites_qs()
         qs_on_approval = self._not_to_be_reissued_sites_qs()
 
-        proposal_data = annotate_apiary_site_on_proposal_processed_geometry(
-            qs_on_proposal
-        )
+        proposal_data = annotate_apiary_site_on_proposal_processed_geometry(qs_on_proposal)
         approval_data = annotate_apiary_site_on_approval_geometry(qs_on_approval)
 
         data = {"features": list(proposal_data) + list(approval_data)}
@@ -1024,19 +994,11 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             apiary_site__in=proposal_apiary.apiary_sites.all()
         )
 
-        draft_apiary_sites = apiary_site_on_proposals.filter(
-            site_status=SITE_STATUS_DRAFT
-        )
-        non_draft_apiary_sites = apiary_site_on_proposals.exclude(
-            site_status=SITE_STATUS_DRAFT
-        )
+        draft_apiary_sites = apiary_site_on_proposals.filter(site_status=SITE_STATUS_DRAFT)
+        non_draft_apiary_sites = apiary_site_on_proposals.exclude(site_status=SITE_STATUS_DRAFT)
 
-        draft_apiary_sites = list(
-            annotate_apiary_site_on_proposal_draft_geometry(draft_apiary_sites)
-        )
-        non_draft_apiary_sites = list(
-            annotate_apiary_site_on_proposal_processed_geometry(non_draft_apiary_sites)
-        )
+        draft_apiary_sites = list(annotate_apiary_site_on_proposal_draft_geometry(draft_apiary_sites))
+        non_draft_apiary_sites = list(annotate_apiary_site_on_proposal_processed_geometry(non_draft_apiary_sites))
 
         data = {"features": draft_apiary_sites + non_draft_apiary_sites}
 
@@ -1052,15 +1014,10 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def transfer_apiary_sites(self, request, *args, **kwargs):
         proposal_apiary = self.get_object()
 
-        if (
-            proposal_apiary.proposal
-            and proposal_apiary.proposal.customer_status == "draft"
-        ):
+        if proposal_apiary.proposal and proposal_apiary.proposal.customer_status == "draft":
             sites = proposal_apiary.site_transfer_apiary_sites.all()
         else:
-            sites = proposal_apiary.site_transfer_apiary_sites.filter(
-                customer_selected=True
-            )
+            sites = proposal_apiary.site_transfer_apiary_sites.filter(customer_selected=True)
 
         data = list(annotate_site_transfer_apiary_site(sites))
 
@@ -1071,9 +1028,7 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if is_internal(self.request):
             return ProposalApiary.objects.all()
         elif user.is_authenticated:
-            user_orgs = [
-                org.id for org in self.request.user.disturbance_organisations.all()
-            ]
+            user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
             qs = ProposalApiary.objects.filter(
                 Q(proposal_id__applicant_id__in=user_orgs)
                 | Q(proposal_id__submitter_id=user.id)
@@ -1116,9 +1071,7 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             or instance.proposal
             and instance.proposal.customer_status == Proposal.CUSTOMER_STATUS_DRAFT
         ):
-            returned_data = process_generic_document(
-                request, instance, document_type=DeedPollDocument.DOC_TYPE_NAME
-            )
+            returned_data = process_generic_document(request, instance, document_type=DeedPollDocument.DOC_TYPE_NAME)
         if returned_data:
             return Response(returned_data)
         else:
@@ -1131,9 +1084,7 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         try:
             instance = self.get_object()
         except ProposalApiary.DoesNotExist:
-            instance = ProposalApiaryTemporaryUse.objects.get(
-                proposal__id=kwargs.get("pk")
-            )
+            instance = ProposalApiaryTemporaryUse.objects.get(proposal__id=kwargs.get("pk"))
 
         returned_data = None
         action = request.data.get("action")
@@ -1175,17 +1126,11 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         else:
             return Response()
 
-    @action(
-        detail=True, methods=["post"], permission_classes=[ProposalAssessorPermission]
-    )
+    @action(detail=True, methods=["post"], permission_classes=[ProposalAssessorPermission])
     @basic_exception_handler
     def apiary_assessor_send_referral(self, request, *args, **kwargs):
         instance = self.get_object()
-        if (
-            instance.proposal
-            and instance.proposal.processing_status
-            == Proposal.PROCESSING_STATUS_WITH_ASSESSOR
-        ):
+        if instance.proposal and instance.proposal.processing_status == Proposal.PROCESSING_STATUS_WITH_ASSESSOR:
             serializer = SendApiaryReferralSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             instance.send_referral(
@@ -1194,18 +1139,12 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 serializer.validated_data["text"],
             )
             serializer_class = self.internal_apiary_serializer_class()
-            serializer = serializer_class(
-                instance.proposal, context={"request": request}
-            )
+            serializer = serializer_class(instance.proposal, context={"request": request})
             return Response(serializer.data)
         else:
-            raise serializer.ValidationError(
-                "Can only send reference when proposal is With Assessor."
-            )
+            raise serializer.ValidationError("Can only send reference when proposal is With Assessor.")
 
-    @action(
-        detail=True, methods=["post"], permission_classes=[ProposalAssessorPermission]
-    )
+    @action(detail=True, methods=["post"], permission_classes=[ProposalAssessorPermission])
     @renderer_classes((JSONRenderer,))
     @basic_exception_handler
     def assessor_save(self, request, *args, **kwargs):
@@ -1258,33 +1197,20 @@ class ProposalApiaryViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 serializer.is_valid(raise_exception=True)
 
             preview = None
-            if (
-                instance.proposal
-                and instance.proposal.processing_status
-                == Proposal.PROCESSING_STATUS_WITH_APPROVER
-            ):
+            if instance.proposal and instance.proposal.processing_status == Proposal.PROCESSING_STATUS_WITH_APPROVER:
                 preview = request.data.get("preview")
-                instance = instance.final_approval(
-                    request, serializer.validated_data, preview=preview
-                )
+                instance = instance.final_approval(request, serializer.validated_data, preview=preview)
 
             serializer_class = self.internal_apiary_serializer_class()
-            serializer = serializer_class(
-                instance.proposal, context={"request": request}
-            )
+            serializer = serializer_class(instance.proposal, context={"request": request})
 
             if preview:
                 site_transfer_preview = False
-                if (
-                    instance.proposal.application_type.name
-                    == ApplicationType.SITE_TRANSFER
-                ):
+                if instance.proposal.application_type.name == ApplicationType.SITE_TRANSFER:
                     site_transfer_preview = True
                     originating_target = request.data.get("originating_target")
                     if originating_target == "originating":
-                        preview_approval_id = serializer.data.get(
-                            "proposal_apiary", {}
-                        ).get("originating_approval_id")
+                        preview_approval_id = serializer.data.get("proposal_apiary", {}).get("originating_approval_id")
                     else:
                         preview_approval_id = instance.target_approval_id
                 else:
@@ -1365,20 +1291,18 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = DTApiaryReferralSerializer(qs, many=True)
         return Response(serializer.data)
 
-    @action(
-        detail=True, methods=["POST"], permission_classes=[ProposalReferrerPermission]
-    )
+    @action(detail=True, methods=["POST"], permission_classes=[ProposalReferrerPermission])
     def complete(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.complete(request)
         data = {}
         data["type"] = "email"
-        data["fromm"] = "{}".format(request.user.get_full_name())
-        data["to"] = "{}".format(instance.referral_group.name)
-        data["proposal"] = "{}".format(instance.referral.proposal.id)
-        data["staff"] = "{}".format(request.user.id)
-        data["text"] = "{}".format(instance.referral.referral_text)
-        data["subject"] = "{}".format(instance.referral.referral_text)
+        data["fromm"] = f"{request.user.get_full_name()}"
+        data["to"] = f"{instance.referral_group.name}"
+        data["proposal"] = f"{instance.referral.proposal.id}"
+        data["staff"] = f"{request.user.id}"
+        data["text"] = f"{instance.referral.referral_text}"
+        data["subject"] = f"{instance.referral.referral_text}"
         serializer = ProposalLogEntrySerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -1397,9 +1321,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def remind(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.remind(request)
-        serializer = ApiaryInternalProposalSerializer(
-            instance.referral.proposal, context={"request": request}
-        )
+        serializer = ApiaryInternalProposalSerializer(instance.referral.proposal, context={"request": request})
         return Response(serializer.data)
 
     # TODO on-cleanup - why GET?
@@ -1413,9 +1335,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def recall(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.recall(request)
-        serializer = ApiaryInternalProposalSerializer(
-            instance.referral.proposal, context={"request": request}
-        )
+        serializer = ApiaryInternalProposalSerializer(instance.referral.proposal, context={"request": request})
         return Response(serializer.data)
 
     # TODO on-cleanup - why GET?
@@ -1429,9 +1349,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def resend(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.resend(request)
-        serializer = ApiaryInternalProposalSerializer(
-            instance.referral.proposal, context={"request": request}
-        )
+        serializer = ApiaryInternalProposalSerializer(instance.referral.proposal, context={"request": request})
         return Response(serializer.data)
 
     @action(
@@ -1444,9 +1362,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def assign_request_user(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.assign_officer(request, request.user)
-        serializer = FullApiaryReferralSerializer(
-            instance.referral, context={"request": request}
-        )
+        serializer = FullApiaryReferralSerializer(instance.referral, context={"request": request})
         return Response(serializer.data)
 
     @action(
@@ -1465,13 +1381,9 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         try:
             user = EmailUser.objects.get(id=user_id)
         except EmailUser.DoesNotExist:
-            raise serializers.ValidationError(
-                "A user with the id passed in does not exist"
-            )
+            raise serializers.ValidationError("A user with the id passed in does not exist")
         instance.assign_officer(request, user)
-        serializer = FullApiaryReferralSerializer(
-            instance.referral, context={"request": request}
-        )
+        serializer = FullApiaryReferralSerializer(instance.referral, context={"request": request})
         return Response(serializer.data)
 
     @action(
@@ -1484,9 +1396,7 @@ class ApiaryReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def unassign(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.unassign(request)
-        serializer = FullApiaryReferralSerializer(
-            instance.referral, context={"request": request}
-        )
+        serializer = FullApiaryReferralSerializer(instance.referral, context={"request": request})
         return Response(serializer.data)
 
 
@@ -1512,11 +1422,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                     ApplicationType.SITE_TRANSFER,
                     ApplicationType.TEMPORARY_USE,
                 ]
-            ).filter(
-                Q(applicant_id__in=user_orgs)
-                | Q(proxy_applicant=user)
-                | Q(submitter=user)
-            )
+            ).filter(Q(applicant_id__in=user_orgs) | Q(proxy_applicant=user) | Q(submitter=user))
             return queryset
 
         return Proposal.objects.none()
@@ -1535,9 +1441,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     )
     def temporary_use_apiary_sites(self, request, *args, **kwargs):
         instance = self.get_object()
-        qs = TemporaryUseApiarySite.objects.filter(
-            proposal_apiary_temporary_use=instance.apiary_temporary_use
-        )
+        qs = TemporaryUseApiarySite.objects.filter(proposal_apiary_temporary_use=instance.apiary_temporary_use)
 
         data = list(annotate_temporary_use_apiary_site(qs))
         return Response(data)
@@ -1548,13 +1452,8 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         returned_data = None
         action = request.data.get("action")
-        if (
-            action == "list"
-            or instance.customer_status == Proposal.CUSTOMER_STATUS_DRAFT
-        ):
-            returned_data = process_generic_document(
-                request, instance, document_type=DeedPollDocument.DOC_TYPE_NAME
-            )
+        if action == "list" or instance.customer_status == Proposal.CUSTOMER_STATUS_DRAFT:
+            returned_data = process_generic_document(request, instance, document_type=DeedPollDocument.DOC_TYPE_NAME)
         if returned_data:
             return Response(returned_data)
         else:
@@ -1575,11 +1474,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 ApplicationType.TEMPORARY_USE,
             ]
         )
-        activity_qs = (
-            qs.filter(activity__isnull=False)
-            .values_list("activity", flat=True)
-            .distinct()
-        )
+        activity_qs = qs.filter(activity__isnull=False).values_list("activity", flat=True).distinct()
 
         data = dict(
             activities=activity_qs,
@@ -1625,8 +1520,8 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         with transaction.atomic():
             instance = self.get_object()
             request_data = request.data.copy()
-            request_data["proposal"] = "{}".format(instance.id)
-            request_data["staff"] = "{}".format(request.user.id)
+            request_data["proposal"] = f"{instance.id}"
+            request_data["staff"] = f"{request.user.id}"
             serializer = ProposalLogEntrySerializer(data=request_data)
             serializer.is_valid(raise_exception=True)
 
@@ -1663,13 +1558,9 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         ],
         permission_classes=[InternalProposalPermission],
     )
-    def apiary_site_transfer_originating_approval_requirements(
-        self, request, *args, **kwargs
-    ):
+    def apiary_site_transfer_originating_approval_requirements(self, request, *args, **kwargs):
         instance = self.get_object()
-        approval = Approval.objects.get(
-            id=instance.proposal_apiary.originating_approval_id
-        )
+        approval = Approval.objects.get(id=instance.proposal_apiary.originating_approval_id)
         qs = instance.apiary_requirements(approval).exclude(is_deleted=True)
         serializer = ProposalRequirementSerializer(qs, many=True)
         return Response(serializer.data)
@@ -1681,15 +1572,11 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         ],
         permission_classes=[InternalProposalPermission],
     )
-    def apiary_site_transfer_target_approval_requirements(
-        self, request, *args, **kwargs
-    ):
+    def apiary_site_transfer_target_approval_requirements(self, request, *args, **kwargs):
         # for new licences, sitetransfer_approval is None
         instance = self.get_object()
         if instance.proposal_apiary.target_approval_id:
-            approval = Approval.objects.get(
-                id=instance.proposal_apiary.target_approval_id
-            )
+            approval = Approval.objects.get(id=instance.proposal_apiary.target_approval_id)
             qs = instance.apiary_requirements(approval).exclude(is_deleted=True)
         else:
             qs = instance.apiary_requirements().exclude(is_deleted=True)
@@ -1745,9 +1632,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             # Submitter and lodgement log set here - if payment fails we should still log this and submitter can be overridden later if necessary
             instance.submitter = request.user
             instance.log_user_action(
-                ProposalUserAction.ACTION_LODGE_APPLICATION.format(
-                    instance.lodgement_number
-                ),
+                ProposalUserAction.ACTION_LODGE_APPLICATION.format(instance.lodgement_number),
                 request,
             )
         instance.save()
@@ -1784,9 +1669,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         try:
             user = EmailUser.objects.get(id=user_id)
         except EmailUser.DoesNotExist:
-            raise serializers.ValidationError(
-                "A user with the id passed in does not exist"
-            )
+            raise serializers.ValidationError("A user with the id passed in does not exist")
         instance.assign_officer(request, user)
         serializer_class = self.internal_serializer_class()
         serializer = serializer_class(instance, context={"request": request})
@@ -1861,16 +1744,12 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         # For this function we must authenticate based on the approval id provided, as site transfer applications are not accessible by transferees from which their approvals are created from
         approval_id = request.GET.get("approval_id", None)
 
-        user_orgs = [
-            org.id for org in self.request.user.disturbance_organisations.all()
-        ]
+        user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
         queryset = Approval.objects.filter(id=approval_id).filter(
             Q(applicant_id__in=user_orgs) | Q(proxy_applicant_id=self.request.user.id)
         )
         if not queryset.exists() and not is_internal(request):
-            raise serializers.ValidationError(
-                "User not authorised to renew this Approval."
-            )
+            raise serializers.ValidationError("User not authorised to renew this Approval.")
 
         instance = Proposal.objects.get(id=pk)
         new_instance = instance.renew_approval(request)
@@ -1882,9 +1761,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             or new_instance.proxy_applicant_id == self.request.user.id
             or is_internal(request)
         ):
-            raise serializers.ValidationError(
-                "User not authorised to access this Proposal."
-            )
+            raise serializers.ValidationError("User not authorised to access this Proposal.")
 
         return Response(serializer.data)
 
@@ -2028,9 +1905,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
 
-    @action(
-        detail=True, methods=["post"], permission_classes=[ProposalAssessorPermission]
-    )
+    @action(detail=True, methods=["post"], permission_classes=[ProposalAssessorPermission])
     def assesor_send_referral(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance.processing_status == Proposal.PROCESSING_STATUS_WITH_ASSESSOR:
@@ -2046,9 +1921,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             serializer = serializer_class(instance, context={"request": request})
             return Response(serializer.data)
         else:
-            raise serializer.ValidationError(
-                "Can only send reference when proposal is With Assessor."
-            )
+            raise serializer.ValidationError("Can only send reference when proposal is With Assessor.")
 
     @action(detail=True, methods=["post"])
     @basic_exception_handler
@@ -2104,9 +1977,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = self.get_serializer(instance, context={"request": request})
         return Response(serializer.data)
 
-    @action(
-        detail=True, methods=["post"], permission_classes=[ProposalAssessorPermission]
-    )
+    @action(detail=True, methods=["post"], permission_classes=[ProposalAssessorPermission])
     @renderer_classes((JSONRenderer,))
     def assessor_save(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -2117,24 +1988,16 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def create(self, request, *args, **kwargs):
         with transaction.atomic():
             if request.data.get("application"):
-                application_type = ApplicationType.objects.get(
-                    id=request.data.get("application")
-                )
+                application_type = ApplicationType.objects.get(id=request.data.get("application"))
 
             # When there is a parameter named 'application_type_str', we may need to update application_type
             application_type_str = request.data.get("application_type_str", None)
             if application_type_str == "apiary":
-                application_type = ApplicationType.objects.get(
-                    name=ApplicationType.APIARY
-                )
+                application_type = ApplicationType.objects.get(name=ApplicationType.APIARY)
             elif application_type_str == "temporary_use":
-                application_type = ApplicationType.objects.get(
-                    name=ApplicationType.TEMPORARY_USE
-                )
+                application_type = ApplicationType.objects.get(name=ApplicationType.TEMPORARY_USE)
             elif application_type_str == "site_transfer":
-                application_type = ApplicationType.objects.get(
-                    name=ApplicationType.SITE_TRANSFER
-                )
+                application_type = ApplicationType.objects.get(name=ApplicationType.SITE_TRANSFER)
 
             region = request.data.get("region")
             district = request.data.get("district")
@@ -2145,9 +2008,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             approval_level = request.data.get("approval_level")
 
             # Get most recent versions of the Proposal Types
-            qs_proposal_type = (
-                ProposalType.objects.all().order_by("name", "-version").distinct("name")
-            )
+            qs_proposal_type = ProposalType.objects.all().order_by("name", "-version").distinct("name")
             proposal_type = qs_proposal_type.get(name=application_type.name)
             applicant = None
             proxy_applicant = None
@@ -2191,9 +2052,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 for question in ApiaryChecklistQuestion.objects.filter(
                     checklist_type="apiary", checklist_role="applicant"
                 ):
-                    ApiaryChecklistAnswer.objects.create(
-                        proposal=proposal_apiary, question=question
-                    )
+                    ApiaryChecklistAnswer.objects.create(proposal=proposal_apiary, question=question)
                 # Find relevant approval
                 approval = proposal_apiary.retrieve_approval
                 if approval:
@@ -2210,18 +2069,14 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                             r.id = None
                             r.save()
                     # Set previous_application to maintain proposal history
-                    proposal_apiary.proposal.previous_application = (
-                        approval.current_proposal
-                    )
+                    proposal_apiary.proposal.previous_application = approval.current_proposal
                     proposal_apiary.proposal.save()
 
             elif application_type.name == ApplicationType.SITE_TRANSFER:
                 approval_id = request.data.get("originating_approval_id")
                 approval = Approval.objects.get(id=approval_id)
                 details_data["originating_approval_id"] = approval_id
-                serializer = CreateProposalApiarySiteTransferSerializer(
-                    data=details_data
-                )
+                serializer = CreateProposalApiarySiteTransferSerializer(data=details_data)
                 serializer.is_valid(raise_exception=True)
                 proposal_apiary = serializer.save()
                 # Set proposal applicant
@@ -2234,9 +2089,7 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 for question in ApiaryChecklistQuestion.objects.filter(
                     checklist_type="site_transfer", checklist_role="applicant"
                 ):
-                    ApiaryChecklistAnswer.objects.create(
-                        proposal=proposal_apiary, question=question
-                    )
+                    ApiaryChecklistAnswer.objects.create(proposal=proposal_apiary, question=question)
                 # Save approval apiary sites to site transfer proposal
                 # for apiary_site in approval.apiary_sites.all():
                 for relation in approval.get_relations():
@@ -2309,16 +2162,12 @@ class ReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     )
     def filter_list(self, request, *args, **kwargs):
         qs = (
-            Referral.objects.filter(
-                apiary_referral__referral_group__members=request.user
-            )
+            Referral.objects.filter(apiary_referral__referral_group__members=request.user)
             if is_internal(self.request)
             else Referral.objects.none()
         )
         application_type_qs = (
-            ApplicationType.objects.filter(
-                name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER]
-            )
+            ApplicationType.objects.filter(name__in=[ApplicationType.APIARY, ApplicationType.SITE_TRANSFER])
             .values_list("name", flat=True)
             .distinct()
         )
@@ -2329,8 +2178,7 @@ class ReferralViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             .values_list("proposal__processing_status", flat=True)
         )
         processing_status = [
-            dict(value=i, name="{}".format(" ".join(i.split("_")).capitalize()))
-            for i in processing_status_qs
+            dict(value=i, name="{}".format(" ".join(i.split("_")).capitalize())) for i in processing_status_qs
         ]
         data = dict(
             application_types=application_type_qs,
@@ -2377,8 +2225,7 @@ class ProposalRequirementViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMi
         instance = self.get_object()
         if not (
             instance.proposal
-            and instance.proposal.processing_status
-            == Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS
+            and instance.proposal.processing_status == Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS
         ):
             raise serializers.ValidationError(
                 "Proposal must be With Assessor (Requirements) for requirement to updated."
@@ -2399,8 +2246,7 @@ class ProposalRequirementViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMi
         instance = self.get_object()
         if not (
             instance.proposal
-            and instance.proposal.processing_status
-            == Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS
+            and instance.proposal.processing_status == Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS
         ):
             raise serializers.ValidationError(
                 "Proposal must be With Assessor (Requirements) for requirement to updated."
@@ -2421,8 +2267,7 @@ class ProposalRequirementViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMi
         instance = self.get_object()
         if not (
             instance.proposal
-            and instance.proposal.processing_status
-            == Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS
+            and instance.proposal.processing_status == Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS
         ):
             raise serializers.ValidationError(
                 "Proposal must be With Assessor (Requirements) for requirement to removed."
@@ -2436,10 +2281,7 @@ class ProposalRequirementViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMi
     def create(self, request, *args, **kwargs):
         data = request.data.get("data")
         proposal = Proposal.objects.get(id=data["proposal"])
-        if (
-            proposal.processing_status
-            == Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS
-        ):
+        if proposal.processing_status == Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS:
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             instance = serializer.save()
@@ -2455,8 +2297,7 @@ class ProposalRequirementViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMi
         instance = self.get_object()
         if (
             instance.proposal
-            and instance.proposal.processing_status
-            == Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS
+            and instance.proposal.processing_status == Proposal.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS
         ):
             serializer = self.get_serializer(instance, data=request.data.get("data"))
             serializer.is_valid(raise_exception=True)
@@ -2550,12 +2391,7 @@ class AmendmentRequestViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
     def delete_document(self, request, *args, **kwargs):
         instance = self.get_object()
         AmendmentRequestDocument.objects.get(id=request.data.get("id")).delete()
-        return Response(
-            [
-                dict(id=i.id, name=i.name, _file=i._file.url)
-                for i in instance.requirement_documents.all()
-            ]
-        )
+        return Response([dict(id=i.id, name=i.name, _file=i._file.url) for i in instance.requirement_documents.all()])
 
 
 class AmendmentRequestReasonChoicesView(views.APIView):
@@ -2585,9 +2421,7 @@ class SearchKeywordsView(views.APIView):
         searchApproval = request.data.get("searchApproval")
         searchCompliance = request.data.get("searchCompliance")
         if searchWords:
-            qs = searchKeyWords(
-                searchWords, searchProposal, searchApproval, searchCompliance
-            )
+            qs = searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance)
         serializer = SearchKeywordSerializer(qs, many=True)
         return Response(serializer.data)
 
@@ -2636,16 +2470,12 @@ class GetSiteTransferFees(views.APIView):
 
     def get(self, request, format=None):
         south_west = (
-            ApiarySiteFee.objects.filter(
-                apiary_site_fee_type__name="transfer", site_category__name="south_west"
-            )
+            ApiarySiteFee.objects.filter(apiary_site_fee_type__name="transfer", site_category__name="south_west")
             .order_by("-date_of_enforcement")
             .first()
         )
         remote = (
-            ApiarySiteFee.objects.filter(
-                apiary_site_fee_type__name="transfer", site_category__name="remote"
-            )
+            ApiarySiteFee.objects.filter(apiary_site_fee_type__name="transfer", site_category__name="remote")
             .order_by("-date_of_enforcement")
             .first()
         )
