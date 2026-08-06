@@ -759,26 +759,6 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         data = {"type": "FeatureCollection", "features": list(sites)}
         return Response(data)
 
-    @staticmethod
-    def _format_approval_site_feature(site):
-        geom = site["wkb_geometry"]
-        lng, lat = geom.x, geom.y
-        return {
-            "id": site["apiary_site__id"],
-            "type": "Feature",
-            "geometry": {"type": "Point", "coordinates": [lng, lat]},
-            "properties": {
-                "stable_coords": {"lng": lng, "lat": lat},
-                "site_guid": site["apiary_site__site_guid"],
-                "is_vacant": site["apiary_site__is_vacant"],
-                "site_category": site["site_category__name"],
-                "status": site["site_status"],
-                "available": site["available"],
-                "approval_id": site["approval__id"],
-                "lodgement_number": site["approval__lodgement_number"],
-            },
-        }
-
     @action(
         detail=False,
         methods=["GET"],
@@ -811,21 +791,23 @@ class ApiarySiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 annotate_apiary_site_on_proposal_minimal_geometry(get_qs_denied_site(search_int or search_text))
             )
 
-        # Approval-based sites fetched in one combined DB query
+        # All approval-based statuses in one optimised DB query
         if show_all or any(s in status_filter for s in ("current", "suspended", "not_to_be_reissued")):
-            grouped = get_qs_all_apiary_sites(search_int or search_text)
-            show_available = not availability_filter or "available" in availability_filter
-            show_unavailable = not availability_filter or "unavailable" in availability_filter
-            for status_key, sites in grouped.items():
-                if not (show_all or status_key in status_filter):
-                    continue
-                for site in sites:
-                    if status_key == SITE_STATUS_CURRENT:
-                        if site["available"] and not show_available:
-                            continue
-                        if not site["available"] and not show_unavailable:
-                            continue
-                    features.append(self._format_approval_site_feature(site))
+            qs = get_qs_all_apiary_sites(search_int or search_text)
+
+            # Status filter — push to DB
+            if not show_all:
+                relevant = [s for s in ("current", "suspended", "not_to_be_reissued") if s in status_filter]
+                qs = qs.filter(site_status__in=relevant)
+
+            # Availability filter — only meaningful for current, push to DB
+            if availability_filter and (show_all or "current" in status_filter):
+                if "available" in availability_filter and "unavailable" not in availability_filter:
+                    qs = qs.filter(Q(available=True) | ~Q(site_status=SITE_STATUS_CURRENT))
+                elif "unavailable" in availability_filter and "available" not in availability_filter:
+                    qs = qs.filter(Q(available=False) | ~Q(site_status=SITE_STATUS_CURRENT))
+
+            features += list(annotate_apiary_site_on_approval_min_geometry(qs))
 
         return Response({"type": "FeatureCollection", "features": features})
 

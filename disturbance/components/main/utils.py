@@ -4,7 +4,6 @@ import logging
 import os
 import re
 import uuid
-from collections import defaultdict
 from datetime import datetime
 
 import pytz
@@ -662,42 +661,27 @@ def get_qs_suspended_site(search_text=""):
 
 
 def get_qs_all_apiary_sites(search_text=""):
+    """
+    Returns a single optimized queryset covering all approval-based apiary site
+    statuses (current, suspended, not_to_be_reissued) in one DB query.
+    Callers apply additional .filter()/.exclude() as needed before evaluation.
+    """
     from disturbance.components.approvals.models import ApiarySiteOnApproval
     from disturbance.components.proposals.models import ApiarySite
 
-    # 1. Single optimized subquery for ApiarySite IDs
     qs_apiary_sites = ApiarySite.objects.filter(latest_approval_link__isnull=False)
     if search_text and isinstance(search_text, int):
         qs_apiary_sites = qs_apiary_sites.filter(id=search_text)
 
-    # 2. Fetch vacant sites cleanly
     qs_vacant_site = _get_vacant_apiary_site()
 
-    # 3. Fetch absolutely everything except TRANSFERRED in one query
-    all_sites = (
-        ApiarySiteOnApproval.objects.filter(id__in=Subquery(qs_apiary_sites.values("latest_approval_link__id")))
-        .exclude(apiary_site__in=qs_vacant_site)
-        .exclude(site_status=SITE_STATUS_TRANSFERRED)  # Exclude only transferred
-        .values(
-            "approval__lodgement_number",
-            "approval__id",
-            "wkb_geometry",
-            "apiary_site__id",
-            "apiary_site__site_guid",
-            "site_status",  # Grouping key
-            "site_category__name",
-            "apiary_site__is_vacant",
-            "available",
+    return (
+        ApiarySiteOnApproval.objects.filter(
+            id__in=Subquery(qs_apiary_sites.values("latest_approval_link__id"))
         )
+        .exclude(apiary_site__in=qs_vacant_site)
+        .exclude(site_status=SITE_STATUS_TRANSFERRED)
     )
-
-    # 4. Group by status in Python memory (O(N) operation, highly efficient)
-    grouped_data = defaultdict(list)
-    for site in all_sites:
-        status = site["site_status"]
-        grouped_data[status].append(site)
-
-    return grouped_data
 
 
 def get_qs_current_site(search_text="", available=None):
