@@ -31,7 +31,11 @@
                       <select
                         class="form-select"
                         ref="filterAvailability"
-                      ></select>
+                      >
+                        <option value="">All</option>
+                        <option value="available">Available</option>
+                        <option value="unavailable">Unavailable</option>
+                      </select>
                     </div>
                     <label class="col-sm-auto col-form-label">Search</label>
                     <div class="col-sm-3">
@@ -379,6 +383,10 @@ export default {
       ],
       filter_availability_options: [
         {
+          id: "all",
+          text: "All",
+        },
+        {
           id: "available",
           text: "Available",
         },
@@ -599,11 +607,9 @@ export default {
         .map((x) => {
           return x.id;
         });
-      let availabilities_currently_selected = $(vm.$refs.filterAvailability)
-        .select2("data")
-        .map((x) => {
-          return x.id;
-        });
+      // filterAvailability is a plain <select> — read its value directly
+      let avail_val = $(vm.$refs.filterAvailability).val();
+      let availabilities_currently_selected = avail_val ? [avail_val] : [];
       let current_status_item = vm.show_hide_instructions.filter((x) => {
         return x.id === "current";
       })[0]; // We just interested in the 'current' status
@@ -695,23 +701,11 @@ export default {
             vm.showHideApiarySites();
           });
 
-        $(vm.$refs.filterAvailability)
-          .select2({
-            theme: "bootstrap-5",
-            allowClear: false,
-            placeholder: "Select Availabilities",
-            multiple: true,
-            data: vm.filter_availability_options,
-            dropdownParent: $("#filters_parent"),
-          })
-          .on("select2:select", function () {
-            vm.updateInstructions();
-            vm.showHideApiarySites();
-          })
-          .on("select2:unselect", function () {
-            vm.updateInstructions();
-            vm.showHideApiarySites();
-          });
+        // filterAvailability is a plain <select>; wire up its change event
+        $(vm.$refs.filterAvailability).on("change", function () {
+          vm.updateInstructions();
+          vm.showHideApiarySites();
+        });
         vm.select2Applied = true;
       }
     },
