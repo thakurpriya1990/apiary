@@ -103,7 +103,7 @@ FILE_SIZE_LIMIT_BYTES = env("FILE_SIZE_LIMIT_BYTES", 128000000)
 MAX_NUM_ROWS_MODEL_EXPORT = 100000
 NUMBER_OF_QUEUE_JOBS = 5
 
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles_ds")
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, "disturbance", "static")))
 STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, "disturbance", "static", "disturbance_vue")))
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None
@@ -186,6 +186,7 @@ if SHOW_DEBUG_TOOLBAR:
 
     # this dict removes check to dtermine if toolbar should display --> works for rks docker container
     DEBUG_TOOLBAR_CONFIG = {
+        "RESULTS_CACHE_SIZE": 1000,
         "SHOW_TOOLBAR_CALLBACK": show_toolbar,
         "INTERCEPT_REDIRECTS": False,
     }
