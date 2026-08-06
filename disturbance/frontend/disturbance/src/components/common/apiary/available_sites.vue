@@ -59,7 +59,13 @@
                 <!-- filters on map here -->
               </div>
               <div v-if="loading_sites" class="spinner_on_map">
-                <i class="fa fa-4x fa-spinner fa-spin"></i>
+                <div
+                  class="spinner-border text-primary"
+                  role="status"
+                  style="width: 3rem; height: 3rem"
+                >
+                  <span class="visually-hidden">Loading...</span>
+                </div>
               </div>
               <div class="basemap-button">
                 <img
