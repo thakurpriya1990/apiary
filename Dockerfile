@@ -112,6 +112,7 @@ ENV PATH=$VIRTUAL_ENV/bin:$PATH
 # Copy venv and built application from builder
 COPY --from=builder --chown=oim:oim /app/venv /app/venv
 COPY --from=builder --chown=oim:oim /app/disturbance /app/disturbance
+COPY --from=builder --chown=oim:oim /app/staticfiles /app/staticfiles
 COPY --from=builder --chown=oim:oim /app/gunicorn.ini.py /app/gunicorn.ini.py
 COPY --from=builder --chown=oim:oim /app/manage.py /app/manage.py
 COPY --from=builder --chown=oim:oim /app/.env /app/.env

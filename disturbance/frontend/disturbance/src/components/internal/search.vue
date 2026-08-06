@@ -42,7 +42,7 @@
             <div class="col-lg-12">
               <div class="mb-3">
                 <label for="" class="col-form-label col-lg-12 fs-5"
-                  >Records Types to Search</label
+                  >Record Types to Search</label
                 >
                 <div class="form-check col">
                   <input

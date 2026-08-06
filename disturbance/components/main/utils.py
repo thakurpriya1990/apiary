@@ -14,7 +14,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.measure import Distance
 from django.core.cache import cache
 from django.db import connection, transaction
-from django.db.models import Case, DateTimeField, F, FloatField, Func, Value, When
+from django.db.models import Case, DateTimeField, F, FloatField, Func, Subquery, Value, When
 from django.db.models.functions import Greatest
 from django.db.models.query_utils import Q
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
@@ -137,12 +137,8 @@ def remove_script_tags(text):
     ]
     ATTR_BLACKLIST_STR = ("|").join(ATTR_BLACKLIST)
 
-    HTML_TAGS_WITH_ATTR_WRAPPED = re.compile(
-        r"(?i)<[^>]+(" + ATTR_BLACKLIST_STR + ")[\\s]*=[^>]+>.+</[^>]+>"
-    )
-    HTML_TAGS_WITH_ATTR_NO_WRAPPED = re.compile(
-        r"(?i)<[^>]+(" + ATTR_BLACKLIST_STR + ")[\\s]*=[^>]+>"
-    )
+    HTML_TAGS_WITH_ATTR_WRAPPED = re.compile(r"(?i)<[^>]+(" + ATTR_BLACKLIST_STR + ")[\\s]*=[^>]+>.+</[^>]+>")
+    HTML_TAGS_WITH_ATTR_NO_WRAPPED = re.compile(r"(?i)<[^>]+(" + ATTR_BLACKLIST_STR + ")[\\s]*=[^>]+>")
 
     text = HTML_TAGS_WITH_ATTR_WRAPPED.sub("", text)
     text = HTML_TAGS_WITH_ATTR_NO_WRAPPED.sub("", text)
@@ -161,15 +157,9 @@ def sanitise_fields(instance, exclude=[], error_on_change=[]):
                 for j in range(0, len(instance.__dict__[i])):
                     check = instance.__dict__[i][j]
                     if isinstance(instance.__dict__[i][j], str):
-                        instance.__dict__[i][j] = remove_html_tags(
-                            instance.__dict__[i][j]
-                        )
-                    elif isinstance(instance.__dict__[i][j], list) or isinstance(
-                        instance.__dict__[i][j], dict
-                    ):
-                        instance.__dict__[i][j] = sanitise_fields(
-                            instance.__dict__[i][j]
-                        )
+                        instance.__dict__[i][j] = remove_html_tags(instance.__dict__[i][j])
+                    elif isinstance(instance.__dict__[i][j], list) or isinstance(instance.__dict__[i][j], dict):
+                        instance.__dict__[i][j] = sanitise_fields(instance.__dict__[i][j])
                     if i in error_on_change and check != instance.__dict__[i][j]:
                         raise serializers.ValidationError("html tags included in field")
 
@@ -186,26 +176,15 @@ def sanitise_fields(instance, exclude=[], error_on_change=[]):
                 if i in error_on_change and check != instance.__dict__[i]:
                     # only fields that cannot be allowed to change through sanitisation just before saving will throw an error
                     raise serializers.ValidationError("script tags included in field")
-            elif (
-                isinstance(instance.__dict__[i], list)
-                or isinstance(instance.__dict__[i], dict)
-            ) and i in exclude:
+            elif (isinstance(instance.__dict__[i], list) or isinstance(instance.__dict__[i], dict)) and i in exclude:
                 # if we have reached this point, it means we have a json object with fields that are allowed to contain tags
                 # we'll use . notation to identify sub fields that should be carried over to the exclude and error on change lists
                 # NOTE: to allow sub fields to be sanitised, the parent field should be included in both lists required for their respective children
-                sub_exclude_list = list(
-                    filter(lambda e: e.startswith(i + "."), exclude)
-                )
-                exclude_list = list(
-                    map(lambda e: e.replace(i + ".", "", 1), sub_exclude_list)
-                )
+                sub_exclude_list = list(filter(lambda e: e.startswith(i + "."), exclude))
+                exclude_list = list(map(lambda e: e.replace(i + ".", "", 1), sub_exclude_list))
                 # NOTE: a sub error on change list will require the parent field to be in the exclude list, to reach this point (but not necessarily in the error_on_change list)
-                sub_error_on_change_list = list(
-                    filter(lambda e: e.startswith(i + "."), error_on_change)
-                )
-                error_on_change_list = list(
-                    map(lambda e: e.replace(i + ".", "", 1), sub_error_on_change_list)
-                )
+                sub_error_on_change_list = list(filter(lambda e: e.startswith(i + "."), error_on_change))
+                error_on_change_list = list(map(lambda e: e.replace(i + ".", "", 1), sub_error_on_change_list))
 
                 if isinstance(instance.__dict__[i], dict):
                     check = instance.__dict__[i]
@@ -221,21 +200,15 @@ def sanitise_fields(instance, exclude=[], error_on_change=[]):
                         check = instance.__dict__[i][j]
                         if isinstance(instance.__dict__[i][j], str):
                             # strings in an excluded list will be treated as excluded
-                            instance.__dict__[i][j] = remove_script_tags(
-                                instance.__dict__[i][j]
-                            )
-                        elif isinstance(instance.__dict__[i][j], list) or isinstance(
-                            instance.__dict__[i][j], dict
-                        ):
+                            instance.__dict__[i][j] = remove_script_tags(instance.__dict__[i][j])
+                        elif isinstance(instance.__dict__[i][j], list) or isinstance(instance.__dict__[i][j], dict):
                             instance.__dict__[i][j] = sanitise_fields(
                                 instance.__dict__[i][j],
                                 exclude=exclude_list,
                                 error_on_change=error_on_change_list,
                             )
                         if i in error_on_change and check != instance.__dict__[i][j]:
-                            raise serializers.ValidationError(
-                                "html tags included in field"
-                            )
+                            raise serializers.ValidationError("html tags included in field")
     else:
         remove_keys = []
         for i in instance:
@@ -256,9 +229,7 @@ def sanitise_fields(instance, exclude=[], error_on_change=[]):
                     check = instance[i][j]
                     if isinstance(instance[i][j], str):
                         instance[i][j] = remove_html_tags(instance[i][j])
-                    elif isinstance(instance[i][j], list) or isinstance(
-                        instance[i][j], dict
-                    ):
+                    elif isinstance(instance[i][j], list) or isinstance(instance[i][j], dict):
                         instance[i][j] = sanitise_fields(instance[i][j])
                     if i in error_on_change and check != instance[i][j]:
                         raise serializers.ValidationError("html tags included in field")
@@ -275,25 +246,15 @@ def sanitise_fields(instance, exclude=[], error_on_change=[]):
                     instance[i] = remove_script_tags(instance[i])
                     if i in error_on_change and check != instance[i]:
                         # only fields that cannot be allowed to change through sanitisation just before saving will throw an error
-                        raise serializers.ValidationError(
-                            "script tags included in field"
-                        )
-                elif (
-                    isinstance(instance[i], list) or isinstance(instance[i], dict)
-                ) and i in exclude:
+                        raise serializers.ValidationError("script tags included in field")
+                elif (isinstance(instance[i], list) or isinstance(instance[i], dict)) and i in exclude:
                     # if we have reached this point, it means we have a json object with fields that are allowed to contain tags
                     # we'll use . notation to identify sub fields that should be carried over to the exclude and error on change lists
                     # NOTE: to allow sub fields to be sanitised, the parent field should be included in both lists required for their respective children
-                    sub_exclude_list = list(
-                        filter(lambda e: e.startswith(i + "."), exclude)
-                    )
-                    exclude_list = list(
-                        map(lambda e: e.replace(i + ".", "", 1), sub_exclude_list)
-                    )
+                    sub_exclude_list = list(filter(lambda e: e.startswith(i + "."), exclude))
+                    exclude_list = list(map(lambda e: e.replace(i + ".", "", 1), sub_exclude_list))
                     # NOTE: a sub error on change list will require the parent field to be in the exclude list, to reach this point (but not necessarily in the error_on_change list)
-                    sub_error_on_change_list = list(
-                        filter(lambda e: e.startswith(i + "."), error_on_change)
-                    )
+                    sub_error_on_change_list = list(filter(lambda e: e.startswith(i + "."), error_on_change))
                     error_on_change_list = list(
                         map(
                             lambda e: e.replace(i + ".", "", 1),
@@ -309,27 +270,21 @@ def sanitise_fields(instance, exclude=[], error_on_change=[]):
                             error_on_change=error_on_change_list,
                         )
                         if i in error_on_change and check != instance[i]:
-                            raise serializers.ValidationError(
-                                "script tags included in field"
-                            )
+                            raise serializers.ValidationError("script tags included in field")
                     elif isinstance(instance[i], list):
                         for j in range(0, len(instance[i])):
                             check = instance[i][j]
                             if isinstance(instance[i][j], str):
                                 # strings in an excluded list will be treated as excluded
                                 instance[i][j] = remove_script_tags(instance[i][j])
-                            elif isinstance(instance[i][j], list) or isinstance(
-                                instance[i][j], dict
-                            ):
+                            elif isinstance(instance[i][j], list) or isinstance(instance[i][j], dict):
                                 instance[i][j] = sanitise_fields(
                                     instance[i][j],
                                     exclude=exclude_list,
                                     error_on_change=error_on_change_list,
                                 )
                             if i in error_on_change and check != instance[i][j]:
-                                raise serializers.ValidationError(
-                                    "script tags included in field"
-                                )
+                                raise serializers.ValidationError("script tags included in field")
 
         for i in remove_keys:
             del instance[i]
@@ -340,9 +295,7 @@ def file_extension_valid(file, whitelist, model):
     _, extension = os.path.splitext(file)
     extension = extension.replace(".", "").lower()
 
-    check = whitelist.filter(name=extension).filter(
-        Q(model="all") | Q(model__iexact=model)
-    )
+    check = whitelist.filter(name=extension).filter(Q(model="all") | Q(model__iexact=model))
     valid = check.exists()
 
     return valid
@@ -362,9 +315,7 @@ def check_file(file, model_name):
 
     if not valid:
         _, extension = os.path.splitext(str(file))
-        raise serializers.ValidationError(
-            f"File type/extension '{extension}' not supported"
-        )
+        raise serializers.ValidationError(f"File type/extension '{extension}' not supported")
 
 
 def get_department_user(email):
@@ -465,9 +416,7 @@ def get_feature_in_wa_coastline(wkb_geometry, smoothed):
     from disturbance.components.main.models import WaCoast
 
     try:
-        features = WaCoast.objects.filter(
-            wkb_geometry__contains=wkb_geometry, smoothed=smoothed
-        )
+        features = WaCoast.objects.filter(wkb_geometry__contains=wkb_geometry, smoothed=smoothed)
         if features:
             return features[0]
         else:
@@ -510,12 +459,8 @@ def get_region_district(wkb_geometry):
     from disturbance.components.main.models import DistrictDbca, RegionDbca
 
     try:
-        regions = RegionDbca.objects.filter(
-            wkb_geometry__contains=wkb_geometry, enabled=True
-        )
-        districts = DistrictDbca.objects.filter(
-            wkb_geometry__contains=wkb_geometry, enabled=True
-        )
+        regions = RegionDbca.objects.filter(wkb_geometry__contains=wkb_geometry, enabled=True)
+        districts = DistrictDbca.objects.filter(wkb_geometry__contains=wkb_geometry, enabled=True)
         text_arr = []
         if regions:
             text_arr.append(regions.first().region_name)
@@ -528,15 +473,16 @@ def get_region_district(wkb_geometry):
         return ""
 
 
-# NOTE: according to prior commit messages there was an explicit decision to only return an exact match on the site id - I have added better validation in line with this decision
-def _get_vacant_apiary_site(search_text=""):
+def _get_vacant_apiary_site(search_text=None):
     from disturbance.components.proposals.models import ApiarySite
 
-    queries = Q(is_vacant=True)
-    if search_text and isinstance(search_text, int):
-        queries &= Q(id=search_text)
-    qs_vacant_site = ApiarySite.objects.filter(queries).distinct()
-    return qs_vacant_site
+    # Clean, index-friendly, no redundant distinct(), values('id') for subquery efficiency
+    qs = ApiarySite.objects.filter(is_vacant=True)
+
+    if search_text:
+        qs = qs.filter(id=search_text)
+
+    return qs.values("id")
 
 
 def get_qs_vacant_site(search_text=""):
@@ -544,9 +490,7 @@ def get_qs_vacant_site(search_text=""):
     from disturbance.components.proposals.models import ApiarySiteOnProposal
 
     qs_vacant_site = _get_vacant_apiary_site(search_text)
-    apiary_site_proposal_ids = qs_vacant_site.all().values(
-        "proposal_link_for_vacant__id"
-    )
+    apiary_site_proposal_ids = qs_vacant_site.all().values("proposal_link_for_vacant__id")
 
     qs_vacant_site_proposal = ApiarySiteOnProposal.objects.select_related(
         "apiary_site",
@@ -563,9 +507,7 @@ def get_qs_vacant_site(search_text=""):
 
     # At any moment, either approval_link_for_vacant or proposal_link_for_vacant is True at most.  Never both are True.  (See make_vacant() method of the ApiarySite model)
     # Therefore qs_vacant_site_proposal and qs_vacant_site_approval shouldn't overlap each other
-    apiary_site_approval_ids = qs_vacant_site.all().values(
-        "approval_link_for_vacant__id"
-    )
+    apiary_site_approval_ids = qs_vacant_site.all().values("approval_link_for_vacant__id")
     qs_vacant_site_approval = ApiarySiteOnApproval.objects.select_related(
         "apiary_site",
         "approval",
@@ -592,9 +534,7 @@ def get_qs_denied_site(search_text=""):
     qs_apiary_sites = ApiarySite.objects.filter(q_include_apiary_site)
 
     # ApiarySiteOnProposal conditions for include
-    q_include_proposal &= Q(
-        id__in=(qs_apiary_sites.values_list("latest_proposal_link__id", flat=True))
-    )
+    q_include_proposal &= Q(id__in=(qs_apiary_sites.values_list("latest_proposal_link__id", flat=True)))
     q_include_proposal &= Q(site_status__in=(SITE_STATUS_DENIED,))
 
     # ApiarySiteOnProposal conditions for exclude
@@ -637,9 +577,7 @@ def get_qs_pending_site(search_text=""):
     qs_apiary_sites = ApiarySite.objects.filter(q_include_apiary_site)
 
     # ApiarySiteOnProposal conditions for include
-    q_include_proposal &= Q(
-        id__in=(qs_apiary_sites.values_list("latest_proposal_link__id", flat=True))
-    )
+    q_include_proposal &= Q(id__in=(qs_apiary_sites.values_list("latest_proposal_link__id", flat=True)))
     q_include_proposal &= Q(site_status__in=(SITE_STATUS_PENDING,))
 
     # ApiarySiteOnProposal conditions for exclude
@@ -693,9 +631,7 @@ def get_qs_suspended_site(search_text=""):
     q_exclude_approval |= Q(
         apiary_site__in=qs_vacant_site
     )  # We don't want to pick up the vacant sites already retrieved above
-    q_exclude_approval |= Q(
-        site_status=SITE_STATUS_TRANSFERRED
-    )  # Exclude 'transferred' sites just in case
+    q_exclude_approval |= Q(site_status=SITE_STATUS_TRANSFERRED)  # Exclude 'transferred' sites just in case
 
     # 2.3. Issue query
     qs_on_approval = (
@@ -722,6 +658,30 @@ def get_qs_suspended_site(search_text=""):
         )
     )
     return qs_on_approval
+
+
+def get_qs_all_apiary_sites(search_text=""):
+    """
+    Returns a single optimized queryset covering all approval-based apiary site
+    statuses (current, suspended, not_to_be_reissued) in one DB query.
+    Callers apply additional .filter()/.exclude() as needed before evaluation.
+    """
+    from disturbance.components.approvals.models import ApiarySiteOnApproval
+    from disturbance.components.proposals.models import ApiarySite
+
+    qs_apiary_sites = ApiarySite.objects.filter(latest_approval_link__isnull=False)
+    if search_text and isinstance(search_text, int):
+        qs_apiary_sites = qs_apiary_sites.filter(id=search_text)
+
+    qs_vacant_site = _get_vacant_apiary_site()
+
+    return (
+        ApiarySiteOnApproval.objects.filter(
+            id__in=Subquery(qs_apiary_sites.values("latest_approval_link__id"))
+        )
+        .exclude(apiary_site__in=qs_vacant_site)
+        .exclude(site_status=SITE_STATUS_TRANSFERRED)
+    )
 
 
 def get_qs_current_site(search_text="", available=None):
@@ -755,9 +715,7 @@ def get_qs_current_site(search_text="", available=None):
     q_exclude_approval |= Q(
         apiary_site__in=qs_vacant_site
     )  # We don't want to pick up the vacant sites already retrieved above
-    q_exclude_approval |= Q(
-        site_status=SITE_STATUS_TRANSFERRED
-    )  # Exclude 'transferred' sites just in case
+    q_exclude_approval |= Q(site_status=SITE_STATUS_TRANSFERRED)  # Exclude 'transferred' sites just in case
 
     # 2.3. Issue query
     qs_on_approval = (
@@ -801,17 +759,13 @@ def get_qs_discarded_site(search_text=""):
         q_include_apiary_site &= Q(id__icontains=search_text)
     qs_apiary_sites = ApiarySite.objects.filter(q_include_apiary_site)
 
-    q_include_proposal &= Q(
-        id__in=(qs_apiary_sites.values_list("latest_proposal_link__id", flat=True))
-    )
+    q_include_proposal &= Q(id__in=(qs_apiary_sites.values_list("latest_proposal_link__id", flat=True)))
     q_include_proposal &= Q(site_status__in=(SITE_STATUS_DISCARDED,))
 
     # 2.2. Exclude
     qs_vacant_site = _get_vacant_apiary_site()
     q_exclude_proposal |= Q(apiary_site__in=qs_vacant_site)  # Exclude 'vacant' sites
-    q_exclude_proposal |= Q(
-        site_status=SITE_STATUS_TRANSFERRED
-    )  # Exclude 'transferred' sites
+    q_exclude_proposal |= Q(site_status=SITE_STATUS_TRANSFERRED)  # Exclude 'transferred' sites
 
     qs_on_proposal = (
         ApiarySiteOnProposal.objects.select_related(
@@ -859,9 +813,7 @@ def get_qs_not_to_be_reissued_site(search_text=""):
     q_exclude_approval |= Q(
         apiary_site__in=qs_vacant_site
     )  # We don't want to pick up the vacant sites already retrieved above
-    q_exclude_approval |= Q(
-        site_status=SITE_STATUS_TRANSFERRED
-    )  # Exclude 'transferred' sites just in case
+    q_exclude_approval |= Q(site_status=SITE_STATUS_TRANSFERRED)  # Exclude 'transferred' sites just in case
 
     # 2.3. Issue query
     qs_on_approval = (
@@ -890,9 +842,7 @@ def get_qs_not_to_be_reissued_site(search_text=""):
     return qs_on_approval
 
 
-def get_qs_proposal(
-    draft_processed, proposal=None, search_text="", include_pure_draft_site=False
-):
+def get_qs_proposal(draft_processed, proposal=None, search_text="", include_pure_draft_site=False):
     from disturbance.components.proposals.models import ApiarySite, ApiarySiteOnProposal
 
     # 1. ApiarySiteOnProposal
@@ -1038,17 +988,12 @@ def validate_buffer(wkb_geometry, apiary_sites_to_exclude=None):
 
     site_too_close_error = serializers.ValidationError(
         [
-            "Apiary Site: (lat: {}, lng: {}) is too close to another apiary site.".format(
-                wkb_geometry.coords[1],
-                wkb_geometry.coords[0],
-            )
+            f"Apiary Site: (lat: {wkb_geometry.coords[1]}, lng: {wkb_geometry.coords[0]}) is too close to another apiary site."
         ]
     )
 
     qs_vacant_site_proposal, qs_vacant_site_approval = get_qs_vacant_site()
-    sites = qs_vacant_site_proposal.exclude(
-        apiary_site__in=apiary_sites_to_exclude
-    ).filter(
+    sites = qs_vacant_site_proposal.exclude(apiary_site__in=apiary_sites_to_exclude).filter(
         Q(
             wkb_geometry_processed__distance_lte=(
                 wkb_geometry,
@@ -1058,9 +1003,7 @@ def validate_buffer(wkb_geometry, apiary_sites_to_exclude=None):
     )
     if sites:
         raise site_too_close_error
-    sites = qs_vacant_site_approval.exclude(
-        apiary_site__in=apiary_sites_to_exclude
-    ).filter(
+    sites = qs_vacant_site_approval.exclude(apiary_site__in=apiary_sites_to_exclude).filter(
         Q(wkb_geometry__distance_lte=(wkb_geometry, Distance(m=RESTRICTED_RADIUS)))
     )
     if sites:
@@ -1068,9 +1011,7 @@ def validate_buffer(wkb_geometry, apiary_sites_to_exclude=None):
 
     qs_on_proposal_draft = get_qs_proposal("draft")
     qs_on_proposal_processed = get_qs_proposal("processed")
-    sites = qs_on_proposal_draft.exclude(
-        apiary_site__in=apiary_sites_to_exclude
-    ).filter(
+    sites = qs_on_proposal_draft.exclude(apiary_site__in=apiary_sites_to_exclude).filter(
         Q(
             wkb_geometry_draft__distance_lte=(
                 wkb_geometry,
@@ -1080,9 +1021,7 @@ def validate_buffer(wkb_geometry, apiary_sites_to_exclude=None):
     )
     if sites:
         raise site_too_close_error
-    sites = qs_on_proposal_processed.exclude(
-        apiary_site__in=apiary_sites_to_exclude
-    ).filter(
+    sites = qs_on_proposal_processed.exclude(apiary_site__in=apiary_sites_to_exclude).filter(
         Q(
             wkb_geometry_processed__distance_lte=(
                 wkb_geometry,
@@ -1114,11 +1053,7 @@ def get_status_for_export(relation):
                 SITE_STATUS_TRANSFERRED,
                 SITE_STATUS_DISCARDED,
             ):
-                raise Exception(
-                    "Apiary site with wrong status: {} is picked up".format(
-                        relation.site_status
-                    )
-                )
+                raise Exception(f"Apiary site with wrong status: {relation.site_status} is picked up")
             else:
                 return_status = relation.site_status
     return return_status
@@ -1148,21 +1083,17 @@ def get_qs_vacant_site_for_export():
     apiary_site_proposal_ids = qs_vacant_site.all().values("latest_proposal_link__id")
     # When the 'vacant' site is selected, saved, deselected and then saved again, the latest_proposal_link gets None
     # That's why we need following line too to pick up all the vacant sites
-    apiary_site_proposal_ids2 = qs_vacant_site.filter(
-        latest_proposal_link__isnull=True
-    ).values("proposal_link_for_vacant__id")
+    apiary_site_proposal_ids2 = qs_vacant_site.filter(latest_proposal_link__isnull=True).values(
+        "proposal_link_for_vacant__id"
+    )
     qs_vacant_site_proposal = ApiarySiteOnProposal.objects.filter(
         Q(id__in=apiary_site_proposal_ids) | Q(id__in=apiary_site_proposal_ids2)
     )
 
     # At any moment, either approval_link_for_vacant or proposal_link_for_vacant is True at most.  Never both are True.  (See make_vacant() method of the ApiarySite model)
     # Therefore qs_vacant_site_proposal and qs_vacant_site_approval shouldn't overlap each other
-    apiary_site_approval_ids = qs_vacant_site.all().values(
-        "approval_link_for_vacant__id"
-    )
-    qs_vacant_site_approval = ApiarySiteOnApproval.objects.filter(
-        id__in=apiary_site_approval_ids
-    )
+    apiary_site_approval_ids = qs_vacant_site.all().values("approval_link_for_vacant__id")
+    qs_vacant_site_approval = ApiarySiteOnApproval.objects.filter(id__in=apiary_site_approval_ids)
 
     return qs_vacant_site_proposal, qs_vacant_site_approval
 
@@ -1181,13 +1112,9 @@ def get_qs_proposal_for_export():
 
     # 1.2. Exclude
     # q_exclude_proposal |= Q(site_status__in=(SITE_STATUS_DRAFT,)) & Q(making_payment=False)  # Exclude pure 'draft' site
-    q_exclude_proposal |= Q(
-        site_status__in=(SITE_STATUS_DRAFT,)
-    )  # For this purpose, we don't want 'draft' sites.
+    q_exclude_proposal |= Q(site_status__in=(SITE_STATUS_DRAFT,))  # For this purpose, we don't want 'draft' sites.
     q_exclude_proposal |= Q(site_status__in=(SITE_STATUS_DISCARDED,))
-    q_exclude_proposal |= Q(
-        site_status__in=(SITE_STATUS_PENDING,)
-    )  # For this purpose, we don't want 'pending' sites.
+    q_exclude_proposal |= Q(site_status__in=(SITE_STATUS_PENDING,))  # For this purpose, we don't want 'pending' sites.
     q_exclude_proposal |= Q(
         site_status__in=(SITE_STATUS_APPROVED,)
     )  # 'approved' site is included in the approval as a 'current'
@@ -1203,9 +1130,7 @@ def get_qs_proposal_for_export():
 
     # 1.4. Issue query
     qs_on_proposal = (
-        ApiarySiteOnProposal.objects.filter(q_include_proposal)
-        .exclude(q_exclude_proposal)
-        .distinct("apiary_site")
+        ApiarySiteOnProposal.objects.filter(q_include_proposal).exclude(q_exclude_proposal).distinct("apiary_site")
     )
     qs_on_proposal_processed = qs_on_proposal.exclude(wkb_geometry_processed=None)
     qs_on_proposal_draft = qs_on_proposal.filter(
@@ -1244,9 +1169,7 @@ def get_qs_approval_for_export():
 
     # 2.3. Issue query
     qs_on_approval = (
-        ApiarySiteOnApproval.objects.filter(q_include_approval)
-        .exclude(q_exclude_approval)
-        .distinct("apiary_site")
+        ApiarySiteOnApproval.objects.filter(q_include_approval).exclude(q_exclude_approval).distinct("apiary_site")
     )
 
     return qs_on_approval
@@ -1281,13 +1204,9 @@ def overwrite_districts_polygons(path_to_geojson_file):
                         object_id=district["properties"]["OBJECTID"],
                     )
                     district_obj.save()
-                    logger.info(
-                        "Created District: {}".format(
-                            district["properties"]["DDT_DISTRICT_NAME"]
-                        )
-                    )
+                    logger.info("Created District: {}".format(district["properties"]["DDT_DISTRICT_NAME"]))
     except Exception as e:
-        logger.error("Error overwriting districts polygons: {}".format(e))
+        logger.error(f"Error overwriting districts polygons: {e}")
 
 
 def overwrite_regions_polygons(path_to_geojson_file):
@@ -1311,13 +1230,9 @@ def overwrite_regions_polygons(path_to_geojson_file):
                         object_id=region["properties"]["OBJECTID"],
                     )
                     region_obj.save()
-                    logger.info(
-                        "Created Region: {}".format(
-                            region["properties"]["DRG_REGION_NAME"]
-                        )
-                    )
+                    logger.info("Created Region: {}".format(region["properties"]["DRG_REGION_NAME"]))
     except Exception as e:
-        logger.error("Error overwriting regions polygons: {}".format(e))
+        logger.error(f"Error overwriting regions polygons: {e}")
 
 
 def get_first_name(obj):
@@ -1356,9 +1271,7 @@ def get_dob(obj):
 
 def csvExportData(model, header, columns):
 
-    csv_file = str(settings.BASE_DIR) + "/tmp/{}_{}_{}.csv".format(
-        model, uuid.uuid4(), int(datetime.now().timestamp() * 100000)
-    )
+    csv_file = str(settings.BASE_DIR) + f"/tmp/{model}_{uuid.uuid4()}_{int(datetime.now().timestamp() * 100000)}.csv"
     with open(csv_file, "w", newline="") as new_file:
         writer = csv.writer(new_file)
         writer.writerow(header)
@@ -1368,11 +1281,9 @@ def csvExportData(model, header, columns):
 
 
 def excelExportData(model, header, columns):
-    excel_file = str(settings.BASE_DIR) + "/tmp/{}_{}_{}.xlsx".format(
-        model, uuid.uuid4(), int(datetime.now().timestamp() * 100000)
-    )
+    excel_file = str(settings.BASE_DIR) + f"/tmp/{model}_{uuid.uuid4()}_{int(datetime.now().timestamp() * 100000)}.xlsx"
     workbook = xlsxwriter.Workbook(excel_file)
-    worksheet = workbook.add_worksheet("{} Report".format(model.capitalize()))
+    worksheet = workbook.add_worksheet(f"{model.capitalize()} Report")
     format = workbook.add_format()
 
     col = 0
@@ -1530,18 +1441,11 @@ def getProposalExportFields(data):
         )
     )
 
-    user_ids = {
-        proposal[i]
-        for proposal in columns
-        for i in (2, 4, 7)
-        if proposal[i] is not None
-    }
+    user_ids = {proposal[i] for proposal in columns for i in (2, 4, 7) if proposal[i] is not None}
 
     email_users = EmailUser.objects.filter(id__in=user_ids)
 
-    user_map = {
-        user.id: f"{user.first_name} {user.last_name}".strip() for user in email_users
-    }
+    user_map = {user.id: f"{user.first_name} {user.last_name}".strip() for user in email_users}
 
     columns = list(
         map(
@@ -1580,15 +1484,11 @@ def getApprovalExportFields(data):
         )
     )
 
-    user_ids = {
-        approval[i] for approval in columns for i in (2,) if approval[i] is not None
-    }
+    user_ids = {approval[i] for approval in columns for i in (2,) if approval[i] is not None}
 
     email_users = EmailUser.objects.filter(id__in=user_ids)
 
-    user_map = {
-        user.id: f"{user.first_name} {user.last_name}".strip() for user in email_users
-    }
+    user_map = {user.id: f"{user.first_name} {user.last_name}".strip() for user in email_users}
     columns = list(
         map(
             lambda approval: (
@@ -1630,18 +1530,11 @@ def getComplianceExportFields(data):
         )
     )
 
-    user_ids = {
-        compliance[i]
-        for compliance in columns
-        for i in (4, 5, 8)
-        if compliance[i] is not None
-    }
+    user_ids = {compliance[i] for compliance in columns for i in (4, 5, 8) if compliance[i] is not None}
 
     email_users = EmailUser.objects.filter(id__in=user_ids)
 
-    user_map = {
-        user.id: f"{user.first_name} {user.last_name}".strip() for user in email_users
-    }
+    user_map = {user.id: f"{user.first_name} {user.last_name}".strip() for user in email_users}
     columns = list(
         map(
             lambda compliance: (
@@ -1675,11 +1568,7 @@ def getOrganisationRequestExportFields(data):
         "Lodged On",
     ]
 
-    columns = list(
-        data.values_list(
-            "id", "name", "abn", "requester_id", "role", "status", "lodgement_date"
-        )
-    )
+    columns = list(data.values_list("id", "name", "abn", "requester_id", "role", "status", "lodgement_date"))
 
     return header, columns
 
@@ -1801,7 +1690,7 @@ def formatExportData(model, data, format):
         with open(file_name, "rb") as f:
             file_buffer = f.read()
         return (
-            "Apiary - {} Report.xlsx".format(model.capitalize()),
+            f"Apiary - {model.capitalize()} Report.xlsx",
             file_buffer,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
@@ -1811,7 +1700,7 @@ def formatExportData(model, data, format):
         with open(file_name, "rb") as f:
             file_buffer = f.read()
         return (
-            "Apiary - {} Report.csv".format(model.capitalize()),
+            f"Apiary - {model.capitalize()} Report.csv",
             file_buffer,
             "application/csv",
         )

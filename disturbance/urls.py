@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, re_path
+from django.urls import include, path, re_path
 from ledger_api_client.urls import urlpatterns as ledger_patterns
 from rest_framework import routers
 
@@ -28,16 +28,10 @@ router = routers.DefaultRouter()
 router.include_root_view = settings.SHOW_API_ROOT
 router.register(r"organisations", org_api.OrganisationViewSet, "organisations")
 router.register(r"proposal", proposal_api.ProposalViewSet, "proposal")
-router.register(
-    r"proposal_apiary", proposal_api.ProposalApiaryViewSet, "proposal_apiary"
-)
-router.register(
-    r"on_site_information", proposal_api.OnSiteInformationViewSet, "on_site_information"
-)
+router.register(r"proposal_apiary", proposal_api.ProposalApiaryViewSet, "proposal_apiary")
+router.register(r"on_site_information", proposal_api.OnSiteInformationViewSet, "on_site_information")
 router.register(r"apiary_site", proposal_api.ApiarySiteViewSet, "apiary_site")
-router.register(
-    r"proposal_paginated", proposal_api.ProposalPaginatedViewSet, "proposal_paginated"
-)
+router.register(r"proposal_paginated", proposal_api.ProposalPaginatedViewSet, "proposal_paginated")
 router.register(
     r"approval_paginated",
     approval_api.ApprovalPaginatedViewSet,
@@ -73,9 +67,7 @@ router.register(
 )
 router.register(r"my_organisations", org_api.MyOrganisationsViewSet, "my_organisations")
 router.register(r"users", users_api.UserViewSet, "users")
-router.register(
-    r"amendment_request", proposal_api.AmendmentRequestViewSet, "amendment_request"
-)
+router.register(r"amendment_request", proposal_api.AmendmentRequestViewSet, "amendment_request")
 router.register(
     r"compliance_amendment_request",
     compliances_api.ComplianceAmendmentRequestViewSet,
@@ -83,17 +75,13 @@ router.register(
 )
 router.register(r"regions", main_api.RegionViewSet, "regions")
 router.register(r"activity_matrix", main_api.ActivityMatrixViewSet, "activity_matrix")
-router.register(
-    r"application_types", main_api.ApplicationTypeViewSet, "application_types"
-)
+router.register(r"application_types", main_api.ApplicationTypeViewSet, "application_types")
 router.register(
     r"apiary_referral_groups",
     proposal_api.ApiaryReferralGroupViewSet,
     "apiary_referral_groups",
 )
-router.register(
-    r"apiary_referrals", proposal_api.ApiaryReferralViewSet, "apiary_referrals"
-)
+router.register(r"apiary_referrals", proposal_api.ApiaryReferralViewSet, "apiary_referrals")
 router.register(r"map_layers", main_api.MapLayerViewSet, "map_layers")
 
 api_patterns = [
@@ -211,9 +199,7 @@ urlpatterns = [
     re_path(r"^external/", views.ExternalView.as_view(), name="external"),
     re_path(r"^gisdata/$", views.gisdata, name="gisdata"),
     re_path(r"^account/$", views.ExternalView.as_view(), name="manage-account"),
-    re_path(
-        r"^mgt-commands/$", views.ManagementCommandsView.as_view(), name="mgt-commands"
-    ),
+    re_path(r"^mgt-commands/$", views.ManagementCommandsView.as_view(), name="mgt-commands"),
     # following url is used to include url path when sending Proposal amendment request to user.
     re_path(
         r"^preview/licence-pdf/(?P<proposal_pk>\d+)",
@@ -327,9 +313,7 @@ urlpatterns = [
         name="booking-settlements-report",
     ),
     re_path(r"kb-proxy/(?P<path>.*)", views.mapProxyView),
-    re_path(
-        r"^email-exports/$", views.EmailExportsView.as_view(), name="email-exports"
-    ),
+    re_path(r"^email-exports/$", views.EmailExportsView.as_view(), name="email-exports"),
 ] + ledger_patterns
 
 if not are_migrations_running():
@@ -337,3 +321,9 @@ if not are_migrations_running():
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+    import debug_toolbar
+
+    urlpatterns = [
+        path("__debug__/", include(debug_toolbar.urls, namespace="djdt")),
+    ] + urlpatterns
