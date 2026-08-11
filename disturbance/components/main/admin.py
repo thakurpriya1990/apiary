@@ -30,6 +30,7 @@ class MapLayerAdmin(admin.ModelAdmin):
         'column_names',
     ]
     list_filter = ['option_for_internal', 'option_for_external', 'display_all_columns',]
+    search_fields = ['display_name', 'layer_name', 'columns__name',]
     form = MyForm
     inlines = [MapColumnInline,]
 
