@@ -4,14 +4,10 @@
       <div class="row">
         <div class="col-md-3">
           <div class="mb-3">
-            <label for="">Application Type</label>
-            <select class="form-select" v-model="filterProposalApplicationType">
+            <label for="">Activity Type</label>
+            <select class="form-select" v-model="filterProposalActivity">
               <option value="All">All</option>
-              <option
-                v-for="a in proposal_applicationTypes"
-                :value="a"
-                :key="a"
-              >
+              <option v-for="a in proposalActivityTypes" :value="a" :key="a">
                 {{ a }}
               </option>
             </select>
@@ -154,7 +150,7 @@ export default {
         { value: "declined", name: "Declined" },
         { value: "discarded", name: "Discarded" },
       ],
-      proposal_applicationTypes: [],
+      proposalActivityTypes: [],
       proposal_status: [],
       select2Applied: false,
       dt_options: {},
@@ -254,13 +250,10 @@ export default {
     dateRangeIdentifierForReloadProposalTable() {
       return `${this.proposal_lodged_from}|${this.proposal_lodged_to}`;
     },
-    activityFilterLabel: function () {
-      return "Application Type";
-    },
     dt_headers: function () {
       let columnList = [
         "Number",
-        "Application Type",
+        "Activity Type",
         "Submitter",
         "Applicant",
         "Status",
@@ -521,7 +514,7 @@ export default {
             });
           }
           const filterListsProposal = await response.json();
-          vm.proposal_applicationTypes = filterListsProposal.activities;
+          vm.proposalActivityTypes = filterListsProposal.activities;
           vm.proposal_status =
             vm.level == "internal" ? vm.internal_status : vm.external_status;
         },
