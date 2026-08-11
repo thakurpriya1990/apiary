@@ -1,10 +1,8 @@
 import datetime
-import traceback
 from datetime import datetime
 
-from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Q, Value
+from django.db.models import Prefetch, Q, Value
 from django.db.models.functions import Concat
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from rest_framework import mixins, serializers, viewsets
@@ -19,6 +17,7 @@ from disturbance.components.approvals.models import (
     Approval,
     ApprovalDocument,
     ApprovalUserAction,
+    RenewalDocument,
 )
 from disturbance.components.approvals.permissions import (
     InternalApprovalPermission,
@@ -40,7 +39,6 @@ from disturbance.components.approvals.utils import (
 from disturbance.components.main.decorators import basic_exception_handler
 from disturbance.components.main.utils import (
     get_template_group,
-    handle_validation_error,
 )
 from disturbance.components.organisations.models import Organisation
 from disturbance.components.proposals.models import OnSiteInformation, Proposal
@@ -72,9 +70,7 @@ class ApprovalFilterBackend(DatatablesFilterBackend):
             email_user_ids = list(
                 EmailUser.objects.annotate(
                     full_name=Concat("first_name", Value(" "), "last_name"),
-                    legal_full_name=Concat(
-                        "legal_first_name", Value(" "), "legal_last_name"
-                    ),
+                    legal_full_name=Concat("legal_first_name", Value(" "), "legal_last_name"),
                 )
                 .filter(
                     Q(email__icontains=search_text)
@@ -88,18 +84,13 @@ class ApprovalFilterBackend(DatatablesFilterBackend):
                 .values_list("id", flat=True)
             )
 
-            organisation_ids = list(
-                Organisation.objects.filter(property_cache__name__icontains=search_text)
-            )
+            organisation_ids = list(Organisation.objects.filter(property_cache__name__icontains=search_text))
 
             search_text_app_ids = Approval.objects.values("id").filter(
-                Q(proxy_applicant_id__in=email_user_ids)
-                | Q(applicant_id__in=organisation_ids)
+                Q(proxy_applicant_id__in=email_user_ids) | Q(applicant_id__in=organisation_ids)
             )
 
-            queryset = (
-                queryset.filter(id__in=search_text_app_ids).distinct() | super_queryset
-            )
+            queryset = queryset.filter(id__in=search_text_app_ids).distinct() | super_queryset
 
         def get_choice(status, choices=Approval.STATUS_CHOICES):
             for i in choices:
@@ -150,13 +141,9 @@ class ApprovalPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if is_internal(self.request):
-            return Approval.objects.filter(apiary_approval=True).exclude(
-                status="hidden"
-            )
+            return Approval.objects.filter(apiary_approval=True).exclude(status="hidden")
         elif self.request.user.is_authenticated:
-            user_orgs = [
-                org.id for org in self.request.user.disturbance_organisations.all()
-            ]
+            user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
             queryset = (
                 Approval.objects.filter(apiary_approval=True)
                 .filter(
@@ -183,16 +170,30 @@ class ApprovalPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             http://localhost:8000/api/approval_paginated/approvals_external/?format=datatables&draw=1&length=2
         """
 
-        ids = (
-            self.get_queryset()
-            .order_by("lodgement_number", "-issue_date")
-            .distinct("lodgement_number")
-            .values_list("id", flat=True)
-        )
-        template_group = get_template_group(request)
-        qs = self.get_queryset().filter(apiary_approval=True).filter(id__in=ids)
+        ordered_renewal_docs = RenewalDocument.objects.order_by("id")
 
+        qs = (
+            self.get_queryset()
+            .filter(apiary_approval=True)
+            .select_related(
+                "current_proposal",
+                "current_proposal__applicant",
+                "current_proposal__application_type",
+                "licence_document",
+                "renewal_document",
+                "cover_letter_document",
+                "applicant",
+            )
+            .prefetch_related(
+                # Use the default reverse name 'renewaldocument_set' pre-sorted by our sub-query rule
+                Prefetch("renewal_documents", queryset=ordered_renewal_docs),
+                "documents",
+            )
+        )
         qs = self.filter_queryset(qs)
+        qs = qs.order_by("lodgement_number", "-issue_date").distinct("lodgement_number")
+
+        template_group = get_template_group(request)
 
         # on the internal organisations dashboard, filter the Proposal/Approval/Compliance datatables by applicant/organisation
         applicant_id = request.GET.get("org_id")
@@ -208,6 +209,7 @@ class ApprovalPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             context={"request": request, "template_group": template_group},
             many=True,
         )
+
         return self.paginator.get_paginated_response(serializer.data)
 
 
@@ -219,12 +221,9 @@ class ApprovalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if is_internal(self.request):
             return Approval.objects.filter(apiary_approval=True)
         elif self.request.user.is_authenticated:
-            user_orgs = [
-                org.id for org in self.request.user.disturbance_organisations.all()
-            ]
+            user_orgs = [org.id for org in self.request.user.disturbance_organisations.all()]
             queryset = Approval.objects.filter(apiary_approval=True).filter(
-                Q(applicant_id__in=user_orgs)
-                | Q(proxy_applicant_id=self.request.user.id)
+                Q(applicant_id__in=user_orgs) | Q(proxy_applicant_id=self.request.user.id)
             )
             return queryset
         return Approval.objects.none()
@@ -303,9 +302,7 @@ class ApprovalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def temporary_use(self, request, *args, **kwargs):
         instance = self.get_object()
         qs = instance.proposalapiarytemporaryuse_set
-        qs = qs.exclude(
-            proposal__processing_status=Proposal.PROCESSING_STATUS_DISCARDED
-        )
+        qs = qs.exclude(proposal__processing_status=Proposal.PROCESSING_STATUS_DISCARDED)
         serializer = ProposalApiaryTemporaryUseSerializer(qs, many=True)
         return Response(serializer.data)
 
@@ -321,9 +318,7 @@ class ApprovalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         until_date = request.data.get("until_date", None)
         if until_date:
-            instance.no_annual_rental_fee_until = datetime.strptime(
-                until_date, "%d/%m/%Y"
-            ).date()
+            instance.no_annual_rental_fee_until = datetime.strptime(until_date, "%d/%m/%Y").date()
         else:
             instance.no_annual_rental_fee_until = None
         instance.save()
@@ -348,9 +343,7 @@ class ApprovalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     @basic_exception_handler
     def apiary_sites(self, request, *args, **kwargs):
         approval = self.get_object()
-        approval_data = annotate_apiary_site_on_approval_geometry(
-            approval.get_relations()
-        )
+        approval_data = annotate_apiary_site_on_approval_geometry(approval.get_relations())
         data = {"features": list(approval_data)}
         return Response(data)
 
@@ -363,9 +356,7 @@ class ApprovalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     @basic_exception_handler
     def apiary_site(self, request, *args, **kwargs):
         approval = self.get_object()
-        approval_data = annotate_apiary_site_on_approval_geometry(
-            approval.get_relations()
-        )
+        approval_data = annotate_apiary_site_on_approval_geometry(approval.get_relations())
         return Response(list(approval_data))
 
     @action(
@@ -412,37 +403,25 @@ class ApprovalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-    @action(
-        detail=True, methods=["POST"], permission_classes=[InternalApprovalPermission]
-    )
+    @action(detail=True, methods=["POST"], permission_classes=[InternalApprovalPermission])
     def suspend_apiary_site(self, request, *args, **kwargs):
         instance = self.get_object()
         apiary_site_id = request.data.get("apiary_site_id")
         if not apiary_site_id:
-            raise serializers.ValidationError(
-                {"apiary_site_id": "This field is required."}
-            )
+            raise serializers.ValidationError({"apiary_site_id": "This field is required."})
         instance.suspend_apiary_site(request, apiary_site_id)
-        updated_qs = ApiarySiteOnApproval.objects.filter(
-            approval=instance, apiary_site_id=apiary_site_id
-        )
+        updated_qs = ApiarySiteOnApproval.objects.filter(approval=instance, apiary_site_id=apiary_site_id)
         result = list(annotate_apiary_site_on_approval_geometry(updated_qs))
         return Response(result[0])
 
-    @action(
-        detail=True, methods=["POST"], permission_classes=[InternalApprovalPermission]
-    )
+    @action(detail=True, methods=["POST"], permission_classes=[InternalApprovalPermission])
     def reinstate_apiary_site(self, request, *args, **kwargs):
         instance = self.get_object()
         apiary_site_id = request.data.get("apiary_site_id")
         if not apiary_site_id:
-            raise serializers.ValidationError(
-                {"apiary_site_id": "This field is required."}
-            )
+            raise serializers.ValidationError({"apiary_site_id": "This field is required."})
         instance.reinstate_apiary_site(request, apiary_site_id)
-        updated_qs = ApiarySiteOnApproval.objects.filter(
-            approval=instance, apiary_site_id=apiary_site_id
-        )
+        updated_qs = ApiarySiteOnApproval.objects.filter(approval=instance, apiary_site_id=apiary_site_id)
         result = list(annotate_apiary_site_on_approval_geometry(updated_qs))
         return Response(result[0])
 
@@ -538,9 +517,9 @@ class ApprovalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def sti_search(self, request, *args, **kwargs):
         """Used by the internal users to filter for sti name in ptoposal titlei (for use by external systems)"""
         name = request.GET.get("name")
-        data = Approval.objects.filter(
-            current_proposal__title__icontains=name
-        ).values_list("licence_document___file", flat=True)
+        data = Approval.objects.filter(current_proposal__title__icontains=name).values_list(
+            "licence_document___file", flat=True
+        )
         return Response(list(data))
 
     @action(
@@ -554,9 +533,9 @@ class ApprovalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         """Used by the internal users to filter for sti name in ptoposal titlei (for use by external systems)"""
 
         name = request.GET.get("name")
-        data = Approval.objects.filter(
-            current_proposal__title__icontains=name
-        ).values_list("licence_document___file", flat=True)
+        data = Approval.objects.filter(current_proposal__title__icontains=name).values_list(
+            "licence_document___file", flat=True
+        )
 
         return Response(list(data))
 
