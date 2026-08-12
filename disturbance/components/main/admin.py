@@ -6,6 +6,7 @@ from django.core.cache import cache
 from django.contrib import admin
 from django.utils.html import format_html
 from disturbance.components.main.models import MapLayer, MapColumn, FileExtensionWhitelist
+from django.utils.safestring import mark_safe
 
 
 def check_kb_server_status():
@@ -133,32 +134,42 @@ class MapLayerAdmin(admin.ModelAdmin):
         check_kb_server_status()  # Immediately re-fetch from KB GeoServer
         self.message_user(request, "KB GeoServer status cache refreshed successfully.")
 
-    @admin.display(description="KB Server Status")
+    kb_url = getattr(settings, 'KB_SERVER_URL', '').rstrip('/')
+    @admin.display(
+        description=mark_safe(
+            f"<span style='display: block !important; margin: 0 !important; padding: 0 !important; line-height: 1.0 !important; text-transform: none !important; text-align: left !important;'>"
+            f"<span style='display: block !important; margin: 0 !important; padding: 0 !important; line-height: 1.0 !important; text-transform: uppercase;'>KB Server Status</span>"
+            f"<span style='display: block !important; margin: 2px 0 0 0 !important; padding: 0 !important; line-height: 1.0 !important; font-weight: normal; font-size: 0.85em; opacity: 0.8;'>({kb_url})</span>"
+            f"</span>"
+        )
+    )
     def server_status(self, obj):
-        """
-        Display status of the layer on the KB GeoServer:
-        - Green (Found): Server reachable and layer exists.
-        - Red (Not Found): Server reachable but layer does not exist.
-        - Yellow (Server Offline): Connection to KB server failed.
-        """
         if not obj.layer_name:
             return format_html('<span style="color: gray;">⚪ Empty</span>')
 
+        base_url = (getattr(settings, "KB_SERVER_URL", "") or "").rstrip("/")
         status_code, layer_names = check_kb_server_status()
 
         # Connection failed or server error
         if status_code != 200:
             return format_html(
-                '<span style="color: orange; font-weight: bold;" title="Could not connect to KB Server">🟡 Server Error ({})</span>',
+                '<span style="color: orange; font-weight: bold;" title="Failed connecting to {} (Status: {})">🟡 Server Error ({})</span>',
+                base_url,
+                status_code if status_code else "Offline",
                 status_code if status_code else "Offline"
             )
 
         # Server connected, check if layer exists
         if obj.layer_name in layer_names:
-            return format_html('<span style="color: green; font-weight: bold;">🟢 Found</span>')
+            return format_html(
+                '<span style="color: green; font-weight: bold;" title="Connected to {}">🟢 Found</span>',
+                base_url
+            )
         else:
-            return format_html('<span style="color: red; font-weight: bold;">🔴 Not Found</span>')
-
+            return format_html(
+                '<span style="color: red; font-weight: bold;" title="Connected to {} but layer is missing">🔴 Not Found</span>',
+                base_url
+            )
 
 @admin.register(FileExtensionWhitelist)
 class FileExtensionWhitelistAdmin(admin.ModelAdmin):
