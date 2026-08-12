@@ -64,10 +64,106 @@ def get_kb_layer_choices():
     return choices
 
 
+# Pure Vanilla JS Searchable Widget (Explicit height control for smooth listbox expansion)
+class SearchableSelectWidget(forms.Select):
+    def render(self, name, value, attrs=None, renderer=None):
+        attrs = attrs or {}
+        attrs['style'] = 'width: 100%; box-sizing: border-box;'
+        select_html = super().render(name, value, attrs, renderer)
+
+        select_id = attrs.get('id', f'id_{name}')
+        
+        container_html = mark_safe(f"""
+        <div style="display: flex; flex-direction: column; gap: 6px; width: 600px; max-width: 100%; clear: both;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="text" id="{select_id}_search" placeholder="🔍 Type to filter layers..." 
+                       style="width: 300px; max-width: 100%; padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 13px;">
+                <span id="{select_id}_count" style="font-size: 12px; font-weight: bold;"></span>
+            </div>
+            {select_html}
+        </div>
+        <script type="text/javascript">
+        (function() {{
+            function setupFilter() {{
+                var searchInput = document.getElementById('{select_id}_search');
+                var selectElem = document.getElementById('{select_id}');
+                var countElem = document.getElementById('{select_id}_count');
+                if (!searchInput || !selectElem) return;
+
+                searchInput.addEventListener('input', function() {{
+                    var filter = this.value.toLowerCase().trim();
+                    var options = selectElem.options;
+                    var matchCount = 0;
+                    var firstMatch = null;
+
+                    for (var i = 0; i < options.length; i++) {{
+                        var text = options[i].text.toLowerCase();
+                        if (filter === '' || text.indexOf(filter) > -1) {{
+                            options[i].style.display = '';
+                            matchCount++;
+                            if (!firstMatch && filter !== '' && options[i].value !== '') {{
+                                firstMatch = options[i];
+                            }}
+                        }} else {{
+                            options[i].style.display = 'none';
+                        }}
+                    }}
+
+                    if (filter !== '') {{
+                        // Expand listbox and set explicit height (140px) so options are clearly visible
+                        selectElem.size = Math.min(Math.max(matchCount, 2), 6);
+                        selectElem.style.height = '140px';
+                        if (firstMatch) {{
+                            firstMatch.selected = true;
+                        }}
+                    }} else {{
+                        // Collapse back to standard height when input is cleared
+                        selectElem.size = 1;
+                        selectElem.style.height = 'auto';
+                    }}
+
+                    // Update real-time match count badge
+                    if (countElem) {{
+                        if (filter === '') {{
+                            countElem.textContent = '';
+                        }} else if (matchCount > 0) {{
+                            countElem.textContent = '✓ ' + matchCount + ' layer(s) found';
+                            countElem.style.color = '#28a745';
+                        }} else {{
+                            countElem.textContent = '✕ No layer found';
+                            countElem.style.color = '#dc3545';
+                        }}
+                    }}
+                }});
+
+                // Revert to normal single-row dropdown when an option is selected or clicked
+                selectElem.addEventListener('change', function() {{
+                    selectElem.size = 1;
+                    selectElem.style.height = 'auto';
+                }});
+                selectElem.addEventListener('click', function() {{
+                    if (selectElem.size > 1) {{
+                        selectElem.size = 1;
+                        selectElem.style.height = 'auto';
+                    }}
+                }});
+            }}
+
+            if (document.readyState === 'loading') {{
+                document.addEventListener('DOMContentLoaded', setupFilter);
+            }} else {{
+                setupFilter();
+            }}
+        }})();
+        </script>
+        """)
+        return container_html
+
 class MyForm(forms.ModelForm):
     layer_name = forms.ChoiceField(
         choices=[],
         required=False,
+        widget=SearchableSelectWidget(),  # Use Searchable Select Widget
         help_text="Select a layer from KB GeoServer GetCapabilities"
     )
 
