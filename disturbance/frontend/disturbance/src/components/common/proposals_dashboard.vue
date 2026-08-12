@@ -4,7 +4,7 @@
       <div class="row">
         <div class="col-md-3">
           <div class="mb-3">
-            <label for="">Activity Type</label>
+            <label for="">Application Type</label>
             <select class="form-select" v-model="filterProposalActivity">
               <option value="All">All</option>
               <option v-for="a in proposalActivityTypes" :value="a" :key="a">
@@ -253,7 +253,7 @@ export default {
     dt_headers: function () {
       let columnList = [
         "Number",
-        "Activity Type",
+        "Application Type",
         "Submitter",
         "Applicant",
         "Status",
