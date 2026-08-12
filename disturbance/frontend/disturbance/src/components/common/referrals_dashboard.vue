@@ -5,13 +5,9 @@
         <div class="col-md-3">
           <div class="mb-3">
             <label for="">Application Type</label>
-            <select class="form-select" v-model="filterProposalApplicationType">
+            <select class="form-select" v-model="filterProposalActivity">
               <option value="All">All</option>
-              <option
-                v-for="a in proposal_applicationTypes"
-                :value="a"
-                :key="a"
-              >
+              <option v-for="a in proposal_activityTitles" :value="a" :key="a">
                 {{ a }}
               </option>
             </select>
@@ -436,8 +432,7 @@ export default {
           const filter_list_ref = await response.json();
           vm.proposal_regions = filter_list_ref.regions;
           //vm.proposal_districts = response.body.districts;
-          vm.proposal_activityTitles = filter_list_ref.activities;
-          vm.proposal_applicationTypes = filter_list_ref.application_types;
+          vm.proposal_activityTitles = filter_list_ref.application_types;
           vm.proposal_submitters = filter_list_ref.submitters;
           vm.proposal_status = filter_list_ref.processing_status_choices;
         })

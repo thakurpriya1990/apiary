@@ -1,54 +1,58 @@
+from copy import deepcopy
+from datetime import datetime
+
 import pytz
 from confy import env
 from django.conf import settings
-from datetime import datetime
-
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
+from django.utils import timezone
+from ledger_api_client.ledger_models import Address
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from reversion.models import Version
 
+from disturbance.components.approvals.models import Approval
 from disturbance.components.approvals.serializers_apiary import ApiarySiteOnApprovalGeometrySerializer
-from disturbance.helpers import is_internal
 from disturbance.components.main.utils import (
-    get_category, get_tenure, get_region_district, 
-    get_feature_in_wa_coastline_smoothed, validate_buffer,
-    get_template_group, get_status_for_export
+    get_category,
+    get_feature_in_wa_coastline_smoothed,
+    get_region_district,
+    get_status_for_export,
+    get_template_group,
+    get_tenure,
+    validate_buffer,
 )
+from disturbance.components.organisations.models import Organisation, UserDelegation
 from disturbance.components.organisations.serializers import OrganisationSerializer
-from disturbance.components.organisations.models import UserDelegation, Organisation
-from disturbance.components.proposals.serializers_base import (
-        BaseProposalSerializer, 
-        ProposalDeclinedDetailsSerializer,
-        EmailUserSerializer,
-        )
 from disturbance.components.proposals.models import (
+    ApiaryChecklistAnswer,
+    ApiaryChecklistQuestion,
+    ApiaryReferral,
+    ApiaryReferralGroup,
+    ApiarySite,
+    ApiarySiteFee,
+    ApiarySiteFeeRemainder,
+    ApiarySiteFeeType,
+    ApiarySiteOnProposal,
+    OnSiteInformation,
     Proposal,
     ProposalApiary,
-    ProposalApiaryTemporaryUse,
-    ApiaryChecklistQuestion,
-    ApiaryChecklistAnswer,
     ProposalApiaryDocument,
-    ApiarySite,
-    OnSiteInformation,
-    ApiaryReferralGroup,
-    TemporaryUseApiarySite,
-    ApiaryReferral,
+    ProposalApiaryTemporaryUse,
+    ProposalRequirement,
     Referral,
-    ApiarySiteFee,
-    ApiarySiteFeeType,
-    ApiarySiteFeeRemainder,
     SiteCategory,
-    ProposalRequirement, ApiarySiteOnProposal,
+    TemporaryUseApiarySite,
 )
-from disturbance.components.approvals.models import (
-    Approval
+from disturbance.components.proposals.serializers_base import (
+    BaseProposalSerializer,
+    EmailUserSerializer,
+    ProposalDeclinedDetailsSerializer,
 )
+from disturbance.helpers import is_internal
 
-from rest_framework import serializers
-from reversion.models import Version
-from django.utils import timezone
-from django.contrib.contenttypes.models import ContentType
-from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Address
-from copy import deepcopy
 
 class VersionSerializer(serializers.ModelSerializer):
     proposal_fields = serializers.SerializerMethodField()
@@ -283,7 +287,7 @@ class ApiarySiteOnProposalDraftGeometrySerializer(GeoFeatureModelSerializer):
 
     def get_stable_coords(self, obj):
         return {'lng': obj.wkb_geometry_draft.x, 'lat': obj.wkb_geometry_draft.y}
-    
+
     def get_previous_site_holder_or_applicant(self, obj):
         try:
             relevant_applicant_name = obj.proposal_apiary.proposal.relevant_applicant_name
@@ -557,14 +561,10 @@ class ApiarySiteOnProposalDraftGeometrySaveSerializer(GeoFeatureModelSerializer)
         if check_coastline:
             feature = get_feature_in_wa_coastline_smoothed(wkb_geometry)
             if not feature:
-                raise serializers.ValidationError(['Apiary Site: {} (lat: {}, lng: {}) is out of bounds.'.format(
-                    self.instance.apiary_site.id,
-                    wkb_geometry.coords[1],
-                    wkb_geometry.coords[0],
-                )])
+                raise serializers.ValidationError([f'Apiary Site: {self.instance.apiary_site.id} (lat: {wkb_geometry.coords[1]}, lng: {wkb_geometry.coords[0]}) is out of bounds.'])
 
         apiary_sites_to_exclude = [self.instance.apiary_site,] if self.instance.apiary_site else None
-        
+
         #validate_buffer(wkb_geometry, apiary_sites_to_exclude)
         if not self.instance.apiary_site.exempt_from_radius_restriction:
             validate_buffer(wkb_geometry, apiary_sites_to_exclude)
@@ -644,7 +644,7 @@ class ApiarySiteSerializer(serializers.ModelSerializer):
             'id',
             'site_guid',
         )
-        
+
 
 class ProposalApiarySerializer(serializers.ModelSerializer):
 
@@ -702,7 +702,7 @@ class ProposalApiarySerializer(serializers.ModelSerializer):
             'transferee_org_name',
             'transferee_first_name',
             'transferee_last_name',
-            'transferee_email_text', 
+            'transferee_email_text',
             'transferee_id',
             'target_approval_organisation_id',
             'public_liability_insurance_expiry_date',
@@ -917,8 +917,8 @@ class ProposalApiarySerializer(serializers.ModelSerializer):
                 obj.apiary_checklist.filter(apiary_referral_id=referral.apiary_referral.id).filter(question__checklist_type='site_transfer').order_by('question__order'),
                 many=True).data
             referral_list.append({
-                "referral_id": referral.id, 
-                "apiary_referral_id": referral.apiary_referral.id, 
+                "referral_id": referral.id,
+                "apiary_referral_id": referral.apiary_referral.id,
                 "referral_data": qs,
                 "referrer_group_name": referral.apiary_referral.referral_group.name,
                 })
@@ -1017,6 +1017,7 @@ class ProposalApiaryTemporaryUseSerializer(serializers.ModelSerializer):
     lodgement_number = serializers.CharField(source='proposal.lodgement_number', required=False, read_only=True)
     customer_status = serializers.SerializerMethodField()
     processing_status = serializers.SerializerMethodField()
+    temporary_use_apiary_sites = TemporaryUseApiarySiteSerializer(many=True, read_only=True)
 
     def validate(self, data):
         if hasattr(self, 'context') and self.context and self.context['action'] == 'submit':
@@ -1080,7 +1081,7 @@ class ProposalApiaryTemporaryUseSerializer(serializers.ModelSerializer):
                 #else:
                 #    # To detect if the external user accessing the pdf file, we make Django serve the pdf file
                 #    url = '<a href="/api/sanction_outcome/{}/doc?name={}" target="_blank">{}</a>'.format(obj.id, doc.name, doc.name)
-                url = '<a href="{}" target="_blank">{}</a>'.format(doc._file.url, doc.name)
+                url = f'<a href="{doc._file.url}" target="_blank">{doc.name}</a>'
                 url_list.append(url)
 
         urls = '<br />'.join(url_list)
@@ -1102,6 +1103,7 @@ class ProposalApiaryTemporaryUseSerializer(serializers.ModelSerializer):
             'lodgement_number',
             'customer_status',
             'processing_status',
+            'temporary_use_apiary_sites',
         )
 
 
@@ -1216,7 +1218,7 @@ class ProposalApiaryTypeSerializer(serializers.ModelSerializer):
         read_only_fields=('documents',)
 
     def get_documents_url(self,obj):
-        return '/private-media/{}/proposals/{}/documents/'.format(settings.MEDIA_APP_DIR, obj.id)
+        return f'/private-media/{settings.MEDIA_APP_DIR}/proposals/{obj.id}/documents/'
 
     def get_readonly(self,obj):
         return obj.can_user_view
@@ -1239,12 +1241,12 @@ class ProposalApiaryTypeSerializer(serializers.ModelSerializer):
         ret_list = []
         if obj.fee_invoice_references:
             for ref in obj.fee_invoice_references:
-                ret_list.append('payments/invoice-pdf/{}'.format(ref))
+                ret_list.append(f'payments/invoice-pdf/{ref}')
         return ret_list
 
     def get_apiary_group_application_type(self, obj):
         return obj.apiary_group_application_type
-    
+
     def get_is_internal_user(self, obj):
         try:
             request = self.context.get('request')
@@ -1278,7 +1280,7 @@ class ApiaryProposalReferralSerializer(serializers.ModelSerializer):
 
     def get_apiary_referral(self, obj):
         return ApiaryReferralSerializer(obj.apiary_referral).data
-    
+
     #TODO on-cleanup: this was added as a fix but this column may not be needed for apiary
     def get_referral(self, obj):
         return obj.referral.get_full_name() if obj.referral else None
@@ -1320,9 +1322,9 @@ class ApiaryInternalProposalSerializer(BaseProposalSerializer):
     applicant_email = serializers.SerializerMethodField()
 
     proposal_apiary = ProposalApiarySerializer()
-    
+
     apiary_temporary_use = ProposalApiaryTemporaryUseSerializer(many=False, read_only=True)
-    
+
     #apiary_site_transfer = ProposalApiarySiteTransferSerializer()
 
     applicant_checklist = serializers.SerializerMethodField()
@@ -1494,7 +1496,7 @@ class ApiaryInternalProposalSerializer(BaseProposalSerializer):
         ret_list = []
         if obj.fee_invoice_references:
             for ref in obj.fee_invoice_references:
-                ret_list.append('payments/invoice-pdf/{}'.format(ref))
+                ret_list.append(f'payments/invoice-pdf/{ref}')
         return ret_list
 
     def get_applicant(self,obj):
@@ -1555,7 +1557,7 @@ class FullApiaryReferralSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def __init__(self,*args,**kwargs):
-        super(FullApiaryReferralSerializer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['proposal'] = ApiaryReferralProposalSerializer(context={'request':self.context['request']})
 
 
@@ -1633,7 +1635,7 @@ class UserApiaryApprovalSerializer(serializers.ModelSerializer):
         #organisation_approvals = False
         #Individual applications
         for individual_approval in obj.disturbance_proxy_approvals.filter(
-                status='current', 
+                status='current',
                 apiary_approval=True
                 ).exclude(id=originating_approval_id
                         ):
@@ -1667,7 +1669,7 @@ class UserApiaryApprovalSerializer(serializers.ModelSerializer):
                     ).exclude(id=originating_approval_id
                             ):
                 licence_holders.append({
-                    'type': 'organisation', 
+                    'type': 'organisation',
                     'id': None,
                     'lodgement_number':None,
                     'licence_holder': user_delegation.organisation.name,
@@ -1683,7 +1685,7 @@ class UserApiaryApprovalSerializer(serializers.ModelSerializer):
                                 ):
                     if organisation_approval.apiary_approval:
                         licence_holders.append({
-                            'type': 'organisation', 
+                            'type': 'organisation',
                             'id':organisation_approval.id,
                             'lodgement_number':organisation_approval.lodgement_number,
                             'licence_holder': organisation_approval.relevant_applicant_name,
