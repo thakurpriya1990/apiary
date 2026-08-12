@@ -122,6 +122,17 @@ class MapLayerAdmin(admin.ModelAdmin):
     form = MyForm
     inlines = [MapColumnInline]
 
+    actions = ['refresh_server_status']
+
+    @admin.action(description="Force refresh KB GeoServer status cache")
+    def refresh_server_status(self, request, queryset):
+        """
+        Action to clear the cached GetCapabilities and force re-fetching from KB GeoServer.
+        """
+        cache.delete("kb_geoserver_status_info")
+        check_kb_server_status()  # Immediately re-fetch from KB GeoServer
+        self.message_user(request, "KB GeoServer status cache refreshed successfully.")
+
     @admin.display(description="KB Server Status")
     def server_status(self, obj):
         """
