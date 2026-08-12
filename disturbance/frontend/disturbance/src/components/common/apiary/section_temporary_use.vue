@@ -1,273 +1,292 @@
 <template lang="html">
-    <div>
-        <div class="row col-sm-12">
-            <template v-if="is_external">
-                <!--button 
+  <div>
+    <div class="row col-sm-12">
+      <template v-if="is_external">
+        <!--button 
                     v-if="!creatingProposal" 
                     class="btn btn-primary float-end" 
                     @click="openNewTemporaryUse"
                     :disabled="!user_can_temporary_use"
                 >New Temporary Use</button-->
-            </template>
-        </div>
-
-        <div class="row col-sm-12">
-            <datatable
-                ref="temporary_use_table"
-                id="temporary-use-table"
-                :dtOptions="dtOptions"
-                :dtHeaders="dtHeaders"
-            />
-        </div>
-
+      </template>
     </div>
+
+    <div class="row col-sm-12">
+      <datatable
+        ref="temporary_use_table"
+        id="temporary-use-table"
+        :dtOptions="dtOptions"
+        :dtHeaders="dtHeaders"
+      />
+    </div>
+  </div>
 </template>
 
 <script>
-    import datatable from '@vue-utils/datatable.vue'
-    // import { v4 as uuid } from 'uuid';
-    import { constants} from '@/utils/hooks'
+import datatable from "@vue-utils/datatable.vue";
+// import { v4 as uuid } from 'uuid';
+import { constants } from "@/utils/hooks";
 
-    export default {
-        props:{
-            approval_id: {
-                type: Number,
-                required: true,
-            },
-            is_external:{
-              type: Boolean,
-              default: false
-            },
-            is_internal:{
-              type: Boolean,
-              default: false
-            },
-            user_can_temporary_use: {
-                type: Boolean,
-                default: false
-            },
+export default {
+  props: {
+    approval_id: {
+      type: Number,
+      required: true,
+    },
+    is_external: {
+      type: Boolean,
+      default: false,
+    },
+    is_internal: {
+      type: Boolean,
+      default: false,
+    },
+    user_can_temporary_use: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  data: function () {
+    let vm = this;
+    return {
+      proposal_apiary: null,
+      creatingProposal: false,
+      temporary_uses: [],
+      dtHeaders: [
+        "Number",
+        "From",
+        "To",
+        "Site(s)",
+        "Status",
+        "Temporary Occupier",
+        "Deed Poll",
+        "Action",
+      ],
+      dtOptions: {
+        serverSide: false,
+        searchDelay: 1000,
+        lengthMenu: [
+          [10, 25, 50, 100],
+          [10, 25, 50, 100],
+        ],
+        order: [
+          [1, "desc"],
+          [0, "desc"],
+        ],
+        language: {
+          processing: constants.DATATABLE_PROCESSING_HTML,
         },
-        data:function () {
-            let vm = this;
-            return{
-                proposal_apiary: null,
-                creatingProposal: false,
-                temporary_uses: [],
-                dtHeaders: [
-                    'Number',
-                    'From',
-                    'To',
-                    'Site(s)',
-                    'Status',
-                    'Temporary Occupier',
-                    'Deed Poll',
-                    'Action',
-                ],
-                dtOptions: {
-                    serverSide: false,
-                    searchDelay: 1000,
-                    lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
-                    order: [
-                        [1, 'desc'], [0, 'desc'],
-                    ],
-                    language: {
-                        processing: constants.DATATABLE_PROCESSING_HTML,
-                    },
-                    responsive: true,
-                    processing: true,
-                    columns: [
-                        {
-                            // Number
-                            visible: true,
-                            mRender: function (data, type, full) {
-                                return full.lodgement_number;
-                            },
-                            defaultContent: '',
-                        },
-                        {
-                            // From date
-                            mRender: function (data, type, full) {
-                                return full.from_date;
-                            },
-                            defaultContent: '',
-                        },
-                        {
-                            // To date
-                            mRender: function (data, type, full) {
-                                return full.to_date;
-                            },
-                            defaultContent: '',
-                        },
-                        {
-                            // Site(s)
-                            mRender: function (data, type, full) {
-                                let ret_str = ''
-                                for (let i=0; i<full.temporary_use_apiary_sites.length; i++){
-                                    if (full.temporary_use_apiary_sites[i].selected){
-                                        ret_str += 'apiary site ID: ' + full.temporary_use_apiary_sites[i].apiary_site.id + '<br />'
-                                    }
-                                }
-                                return ret_str
-                            },
-                            defaultContent: '',
-                        },
-                        {
-                            // Status (customer status)
-                            mRender: function (data, type, full) {
-                                return full.customer_status;
-                            },
-                            defaultContent: '',
-                        },
-                        {
-                            // Occupier name
-                            mRender: function (data, type, full) {
-                                return full.temporary_occupier_name;
-                            },
-                            defaultContent: '',
-                        },
-                        {
-                            // Deed poll
-                            mRender: function (data, type, full) {
-                                return full.deed_poll_documents;
-                            },
-                            defaultContent: '',
-                        },
-                        {
-                            // Action
-                            mRender: function (data, type, full) {
-                                if (full.customer_status.toLowerCase() === 'draft' && vm.user_can_temporary_use){
-                                    if (vm.is_internal){
-                                        return '<a href="/internal/proposal/' + full.proposal_id + '/">Edit</a>'
-                                    } else if (vm.is_external){
-                                        return '<a href="/external/proposal/' + full.proposal_id + '/">Edit</a>'
-                                    }
-                                } else {
-                                    return ''
-                                }
-                            },
-                            defaultContent: '',
-                        },
-                    ],
-                },
-            }
-        },
-        components: {
-            datatable,
-        },
-        computed:{
-
-        },
-        methods:{
-            loadTemporaryUses: async function(){
-
-                fetch('/api/approvals/' + this.approval_id + '/temporary_use/').then(
-                    async (response)=>{
-                        if (!response.ok) {
-                            return response.json().then(err => { throw err });
-                        }
-                        this.temporary_uses = await response.json();
-                        this.constructTemporaryUseTable()
-                   }).catch((error) => {
-                        console.log(error);
-                    });
+        responsive: true,
+        processing: true,
+        columns: [
+          {
+            // Number
+            visible: true,
+            mRender: function (data, type, full) {
+              return full.lodgement_number;
             },
-            constructTemporaryUseTable: function() {
-                this.$refs.temporary_use_table.vmDataTable.clear().draw();
-
-                for (let i=0; i<this.temporary_uses.length; i++){
-                    this.addTemporaryUseToTable(this.temporary_uses[i]);
+            defaultContent: "",
+          },
+          {
+            // From date
+            mRender: function (data, type, full) {
+              return full.from_date;
+            },
+            defaultContent: "",
+          },
+          {
+            // To date
+            mRender: function (data, type, full) {
+              return full.to_date;
+            },
+            defaultContent: "",
+          },
+          {
+            // Site(s)
+            mRender: function (data, type, full) {
+              let ret_str = "";
+              for (let i = 0; i < full.temporary_use_apiary_sites.length; i++) {
+                if (full.temporary_use_apiary_sites[i].selected) {
+                  ret_str +=
+                    "apiary site ID: " +
+                    full.temporary_use_apiary_sites[i].apiary_site.id +
+                    "<br />";
                 }
+              }
+              return ret_str;
             },
-            addTemporaryUseToTable: function(temporary_use) {
-                this.$refs.temporary_use_table.vmDataTable.row.add(temporary_use).draw();
+            defaultContent: "",
+          },
+          {
+            // Status (customer status)
+            mRender: function (data, type, full) {
+              return full.customer_status;
             },
-            openNewTemporaryUse: function() {
-                let vm = this
-
-                swal.fire({
-                    title: "Create Temporary Use Application",
-                    text: "Are you sure you want to create temporary use application?",
-                    icon: "question",
-                    showCancelButton: true,
-                    confirmButtonText: 'Create',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                        cancelButton: 'btn btn-secondary',
-                    },
-                }).then( (result) => {
-                    if (result.isConfirmed){
-                        vm.createProposal();
-                    }
-                });
+            defaultContent: "",
+          },
+          {
+            // Occupier name
+            mRender: function (data, type, full) {
+              return full.temporary_occupier_name;
             },
-            _get_basic_data: function(){
-                let data = {
-                    'category': '',
-                    'profile': '', // TODO on cleanup: remove/review (old comment) how to determine this?
-                    'district': '',
-                    'application': '3',  // TODO on cleanup: remove/review (old comment) Retrieve the id of the 'Temporary Use' type or handle it at the server side 
-                                         //      like if there is apiary_temporary_use attribute, it must be a temporary use application, or so.
-                    'sub_activity2': '',
-                    'region': '',
-                    'approval_level': '',
-                    'behalf_of': '',  // TODO on cleanup: remove/review (old comment) how to determine this?
-                    'activity': '',
-                    'sub_activity1': '',
-                    'application_type_str': 'temporary_use',
-                    'approval_id': this.approval_id,
+            defaultContent: "",
+          },
+          {
+            // Deed poll
+            mRender: function (data, type, full) {
+              return full.deed_poll_documents;
+            },
+            defaultContent: "",
+          },
+          {
+            // Action
+            mRender: function (data, type, full) {
+              if (
+                full.customer_status.toLowerCase() === "draft" &&
+                vm.user_can_temporary_use
+              ) {
+                if (vm.is_internal) {
+                  return (
+                    '<a href="/internal/proposal/' +
+                    full.proposal_id +
+                    '/">Edit</a>'
+                  );
+                } else if (vm.is_external) {
+                  return (
+                    '<a href="/external/proposal/' +
+                    full.proposal_id +
+                    '/">Edit</a>'
+                  );
                 }
-                return data
+              } else {
+                return "";
+              }
             },
-            createProposal:function () {
-
-                let vm = this;
-                vm.creatingProposal = true;
-                let data = vm._get_basic_data();
-
-                fetch('/api/proposal.json',{
-                    headers: { 'Content-Type': 'application/json' },
-                    method: 'POST',
-                    body: JSON.stringify(data),
-                }).then(async (response) => {
-                    if (!response.ok) {
-                            const data = await response.json();
-                            swal.fire({
-                                title: "Create Temporary Use Application - Error",
-                                text: JSON.stringify(data),
-                                icon: "error",
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
-                                },
-                            });
-                            return;
-                        }
-                    vm.proposal = await response.json();
-
-                    console.log('returned: ')
-                    console.log(vm.proposal)
-
-                    vm.$router.push({ name:"draft_proposal", params:{ proposal_id: vm.proposal.id }});
-                    vm.creatingProposal = false;
-                }).catch((error) => {
-                    console.log(error);
-                })
-            },
-            addEventListeners: function() {
-
-            },
-        },
-        created: function() {
-            this.loadTemporaryUses()
-        },
-        mounted: function() {
-            let vm = this;
-            this.$nextTick(() => {
-                vm.addEventListeners();
+            defaultContent: "",
+          },
+        ],
+      },
+    };
+  },
+  components: {
+    datatable,
+  },
+  computed: {},
+  methods: {
+    loadTemporaryUses: async function () {
+      this.$refs.temporary_use_table.vmDataTable.processing(true);
+      fetch("/api/approvals/" + this.approval_id + "/temporary_use/")
+        .then(async (response) => {
+          if (!response.ok) {
+            return response.json().then((err) => {
+              throw err;
             });
-        }
-    }
+          }
+          this.temporary_uses = await response.json();
+          this.constructTemporaryUseTable();
+          this.$refs.temporary_use_table.vmDataTable.processing(false);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    constructTemporaryUseTable: function () {
+      this.$refs.temporary_use_table.vmDataTable.clear().draw();
+
+      for (let i = 0; i < this.temporary_uses.length; i++) {
+        this.addTemporaryUseToTable(this.temporary_uses[i]);
+      }
+    },
+    addTemporaryUseToTable: function (temporary_use) {
+      this.$refs.temporary_use_table.vmDataTable.row.add(temporary_use).draw();
+    },
+    openNewTemporaryUse: function () {
+      let vm = this;
+
+      swal
+        .fire({
+          title: "Create Temporary Use Application",
+          text: "Are you sure you want to create temporary use application?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "Create",
+          customClass: {
+            confirmButton: "btn btn-primary",
+            cancelButton: "btn btn-secondary",
+          },
+        })
+        .then((result) => {
+          if (result.isConfirmed) {
+            vm.createProposal();
+          }
+        });
+    },
+    _get_basic_data: function () {
+      let data = {
+        category: "",
+        profile: "", // TODO on cleanup: remove/review (old comment) how to determine this?
+        district: "",
+        application: "3", // TODO on cleanup: remove/review (old comment) Retrieve the id of the 'Temporary Use' type or handle it at the server side
+        //      like if there is apiary_temporary_use attribute, it must be a temporary use application, or so.
+        sub_activity2: "",
+        region: "",
+        approval_level: "",
+        behalf_of: "", // TODO on cleanup: remove/review (old comment) how to determine this?
+        activity: "",
+        sub_activity1: "",
+        application_type_str: "temporary_use",
+        approval_id: this.approval_id,
+      };
+      return data;
+    },
+    createProposal: function () {
+      let vm = this;
+      vm.creatingProposal = true;
+      let data = vm._get_basic_data();
+
+      fetch("/api/proposal.json", {
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+        body: JSON.stringify(data),
+      })
+        .then(async (response) => {
+          if (!response.ok) {
+            const data = await response.json();
+            swal.fire({
+              title: "Create Temporary Use Application - Error",
+              text: JSON.stringify(data),
+              icon: "error",
+              customClass: {
+                confirmButton: "btn btn-primary",
+              },
+            });
+            return;
+          }
+          vm.proposal = await response.json();
+
+          console.log("returned: ");
+          console.log(vm.proposal);
+
+          vm.$router.push({
+            name: "draft_proposal",
+            params: { proposal_id: vm.proposal.id },
+          });
+          vm.creatingProposal = false;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    addEventListeners: function () {},
+  },
+  mounted: function () {
+    let vm = this;
+    this.$nextTick(() => {
+      vm.addEventListeners();
+      this.loadTemporaryUses();
+    });
+  },
+};
 </script>
 
-<style lang="css" scoped>
-
-</style>
+<style lang="css" scoped></style>
