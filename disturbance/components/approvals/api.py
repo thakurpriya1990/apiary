@@ -301,7 +301,7 @@ class ApprovalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     @basic_exception_handler
     def temporary_use(self, request, *args, **kwargs):
         instance = self.get_object()
-        qs = instance.proposalapiarytemporaryuse_set
+        qs = instance.proposalapiarytemporaryuse_set.select_related("proposal").prefetch_related("temporary_use_apiary_sites").all()
         qs = qs.exclude(proposal__processing_status=Proposal.PROCESSING_STATUS_DISCARDED)
         serializer = ProposalApiaryTemporaryUseSerializer(qs, many=True)
         return Response(serializer.data)
