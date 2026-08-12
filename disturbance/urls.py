@@ -322,8 +322,10 @@ if not are_migrations_running():
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-    import debug_toolbar
+    if "debug_toolbar" in settings.INSTALLED_APPS:
+        import debug_toolbar
 
-    urlpatterns = [
-        path("__debug__/", include(debug_toolbar.urls, namespace="djdt")),
-    ] + urlpatterns
+        # Add debug_toolbar URLs only when debug_toolbar is present in INSTALLED_APPS
+        urlpatterns = [
+            path("__debug__/", include(debug_toolbar.urls, namespace="djdt")),
+        ] + urlpatterns

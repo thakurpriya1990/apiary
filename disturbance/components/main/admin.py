@@ -1,17 +1,201 @@
+import requests
+import xml.etree.ElementTree as ET
+from django import forms
+from django.conf import settings
+from django.core.cache import cache
 from django.contrib import admin
-from django.forms import ModelForm
-
+from django.utils.html import format_html
 from disturbance.components.main.models import MapLayer, MapColumn, FileExtensionWhitelist
-from disturbance.settings import KB_SERVER_URL
+from django.utils.safestring import mark_safe
 
 
-class MyForm(ModelForm):
+def check_kb_server_status():
+    """
+    Fetch GetCapabilities and return a tuple: (status_code, layer_names_set)
+    status_code: 200 if server is reachable, None/error code if connection failed.
+    Caches the result to prevent frequent network requests.
+    """
+    cache_key_status = "kb_geoserver_status_info"
+    cached_info = cache.get(cache_key_status)
+    if cached_info:
+        return cached_info
+
+    try:
+        base_url = (getattr(settings, "KB_SERVER_URL", "") or "").rstrip("/")
+        url = f"{base_url}/geoserver/wms?request=GetCapabilities&service=WMS"
+        
+        auth = None
+        if getattr(settings, "KB_USER", None) and getattr(settings, "KB_PASSWORD", None):
+            auth = (settings.KB_USER, settings.KB_PASSWORD)
+
+        response = requests.get(url, auth=auth, timeout=10)
+        if response.status_code == 200:
+            root = ET.fromstring(response.content)
+            layer_names = set()
+            for elem in root.iter():
+                if elem.tag.endswith("Layer"):
+                    name_elem = elem.find("{*}Name")
+                    if name_elem is not None and name_elem.text:
+                        layer_names.add(name_elem.text.strip())
+
+            result = (200, layer_names)
+            cache.set(cache_key_status, result, 86400)  # Cache for 24 hours on success
+            return result
+        else:
+            result = (response.status_code, set())
+            cache.set(cache_key_status, result, 60)  # Cache for 1 minute on HTTP error
+            return result
+    except Exception:
+        result = (None, set())
+        cache.set(cache_key_status, result, 60)  # Cache for 1 minute on connection exception
+        return result
+
+
+def get_kb_layer_choices():
+    """
+    Return a list of (layer_name, layer_name) tuples for the form ChoiceField using cached server status.
+    """
+    choices = [("", "-- Select a Layer --")]
+    status_code, layer_names = check_kb_server_status()
+    if status_code == 200:
+        sorted_layers = sorted(list(layer_names))
+        for name in sorted_layers:
+            choices.append((name, name))
+    return choices
+
+
+# Pure Vanilla JS Searchable Widget (Explicit height control for smooth listbox expansion)
+class SearchableSelectWidget(forms.Select):
+    def render(self, name, value, attrs=None, renderer=None):
+        attrs = attrs or {}
+        attrs['style'] = 'width: 100%; box-sizing: border-box;'
+        select_html = super().render(name, value, attrs, renderer)
+
+        select_id = attrs.get('id', f'id_{name}')
+        
+        container_html = mark_safe(f"""
+        <div style="display: flex; flex-direction: column; gap: 6px; width: 600px; max-width: 100%; clear: both;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="text" id="{select_id}_search" placeholder="🔍 Type to filter layers..." 
+                       style="width: 300px; max-width: 100%; padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 13px;">
+                <span id="{select_id}_count" style="font-size: 12px; font-weight: bold;"></span>
+            </div>
+            {select_html}
+        </div>
+        <script type="text/javascript">
+        (function() {{
+            function setupFilter() {{
+                var searchInput = document.getElementById('{select_id}_search');
+                var selectElem = document.getElementById('{select_id}');
+                var countElem = document.getElementById('{select_id}_count');
+                if (!searchInput || !selectElem) return;
+
+                searchInput.addEventListener('input', function() {{
+                    var filter = this.value.toLowerCase().trim();
+                    var options = selectElem.options;
+                    var matchCount = 0;
+                    var firstMatch = null;
+
+                    for (var i = 0; i < options.length; i++) {{
+                        var text = options[i].text.toLowerCase();
+                        if (filter === '' || text.indexOf(filter) > -1) {{
+                            options[i].style.display = '';
+                            matchCount++;
+                            if (!firstMatch && filter !== '' && options[i].value !== '') {{
+                                firstMatch = options[i];
+                            }}
+                        }} else {{
+                            options[i].style.display = 'none';
+                        }}
+                    }}
+
+                    if (filter !== '') {{
+                        // Expand listbox and set explicit height (140px) so options are clearly visible
+                        selectElem.size = Math.min(Math.max(matchCount, 2), 6);
+                        selectElem.style.height = '140px';
+                        if (firstMatch) {{
+                            firstMatch.selected = true;
+                        }}
+                    }} else {{
+                        // Collapse back to standard height when input is cleared
+                        selectElem.size = 1;
+                        selectElem.style.height = 'auto';
+                    }}
+
+                    // Update real-time match count badge
+                    if (countElem) {{
+                        if (filter === '') {{
+                            countElem.textContent = '';
+                        }} else if (matchCount > 0) {{
+                            countElem.textContent = '✓ ' + matchCount + ' layer(s) found';
+                            countElem.style.color = '#28a745';
+                        }} else {{
+                            countElem.textContent = '✕ No layer found';
+                            countElem.style.color = '#dc3545';
+                        }}
+                    }}
+                }});
+
+                // Revert to normal single-row dropdown when an option is selected or clicked
+                selectElem.addEventListener('change', function() {{
+                    selectElem.size = 1;
+                    selectElem.style.height = 'auto';
+                }});
+                selectElem.addEventListener('click', function() {{
+                    if (selectElem.size > 1) {{
+                        selectElem.size = 1;
+                        selectElem.style.height = 'auto';
+                    }}
+                }});
+            }}
+
+            if (document.readyState === 'loading') {{
+                document.addEventListener('DOMContentLoaded', setupFilter);
+            }} else {{
+                setupFilter();
+            }}
+        }})();
+        </script>
+        """)
+        return container_html
+
+class MyForm(forms.ModelForm):
+    layer_name = forms.ChoiceField(
+        choices=[],
+        required=False,
+        widget=SearchableSelectWidget(),  # Use Searchable Select Widget
+        help_text="Select a layer from KB GeoServer GetCapabilities"
+    )
+
+    class Meta:
+        model = MapLayer
+        fields = "__all__"
+
     def __init__(self, *args, **kwargs):
-        super(MyForm, self).__init__(*args, **kwargs)
-        self.fields['layer_name'].help_text = "Enter the layer name defined in geoserver (<a href='{}' target='_blank'>GeoServer</a>)<br /><div>Example:</div><span style='padding:1em;'>public:dbca_legislated_lands_and_waters</span>".format(KB_SERVER_URL)
-        self.fields['display_all_columns'].help_text = "When checked, display all the attributes(columns) in the table regardless of the configurations below"
-        self.fields['option_for_internal'].help_text = "When checked, a checkbox for this layer is displayed for the internal user"
-        self.fields['option_for_external'].help_text = "When checked, a checkbox for this layer is displayed for the external user"
+        super().__init__(*args, **kwargs)
+        layer_choices = get_kb_layer_choices()
+        
+        # If the current instance's layer_name is not in choices, add it so data is not lost
+        current_layer = self.instance.layer_name if self.instance and self.instance.layer_name else None
+        existing_keys = [c[0] for c in layer_choices]
+        if current_layer and current_layer not in existing_keys:
+            layer_choices.append((current_layer, f"{current_layer} (Current / Unlisted)"))
+
+        self.fields["layer_name"].choices = layer_choices
+
+        # Restore original help texts
+        if "display_all_columns" in self.fields:
+            self.fields["display_all_columns"].help_text = (
+                "When checked, display all the attributes(columns) in the table regardless of the configurations below"
+            )
+        if "option_for_internal" in self.fields:
+            self.fields["option_for_internal"].help_text = (
+                "When checked, a checkbox for this layer is displayed for the internal user"
+            )
+        if "option_for_external" in self.fields:
+            self.fields["option_for_external"].help_text = (
+                "When checked, a checkbox for this layer is displayed for the external user"
+            )
 
 
 class MapColumnInline(admin.TabularInline):
@@ -24,15 +208,64 @@ class MapLayerAdmin(admin.ModelAdmin):
     list_display = [
         'display_name',
         'layer_name',
+        'server_status',
         'option_for_internal',
         'option_for_external',
         'display_all_columns',
         'column_names',
     ]
-    list_filter = ['option_for_internal', 'option_for_external', 'display_all_columns',]
+    list_filter = ['option_for_internal', 'option_for_external', 'display_all_columns']
+    search_fields = ['display_name', 'layer_name', 'columns__name']
     form = MyForm
-    inlines = [MapColumnInline,]
+    inlines = [MapColumnInline]
 
+    actions = ['refresh_server_status']
+
+    @admin.action(description="Force refresh KB GeoServer status cache")
+    def refresh_server_status(self, request, queryset):
+        """
+        Action to clear the cached GetCapabilities and force re-fetching from KB GeoServer.
+        """
+        cache.delete("kb_geoserver_status_info")
+        check_kb_server_status()  # Immediately re-fetch from KB GeoServer
+        self.message_user(request, "KB GeoServer status cache refreshed successfully.")
+
+    kb_url = getattr(settings, 'KB_SERVER_URL', '').rstrip('/')
+    @admin.display(
+        description=mark_safe(
+            f"<span style='display: block !important; margin: 0 !important; padding: 0 !important; line-height: 1.0 !important; text-transform: none !important; text-align: left !important;'>"
+            f"<span style='display: block !important; margin: 0 !important; padding: 0 !important; line-height: 1.0 !important; text-transform: uppercase;'>KB Server Status</span>"
+            f"<span style='display: block !important; margin: 2px 0 0 0 !important; padding: 0 !important; line-height: 1.0 !important; font-weight: normal; font-size: 0.85em; opacity: 0.8;'>({kb_url})</span>"
+            f"</span>"
+        )
+    )
+    def server_status(self, obj):
+        if not obj.layer_name:
+            return format_html('<span style="color: gray;">⚪ Empty</span>')
+
+        base_url = (getattr(settings, "KB_SERVER_URL", "") or "").rstrip("/")
+        status_code, layer_names = check_kb_server_status()
+
+        # Connection failed or server error
+        if status_code != 200:
+            return format_html(
+                '<span style="color: orange; font-weight: bold;" title="Failed connecting to {} (Status: {})">🟡 Server Error ({})</span>',
+                base_url,
+                status_code if status_code else "Offline",
+                status_code if status_code else "Offline"
+            )
+
+        # Server connected, check if layer exists
+        if obj.layer_name in layer_names:
+            return format_html(
+                '<span style="color: green; font-weight: bold;" title="Connected to {}">🟢 Found</span>',
+                base_url
+            )
+        else:
+            return format_html(
+                '<span style="color: red; font-weight: bold;" title="Connected to {} but layer is missing">🔴 Not Found</span>',
+                base_url
+            )
 
 @admin.register(FileExtensionWhitelist)
 class FileExtensionWhitelistAdmin(admin.ModelAdmin):
@@ -44,4 +277,4 @@ class FileExtensionWhitelistAdmin(admin.ModelAdmin):
         "name",
         "model",
     )
-    form = ModelForm
+    form = forms.ModelForm
