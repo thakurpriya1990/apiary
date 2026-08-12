@@ -1,36 +1,26 @@
 import requests
 import xml.etree.ElementTree as ET
 from django import forms
-from django.core.cache import cache
-from django.forms import ModelForm
-from django.contrib import admin
 from django.conf import settings
+from django.core.cache import cache
+from django.contrib import admin
+from django.utils.html import format_html
 from disturbance.components.main.models import MapLayer, MapColumn, FileExtensionWhitelist
-from disturbance.settings import KB_SERVER_URL
 
 
-# class MyForm(ModelForm):
-#     def __init__(self, *args, **kwargs):
-#         super(MyForm, self).__init__(*args, **kwargs)
-#         self.fields['layer_name'].help_text = "Enter the layer name defined in geoserver (<a href='{}' target='_blank'>GeoServer</a>)<br /><div>Example:</div><span style='padding:1em;'>public:dbca_legislated_lands_and_waters</span>".format(KB_SERVER_URL)
-#         self.fields['display_all_columns'].help_text = "When checked, display all the attributes(columns) in the table regardless of the configurations below"
-#         self.fields['option_for_internal'].help_text = "When checked, a checkbox for this layer is displayed for the internal user"
-#         self.fields['option_for_external'].help_text = "When checked, a checkbox for this layer is displayed for the external user"
-
-def get_kb_layer_choices():
+def check_kb_server_status():
     """
-    Fetch GetCapabilities from KB GeoServer and return a list of (layer_name, layer_name) tuples.
-    Caches the result to prevent slow Django admin response.
+    Fetch GetCapabilities and return a tuple: (status_code, layer_names_set)
+    status_code: 200 if server is reachable, None/error code if connection failed.
+    Caches the result to prevent frequent network requests.
     """
-    cache_key = "kb_geoserver_getcapabilities_layers"
-    cached_choices = cache.get(cache_key)
-    if cached_choices:
-        return cached_choices
+    cache_key_status = "kb_geoserver_status_info"
+    cached_info = cache.get(cache_key_status)
+    if cached_info:
+        return cached_info
 
-    choices = [("", "-- Select a Layer --")]
     try:
-        # Construct GetCapabilities URL
-        base_url = (settings.KB_SERVER_URL or "").rstrip("/")
+        base_url = (getattr(settings, "KB_SERVER_URL", "") or "").rstrip("/")
         url = f"{base_url}/geoserver/wms?request=GetCapabilities&service=WMS"
         
         auth = None
@@ -40,7 +30,6 @@ def get_kb_layer_choices():
         response = requests.get(url, auth=auth, timeout=10)
         if response.status_code == 200:
             root = ET.fromstring(response.content)
-            # Find all <Name> tags inside <Layer> elements (ignoring XML namespaces)
             layer_names = set()
             for elem in root.iter():
                 if elem.tag.endswith("Layer"):
@@ -48,17 +37,29 @@ def get_kb_layer_choices():
                     if name_elem is not None and name_elem.text:
                         layer_names.add(name_elem.text.strip())
 
-            # Format choices for Django ChoiceField
-            sorted_layers = sorted(list(layer_names))
-            for name in sorted_layers:
-                choices.append((name, name))
+            result = (200, layer_names)
+            cache.set(cache_key_status, result, 86400)  # Cache for 24 hours on success
+            return result
+        else:
+            result = (response.status_code, set())
+            cache.set(cache_key_status, result, 60)  # Cache for 1 minute on HTTP error
+            return result
+    except Exception:
+        result = (None, set())
+        cache.set(cache_key_status, result, 60)  # Cache for 1 minute on connection exception
+        return result
 
-            # Cache the choices for 24 hours (86400 seconds)
-            cache.set(cache_key, choices, 86400)
-    except Exception as e:
-        # Fallback in case of network or XML parsing errors
-        pass
 
+def get_kb_layer_choices():
+    """
+    Return a list of (layer_name, layer_name) tuples for the form ChoiceField using cached server status.
+    """
+    choices = [("", "-- Select a Layer --")]
+    status_code, layer_names = check_kb_server_status()
+    if status_code == 200:
+        sorted_layers = sorted(list(layer_names))
+        for name in sorted_layers:
+            choices.append((name, name))
     return choices
 
 
@@ -75,7 +76,6 @@ class MyForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Dynamically set choices from cached GetCapabilities
         layer_choices = get_kb_layer_choices()
         
         # If the current instance's layer_name is not in choices, add it so data is not lost
@@ -86,6 +86,7 @@ class MyForm(forms.ModelForm):
 
         self.fields["layer_name"].choices = layer_choices
 
+        # Restore original help texts
         if "display_all_columns" in self.fields:
             self.fields["display_all_columns"].help_text = (
                 "When checked, display all the attributes(columns) in the table regardless of the configurations below"
@@ -110,16 +111,42 @@ class MapLayerAdmin(admin.ModelAdmin):
     list_display = [
         'display_name',
         'layer_name',
+        'server_status',
         'option_for_internal',
         'option_for_external',
         'display_all_columns',
-        'cache_expiry',
         'column_names',
     ]
-    list_filter = ['option_for_internal', 'option_for_external', 'display_all_columns',]
-    search_fields = ['display_name', 'layer_name', 'columns__name',]
+    list_filter = ['option_for_internal', 'option_for_external', 'display_all_columns']
+    search_fields = ['display_name', 'layer_name', 'columns__name']
     form = MyForm
-    inlines = [MapColumnInline,]
+    inlines = [MapColumnInline]
+
+    @admin.display(description="KB Server Status")
+    def server_status(self, obj):
+        """
+        Display status of the layer on the KB GeoServer:
+        - Green (Found): Server reachable and layer exists.
+        - Red (Not Found): Server reachable but layer does not exist.
+        - Yellow (Server Offline): Connection to KB server failed.
+        """
+        if not obj.layer_name:
+            return format_html('<span style="color: gray;">⚪ Empty</span>')
+
+        status_code, layer_names = check_kb_server_status()
+
+        # Connection failed or server error
+        if status_code != 200:
+            return format_html(
+                '<span style="color: orange; font-weight: bold;" title="Could not connect to KB Server">🟡 Server Error ({})</span>',
+                status_code if status_code else "Offline"
+            )
+
+        # Server connected, check if layer exists
+        if obj.layer_name in layer_names:
+            return format_html('<span style="color: green; font-weight: bold;">🟢 Found</span>')
+        else:
+            return format_html('<span style="color: red; font-weight: bold;">🔴 Not Found</span>')
 
 
 @admin.register(FileExtensionWhitelist)
@@ -132,4 +159,4 @@ class FileExtensionWhitelistAdmin(admin.ModelAdmin):
         "name",
         "model",
     )
-    form = ModelForm
+    form = forms.ModelForm
