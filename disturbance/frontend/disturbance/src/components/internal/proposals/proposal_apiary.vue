@@ -1,10 +1,10 @@
 <template lang="html">
-  <div v-if="proposal" id="internalProposal">
+  <div v-if="proposal" class="container" id="internalProposal">
     <div class="row">
       <h3>Application: {{ proposal.lodgement_number }}</h3>
-      <h4>Application Type: {{ proposal.activity }}</h4>
+      <h4 class="mb-3">Application Type: {{ proposal.activity }}</h4>test
       <div v-if="!proposal.apiary_group_application_type">
-        <h4>Approval Level: {{ proposal.approval_level }}</h4>
+        <h4 class="mb-3">Approval Level: {{ proposal.approval_level }}</h4>
       </div>
       <div class="col-md-3">
         <CommsLogs
@@ -421,7 +421,6 @@
           </div>
         </div>
       </div>
-      <!-- <div class="col-md-1"></div> -->
       <div class="col-md-9">
         <template
           v-if="proposal.processing_status == 'With Approver' || isFinalised"
