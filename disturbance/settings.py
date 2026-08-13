@@ -288,7 +288,24 @@ LEDGER_UI_CARDS_MANAGEMENT = env('LEDGER_UI_CARDS_MANAGEMENT', True)
 
 MIDDLEWARE = MIDDLEWARE_CLASSES
 
+CONTAINER_IMAGE_TAG = env("CONTAINER_IMAGE_TAG", "CONTAINER_IMAGE_TAG ENV Not Set")
+
 RUNNING_DEVSERVER = len(sys.argv) > 1 and sys.argv[1] == "runserver"
+
+# Sentry settings
+SENTRY_DSN = env("SENTRY_DSN", default=None)
+SENTRY_SAMPLE_RATE = env("SENTRY_SAMPLE_RATE", default=1.0)  # Error sampling rate
+SENTRY_TRANSACTION_SAMPLE_RATE = env("SENTRY_TRANSACTION_SAMPLE_RATE", default=0.0)  # Transaction sampling
+if not RUNNING_DEVSERVER and SENTRY_DSN and EMAIL_INSTANCE:
+    import sentry_sdk
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        sample_rate=SENTRY_SAMPLE_RATE,
+        traces_sample_rate=SENTRY_TRANSACTION_SAMPLE_RATE,
+        environment=EMAIL_INSTANCE.lower(),
+        release=CONTAINER_IMAGE_TAG,
+    )
 
 # Make sure this returns true when in local development
 # so you can use the vite dev server with hot module reloading

@@ -1,4 +1,4 @@
-from django.conf import settings
+from django.conf import settings, urls
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path, re_path
@@ -23,6 +23,12 @@ from disturbance.components.users import api as users_api
 # API patterns
 from disturbance.management.default_data_manager import DefaultDataManager
 from disturbance.utils import are_migrations_running
+
+
+# To test sentry
+def trigger_error(request):
+    division_by_zero = 1 / 0  # noqa
+
 
 router = routers.DefaultRouter()
 router.include_root_view = settings.SHOW_API_ROOT
@@ -314,6 +320,7 @@ urlpatterns = [
     ),
     re_path(r"kb-proxy/(?P<path>.*)", views.mapProxyView),
     re_path(r"^email-exports/$", views.EmailExportsView.as_view(), name="email-exports"),
+    urls.path("sentry-debug/", trigger_error),
 ] + ledger_patterns
 
 if not are_migrations_running():
