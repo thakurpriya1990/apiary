@@ -1,8 +1,8 @@
 <template lang="html">
   <div v-if="proposal" class="container" id="internalProposal">
     <div class="row">
-      <h3>Application: {{ proposal.lodgement_number }}</h3>
-      <h4>Application Type: {{ proposal.application_type }}</h4>
+      <h3 class="mb-3">Application: {{ proposal.lodgement_number }}</h3>
+      <h4 class="mb-3">Application Type: {{ proposal.application_type }}</h4>
       <div class="col-md-3">
         <CommsLogs
           :comms_url="comms_url"
@@ -184,272 +184,248 @@
         </div>
       </div>
 
-      <div class="col-md-1"></div>
-
-      <div class="col-md-8">
-        <div class="row">
-          <template
-            v-if="proposal.processing_status == 'With Approver' || isFinalised"
+      <div class="col-md-9">
+        <template
+          v-if="proposal.processing_status == 'With Approver' || isFinalised"
+        >
+          <div v-if="siteTransferTemporaryUse">
+            <ApprovalScreenSiteTransferTemporaryUse
+              :proposal="proposal"
+              @refreshFromResponse="refreshFromResponse"
+            />
+          </div>
+          <div v-else>
+            <ApprovalScreen
+              :proposal="proposal"
+              @refreshFromResponse="refreshFromResponse"
+            />
+          </div>
+        </template>
+        <template
+          v-if="
+            proposal.processing_status == 'With Assessor (Requirements)' ||
+            ((proposal.processing_status == 'With Approver' || isFinalised) &&
+              showingRequirements)
+          "
+        >
+          <Requirements :proposal="proposal" />
+        </template>
+        <template
+          v-if="canSeeSubmission || (!canSeeSubmission && showingProposal)"
+        >
+          <FormSection
+            :formCollapse="false"
+            label="Applicant"
+            Index="applicant"
           >
-            <div v-if="siteTransferTemporaryUse">
-              <ApprovalScreenSiteTransferTemporaryUse
-                :proposal="proposal"
-                @refreshFromResponse="refreshFromResponse"
-              />
-            </div>
-            <div v-else>
-              <ApprovalScreen
-                :proposal="proposal"
-                @refreshFromResponse="refreshFromResponse"
-              />
-            </div>
-          </template>
-          <template
-            v-if="
-              proposal.processing_status == 'With Assessor (Requirements)' ||
-              ((proposal.processing_status == 'With Approver' || isFinalised) &&
-                showingRequirements)
-            "
-          >
-            <Requirements :proposal="proposal" />
-          </template>
-          <template
-            v-if="canSeeSubmission || (!canSeeSubmission && showingProposal)"
-          >
-            <div class="col-md-12">
-              <div class="row">
-                <FormSection
-                  :formCollapse="false"
-                  label="Applicant"
-                  Index="applicant"
-                >
-                  <template v-if="organisationApplicant">
-                    <form class="form-horizontal">
-                      <div class="mb-3">
-                        <label for="" class="col-sm-3 col-form-label"
-                          >Name</label
-                        >
-                        <div class="col-sm-6">
-                          <input
-                            disabled
-                            type="text"
-                            class="form-control"
-                            name="applicantName"
-                            placeholder=""
-                            v-model="proposal.applicant.name"
-                          />
-                        </div>
-                      </div>
-                      <div class="mb-3">
-                        <label for="" class="col-sm-3 col-form-label"
-                          >ABN/ACN</label
-                        >
-                        <div class="col-sm-6">
-                          <input
-                            disabled
-                            type="text"
-                            class="form-control"
-                            name="applicantABN"
-                            placeholder=""
-                            v-model="proposal.applicant.abn"
-                          />
-                        </div>
-                      </div>
-                    </form>
-                  </template>
-                  <template v-else>
-                    <form class="form-horizontal">
-                      <div class="mb-3">
-                        <label for="" class="col-sm-3 col-form-label"
-                          >Given Name(s)</label
-                        >
-                        <div class="col-sm-6">
-                          <input
-                            disabled
-                            type="text"
-                            class="form-control"
-                            name="applicantFirstName"
-                            placeholder=""
-                            v-model="proposal.applicant_first_name"
-                          />
-                        </div>
-                      </div>
-                      <div class="mb-3">
-                        <label for="" class="col-sm-3 col-form-label"
-                          >Last Name</label
-                        >
-                        <div class="col-sm-6">
-                          <input
-                            disabled
-                            type="text"
-                            class="form-control"
-                            name="applicantLastName"
-                            placeholder=""
-                            v-model="proposal.applicant_last_name"
-                          />
-                        </div>
-                      </div>
-                    </form>
-                  </template>
-                </FormSection>
-
-                <FormSection
-                  :formCollapse="false"
-                  label="Address Details"
-                  Index="address_details"
-                >
-                  <form class="form-horizontal">
-                    <div class="mb-3">
-                      <label for="" class="col-sm-3 col-form-label"
-                        >Street</label
-                      >
-                      <div class="col-sm-6">
-                        <input
-                          disabled
-                          type="text"
-                          class="form-control"
-                          name="street"
-                          placeholder=""
-                          v-model="applicantAddress.line1"
-                        />
-                      </div>
-                    </div>
-                    <div class="mb-3">
-                      <label for="" class="col-sm-3 col-form-label"
-                        >Town/Suburb</label
-                      >
-                      <div class="col-sm-6">
-                        <input
-                          disabled
-                          type="text"
-                          class="form-control"
-                          name="surburb"
-                          placeholder=""
-                          v-model="applicantAddress.locality"
-                        />
-                      </div>
-                    </div>
-                    <div class="mb-3">
-                      <label for="" class="col-sm-3 col-form-label"
-                        >State</label
-                      >
-                      <div class="col-sm-2">
-                        <input
-                          disabled
-                          type="text"
-                          class="form-control"
-                          name="country"
-                          placeholder=""
-                          v-model="applicantAddress.state"
-                        />
-                      </div>
-                      <label for="" class="col-sm-2 col-form-label"
-                        >Postcode</label
-                      >
-                      <div class="col-sm-2">
-                        <input
-                          disabled
-                          type="text"
-                          class="form-control"
-                          name="postcode"
-                          placeholder=""
-                          v-model="applicantAddress.postcode"
-                        />
-                      </div>
-                    </div>
-                    <div class="mb-3">
-                      <label for="" class="col-sm-3 col-form-label"
-                        >Country</label
-                      >
-                      <div class="col-sm-4">
-                        <input
-                          disabled
-                          type="text"
-                          class="form-control"
-                          name="country"
-                          v-model="applicantAddress.country"
-                        />
-                      </div>
-                    </div>
-                  </form>
-                </FormSection>
-
-                <FormSection
-                  :formCollapse="false"
-                  label="Contact Details"
-                  Index="contact_details"
-                >
-                  <div v-if="organisationApplicant">
-                    <table
-                      ref="contacts_datatable"
-                      :id="contacts_table_id"
-                      class="hover table table-striped table-bordered dt-responsive"
-                      cellspacing="0"
-                      width="100%"
-                    ></table>
+            <template v-if="organisationApplicant">
+              <form class="form-horizontal">
+                <div class="mb-3">
+                  <label for="" class="col-sm-3 col-form-label">Name</label>
+                  <div class="col-sm-6">
+                    <input
+                      disabled
+                      type="text"
+                      class="form-control"
+                      name="applicantName"
+                      placeholder=""
+                      v-model="proposal.applicant.name"
+                    />
                   </div>
-                  <div v-else>
-                    <form class="form-horizontal">
-                      <div class="mb-3">
-                        <label for="" class="col-sm-3 col-form-label"
-                          >Phone (work)</label
-                        >
-                        <div class="col-md-8">
-                          <input
-                            disabled
-                            type="text"
-                            class="form-control"
-                            name="applicantWorkPhone"
-                            placeholder=""
-                            v-model="proposal.applicant_phone_number"
-                          />
-                        </div>
-                      </div>
-                      <div class="mb-3">
-                        <label for="" class="col-sm-3 col-form-label"
-                          >Mobile</label
-                        >
-                        <div class="col-md-8">
-                          <input
-                            disabled
-                            type="text"
-                            class="form-control"
-                            name="applicantMobileNumber"
-                            placeholder=""
-                            v-model="proposal.applicant_mobile_number"
-                          />
-                        </div>
-                      </div>
-                      <div class="mb-3">
-                        <label for="" class="col-sm-3 col-form-label"
-                          >Email</label
-                        >
-                        <div class="col-md-8">
-                          <input
-                            disabled
-                            type="text"
-                            class="form-control"
-                            name="applicantEmail"
-                            placeholder=""
-                            v-model="proposal.applicant_email"
-                          />
-                        </div>
-                      </div>
-                    </form>
+                </div>
+                <div class="mb-3">
+                  <label for="" class="col-sm-3 col-form-label">ABN/ACN</label>
+                  <div class="col-sm-6">
+                    <input
+                      disabled
+                      type="text"
+                      class="form-control"
+                      name="applicantABN"
+                      placeholder=""
+                      v-model="proposal.applicant.abn"
+                    />
                   </div>
-                </FormSection>
+                </div>
+              </form>
+            </template>
+            <template v-else>
+              <form class="form-horizontal">
+                <div class="mb-3">
+                  <label for="" class="col-sm-3 col-form-label"
+                    >Given Name(s)</label
+                  >
+                  <div class="col-sm-6">
+                    <input
+                      disabled
+                      type="text"
+                      class="form-control"
+                      name="applicantFirstName"
+                      placeholder=""
+                      v-model="proposal.applicant_first_name"
+                    />
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label for="" class="col-sm-3 col-form-label"
+                    >Last Name</label
+                  >
+                  <div class="col-sm-6">
+                    <input
+                      disabled
+                      type="text"
+                      class="form-control"
+                      name="applicantLastName"
+                      placeholder=""
+                      v-model="proposal.applicant_last_name"
+                    />
+                  </div>
+                </div>
+              </form>
+            </template>
+          </FormSection>
 
-                <div v-if="proposal">
-                  <SectionsProposalTemporaryUse
-                    :proposal="proposal"
-                    :is_internal="true"
-                    :is_external="false"
+          <FormSection
+            :formCollapse="false"
+            label="Address Details"
+            Index="address_details"
+          >
+            <form class="form-horizontal">
+              <div class="mb-3">
+                <label for="" class="col-sm-3 col-form-label">Street</label>
+                <div class="col-sm-6">
+                  <input
+                    disabled
+                    type="text"
+                    class="form-control"
+                    name="street"
+                    placeholder=""
+                    v-model="applicantAddress.line1"
                   />
                 </div>
               </div>
+              <div class="mb-3">
+                <label for="" class="col-sm-3 col-form-label"
+                  >Town/Suburb</label
+                >
+                <div class="col-sm-6">
+                  <input
+                    disabled
+                    type="text"
+                    class="form-control"
+                    name="surburb"
+                    placeholder=""
+                    v-model="applicantAddress.locality"
+                  />
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="" class="col-sm-3 col-form-label">State</label>
+                <div class="col-sm-2">
+                  <input
+                    disabled
+                    type="text"
+                    class="form-control"
+                    name="country"
+                    placeholder=""
+                    v-model="applicantAddress.state"
+                  />
+                </div>
+                <label for="" class="col-sm-2 col-form-label">Postcode</label>
+                <div class="col-sm-2">
+                  <input
+                    disabled
+                    type="text"
+                    class="form-control"
+                    name="postcode"
+                    placeholder=""
+                    v-model="applicantAddress.postcode"
+                  />
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="" class="col-sm-3 col-form-label">Country</label>
+                <div class="col-sm-4">
+                  <input
+                    disabled
+                    type="text"
+                    class="form-control"
+                    name="country"
+                    v-model="applicantAddress.country"
+                  />
+                </div>
+              </div>
+            </form>
+          </FormSection>
+
+          <FormSection
+            :formCollapse="false"
+            label="Contact Details"
+            Index="contact_details"
+          >
+            <div v-if="organisationApplicant">
+              <table
+                ref="contacts_datatable"
+                :id="contacts_table_id"
+                class="mt-2 hover table table-striped table-bordered dt-responsive"
+                cellspacing="0"
+                width="100%"
+              ></table>
             </div>
-          </template>
-        </div>
+            <div v-else>
+              <form class="form-horizontal">
+                <div class="mb-3">
+                  <label for="" class="col-sm-3 col-form-label"
+                    >Phone (work)</label
+                  >
+                  <div class="col-md-8">
+                    <input
+                      disabled
+                      type="text"
+                      class="form-control"
+                      name="applicantWorkPhone"
+                      placeholder=""
+                      v-model="proposal.applicant_phone_number"
+                    />
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label for="" class="col-sm-3 col-form-label">Mobile</label>
+                  <div class="col-md-8">
+                    <input
+                      disabled
+                      type="text"
+                      class="form-control"
+                      name="applicantMobileNumber"
+                      placeholder=""
+                      v-model="proposal.applicant_mobile_number"
+                    />
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label for="" class="col-sm-3 col-form-label">Email</label>
+                  <div class="col-md-8">
+                    <input
+                      disabled
+                      type="text"
+                      class="form-control"
+                      name="applicantEmail"
+                      placeholder=""
+                      v-model="proposal.applicant_email"
+                    />
+                  </div>
+                </div>
+              </form>
+            </div>
+          </FormSection>
+
+          <div v-if="proposal">
+            <SectionsProposalTemporaryUse
+              :proposal="proposal"
+              :is_internal="true"
+              :is_external="false"
+            />
+          </div>
+        </template>
       </div>
     </div>
     <ProposedDecline
