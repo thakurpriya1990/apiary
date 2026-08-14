@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import JSONField, Q
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from ledger_api_client.utils import create_organisation, get_organisation, get_search_organisation
+from ledger_api_client.utils import create_organisation, get_search_organisation
 from rest_framework import serializers, status
 from six import python_2_unicode_compatible
 
@@ -85,7 +85,9 @@ class Organisation(models.Model):
             return self._cached_organisation_data
 
         try:
-            data = get_organisation(self.organisation_id).get("data")
+            from disturbance.helpers import get_cached_ledger_organisation
+
+            data = get_cached_ledger_organisation(self.organisation_id)
             if not data:
                 logger.warning(
                     "Ledger API returned empty data for organisation_id=%s. The organisation may not exist in the ledger database.",

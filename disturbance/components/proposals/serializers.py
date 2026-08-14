@@ -31,6 +31,7 @@ from disturbance.components.proposals.serializers_base import (
     ProposalDeclinedDetailsSerializer,
     ProposalReferralSerializer,
 )
+from disturbance.helpers import is_internal
 
 logger = logging.getLogger(__name__)
 
@@ -296,7 +297,7 @@ class ProposalSerializer(BaseProposalSerializer):
 
     def get_apiary_group_application_type(self, obj):
         return obj.apiary_group_application_type
-    
+
     def get_is_internal_user(self, obj):
         try:
             request = self.context.get('request')
@@ -407,7 +408,7 @@ class InternalProposalSerializer(BaseProposalSerializer):
     reversion_history = serializers.SerializerMethodField()
     # region_name=serializers.CharField(source='region.name', read_only=True)
     # district_name=serializers.CharField(source='district.name', read_only=True)
-    
+
     class Meta:
         model = Proposal
         fields = (
@@ -580,7 +581,7 @@ class ReferralSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def __init__(self,*args,**kwargs):
-        super(ReferralSerializer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['proposal'] = ReferralProposalSerializer(context={'request':self.context['request']})
 
 class ProposalUserActionSerializer(serializers.ModelSerializer):
@@ -656,7 +657,7 @@ class DTReferralSerializer(serializers.ModelSerializer):
 
 
 class ProposalRequirementSerializer(serializers.ModelSerializer):
-    due_date = serializers.DateField(format='%Y-%m-%d', 
+    due_date = serializers.DateField(format='%Y-%m-%d',
         input_formats=['%d/%m/%Y', '%Y-%m-%d'], required=False, allow_null=True)
     apiary_renewal = serializers.SerializerMethodField()
     class Meta:
@@ -674,10 +675,10 @@ class ProposalRequirementSerializer(serializers.ModelSerializer):
                 'recurrence_pattern',
                 'requirement',
                 'is_deleted',
-                'copied_from', 
-                'apiary_approval', 
-                'sitetransfer_approval', 
-                'require_due_date', 
+                'copied_from',
+                'apiary_approval',
+                'sitetransfer_approval',
+                'require_due_date',
                 'copied_for_renewal',
                 'apiary_renewal',
                 )
@@ -815,7 +816,7 @@ class ProposalTypeSectionSerializer(serializers.ModelSerializer):
         model = ProposalTypeSection
         fields = '__all__'
 
-#Schema screen serializers 
+#Schema screen serializers
 class SchemaSectionSerializer(serializers.ModelSerializer):
     '''
     Serializer for Schema builder using Purpose sections.
@@ -874,7 +875,7 @@ class SchemaMasterlistSerializer(serializers.ModelSerializer):
     #             opt_id = option_serializer.data['id']
     #             o['value'] = opt_id
     #         obj.set_property_cache_options(option_labels)
-            
+
     #     except Exception:
     #         options = None
     #         option_list = obj.get_options()
@@ -907,7 +908,7 @@ class SchemaMasterlistSerializer(serializers.ModelSerializer):
                     o['value'] = opt_id
                 option_labels.append(o)
             obj.set_property_cache_options(option_labels)
-            
+
         except Exception:
             options = None
             option_list = obj.get_options()
@@ -1009,7 +1010,7 @@ class SelectSchemaMasterlistSerializer(serializers.ModelSerializer):
         #         opt_id = option_serializer.data['id']
         #         o['value'] = opt_id
         #     obj.set_property_cache_options(option_labels)
-            
+
         # except Exception:
         #     options = None
         #     option_list = obj.get_options()
@@ -1025,7 +1026,7 @@ class SelectSchemaMasterlistSerializer(serializers.ModelSerializer):
 
         # return options
 
-    
+
 
 
 class DTSchemaMasterlistSerializer(SchemaMasterlistSerializer):
