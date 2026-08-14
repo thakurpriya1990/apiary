@@ -925,12 +925,27 @@ export default {
       let vm = this;
 
       let searchLatLng = document.getElementById(this.search_input_id);
+
+      if (!searchLatLng) {
+        console.log(
+          `searchLatLng element not found: ${this.search_input_id}. Event listener not attached.`,
+        );
+        return;
+      }
+
       if (searchLatLng) {
-        searchLatLng.addEventListener("input", function (ev) {
-          vm.search(ev.target.value);
-        });
-      } else {
-        console.error("searchLatLng is null");
+        console.log(
+          `searchLatLng element found: ${this.search_input_id}. Attaching event listener.`,
+        );
+
+        if (!searchLatLng.dataset.hasSearchListener) {
+          searchLatLng.addEventListener("input", function (ev) {
+            vm.search(ev.target.value);
+          });
+
+          // Lock it so this block never triggers again for this element
+          searchLatLng.dataset.hasSearchListener = "true";
+        }
       }
     },
     displayAllFeatures: function () {
