@@ -6,7 +6,7 @@ from datetime import datetime
 import pytz
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Q, Value
+from django.db.models import Prefetch, Q, Value
 from django.db.models.functions import Concat
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -264,7 +264,9 @@ class ProposalPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if is_internal(self.request):
-            return Proposal.objects.exclude(processing_status="hidden")
+            return Proposal.objects.exclude(processing_status="hidden").select_related(
+                "application_type", "applicant", "approval", "previous_application"
+            )
         elif user.is_authenticated:
             user_orgs = [org.id for org in user.disturbance_organisations.all()]
             qs = Proposal.objects.exclude(processing_status="hidden").filter(
@@ -1389,12 +1391,27 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def get_queryset(self):
         user = self.request.user
         if is_internal(self.request):
-            return Proposal.objects.filter(
-                application_type__name__in=[
-                    ApplicationType.APIARY,
-                    ApplicationType.SITE_TRANSFER,
-                    ApplicationType.TEMPORARY_USE,
-                ]
+            return (
+                Proposal.objects.filter(
+                    application_type__name__in=[
+                        ApplicationType.APIARY,
+                        ApplicationType.SITE_TRANSFER,
+                        ApplicationType.TEMPORARY_USE,
+                    ]
+                )
+                .select_related("apiary_temporary_use", "application_type")
+                .prefetch_related(
+                    Prefetch(
+                        "apiary_temporary_use__temporary_use_apiary_sites",
+                        queryset=TemporaryUseApiarySite.objects.select_related(
+                            "apiary_site_on_approval",
+                            "apiary_site_on_approval__apiary_site",
+                            "apiary_site_on_approval__site_category",
+                            "apiary_site_on_approval__approval",
+                            "apiary_site_on_approval__approval__applicant",
+                        ),
+                    )
+                )
             )
         elif user.is_authenticated:
             user_orgs = [org.id for org in user.disturbance_organisations.all()]
@@ -1424,7 +1441,6 @@ class ProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def temporary_use_apiary_sites(self, request, *args, **kwargs):
         instance = self.get_object()
         qs = TemporaryUseApiarySite.objects.filter(proposal_apiary_temporary_use=instance.apiary_temporary_use)
-
         data = list(annotate_temporary_use_apiary_site(qs))
         return Response(data)
 
