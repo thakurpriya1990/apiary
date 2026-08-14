@@ -7,6 +7,7 @@ from disturbance.components.proposals import models, forms
 from disturbance.components.main.models import SystemMaintenance, ApplicationType, ApiaryGlobalSettings
 from reversion.admin import VersionAdmin
 from disturbance.helpers import is_apiary_admin
+from django.db.models import Count
 
 
 @admin.register(models.ProposalType)
@@ -52,9 +53,62 @@ class ApiaryAnnualRentalFeePeriodStartDateAdmin(admin.ModelAdmin):
         return actions
 
 
+class ApiarySiteOnProposalInline(admin.TabularInline):
+    model = models.ApiarySiteOnProposal
+    extra = 0
+    raw_id_fields = ("apiary_site",)  # Prevent loading all ApiarySites into dropdowns
+
+
 @admin.register(models.ProposalApiary)
 class ProposalApiaryAdmin(VersionAdmin):
-    list_display = ['id', 'proposal']
+    list_display = [
+        'id',
+        'title',
+        'proposal',
+        "proposal_processing_status",
+        'apiary_sites_count',
+    ]
+    search_fields = ["id", "title", "proposal__lodgement_number"]
+    list_filter = ["proposal__processing_status"]
+    inlines = [ApiarySiteOnProposalInline]
+
+    exclude = (
+        "location",
+        "latitude",
+        "longitude",
+    )
+
+    # Prevent Django from loading all related records into <select> dropdowns
+    raw_id_fields = (
+        "proposal",
+        "transferee",
+        "originating_approval",
+        "target_approval",
+        "target_approval_organisation",
+    )
+
+    # Optimize changelist queries
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Fetch related models to prevent N+1 queries and compute sites count in a single query
+        return qs.select_related(
+            "proposal",
+            "originating_approval",
+            "target_approval",
+            "target_approval_organisation",
+        ).annotate(sites_count=Count("apiary_sites", distinct=True))
+
+    @admin.display(description="Processing Status", ordering="proposal__processing_status")
+    def proposal_processing_status(self, obj):
+        # Display human-readable label (e.g. 'With Assessor' instead of 'with_assessor')
+        if obj.proposal:
+            return obj.proposal.get_processing_status_display()
+        return "-"
+
+    @admin.display(description="Apiary Sites Count", ordering="sites_count")
+    def apiary_sites_count(self, obj):
+        # Retrieve the precomputed count from the annotated queryset
+        return obj.sites_count
 
 
 @admin.register(models.Proposal)
