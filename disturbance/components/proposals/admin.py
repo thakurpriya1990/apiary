@@ -61,8 +61,15 @@ class ApiarySiteOnProposalInline(admin.TabularInline):
 
 @admin.register(models.ProposalApiary)
 class ProposalApiaryAdmin(VersionAdmin):
-    list_display = ['id', 'title', 'proposal', 'apiary_sites_count',]
+    list_display = [
+        'id',
+        'title',
+        'proposal',
+        "proposal_processing_status",
+        'apiary_sites_count',
+    ]
     search_fields = ["id", "title", "proposal__lodgement_number"]
+    list_filter = ["proposal__processing_status"]
     inlines = [ApiarySiteOnProposalInline]
 
     exclude = (
@@ -90,6 +97,13 @@ class ProposalApiaryAdmin(VersionAdmin):
             "target_approval",
             "target_approval_organisation",
         ).annotate(sites_count=Count("apiary_sites", distinct=True))
+
+    @admin.display(description="Processing Status", ordering="proposal__processing_status")
+    def proposal_processing_status(self, obj):
+        # Display human-readable label (e.g. 'With Assessor' instead of 'with_assessor')
+        if obj.proposal:
+            return obj.proposal.get_processing_status_display()
+        return "-"
 
     @admin.display(description="Apiary Sites Count", ordering="sites_count")
     def apiary_sites_count(self, obj):
