@@ -670,8 +670,15 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     @property
     def relevant_applicant_address(self):
         if self.applicant:
+            if not hasattr(self.applicant, "address") or not self.applicant.address:
+                logger.warning(f"Applicant {self.applicant} does not have an address.")
+                return {}
             return self.applicant.address
         elif self.proxy_applicant:
+            if not hasattr(self.proxy_applicant, "residential_address") or not self.proxy_applicant.residential_address:
+                logger.warning(f"Proxy applicant {self.proxy_applicant} does not have a residential address.")
+                return {}
+
             data = model_to_dict(
                 self.proxy_applicant.residential_address,
                 fields=["line1", "locality", "state", "postcode"],
@@ -679,6 +686,10 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             data["country"] = self.proxy_applicant.residential_address.country.code
             return data
         else:
+            if not hasattr(self.submitter, "residential_address") or not self.submitter.residential_address:
+                logger.warning(f"Submitter {self.submitter} does not have a residential address.")
+                return {}
+
             data = model_to_dict(
                 self.submitter.residential_address,
                 fields=["line1", "locality", "state", "postcode"],
@@ -3561,7 +3572,6 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
         compliance_list = Compliance.objects.filter(proposal__in=apiary_proposals).filter(compliance_query)
 
         for c in compliance_list:
-
             # Safely navigate the nested proposal relation to extract the applicant's name
             applicant_name = ""
             if c.proposal and c.proposal.applicant:
